@@ -1,0 +1,408 @@
+-------------------------------------------------------------------------------
+nuBASIC - http://www.nubasic.eu - https://sourceforge.net/projects/nubasic/
+(c) Antonino Calderone <acaldmail@gmail.com> - 2014, 2015
+-------------------------------------------------------------------------------
+
+nuBASIC is an implementation of an interpreter of the BASIC programming 
+language distributed under GPLv2 License.
+It has been designed mainly for educational purposes both for C++ developers 
+that can deal with a non-trivial example of C++11 programming and for nuBASIC's
+users, that may get hooked on programming.
+
+nuBASIC is suitable for simple games, educational or small business programs.
+
+-------------------------------------------------------------------------------
+Features
+-------------------------------------------------------------------------------
+- Free and Open Source (distributed under GPLv2 License)
+- Easy to use and simple enough for 8-year-old-child to understand
+- Fully-developed procedural programming language
+- Multiplatform. Runs on 32-bit and 64-bit Linux/Windows x86/amd64
+- Built-in help
+- Documented (English and Italian Guides)
+- Syntax Highlighting Editor and Debugger (IDE) for Windows
+- Examples include Tetris, Mine Hunter, Breakout, Calculator, TicTacToe
+- Tiny version is suitable for embedded systems
+
+-------------------------------------------------------------------------------
+Latest released packages
+-------------------------------------------------------------------------------
+Linux Installers:
+RPM (Fedora) 64 bit Installer - nubasic-1.30-1.fc21.x86_64.rpm
+Debian / Ubuntu 64 bit Installer - nubasic_1.30-1_amd64.deb
+
+Windows Installers:
+* Windows 64 bit Installer (VC++ build) - nubasic-ide-1.30-setup_x64.zip
+* Windows 32 bit Installer (VC++ build) - nubasic-ide-1.30-setup.zip
+
+* Windows 64 bit Installer (MinGW build) - nubasic-1.30-setup_x64.zip
+
+Source code:
+* Interpreter and IDE source code: nubasic-1.30.tar.gz
+* Examples: examples_1.30.tar.bz2
+
+Guides (PDF, ODT):
+* nuBASIC Guide (ENG)
+* nuBASIC Guide (ITA)
+
+(See also http://www.nubasic.eu/download)
+
+-------------------------------------------------------------------------------
+How to download and install?
+-------------------------------------------------------------------------------
+You can download the latest released version from  Source Forge.
+Both nuBASIC binary autoinstallers and gzipped tar archive containing all 
+source files can be downloaded from Sourceforge.net - nuBASIC project. 
+
+-------------------------------------------------------------------------------
+How to build it?
+-------------------------------------------------------------------------------
+nuBASIC source has been written in C++11 and compiles under several operating 
+systems including Windows and Linux. 
+
+To compile nuBASIC you may create a Visual Studio 2013 console application or 
+build it by using GCC >= 4.8.1 (both VS project files and autoconf/automake 
+source files have been provided) or using MinGW / MinGW w64 >= 4.8.x
+
+* Getting the latest released code
+You can download source package nubasic-<ver>.tar.gz at link 
+
+https://sourceforge.net/projects/nubasic/files/source%20code/
+
+To build nuBASIC you have:
+- Download and uncompress the tarball.
+- Enter the package-name directory where you uncompressed it, 
+and just type the following commands:
+
+./configure
+make
+sudo make install
+
+The source code is laso managed using the git version control system. 
+To get your own copy of the project sources, use the following command.
+
+git clone git://git.code.sf.net/p/nubasic/code nubasic-code
+
+If the git protocol is blocked by your local area network, then you can 
+use the alternative HTTP protocol instead.
+
+git clone http://git.code.sf.net/p/nubasic/code nubasic-code
+
+
+To build nuBASIC you need to install GNU GCC Compiler and Development 
+Environment.
+To do that, for example, using a Debian/Ubuntu type the following 
+apt-get command as root user:
+
+sudo apt-get install build-essential
+
+Unless you configure nuBASIC to create the "tiny" version 
+(./configure --enable-tinyver), you have to install following 
+additional packages: libx11-dev, sdl2-dev, xmessage, xterm
+
+* Install script for development libs:
+
+sudo apt-get -y install libx11-dev
+sudo apt-get install libsdl2-dev
+sudo apt-get install xterm
+sudo apt-get install xmessage
+
+* See also
+Ubuntu: https://help.ubuntu.com/community/InstallingCompilers
+
+Others: 
+http://www.rpmfind.net/linux/rpm2html/search.php?query=gcc-c%2b%2b
+http://rpmfind.net/linux/RPM/Development_Libraries_X11.html
+
+* Building nuBASIC in a separate 'build' directory
+To separate source and build directories you have to create the build 
+directory anywhere you want and call configure from there. 
+This will then build the code in the build directory you have created
+
+Example:
+
+mkdir your_nubasic_build_dir
+cd your_nubasic_build_dir
+your_nubasic_source_dir/configure
+make
+make install
+
+-------------------------------------------------------------------------------
+Windows Installer packages
+-------------------------------------------------------------------------------
+You can download setup*.zip packages, that are standalone binary installers, 
+following the link 
+
+https://sourceforge.net/projects/nubasic/files/binary/Windows/
+
+
+* Installing nuBASIC for Windows
+
+To install nuBASIC, double-click on the setup.exe contained in the zipped 
+file, and follow the instructions. 
+
+Different precompiled nuBASIC versions are provided:
+
+- nubasic-and-editor-<ver>-setup_x64.zip (64 bit)
+- nubasic-and-editor-<ver>-setup.zip (32 bit)
+
+This version has been built by using Microsoft Visual C++ 2013 
+It includes a syntax highlighting editor based on Scintilla 
+(http://www.scintilla.org/)
+In this case, you may need to install Visual C++ Redistributable Packages.
+To do this, search for "Visual C++ Redistributable Packages for Visual Studio 
+2013" or use the following link 
+http://www.microsoft.com/en-us/download/details.aspx?id=4078
+
+nubasic-<ver>-setup.zip (64 bit)
+This version has been built by using 64bit version of MinGW 
+MinGW DLL/runtime executables are installed as well via setup provided here. 
+You don't need to download or install additional third-party packages
+
+-------------------------------------------------------------------------------
+Windows Installation Prerequisites
+-------------------------------------------------------------------------------
+To install successfully nuBASIC (VC++ builds) Visual C++ Redistributable 
+Packages are required.
+
+
+-------------------------------------------------------------------------------
+Linux Installation Prerequisites
+-------------------------------------------------------------------------------
+To install nuBASIC (full version) the following software components are 
+required on the installation system:
+X11 - X Windowing System (including xterm, xmessage)
+
+* Simple DirectMedia Layer 2
+The Simple DirectMedia Layer 2 (SDL2) - https://www.libsdl.org/ library is needed 
+from version 1.12 to version 1.16 of nuBASIC. Next releases don't need it.
+It provides sound facility for implementing PlaySound function.
+
+To install SDL2 on Debian/Ubuntu use the following command:
+
+$ sudo apt-get install libsdl2-2.0-0
+
+See also:
+http://packages.ubuntu.com/search?suite=default&section=all&arch=any&keywords=libsdl2&searchon=names
+
+To install SDL2 on Fedora/Centos use the following command:
+
+$ yum install SDL2-devel
+
+You may compile nuBASIC either enabling or disabling SDL2 support 
+(--enable-sdl2 configure switch is provided). SDL2 support is disabled for default.
+In case of disabling SDL2 support, you need "aplay" external tool in order to exec 
+PlaySound function.
+
+The program aplay is generally part of most basic Linux distributions.
+
+Other dipendencies
+nuBASIC (full version for Linux) relies on stb_image.h part of 
+STB library (https://github.com/nothings/stb)
+
+-------------------------------------------------------------------------------
+Introduction to nuBASIC
+-------------------------------------------------------------------------------
+nuBASIC program is an implementation of an interpreter of the programming 
+language nuBASIC.
+As the name suggests, nuBASIC is a programming language from the BASIC family.
+Anyone who has previously worked with other BASIC languages will quickly become 
+accustomed to nuBASIC.
+Large sections of the basic constructs of nuBASIC are compatible with 
+other BASIC dialects.
+
+The interpreter has been designed mainly for educational purposes both for C++ 
+developers that can deal with a nontrivial example of C++11 programming and 
+for other users which may get hooked on programming.
+nuBASIC is also very simple. It is an excellent tool for teaching programming 
+to a complete beginner, despite this, it has all the features of a modern 
+programming language.
+
+nuBASIC allows you to write both classic BASIC programs (which use line 
+numbers and GoTo or GoSub control structures) and procedure oriented 
+programs, based on procedural programming paradigm.
+
+The following two implementations of Rosetta Code example (the Rosetta 
+stone of Fractal geometry is the Mandelbrot set) run correctly on 
+nuBASIC interpreter:
+
+---- Implementation 1 ----
+
+5  Rem Rosetta.bas
+10 For x0 = -2 To 2 Step .01
+20 For y0 = -1.5 To 1.5 Step .01
+30 x = 0
+40 y = 0
+50 iteration = 0
+60 maxIteration = 223
+70 xtemp = x*x-y*y+x0
+80 y = 2*x*y+y0
+90 x = xtemp
+100 iteration = iteration + 1
+110 If ((x*x+y*y<=4) And (iteration < maxIteration)) Then GoTo 70
+120 If iteration <> maxIteration Then c = iteration Else c = 0
+130 d%=150: dx%=300 : dy%=300
+140 FillRect x0*d%+dx%,y0*d%+dy%,x0*d%+dx%+2,y0*d%+dy%+2,int(c)*16
+150 Next y0
+160 Next x0
+
+---- Implementation 2 ----
+
+' Rosetta.bas
+
+For x0 = -2 To 2 Step .01
+   For y0 = -1.5 To 1.5 Step .01
+      x = 0
+      y = 0
+      iteration = 0
+      maxIteration = 223
+
+      While ((x*x+y*y<=4) And (iteration < maxIteration)) 
+         xtemp = x*x-y*y+x0
+         y = 2*x*y+y0
+         x = xtemp
+         iteration = iteration + 1
+      End While
+
+      If iteration <> maxIteration Then
+         c = iteration 
+      Else 
+         c = 0
+      End If
+
+      d%=150 
+      dx%=300
+      dy%=300 
+
+      FillRect x0*d%+dx%,y0*d%+dy%,x0*d%+dx%+2,y0*d%+dy%+2,int(c)*16
+    Next y0
+Next x0
+
+-------------------------------------------------------------------------------
+Use of nuBASIC
+-------------------------------------------------------------------------------
+nuBASIC can be used by any user without any additional programs. 
+
+It has the components needed to create programs, including: 
+
+- The command line interpreter (CLI), which provides an inline-editor for 
+  creating and testing programs. 
+- The language interpreter, which is needed to run nuBASIC programs. 
+- Integrated Development Environment for Windows.
+
+-------------------------------------------------------------------------------
+nuBASIC programming language
+-------------------------------------------------------------------------------
+
+The nuBASIC programming language can be divided into two components:
+- The language of nuBASIC, which defines the elementary linguistic constructs, 
+  for example, for variable declarations and loops.
+- The built-in function library which provides standard functions for example, 
+  functions for modifying numbers and strings, and files.
+
+
+-------------------------------------------------------------------------------
+Code samples
+-------------------------------------------------------------------------------
+Samples distributed with nuBASIC include:
+* Breakout, Breakout2, Breakout3 (different implemntation os Breakout game) 
+* Calc (Interactive Calculator)
+* Graph, Graph2
+* Line
+* Minehunter (clone of a  popular game)
+* nuTris, nuTris3D (clones of Tetris)
+* Ray (a simple raycast 3D engine)
+* Rosetta (Rosetta Code - Mandelbrot Set)
+* TicTacToe
+
+You can find nuBASIC samples by following this link :
+https://sourceforge.net/projects/nubasic/files/examples
+
+
+-------------------------------------------------------------------------------
+Command Line Interface
+-------------------------------------------------------------------------------
+The user interface of the nuBASIC interpreter is a command-line environment 
+which, for example, has commands to Run, Load, Save, List the current program, 
+or quit to the shell, Exit. 
+These commands cannot be used as program statements. 
+In addition to the list of commands, the CLI interprets nuBASIC instructions 
+on-the-fly. 
+This characteristic is especially useful for debugging purposes.
+
+For example, you may inspect content of a variable by printing out its value, 
+as follows:
+
+Print variable
+
+-------------------------------------------------------------------------------
+Help
+-------------------------------------------------------------------------------
+The CLI also contains an online help system to provide descriptions and syntax 
+for each command via the Help and Apropos commands. 
+Giving no argument to Help, it lists all operators, keywords, 
+built-in functions, available in nuBASIC divided into four categories: 
+commands, instructions, functions and operators. 
+Giving as argument a keyword, Help displays the help text for that keyword. 
+
+For example, the command help open prints out a text describing the Print 
+statement, as follows: 
+
+ help print
+ 
+ Print [list of expressions][;]
+ 
+ Prints list of expressions to standard output
+ If list of expressions is omitted, a blank line is displayed
+ If list of expressions is included, the values of the expressions are 
+ displayed.
+ Expressions in the list may be numeric and/or string expressions, 
+ separated by commas or semicolons.
+ A question mark (?) may be used in place of the word Print when it is the 
+ first statement in the immediate-mode editing.
+
+Literal strings in the list must be enclosed in double quotation marks.
+
+Apropos is command to search help content. It is used to search all help 
+data for the string specified. This is often useful if one knows the 
+action that is desired, but does not remember the exact command.
+
+The following example demonstrates the output of the Apropos command: 
+
+ apropos file
+ exec        Loads and runs a program file
+ load        Loads a program file in memory
+ save        Saves current program to file
+ close       Terminates input/output to a file.
+ flush       Shall cause any unwritten data for that file number to be ...
+ fopen       Establishes input/output (I/O) to a file.
+ input#      Inputs data from file that will be placed into a list of ...
+ open        Establishes input/output (I/O) to a file.
+ plotimage   Loads and draws a bitmap from file on the screen starting ...
+ print#      Prints list of expressions to file (0-standard output)
+ read        Reads data from file that will be placed into a variable.
+ seek        Moves the file pointer to a specified location
+ write#      Prints list of expressions to file (0-standard output)
+ eof         Checks the end-of-file indicator.
+ erase       Deletes file from disk
+ ferror      Tests for an error on a file.
+ fsize       Returns the current size in bytes of the file
+ ftell       Returns the current value of the position indicator of the file
+ playsound   Plays a sound (wav) specified by the given file name
+
+
+-------------------------------------------------------------------------------
+THIS SOFTWARE IS PROVIDED BY THE AUTHORS AND CONTRIBUTORS ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+-------------------------------------------------------------------------------
+
+Please send your questions or comments to: acaldmail@gmail.com

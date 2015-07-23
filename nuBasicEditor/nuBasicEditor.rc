@@ -1,0 +1,242 @@
+/*
+ *  This file is part of nuBASIC Editor
+ *
+ *  nuBASIC is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  nuBASIC is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with nuBASIC; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  US
+ *
+ *  Author: <antonino.calderone@ericsson.com>, <acaldmail@gmail.com>
+ *
+ */
+
+
+#include "winuser.h"
+#include "resource.h"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// English resources
+//
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_GOTOLINE DIALOGEX 0, 0, 186, 56
+STYLE DS_SETFONT | DS_CENTER | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Goto line"
+FONT 8, "Tahoma", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+    LTEXT           "Go to line number",-1,10,11,53,8
+    EDITTEXT        IDC_LINE,67,9,40,14,ES_AUTOHSCROLL | ES_NUMBER
+END
+
+
+IDD_DIALOG_RUNNING DIALOGEX 0, 0, 300, 70
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Program running..."
+FONT 8, "Tahoma", 0, 0, 0x1
+BEGIN
+   DEFPUSHBUTTON   "OK", IDOK, 240, 55, 50, 14, BS_CENTER
+   LTEXT           "Press OK to break running program", IDC_STATIC, 4, 4, 130, 11
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_GOTOLINE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Inglese (Stati Uniti) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+NUBASICEDITOR MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N",                IDM_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            IDM_FILE_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "&Save\tCtrl+S",               IDM_FILE_SAVE
+        MENUITEM "Save &As...",                 IDM_FILE_SAVEAS
+        MENUITEM "E&xit",                       IDM_FILE_EXIT
+    END
+    
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               IDM_EDIT_UNDO
+        MENUITEM "&Redo\tCtrl+Y",               IDM_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                IDM_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               IDM_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              IDM_EDIT_PASTE
+        MENUITEM "&Delete\tDel",                IDM_EDIT_DELETE
+        MENUITEM "Select A&ll\tCtrl+A",         IDM_EDIT_SELECTALL
+    END
+    
+    POPUP "Se&ttings"
+    BEGIN
+        MENUITEM "&Font...",                    IDM_SETTINGS_FONT
+        MENUITEM SEPARATOR
+        MENUITEM "&Reset default",              IDM_SETTINGS_RESETDEFAULTS
+    END
+
+    POPUP "&Search"
+    BEGIN
+        MENUITEM "&Go to line...\tF2",          IDM_SEARCH_GOTOLINE
+        MENUITEM SEPARATOR
+        MENUITEM "&Find...\tF3",                IDM_SEARCH_FIND
+        MENUITEM "Find and &Replace...\tCtrl+F3",IDM_SEARCH_FINDANDREPLACE
+        MENUITEM SEPARATOR
+        MENUITEM "&Add/Remove marker\tCtrl+F7",      IDM_SEARCH_ADDMARKER
+        MENUITEM "Find &next marker\tCtrl+F8",       IDM_SEARCH_FINDNEXTMARKER
+        MENUITEM "Find &previous marker\tCtrl+F9",   IDM_SEARCH_FINDPREVIOUSMARKER
+        MENUITEM SEPARATOR
+        MENUITEM "&Remove all markers",         IDM_SEARCH_DELALLMARKERS
+    END
+
+    POPUP "&Debug"
+    BEGIN
+        MENUITEM "&Build program\tCtrl+B", IDM_INTERPRETER_BUILD
+        MENUITEM SEPARATOR
+        MENUITEM "&Start Debugging\tF5",IDM_DEBUG_START
+        MENUITEM "Continue Debugging\tF8", IDM_DEBUG_CONT
+        MENUITEM "Step\tF10", IDM_DEBUG_STEP
+        MENUITEM "Evaluate Selection\tF11", IDM_DEBUG_EVALSEL
+        MENUITEM SEPARATOR
+        MENUITEM "Start &Without Debugging\tCtrl+F5", IDM_DEBUG_RUN
+        MENUITEM SEPARATOR
+        MENUITEM "&Toggle Breakpoint\tF9", IDM_DEBUG_TOGGLEBRK
+        MENUITEM "&Delete all Breakpoints", IDM_DEBUG_REMOVEALLBRK
+        MENUITEM SEPARATOR
+        MENUITEM "Go to Program Counter", IDM_DEBUG_GOTO_PC
+        MENUITEM SEPARATOR
+    END
+
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help on selection\tF1", IDM_HELP_SEARCH_KEYWORD
+        MENUITEM SEPARATOR
+        MENUITEM "&About nuBASIC", IDM_ABOUT_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+NUBASICEDITOR ACCELERATORS
+BEGIN
+    VK_F1,          IDM_HELP_SEARCH_KEYWORD, VIRTKEY, NOINVERT
+    VK_F5,          IDM_DEBUG_START, VIRTKEY, NOINVERT
+    VK_F5,          IDM_DEBUG_RUN, VIRTKEY, CONTROL, NOINVERT
+    VK_F8,          IDM_DEBUG_CONT, VIRTKEY, NOINVERT
+    VK_F10,         IDM_DEBUG_STEP, VIRTKEY, NOINVERT
+    VK_F2,          IDM_SEARCH_GOTOLINE,     VIRTKEY, NOINVERT
+    VK_F3,          IDM_SEARCH_FIND,         VIRTKEY, NOINVERT
+    VK_F3,          IDM_SEARCH_FINDANDREPLACE, VIRTKEY, CONTROL, NOINVERT
+    VK_F7,          IDM_SEARCH_ADDMARKER, VIRTKEY, CONTROL, NOINVERT
+    VK_F8,          IDM_SEARCH_FINDNEXTMARKER, CONTROL,  VIRTKEY, NOINVERT
+    VK_F9,          IDM_SEARCH_FINDPREVIOUSMARKER, CONTROL, VIRTKEY, NOINVERT
+    VK_F9,          IDM_DEBUG_TOGGLEBRK,    VIRTKEY, NOINVERT
+    "B",            IDM_INTERPRETER_BUILD, VIRTKEY, CONTROL, NOINVERT
+    "C",            IDM_EDIT_COPY,          VIRTKEY, CONTROL, NOINVERT
+    "X",            IDM_EDIT_CUT,           VIRTKEY, CONTROL, NOINVERT
+    VK_DELETE,      IDM_EDIT_DELETE,        VIRTKEY, NOINVERT
+    "V",            IDM_EDIT_PASTE,         VIRTKEY, CONTROL, NOINVERT
+    "Y",            IDM_EDIT_REDO,          VIRTKEY, CONTROL, NOINVERT
+    "A",            IDM_EDIT_SELECTALL,     VIRTKEY, CONTROL, NOINVERT
+    "Z",            IDM_EDIT_UNDO,          VIRTKEY, CONTROL, NOINVERT
+    "N",            IDM_FILE_NEW,           VIRTKEY, CONTROL, NOINVERT
+    "O",            IDM_FILE_OPEN,          VIRTKEY, CONTROL, NOINVERT
+    "S",            IDM_FILE_SAVE,          VIRTKEY, CONTROL, NOINVERT
+    VK_F2,          IDD_GOTOLINE,           VIRTKEY, NOINVERT
+    VK_F12,         IDC_AUTOCOMPLETE,       VIRTKEY, NOINVERT
+    VK_F11,         IDM_DEBUG_EVALSEL, VIRTKEY, NOINVERT
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_NUBASIC_ICON               ICON                    "nuBasic.ico"
+/////////////////////////////////////////////////////////////////////////////
+
+IDI_NUBASIC_SPLASH             BITMAP                  "nubasic.bmp"
+IDI_NUBASIC_TOOLBAR            BITMAP                  "toolbar.bmp"
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

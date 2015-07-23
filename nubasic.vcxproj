@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug64|Win32">
+      <Configuration>Debug64</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug64|x64">
+      <Configuration>Debug64</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release64|Win32">
+      <Configuration>Release64</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release64|x64">
+      <Configuration>Release64</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{E0C5DA15-A4C6-4FB4-BAC6-92DEB60B6B49}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>nubasic</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug64|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug64|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release64|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release64|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug64|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug64|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release64|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release64|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug64|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug64|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release64|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release64|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <EnableManagedIncrementalBuild>true</EnableManagedIncrementalBuild>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <BrowseInformation>true</BrowseInformation>
+      <AdditionalIncludeDirectories>..\scintilla; ..</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug64|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <BrowseInformation>true</BrowseInformation>
+      <AdditionalIncludeDirectories>..\scintilla; ..</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <BrowseInformation>true</BrowseInformation>
+      <AdditionalIncludeDirectories>$(BOOST_ROOT);</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug64|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Custom</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <BrowseInformation>true</BrowseInformation>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>$(BOOST_ROOT);</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MinSpace</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <MinimalRebuild>true</MinimalRebuild>
+      <AdditionalIncludeDirectories>..\scintilla; ..</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release64|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MinSpace</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <MinimalRebuild>true</MinimalRebuild>
+      <AdditionalIncludeDirectories>..\scintilla; ..</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <AdditionalIncludeDirectories>$(BOOST_ROOT);</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release64|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>$(BOOST_ROOT);</AdditionalIncludeDirectories>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="nu_error_codes.cc" />
+    <ClCompile Include="nu_expr_function.cc" />
+    <ClCompile Include="nu_expr_parser.cc" />
+    <ClCompile Include="nu_expr_subscrop.cc" />
+    <ClCompile Include="nu_expr_tknzr.cc" />
+    <ClCompile Include="nu_expr_syntax_tree.cc" />
+    <ClCompile Include="nu_eval_expr.cc" />
+    <ClCompile Include="nu_expr_unary_op.cc" />
+    <ClCompile Include="nu_global_function_tbl.cc" />
+    <ClCompile Include="nu_file_dscrptr_tbl.cc" />
+    <ClCompile Include="nu_for_loop_rtdata.cc" />
+    <ClCompile Include="nu_icstring.cc" />
+    <ClCompile Include="nu_instrblock_metadata.cc" />
+    <ClCompile Include="nu_interpreter.cc" />
+    <ClCompile Include="nu_lxa.cc" />
+    <ClCompile Include="main.cc" />
+    <ClCompile Include="nu_builtin_help.cc" />
+    <ClCompile Include="nu_os_gdi.cc" />
+    <ClCompile Include="nu_label_tbl.cc" />
+    <ClCompile Include="nu_proc_scope.cc" />
+    <ClCompile Include="nu_program.cc" />
+    <ClCompile Include="nu_reserved_keywords.cc" />
+    <ClCompile Include="nu_rt_prog_ctx.cc" />
+    <ClCompile Include="nu_signal_handling.cc" />
+    <ClCompile Include="nu_stdlib.cc" />
+    <ClCompile Include="nu_stmt.cc" />
+    <ClCompile Include="nu_stmt_beep.cc" />
+    <ClCompile Include="nu_stmt_call.cc" />
+    <ClCompile Include="nu_stmt_close.cc" />
+    <ClCompile Include="nu_stmt_cls.cc" />
+    <ClCompile Include="nu_stmt_do.cc" />
+    <ClCompile Include="nu_stmt_else.cc" />
+    <ClCompile Include="nu_stmt_empty.cc" />
+    <ClCompile Include="nu_stmt_end.cc" />
+    <ClCompile Include="nu_stmt_endfunction.cc" />
+    <ClCompile Include="nu_stmt_endif.cc" />
+    <ClCompile Include="nu_stmt_endsub.cc" />
+    <ClCompile Include="nu_stmt_exit_do.cc" />
+    <ClCompile Include="nu_stmt_exit_for.cc" />
+    <ClCompile Include="nu_stmt_exit_sub.cc" />
+    <ClCompile Include="nu_stmt_exit_while.cc" />
+    <ClCompile Include="nu_stmt_expr.cc" />
+    <ClCompile Include="nu_stmt_function.cc" />
+    <ClCompile Include="nu_stmt_gosub.cc" />
+    <ClCompile Include="nu_stmt_goto.cc" />
+    <ClCompile Include="nu_stmt_input_file.cc" />
+    <ClCompile Include="nu_stmt_loop_while.cc" />
+    <ClCompile Include="nu_stmt_on_goto.cc" />
+    <ClCompile Include="nu_stmt_open.cc" />
+    <ClCompile Include="nu_os_std.cc" />
+    <ClCompile Include="nu_os_console.cc" />
+    <ClCompile Include="nu_prog_ctx.cc" />
+    <ClCompile Include="nu_stmt_block.cc" />
+    <ClCompile Include="nu_stmt_delay.cc" />
+    <ClCompile Include="nu_stmt_dim.cc" />
+    <ClCompile Include="nu_stmt_for_to_step.cc" />
+    <ClCompile Include="nu_stmt_if_then_else.cc" />
+    <ClCompile Include="nu_stmt_input.cc" />
+    <ClCompile Include="nu_stmt_let.cc" />
+    <ClCompile Include="nu_stmt_locate.cc" />
+    <ClCompile Include="nu_stmt_next.cc" />
+    <ClCompile Include="nu_stmt_parser.cc" />
+    <ClCompile Include="nu_stmt_print.cc" />
+    <ClCompile Include="nu_stmt_read.cc" />
+    <ClCompile Include="nu_stmt_redim.cc" />
+    <ClCompile Include="nu_stmt_sub.cc" />
+    <ClCompile Include="nu_stmt_wend.cc" />
+    <ClCompile Include="nu_stmt_while.cc" />
+    <ClCompile Include="nu_string_tool.cc" />
+    <ClCompile Include="nu_terminal_frame.cc" />
+    <ClCompile Include="nu_token.cc" />
+    <ClCompile Include="nu_token_list.cc" />
+    <ClCompile Include="nu_variable.cc" />
+    <ClCompile Include="nu_var_scope.cc" />
+    <ClCompile Include="nu_variant.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="config.h" />
+    <ClInclude Include="nu_base_tknzr.h" />
+    <ClInclude Include="nu_basic_defs.h" />
+    <ClInclude Include="nu_error_codes.h" />
+    <ClInclude Include="nu_builtin_help.h" />
+    <ClInclude Include="nu_eval_expr.h" />
+    <ClInclude Include="nu_expr_bin.h" />
+    <ClInclude Include="nu_expr_empty.h" />
+    <ClInclude Include="nu_exception.h" />
+    <ClInclude Include="nu_expr_function.h" />
+    <ClInclude Include="nu_expr_any.h" />
+    <ClInclude Include="nu_expr_literal.h" />
+    <ClInclude Include="nu_expr_parser.h" />
+    <ClInclude Include="nu_expr_subscrop.h" />
+    <ClInclude Include="nu_expr_unary_op.h" />
+    <ClInclude Include="nu_expr_var.h" />
+    <ClInclude Include="nu_expr_syntax_tree.h" />
+    <ClInclude Include="nu_global_function_tbl.h" />
+    <ClInclude Include="nu_file_dscrptr_tbl.h" />
+    <ClInclude Include="nu_for_loop_rtdata.h" />
+    <ClInclude Include="nu_generic_functor.h" />
+    <ClInclude Include="nu_icstring.h" />
+    <ClInclude Include="nu_instrblock_metadata.h" />
+    <ClInclude Include="nu_interpreter.h" />
+    <ClInclude Include="nu_about.h" />
+    <ClInclude Include="nu_lxa.h" />
+    <ClInclude Include="nu_expr_tknzr.h" />
+    <ClInclude Include="nu_reserved_keywords.h" />
+    <ClInclude Include="nu_stdtype.h" />
+    <ClInclude Include="nu_stmt_delay.h" />
+    <ClInclude Include="nu_stmt_expr.h" />
+    <ClInclude Include="nu_stmt_on_goto.h" />
+    <ClInclude Include="nu_os_console.h" />
+    <ClInclude Include="nu_os_gdi.h" />
+    <ClInclude Include="nu_os_std.h" />
+    <ClInclude Include="nu_proc_prototype_tbl.h" />
+    <ClInclude Include="nu_proc_scope.h" />
+    <ClInclude Include="nu_program.h" />
+    <ClInclude Include="nu_runnable.h" />
+    <ClInclude Include="nu_prog_ctx.h" />
+    <ClInclude Include="nu_flag_map.h" />
+    <ClInclude Include="nu_label_tbl.h" />
+    <ClInclude Include="nu_prog_pointer.h" />
+    <ClInclude Include="nu_rt_prog_ctx.h" />
+    <ClInclude Include="nu_signal_handling.h" />
+    <ClInclude Include="nu_stdlib.h" />
+    <ClInclude Include="nu_stmt.h" />
+    <ClInclude Include="nu_stmt_beep.h" />
+    <ClInclude Include="nu_stmt_block.h" />
+    <ClInclude Include="nu_stmt_call.h" />
+    <ClInclude Include="nu_stmt_close.h" />
+    <ClInclude Include="nu_stmt_cls.h" />
+    <ClInclude Include="nu_stmt_dim.h" />
+    <ClInclude Include="nu_stmt_do.h" />
+    <ClInclude Include="nu_stmt_else.h" />
+    <ClInclude Include="nu_stmt_empty.h" />
+    <ClInclude Include="nu_stmt_end.h" />
+    <ClInclude Include="nu_stmt_endfunction.h" />
+    <ClInclude Include="nu_stmt_endif.h" />
+    <ClInclude Include="nu_stmt_endsub.h" />
+    <ClInclude Include="nu_stmt_exit_do.h" />
+    <ClInclude Include="nu_stmt_exit_for.h" />
+    <ClInclude Include="nu_stmt_exit_sub.h" />
+    <ClInclude Include="nu_stmt_exit_while.h" />
+    <ClInclude Include="nu_stmt_for_to_step.h" />
+    <ClInclude Include="nu_stmt_function.h" />
+    <ClInclude Include="nu_stmt_gosub.h" />
+    <ClInclude Include="nu_stmt_goto.h" />
+    <ClInclude Include="nu_stmt_if_then_else.h" />
+    <ClInclude Include="nu_stmt_input.h" />
+    <ClInclude Include="nu_stmt_let.h" />
+    <ClInclude Include="nu_stmt_locate.h" />
+    <ClInclude Include="nu_stmt_loop_while.h" />
+    <ClInclude Include="nu_stmt_next.h" />
+    <ClInclude Include="nu_stmt_open.h" />
+    <ClInclude Include="nu_stmt_parser.h" />
+    <ClInclude Include="nu_stmt_print.h" />
+    <ClInclude Include="nu_stmt_randomize.h" />
+    <ClInclude Include="nu_stmt_read.h" />
+    <ClInclude Include="nu_stmt_redim.h" />
+    <ClInclude Include="nu_stmt_return.h" />
+    <ClInclude Include="nu_stmt_sub.h" />
+    <ClInclude Include="nu_stmt_wend.h" />
+    <ClInclude Include="nu_stmt_while.h" />
+    <ClInclude Include="nu_string_tool.h" />
+    <ClInclude Include="nu_symbol_map.h" />
+    <ClInclude Include="nu_terminal_frame.h" />
+    <ClInclude Include="nu_token.h" />
+    <ClInclude Include="nu_tokenizer.h" />
+    <ClInclude Include="nu_token_list.h" />
+    <ClInclude Include="nu_variable.h" />
+    <ClInclude Include="nu_variant.h" />
+    <ClInclude Include="nu_var_scope.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="nubasic.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AUTHORS" />
+    <None Include="ChangeLog" />
+    <None Include="COPYING" />
+    <None Include="NEWS" />
+    <None Include="README" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
