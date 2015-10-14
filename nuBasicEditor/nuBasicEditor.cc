@@ -1573,25 +1573,18 @@ void nu::editor_t::alloc_console()
 
    SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), dwSize);
 
-   HANDLE handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
-   auto hCrt = _open_osfhandle((intptr_t)handle_out, _O_TEXT);
-   FILE* hf_out = _fdopen(hCrt, "w");
-   setvbuf(hf_out, NULL, _IONBF, 0);
-   *stdout = *hf_out;
+   // Redirect the CRT standard input, output, and error handles to the console
+   freopen("CONIN$", "r", stdin);
+   freopen("CONOUT$", "w", stdout);
+   freopen("CONOUT$", "w", stderr);
 
-   handle_out = GetStdHandle(STD_ERROR_HANDLE);
-   hCrt = _open_osfhandle((intptr_t)handle_out, _O_TEXT);
-   FILE* hf_err = _fdopen(hCrt, "w");
-   setvbuf(hf_out, NULL, _IONBF, 0);
-   *stdout = *hf_err;
-
-   HANDLE handle_in = GetStdHandle(STD_INPUT_HANDLE);
-   hCrt = _open_osfhandle((intptr_t)handle_in, _O_TEXT);
-   FILE* hf_in = _fdopen(hCrt, "r");
-   setvbuf(hf_in, NULL, _IONBF, 0);
-   *stdin = *hf_in;
-
-   std::ios::sync_with_stdio();
+   //Clear the error state for each of the C++ standard stream objects. 
+   std::wcout.clear();
+   std::cout.clear();
+   std::wcerr.clear();
+   std::cerr.clear();
+   std::wcin.clear();
+   std::cin.clear();
 }
 
 
