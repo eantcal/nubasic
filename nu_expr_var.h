@@ -73,13 +73,13 @@ public:
    }
 
 
-   virtual bool empty() const throw( ) override
+   virtual bool empty() const NU_NOEXCEPT override
    {
       return false;
    }
 
 
-   const std::string& name() const throw( )
+   const std::string& name() const NU_NOEXCEPT
    {
       return _name;
    }

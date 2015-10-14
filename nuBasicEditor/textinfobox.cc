@@ -34,7 +34,6 @@
 txtinfobox_t::txtinfobox_t(
     HWND hParentWnd, 
     HINSTANCE hInst, 
-    int id,
     const std::string& fontName,
     const int fontSize,
     DWORD dwStyle)
@@ -48,7 +47,7 @@ txtinfobox_t::txtinfobox_t(
         CW_USEDEFAULT,  // Width of the edit control window
         CW_USEDEFAULT,  // Height of the edit control window
         hParentWnd,     // Window handle to parent window
-        (HMENU)id,      // Control identifier
+        (HMENU)nullptr, // Control identifier
         hInst,          // Instance handle
         NULL);
 

@@ -87,20 +87,20 @@ public:
 
 
    //! Get begin sub-expression symbol
-   std::string subexp_begin_symbol() const throw( )
+   std::string subexp_begin_symbol() const NU_NOEXCEPT
    {
       return _subexp_begin_symb;
    }
 
    //! Get end sub-expression symbol
-   std::string subexp_end_symbol() const throw( )
+   std::string subexp_end_symbol() const NU_NOEXCEPT
    {
       return _subexp_end_symb;
    }
 
 
    //! Return expression position in the source line
-   size_t get_exp_pos() const throw( )
+   size_t get_exp_pos() const NU_NOEXCEPT
    {
       return _pos;
    }

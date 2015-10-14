@@ -104,7 +104,7 @@ public:
    std::string message(value_t);
 
 
-   static rt_error_code_t& get_instance() throw();
+   static rt_error_code_t& get_instance() NU_NOEXCEPT;
 
 private:
    static rt_error_code_t * _instance_ptr;

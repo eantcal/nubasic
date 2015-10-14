@@ -22,6 +22,7 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include "nu_cpp_lang.h"
 #include "nu_token.h"
 
 
@@ -110,7 +111,7 @@ nu::token_t::token_t(
    const std::string& id,
    tkncl_t t,
    size_t pos,
-   data_ptr_t expr_ptr) throw()
+   data_ptr_t expr_ptr) NU_NOEXCEPT
    :
    _identifier(id),
    _org_id(id),

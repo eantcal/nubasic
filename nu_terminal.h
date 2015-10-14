@@ -39,6 +39,8 @@
 #include <list>
 #include <vector>
 
+#include "nu_cpp_lang.h"
+
 
 //------------------------------------------------------------------------------
 
@@ -97,21 +99,21 @@ public:
    terminal_input_t( bool disable_stdin_echo = true ) :
       _disable_stdin_echo( disable_stdin_echo ) {}
 
-   virtual ~terminal_input_t() throw();
-   virtual int getch() const throw();
+   virtual ~terminal_input_t() NU_NOEXCEPT;
+   virtual int getch() const NU_NOEXCEPT;
 
    /*! \brief returns a nonzero value if a key has been pressed.
     *  Otherwise, it returns 0 (no events) or a
     *  negative value in case of error
     */
-   virtual int keybhit() const throw();
+   virtual int keybhit() const NU_NOEXCEPT;
 
 
    /*! \brief returns a character if a key has been pressed.
     *  Otherwise, it returns 0 (no events) or a
     *  negative value in case of error
     */
-   virtual char getrawch() const throw();
+   virtual char getrawch() const NU_NOEXCEPT;
 };
 
 
@@ -130,7 +132,7 @@ public:
    history_list_t( const svec_t & init_state = svec_t() )
       : _cursor( 0 ) {}
 
-   inline int cursor() const throw()
+   inline int cursor() const NU_NOEXCEPT
    {
       return _cursor;
    }
@@ -240,63 +242,63 @@ public:
    virtual ~terminal_t();
 
    /*! \brief Get character from stdin */
-   virtual int getch() const throw();
+   virtual int getch() const NU_NOEXCEPT;
 
    /*! \brief returns a nonzero value if a key has been pressed.
     *  Otherwise, it returns 0 (no events) or a
     *  negative value in case of error. This function is not blocking
     */
-   virtual int keybhit() const throw();
+   virtual int keybhit() const NU_NOEXCEPT;
 
    /*! \brief returns a character if a key has been pressed.
     *  Otherwise, it returns 0 (no events) or a
     *  negative value in case of error. This function is not blocking
     */
-   virtual char getrawch() const throw();
+   virtual char getrawch() const NU_NOEXCEPT;
 
    /*! \brief Return true if ch is in the list of end-of-line characters */
-   virtual bool end_of_line( int ch ) const throw();
+   virtual bool end_of_line( int ch ) const NU_NOEXCEPT;
 
    /*! \brief Return true if ch is a printable character */
-   virtual bool is_printable( int ch ) const throw();
+   virtual bool is_printable( int ch ) const NU_NOEXCEPT;
 
    /*! \brief Append the character ch to the editing string */
-   virtual void edit_putc( int ch ) throw();
+   virtual void edit_putc( int ch ) NU_NOEXCEPT;
 
    /*! \brief Process the vkey BACKSPACE */
-   virtual void edit_backspace() throw();
+   virtual void edit_backspace() NU_NOEXCEPT;
 
    /*! \brief Process the vkey CTRL+H */
-   virtual void edit_ctrl_h() throw();
+   virtual void edit_ctrl_h() NU_NOEXCEPT;
 
    /*! \brief Process the vkey DELETE */
-   virtual void edit_delete() throw();
+   virtual void edit_delete() NU_NOEXCEPT;
 
    /*! \brief Process the vkey INSERT */
-   virtual void edit_insert() throw();
+   virtual void edit_insert() NU_NOEXCEPT;
 
    /*! \brief Process the vkey RIGHT */
-   virtual void edit_right() throw();
+   virtual void edit_right() NU_NOEXCEPT;
 
    /*! \brief Process the vkey LEFT */
-   virtual void edit_left() throw();
+   virtual void edit_left() NU_NOEXCEPT;
 
    /*! \brief Process the vkey UP */
-   virtual void edit_up( ) throw();
+   virtual void edit_up( ) NU_NOEXCEPT;
 
    /*! \brief Process the vkey DOWN */
-   virtual void edit_down( ) throw();
+   virtual void edit_down( ) NU_NOEXCEPT;
 
    /*! \brief Process a new input character ch updating the
     *  editing line
     */
-   virtual void edit( int ch ) throw();
+   virtual void edit( int ch ) NU_NOEXCEPT;
 
    /*! \brief Delete the editing line */
-   virtual void delete_line( ) throw();
+   virtual void delete_line( ) NU_NOEXCEPT;
 
    /*! \brief Refresh the editing line */
-   virtual void refresh_line( ) throw();
+   virtual void refresh_line( ) NU_NOEXCEPT;
 
    /*!
     * \brief Get a text line from the terminal_input_t object
@@ -305,46 +307,46 @@ public:
     * \return the character (virtual key if not printable) that caused the
     * break of editing (see register_eol_ch)
     */
-   virtual int get_line( std::string& line, bool return_on_len_max = false ) throw();
+   virtual int get_line( std::string& line, bool return_on_len_max = false ) NU_NOEXCEPT;
 
    /* \brief Add a new code to the end-of-line code list */
-   virtual void register_eol_ch( int vch_code ) throw()
+   virtual void register_eol_ch( int vch_code ) NU_NOEXCEPT
    {
       _eol_code.insert( vch_code );
    }
 
    /* \brief Remove an existing code from the end-of-line code list */
-   virtual void unregister_eol_ch( int vch_code ) throw()
+   virtual void unregister_eol_ch( int vch_code ) NU_NOEXCEPT
    {
       _eol_code.erase( vch_code );
    }
 
    /* \brief Get Terminal flags */
-   virtual flag_mask_t get_flags() const throw()
+   virtual flag_mask_t get_flags() const NU_NOEXCEPT
    {
       return _flag;
    }
 
    /* \brief Replace Terminal flags */
-   virtual void set_flags( flag_mask_t flg = NONE ) throw()
+   virtual void set_flags( flag_mask_t flg = NONE ) NU_NOEXCEPT
    {
       _flag = flg;
    }
 
    /* \brief Replace Terminal flags */
-   virtual void set_insert_enabled( bool insert_enabled ) throw()
+   virtual void set_insert_enabled( bool insert_enabled ) NU_NOEXCEPT
    {
       _insert_enabled = insert_enabled;
    }
 
    /* \brief Set max length of editing line */
-   virtual void set_max_line_length( int max_len = 0 /* unlimted */ ) throw()
+   virtual void set_max_line_length( int max_len = 0 /* unlimted */ ) NU_NOEXCEPT
    {
       _max_line_length = max_len;
    }
 
    /* \brief Get max length of editing line (0 means unlimited) */
-   virtual int get_max_line_length() throw()
+   virtual int get_max_line_length() NU_NOEXCEPT
    {
       return _max_line_length;
    }

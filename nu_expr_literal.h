@@ -72,7 +72,7 @@ public:
    }
 
    //! Returns false for this expression type
-   virtual bool empty() const throw( ) override
+   virtual bool empty() const NU_NOEXCEPT override
    {
       return false;
    }

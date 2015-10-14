@@ -41,7 +41,7 @@ expr_function_t::expr_function_t(const std::string& name, func_args_t var) :
 
 /* -------------------------------------------------------------------------- */
 
-bool expr_function_t::empty() const throw()
+bool expr_function_t::empty() const NU_NOEXCEPT
 {
    return false;
 }

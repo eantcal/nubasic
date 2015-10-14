@@ -115,21 +115,21 @@ struct os_fillellipse_t
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_screen_width() throw( );
-int _os_get_screen_height() throw( );
+int _os_get_screen_width() NU_NOEXCEPT;
+int _os_get_screen_height() NU_NOEXCEPT;
 
-int _os_get_mouse_x() throw( );
-int _os_get_mouse_y() throw( );
-int _os_get_mouse_btn() throw( );
+int _os_get_mouse_x() NU_NOEXCEPT;
+int _os_get_mouse_y() NU_NOEXCEPT;
+int _os_get_mouse_btn() NU_NOEXCEPT;
 
 int _os_msg_box(const std::string& title, const std::string& message, int flg);
 int _os_play_sound(const std::string& filename, int flg);
 int _os_move_window(int x, int y, int dx, int dy);
 
-int _os_get_window_x() throw( );
-int _os_get_window_y() throw( );
-int _os_get_window_dx() throw( );
-int _os_get_window_dy() throw( );
+int _os_get_window_x() NU_NOEXCEPT;
+int _os_get_window_y() NU_NOEXCEPT;
+int _os_get_window_dx() NU_NOEXCEPT;
+int _os_get_window_dy() NU_NOEXCEPT;
 
 
 /* -------------------------------------------------------------------------- */

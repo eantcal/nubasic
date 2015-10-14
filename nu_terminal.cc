@@ -23,6 +23,8 @@
 /* -------------------------------------------------------------------------- */
 
 #if !defined(__MINGW32__) && !defined(_WIN32)
+
+#include "nu_cpp_lang.h"
 #include "nu_terminal.h"
 
 /* -------------------------------------------------------------------------- */
@@ -40,12 +42,12 @@ private:
    struct termios _oldt;
 
 public:
-   inline termios_reset_t() throw()
+   inline termios_reset_t() NU_NOEXCEPT
    {
       tcgetattr( STDIN_FILENO, &_oldt );
    }
 
-   inline ~termios_reset_t() throw()
+   inline ~termios_reset_t() NU_NOEXCEPT
    {
       tcsetattr( STDIN_FILENO, TCSANOW, &_oldt );
    }
@@ -58,7 +60,7 @@ public:
 struct termios_makeraw_t : public termios_reset_t
 {
 public:
-   inline termios_makeraw_t() throw()
+   inline termios_makeraw_t() NU_NOEXCEPT
    {
       struct termios new_termios;
 
@@ -76,7 +78,7 @@ public:
 struct termios_disable_echo_t : public termios_reset_t
 {
 public:
-   inline termios_disable_echo_t() throw()
+   inline termios_disable_echo_t() NU_NOEXCEPT
    {
       struct termios newt;
       tcgetattr( STDIN_FILENO, &newt );
@@ -105,7 +107,7 @@ terminal_t :: ~terminal_t()
 
 /* -------------------------------------------------------------------------- */
 
-int terminal_t :: getch() const throw()
+int terminal_t :: getch() const NU_NOEXCEPT
 {
    return _term_input.getch();
 }
@@ -113,7 +115,7 @@ int terminal_t :: getch() const throw()
 
 /* -------------------------------------------------------------------------- */
 
-int terminal_t :: keybhit() const throw()
+int terminal_t :: keybhit() const NU_NOEXCEPT
 {
    return _term_input.keybhit();
 }
@@ -121,7 +123,7 @@ int terminal_t :: keybhit() const throw()
 
 /* -------------------------------------------------------------------------- */
 
-char terminal_t :: getrawch() const throw()
+char terminal_t :: getrawch() const NU_NOEXCEPT
 {
    return _term_input.getrawch();
 }
@@ -129,7 +131,7 @@ char terminal_t :: getrawch() const throw()
 
 /* -------------------------------------------------------------------------- */
 
-bool terminal_t :: end_of_line( int ch ) const throw()
+bool terminal_t :: end_of_line( int ch ) const NU_NOEXCEPT
 {
    return _eol_code.find( ch ) != _eol_code.end();
 }
@@ -137,7 +139,7 @@ bool terminal_t :: end_of_line( int ch ) const throw()
 
 /* -------------------------------------------------------------------------- */
 
-bool terminal_t :: is_printable( int ch ) const throw()
+bool terminal_t :: is_printable( int ch ) const NU_NOEXCEPT
 {
    return ch >= terminal_input_t::SPACE && ch < terminal_input_t::BACKSPACE;
 }
@@ -145,7 +147,7 @@ bool terminal_t :: is_printable( int ch ) const throw()
 
 /* -------------------------------------------------------------------------- */
 
-void terminal_t :: edit_putc( int ch ) throw()
+void terminal_t :: edit_putc( int ch ) NU_NOEXCEPT
 {
    bool no_echo = (_flag & ECHO_DIS) == ECHO_DIS;
    bool no_accept_more_ch = false;
@@ -212,7 +214,7 @@ void terminal_t :: edit_putc( int ch ) throw()
 
 /* -------------------------------------------------------------------------- */
 
-void terminal_t :: edit_backspace() throw()
+void terminal_t :: edit_backspace() NU_NOEXCEPT
 {
    if ( _cursor > 0 )
    {
@@ -250,7 +252,7 @@ void terminal_t :: edit_backspace() throw()
 
 /* -------------------------------------------------------------------------- */
 
-void terminal_t :: edit_ctrl_h() throw()
+void terminal_t :: edit_ctrl_h() NU_NOEXCEPT
 {
    edit_backspace( );
 }
@@ -258,7 +260,7 @@ void terminal_t :: edit_ctrl_h() throw()
 
 /* -------------------------------------------------------------------------- */
 
-void terminal_t :: edit_delete() throw()
+void terminal_t :: edit_delete() NU_NOEXCEPT
 {
    if ( _cursor >= 0 && _cursor < int(_line.length()) )
    {
@@ -295,7 +297,7 @@ void terminal_t :: edit_delete() throw()
 
 /* -------------------------------------------------------------------------- */
 
-void terminal_t :: edit_right() throw()
+void terminal_t :: edit_right() NU_NOEXCEPT
 {
    if ( _cursor < int(_line.length()) )
    {
@@ -313,7 +315,7 @@ void terminal_t :: edit_right() throw()
 
 /* -------------------------------------------------------------------------- */
 
-void terminal_t :: edit_left() throw()
+void terminal_t :: edit_left() NU_NOEXCEPT
 {
    if ( _cursor > 0 )
    {
@@ -330,7 +332,7 @@ void terminal_t :: edit_left() throw()
 
 /* -------------------------------------------------------------------------- */
 
-void terminal_t :: delete_line() throw()
+void terminal_t :: delete_line() NU_NOEXCEPT
 {
    if ( (_flag & ECHO_DIS) == 0 )
    {
@@ -347,7 +349,7 @@ void terminal_t :: delete_line() throw()
 
 /* -------------------------------------------------------------------------- */
 
-void terminal_t :: refresh_line() throw()
+void terminal_t :: refresh_line() NU_NOEXCEPT
 {
    if ( (_flag & ECHO_DIS) == 0 )
    {
@@ -360,7 +362,7 @@ void terminal_t :: refresh_line() throw()
 
 /* -------------------------------------------------------------------------- */
 
-void terminal_t :: edit_up() throw()
+void terminal_t :: edit_up() NU_NOEXCEPT
 {
    if ( _history.is_empty() )
       return;
@@ -376,7 +378,7 @@ void terminal_t :: edit_up() throw()
 
 /* -------------------------------------------------------------------------- */
 
-void terminal_t :: edit_down() throw()
+void terminal_t :: edit_down() NU_NOEXCEPT
 {
    if ( _history.is_empty() )
       return;
@@ -392,7 +394,7 @@ void terminal_t :: edit_down() throw()
 
 /* -------------------------------------------------------------------------- */
 
-void terminal_t :: edit_insert () throw()
+void terminal_t :: edit_insert () NU_NOEXCEPT
 {
    _insert_enabled = !_insert_enabled;
 }
@@ -400,7 +402,7 @@ void terminal_t :: edit_insert () throw()
 
 /* -------------------------------------------------------------------------- */
 
-void terminal_t :: edit( int ch ) throw()
+void terminal_t :: edit( int ch ) NU_NOEXCEPT
 {
    if ( is_printable( ch ) )
    {
@@ -449,7 +451,7 @@ void terminal_t :: edit( int ch ) throw()
 
 /* -------------------------------------------------------------------------- */
 
-int terminal_t :: get_line( std::string& line, bool return_on_len_max ) throw()
+int terminal_t :: get_line( std::string& line, bool return_on_len_max ) NU_NOEXCEPT
 {
    if ((_flag & APPEND) == 0)
    {
@@ -500,14 +502,14 @@ int terminal_t :: get_line( std::string& line, bool return_on_len_max ) throw()
 
 // class terminal_input_t
 
-terminal_input_t :: ~terminal_input_t() throw()
+terminal_input_t :: ~terminal_input_t() NU_NOEXCEPT
 {
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-int terminal_input_t :: getch() const throw()
+int terminal_input_t :: getch() const NU_NOEXCEPT
 {
    int ch = 0;
 
@@ -574,7 +576,7 @@ int terminal_input_t :: getch() const throw()
 
 /* -------------------------------------------------------------------------- */
 
-int terminal_input_t :: keybhit() const throw()
+int terminal_input_t :: keybhit() const NU_NOEXCEPT
 {
    termios_makeraw_t makeraw_now;
 
@@ -592,7 +594,7 @@ int terminal_input_t :: keybhit() const throw()
 
 /* -------------------------------------------------------------------------- */
 
-char terminal_input_t :: getrawch() const throw()
+char terminal_input_t :: getrawch() const NU_NOEXCEPT
 {
    if ( keybhit() )
    {

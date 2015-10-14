@@ -127,7 +127,7 @@ void stmt_sub_t::define(
 
 /* -------------------------------------------------------------------------- */
 
-stmt_sub_t::stmt_cl_t stmt_sub_t::get_cl() const throw()
+stmt_sub_t::stmt_cl_t stmt_sub_t::get_cl() const NU_NOEXCEPT
 {
    return stmt_cl_t::SUB_BEGIN;
 }

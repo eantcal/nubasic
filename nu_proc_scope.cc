@@ -41,7 +41,7 @@ proc_scope_t::proc_scope_t() :
 
 /* -------------------------------------------------------------------------- */
 
-const std::string& proc_scope_t::get_scope_id() const throw()
+const std::string& proc_scope_t::get_scope_id() const NU_NOEXCEPT
 {
    static std::string _empty_string;
 
@@ -72,7 +72,7 @@ void proc_scope_t::clear()
 
 /* -------------------------------------------------------------------------- */
 
-var_scope_t::handle_t proc_scope_t::get(type_t type) const throw()
+var_scope_t::handle_t proc_scope_t::get(type_t type) const NU_NOEXCEPT
 {
    if (type == type_t::GLOBAL)
       return _global_vars;
@@ -89,7 +89,7 @@ var_scope_t::handle_t proc_scope_t::get(type_t type) const throw()
 
 /* -------------------------------------------------------------------------- */
 
-void proc_scope_t::enter_scope(const std::string& sub_name, bool fncall) throw()
+void proc_scope_t::enter_scope(const std::string& sub_name, bool fncall) NU_NOEXCEPT
 {
    auto i = _rec_tbl.find( sub_name );
 
@@ -130,7 +130,7 @@ bool proc_scope_t::is_func_call(const std::string& sub_name) const
 
 /* -------------------------------------------------------------------------- */
 
-void proc_scope_t::exit_scope() throw()
+void proc_scope_t::exit_scope() NU_NOEXCEPT
 {
    if (_scope_stack.empty())
       return;
@@ -171,7 +171,7 @@ void proc_scope_t::exit_scope() throw()
 
 /* -------------------------------------------------------------------------- */
 
-proc_scope_t::type_t proc_scope_t::get_type( const std::string& varname) const throw()
+proc_scope_t::type_t proc_scope_t::get_type( const std::string& varname) const NU_NOEXCEPT
 {
    bool global_var = _global_vars->is_defined(varname);
 

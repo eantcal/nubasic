@@ -66,7 +66,7 @@ public:
 
    ~stmt_while_t();
 
-   virtual stmt_cl_t get_cl() const throw() override;
+   virtual stmt_cl_t get_cl() const NU_NOEXCEPT override;
    virtual void run(rt_prog_ctx_t& ctx) override;
 
 protected:

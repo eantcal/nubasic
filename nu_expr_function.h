@@ -56,7 +56,7 @@ public:
    variant_t eval(rt_prog_ctx_t & ctx) const override;
 
    //! Returns false for this type of object
-   bool empty() const throw( ) override;
+   bool empty() const NU_NOEXCEPT override;
 
 protected:
    std::string _name;

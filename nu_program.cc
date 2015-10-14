@@ -386,8 +386,7 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
          _ctx.flag.set(rt_prog_ctx_t::FLG_SKIP_TILL_NEXT, flg);
       }
 
-      if (prog_ptr != _prog_line.end() &&
-            _ctx.flag[rt_prog_ctx_t::FLG_STEP_MODE_ON])
+      if (prog_ptr != _prog_line.end() && _ctx.step_mode_active)
       {
          auto & breakp = prog_ptr->second.second;
          breakp.single_step_break_point = true;

@@ -31,6 +31,8 @@
 #include <deque>
 #include <sstream>
 
+#include "nu_cpp_lang.h"
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -48,7 +50,7 @@ public:
 
    prog_pointer_t(
       line_number_t line = 0,
-      stmt_number_t stmt = 0) throw( )
+      stmt_number_t stmt = 0) NU_NOEXCEPT
       :
       _line(line),
       _line_stmt(stmt)
@@ -58,13 +60,13 @@ public:
    prog_pointer_t& operator=( const prog_pointer_t& ) = default;
 
 
-   void go_to(line_number_t line, stmt_number_t stmt = 0) throw( )
+   void go_to(line_number_t line, stmt_number_t stmt = 0) NU_NOEXCEPT
    {
       set(line, stmt);
    }
 
 
-   void set(line_number_t line, stmt_number_t stmt) throw( )
+   void set(line_number_t line, stmt_number_t stmt) NU_NOEXCEPT
    {
       _last_line = _line;
       _line = line;
@@ -78,37 +80,37 @@ public:
    }
 
 
-   line_number_t get_line() const throw( )
+   line_number_t get_line() const NU_NOEXCEPT
    {
       return _line;
    }
 
 
-   line_number_t get_last_line() const throw( )
+   line_number_t get_last_line() const NU_NOEXCEPT
    {
       return _last_line;
    }
 
 
-   int get_stmt_pos() const throw( )
+   int get_stmt_pos() const NU_NOEXCEPT
    {
       return _line_stmt;
    }
 
 
-   void reset() throw( )
+   void reset() NU_NOEXCEPT
    {
       set(0, 0);
    }
 
 
-   bool operator<( const prog_pointer_t& pp ) const throw( )
+   bool operator<( const prog_pointer_t& pp ) const NU_NOEXCEPT
    {
       return _line > pp._line || ( _line == pp._line && _line_stmt > pp._line_stmt );
    }
 
 
-   std::string to_string() const throw( )
+   std::string to_string() const NU_NOEXCEPT
    {
       return std::to_string(_line) + ":" + std::to_string(_line_stmt);
    }

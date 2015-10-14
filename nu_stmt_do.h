@@ -56,7 +56,7 @@ public:
    // LOOP WHILE <condition>
    stmt_do_t(prog_ctx_t & ctx);
 
-   virtual stmt_cl_t get_cl() const throw() override;
+   virtual stmt_cl_t get_cl() const NU_NOEXCEPT override;
    virtual void run(rt_prog_ctx_t& ctx) override;
 };
 

@@ -35,7 +35,7 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
-stmt_for_to_step_t::stmt_cl_t stmt_for_to_step_t::get_cl() const throw()
+stmt_for_to_step_t::stmt_cl_t stmt_for_to_step_t::get_cl() const NU_NOEXCEPT
 {
    return stmt_cl_t::FOR_BEGIN;
 }

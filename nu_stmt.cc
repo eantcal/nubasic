@@ -39,7 +39,7 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
-stmt_t::stmt_t(prog_ctx_t & ctx) throw( )
+stmt_t::stmt_t(prog_ctx_t & ctx) NU_NOEXCEPT
 {
    _stmt_id = ctx.make_next_stmt_id();
 }
@@ -47,7 +47,7 @@ stmt_t::stmt_t(prog_ctx_t & ctx) throw( )
 
 /* -------------------------------------------------------------------------- */
 
-stmt_t::stmt_cl_t stmt_t::get_cl() const throw()
+stmt_t::stmt_cl_t stmt_t::get_cl() const NU_NOEXCEPT
 {
    return stmt_cl_t::NA;
 }

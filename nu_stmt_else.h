@@ -55,7 +55,7 @@ public:
    virtual void run(rt_prog_ctx_t& ctx) override;
 
    //! Identifies the class of the statement
-   stmt_cl_t get_cl() const throw() override
+   stmt_cl_t get_cl() const NU_NOEXCEPT override
    {
       return stmt_cl_t::ELSE;
    }

@@ -47,13 +47,13 @@ public:
    flag_map_t& operator=( const flag_map_t& ) = default;
 
 
-   void reset_all() throw( )
+   void reset_all() NU_NOEXCEPT
    {
       _data = 0;
    }
 
 
-   void define(int id, bool val = false) throw( )
+   void define(int id, bool val = false) NU_NOEXCEPT
    {
       assert(size_t(id) < sizeof(_data) * 8);
 
@@ -67,7 +67,7 @@ public:
    }
 
 
-   bool get(int id) const throw( )
+   bool get(int id) const NU_NOEXCEPT
    {
       assert(size_t(id) < sizeof(_data) * 8);
 
@@ -80,7 +80,7 @@ public:
    }
 
 
-   inline bool operator[](int id) const throw( )
+   inline bool operator[](int id) const NU_NOEXCEPT
    {
       return get(id);
    }

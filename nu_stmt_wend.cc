@@ -80,7 +80,7 @@ void stmt_wend_t::run(rt_prog_ctx_t & ctx)
 
 /* -------------------------------------------------------------------------- */
 
-stmt_t::stmt_cl_t stmt_wend_t::get_cl() const throw()
+stmt_t::stmt_cl_t stmt_wend_t::get_cl() const NU_NOEXCEPT
 {
    return stmt_cl_t::WHILE_END;
 }

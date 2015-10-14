@@ -51,7 +51,7 @@ struct expr_any_t
    using handle_t = std::shared_ptr < expr_any_t > ;
 
    virtual variant_t eval(rt_prog_ctx_t & ctx) const = 0;
-   virtual bool empty() const throw( ) = 0;
+   virtual bool empty() const NU_NOEXCEPT = 0;
 
    virtual ~expr_any_t() {}
 };

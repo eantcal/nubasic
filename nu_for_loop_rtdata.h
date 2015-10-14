@@ -52,7 +52,7 @@ struct for_loop_ctx_t
 
    flag_map_t flag;
 
-   for_loop_ctx_t() throw( )
+   for_loop_ctx_t() NU_NOEXCEPT
    {
       flag.define(FLG_FIRST_EXEC, true);
    }

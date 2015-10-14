@@ -119,7 +119,7 @@ protected:
       bool & flg);
 
 
-   rt_prog_ctx_t& get_rt_ctx() throw( );
+   rt_prog_ctx_t& get_rt_ctx() NU_NOEXCEPT;
 
 private:
    prog_line_t & _prog_line;

@@ -19,37 +19,13 @@
 *
 */
 
+#ifndef __NU_CPP_LANG_H__
+#define __NU_CPP_LANG_H__
 
-/* -------------------------------------------------------------------------- */
+#if (defined(_MSC_VER) && _MSC_VER<=1800)
+#define NU_NOEXCEPT throw()
+#else
+#define NU_NOEXCEPT noexcept
+#endif
 
-#include "nu_rt_prog_ctx.h"
-#include "nu_stmt_empty.h"
-#include <memory>
-
-
-/* -------------------------------------------------------------------------- */
-
-namespace nu
-{
-
-
-/* -------------------------------------------------------------------------- */
-
-void stmt_empty_t::run(rt_prog_ctx_t& ctx)
-{
-   ctx.go_to_next();
-};
-
-
-/* -------------------------------------------------------------------------- */
-
-stmt_empty_t::stmt_cl_t stmt_empty_t::get_cl() const NU_NOEXCEPT
-{
-   return stmt_cl_t::EMPTY;
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-} // namespace nu
-
+#endif //__NU_CPP_LANG_H__

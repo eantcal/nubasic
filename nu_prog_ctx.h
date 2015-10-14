@@ -65,7 +65,7 @@ public:
 
    virtual ~prog_ctx_t() {}
 
-   prog_pointer_t::stmt_number_t make_next_stmt_id() throw()
+   prog_pointer_t::stmt_number_t make_next_stmt_id() NU_NOEXCEPT
    {
       // first valid id is 1
       return ++_stmt_id_cnt;
@@ -110,13 +110,13 @@ public:
    void trace_metadata(std::stringstream& ss);
 
    //Get stdout file pointer
-   FILE * get_stdout_ptr() const throw( )
+   FILE * get_stdout_ptr() const NU_NOEXCEPT
    {
       return _stdout_ptr;
    }
 
    //Get stdin file pointer
-   FILE * get_stdin_ptr() const throw( )
+   FILE * get_stdin_ptr() const NU_NOEXCEPT
    {
       return _stdin_ptr;
    }

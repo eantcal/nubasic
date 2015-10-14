@@ -133,7 +133,7 @@ bool file_dscrptr_tbl_t::close_fd(unsigned int fd)
 
 /* -------------------------------------------------------------------------- */
 
-FILE* file_dscrptr_t::data() const throw()
+FILE* file_dscrptr_t::data() const NU_NOEXCEPT
 {
    return _fptr;
 }
@@ -150,7 +150,7 @@ file_dscrptr_t::~file_dscrptr_t()
 
 /* -------------------------------------------------------------------------- */
 
-bool file_dscrptr_t::close() throw()
+bool file_dscrptr_t::close() NU_NOEXCEPT
 {
    bool ret = _fptr == nullptr ? false : fclose(_fptr) == 0;
 

@@ -50,7 +50,7 @@ void rt_error_code_t::throw_exc(
 
       err_t(int err) : _err(err) {}
 
-      int get() const throw()
+      int get() const NU_NOEXCEPT
       {
          return _err;
       }
@@ -84,7 +84,7 @@ std::string rt_error_code_t::message(value_t err_code)
 
 /* -------------------------------------------------------------------------- */
 
-rt_error_code_t& rt_error_code_t::get_instance() throw()
+rt_error_code_t& rt_error_code_t::get_instance() NU_NOEXCEPT
 {
    if (!_instance_ptr)
       _instance_ptr = new rt_error_code_t();

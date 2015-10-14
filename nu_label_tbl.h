@@ -49,12 +49,12 @@ public:
    label_tbl_t(const label_tbl_t&) = delete;
    label_tbl_t& operator=( const label_tbl_t& ) = delete;
 
-   void set_explicit_line_reference_mode() throw( )
+   void set_explicit_line_reference_mode() NU_NOEXCEPT
    {
       _explicit_line_reference = true;
    }
 
-   bool get_explicit_line_reference_mode() const throw( )
+   bool get_explicit_line_reference_mode() const NU_NOEXCEPT
    {
       return _explicit_line_reference;
    }

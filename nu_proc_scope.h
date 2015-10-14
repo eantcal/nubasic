@@ -64,22 +64,22 @@ public:
 
    //! Get current scope identifier
    //! Global scope has no-name (empty string)
-   const std::string& get_scope_id() const throw( );
+   const std::string& get_scope_id() const NU_NOEXCEPT;
 
    //! Clear all scopes and corrisponding variables
    void clear();
 
    //! Enter a new scope
-   void enter_scope(const std::string& sub_name, bool fncall) throw( );
+   void enter_scope(const std::string& sub_name, bool fncall) NU_NOEXCEPT;
 
    //! Exit a scope
-   void exit_scope() throw( );
+   void exit_scope() NU_NOEXCEPT;
 
    //! Retrieve scope-type info of a variable
-   type_t get_type(const std::string& varname) const throw( );
+   type_t get_type(const std::string& varname) const NU_NOEXCEPT;
 
    //! Get current LOCAL or GLOBAL scope
-   var_scope_t::handle_t get(type_t type = type_t::LOCAL) const throw( );
+   var_scope_t::handle_t get(type_t type = type_t::LOCAL) const NU_NOEXCEPT;
 
    //! Return true for function call, false else
    bool is_func_call(const std::string& sub_name) const;

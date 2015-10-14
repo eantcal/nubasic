@@ -49,7 +49,7 @@ stmt_do_t::stmt_do_t(prog_ctx_t & ctx)
 
 /* -------------------------------------------------------------------------- */
 
-stmt_t::stmt_cl_t stmt_do_t::get_cl() const throw()
+stmt_t::stmt_cl_t stmt_do_t::get_cl() const NU_NOEXCEPT
 {
    return stmt_cl_t::DO_BEGIN;
 }

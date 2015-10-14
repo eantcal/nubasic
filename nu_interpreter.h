@@ -74,7 +74,7 @@ protected:
    static std::string read_line(FILE * f);
 
 
-   rt_prog_ctx_t& get_rt_ctx() throw( )
+   rt_prog_ctx_t& get_rt_ctx() NU_NOEXCEPT
    {
       return _prog_ctx;
    }
@@ -135,7 +135,7 @@ public:
    virtual ~interpreter_t();
 
 
-   bool get_and_reset_break_event() throw( )
+   bool get_and_reset_break_event() NU_NOEXCEPT
    {
       volatile bool res = _break_event;
       _break_event = false;
@@ -164,7 +164,7 @@ public:
    void version();
 
 
-   prog_pointer_t::line_number_t get_cur_line_n() const throw( )
+   prog_pointer_t::line_number_t get_cur_line_n() const NU_NOEXCEPT
    {
       auto line = _prog_ctx.runtime_pc.get_line();
 
@@ -175,7 +175,7 @@ public:
    }
 
 
-   prog_pointer_t::line_number_t get_last_line_n() const throw( )
+   prog_pointer_t::line_number_t get_last_line_n() const NU_NOEXCEPT
    {
       auto line = _prog_ctx.runtime_pc.get_last_line();
 
@@ -189,7 +189,7 @@ public:
    void renum_line(std::string& line, const renum_tbl_t& renum_tbl);
 
 
-   bool is_breakpoint_active() const throw( )
+   bool is_breakpoint_active() const NU_NOEXCEPT
    {
       return _breakpoints.find(
                 _prog_ctx.runtime_pc.get_line()) != _breakpoints.end();
@@ -205,13 +205,13 @@ public:
    void clear_all();
 
 
-   const rt_prog_ctx_t& get_ctx() const throw( )
+   const rt_prog_ctx_t& get_ctx() const NU_NOEXCEPT
    {
       return _prog_ctx;
    }
 
 
-   bool has_runnable_stmt(int line) const throw( )
+   bool has_runnable_stmt(int line) const NU_NOEXCEPT
    {
       if ( line < 0 || _prog_line.empty() )
          return false;
@@ -257,13 +257,13 @@ protected:
    exec_res_t break_if(prog_pointer_t::line_number_t line, token_list_t & tl);
 
 
-   FILE* get_stdout_ptr() const throw( )
+   FILE* get_stdout_ptr() const NU_NOEXCEPT
    {
       return _stdout_ptr;
    }
 
 
-   FILE* get_stdin_ptr() const throw( )
+   FILE* get_stdin_ptr() const NU_NOEXCEPT
    {
       return _stdin_ptr;
    }

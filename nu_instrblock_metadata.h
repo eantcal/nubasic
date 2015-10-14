@@ -59,7 +59,7 @@ struct instrblock_t
       EXIT
    };
 
-   instrblock_t() throw( )
+   instrblock_t() NU_NOEXCEPT
    {
       flag.define(EXIT);
    }
@@ -96,12 +96,12 @@ protected:
    end_tbl_t          exit_tbl;     // exit-line -> begin line
 
 public:
-   bool empty() const throw( )
+   bool empty() const NU_NOEXCEPT
    {
       return begin_tbl.empty();
    }
 
-   size_t get_exit_point_cnt() const throw( )
+   size_t get_exit_point_cnt() const NU_NOEXCEPT
    {
       return exit_tbl.size();
    }

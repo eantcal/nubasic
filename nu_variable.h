@@ -26,6 +26,7 @@
 #define __NU_VARIABLE_H__
 
 #include "nu_reserved_keywords.h"
+#include "nu_cpp_lang.h"
 
 #include <string>
 #include <set>
@@ -60,7 +61,7 @@ struct variable_t
    static std::string typename_by_type(type_t type);
 
 
-   static inline bool is_number( type_t t ) throw()
+   static inline bool is_number( type_t t ) NU_NOEXCEPT
    {
       return
          t == type_t::LONG64 ||
@@ -71,7 +72,7 @@ struct variable_t
    }
 
 
-   static inline bool is_float(type_t t) throw()
+   static inline bool is_float(type_t t) NU_NOEXCEPT
    {
       return
          t == type_t::FLOAT ||
@@ -79,7 +80,7 @@ struct variable_t
    }
 
 
-   static inline bool is_integral(type_t t) throw()
+   static inline bool is_integral(type_t t) NU_NOEXCEPT
    {
       return
          t == type_t::LONG64 ||

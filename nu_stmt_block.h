@@ -58,25 +58,25 @@ public:
    {}
 
 
-   bool empty() const throw( )
+   bool empty() const NU_NOEXCEPT
    {
       return _stmts.empty();
    }
 
 
-   size_t size() const throw( )
+   size_t size() const NU_NOEXCEPT
    {
       return _stmts.size();
    }
 
 
-   int find_stmt_pos(int stmtid) const throw();
-
+   int find_stmt_pos(int stmtid) const NU_NOEXCEPT;
+   
 
    stmt_block_t& operator +=( stmt_t::handle_t stmt );
 
 
-   stmt_cl_t get_cl() const throw( ) override
+   stmt_cl_t get_cl() const NU_NOEXCEPT override
    {
       return _stmts.size() == 1 ?
              ( *_stmts.cbegin() )->get_cl() :

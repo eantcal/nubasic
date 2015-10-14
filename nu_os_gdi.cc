@@ -97,7 +97,7 @@ private:
    HBRUSH _hbr;
 
 public:
-   gdi_ctx_t() throw()
+   gdi_ctx_t() NU_NOEXCEPT
       :
       _console_hwnd(GetConsoleWindow()),
       _hdc(GetDC(GetConsoleWindow())),
@@ -110,7 +110,7 @@ public:
       gdi_iarg_t pen_color,
       brush_t brush_type,
       gdi_iarg_t brush_color,
-      gdi_iarg_t pen_width) throw()
+      gdi_iarg_t pen_width) NU_NOEXCEPT
       :
       _console_hwnd(GetConsoleWindow()),
       _hdc(GetDC(GetConsoleWindow())),
@@ -128,20 +128,20 @@ public:
 
 
 
-   HDC get_hdc() const throw()
+   HDC get_hdc() const NU_NOEXCEPT
    {
       return _hdc;
    }
 
 
 
-   ~gdi_ctx_t() throw()
-      {
+   ~gdi_ctx_t() NU_NOEXCEPT
+   {
       if (_brush == SOLID_BRUSH && _hbr)
          DeleteObject(_hbr);
 
       if (_hpen)
-      DeleteObject(_hpen);
+         DeleteObject(_hpen);
 
       ReleaseDC(_console_hwnd, _hdc);
    }
@@ -385,7 +385,7 @@ int os_plotimage_t::operator()(rt_prog_ctx_t & ctx, gdi_vargs_t args)
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_screen_width() throw()
+int _os_get_screen_width() NU_NOEXCEPT
 {
    RECT r = { 0 };
    GetClientRect(GetConsoleWindow(), &r);
@@ -395,7 +395,7 @@ int _os_get_screen_width() throw()
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_screen_height() throw()
+int _os_get_screen_height() NU_NOEXCEPT
 {
    RECT r = { 0 };
    GetClientRect(GetConsoleWindow(), &r);
@@ -405,7 +405,7 @@ int _os_get_screen_height() throw()
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_mouse_x() throw()
+int _os_get_mouse_x() NU_NOEXCEPT
 {
    POINT pt = { 0 };
    GetCursorPos(&pt);
@@ -417,7 +417,7 @@ int _os_get_mouse_x() throw()
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_mouse_y() throw()
+int _os_get_mouse_y() NU_NOEXCEPT
 {
    POINT pt = { 0 };
    GetCursorPos(&pt);
@@ -429,7 +429,7 @@ int _os_get_mouse_y() throw()
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_mouse_btn() throw()
+int _os_get_mouse_btn() NU_NOEXCEPT
 {
    int ret = 0;
 
@@ -487,7 +487,7 @@ int _os_move_window(int x, int y, int dx, int dy)
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_window_x() throw()
+int _os_get_window_x() NU_NOEXCEPT
 {
    RECT r = { 0 };
    GetWindowRect(GetConsoleWindow(), &r);
@@ -497,7 +497,7 @@ int _os_get_window_x() throw()
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_window_y() throw()
+int _os_get_window_y() NU_NOEXCEPT
 {
    RECT r = { 0 };
    GetWindowRect(GetConsoleWindow(), &r);
@@ -507,7 +507,7 @@ int _os_get_window_y() throw()
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_window_dx() throw()
+int _os_get_window_dx() NU_NOEXCEPT
 {
    RECT r = { 0 };
    GetWindowRect(GetConsoleWindow(), &r);
@@ -517,7 +517,7 @@ int _os_get_window_dx() throw()
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_window_dy() throw()
+int _os_get_window_dy() NU_NOEXCEPT
 {
    RECT r = { 0 };
    GetWindowRect(GetConsoleWindow(), &r);
@@ -719,39 +719,39 @@ protected:
 public:
 
 
-   int get_window_width() const throw()
+   int get_window_width() const NU_NOEXCEPT
    {
       return _win_width;
    }
 
 
-   int get_window_height() const throw()
+   int get_window_height() const NU_NOEXCEPT
    {
       return _win_height;
    }
 
 
-   int get_window_x() const throw()
+   int get_window_x() const NU_NOEXCEPT
    {
       getXYcoords();
       return _win_x;
    }
 
 
-   int get_window_y() const throw()
+   int get_window_y() const NU_NOEXCEPT
    {
       getXYcoords();
       return _win_y;
    }
 
 
-   int move_win(int x, int y) throw()
+   int move_win(int x, int y) NU_NOEXCEPT
    {
       return XMoveWindow(_display, _xterm_win, x,y);
    }
 
 
-   int resize_win(int dx, int dy) throw()
+   int resize_win(int dx, int dy) NU_NOEXCEPT
    {
       return XResizeWindow(_display, _xterm_win, dx, dy);
    }
@@ -1182,7 +1182,7 @@ int os_plotimage_t::operator()(rt_prog_ctx_t & ctx, gdi_vargs_t args)
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_screen_height() throw()
+int _os_get_screen_height() NU_NOEXCEPT
 {
    gdi_ctx_t gdi_ctx(0, gdi_ctx_t::NO_BRUSH, 0, 1);
    return gdi_ctx.get_window_height();
@@ -1191,7 +1191,7 @@ int _os_get_screen_height() throw()
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_screen_width() throw()
+int _os_get_screen_width() NU_NOEXCEPT
 {
    gdi_ctx_t gdi_ctx(0, gdi_ctx_t::NO_BRUSH, 0, 1);
    return gdi_ctx.get_window_width();
@@ -1200,7 +1200,7 @@ int _os_get_screen_width() throw()
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_mouse_x() throw()
+int _os_get_mouse_x() NU_NOEXCEPT
 {
    mouse_ctx_t ctx;
    int btn = 0;
@@ -1214,7 +1214,7 @@ int _os_get_mouse_x() throw()
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_mouse_y() throw()
+int _os_get_mouse_y() NU_NOEXCEPT
 {
    mouse_ctx_t ctx;
    int btn = 0;
@@ -1228,7 +1228,7 @@ int _os_get_mouse_y() throw()
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_mouse_btn() throw()
+int _os_get_mouse_btn() NU_NOEXCEPT
 {
    mouse_ctx_t ctx;
    int btn = 0;
@@ -1285,7 +1285,7 @@ int _os_move_window(int x, int y, int dx, int dy)
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_window_x() throw()
+int _os_get_window_x() NU_NOEXCEPT
 {
    gdi_ctx_t gdi_ctx(0, gdi_ctx_t::NO_BRUSH, 0, 1);
    return gdi_ctx.get_window_x();
@@ -1294,7 +1294,7 @@ int _os_get_window_x() throw()
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_window_y() throw()
+int _os_get_window_y() NU_NOEXCEPT
 {
    gdi_ctx_t gdi_ctx(0, gdi_ctx_t::NO_BRUSH, 0, 1);
    return gdi_ctx.get_window_y();
@@ -1303,7 +1303,7 @@ int _os_get_window_y() throw()
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_window_dx() throw()
+int _os_get_window_dx() NU_NOEXCEPT
 {
    gdi_ctx_t gdi_ctx(0, gdi_ctx_t::NO_BRUSH, 0, 1);
    return gdi_ctx.get_window_width();
@@ -1312,7 +1312,7 @@ int _os_get_window_dx() throw()
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_window_dy() throw()
+int _os_get_window_dy() NU_NOEXCEPT
 {
    gdi_ctx_t gdi_ctx(0, gdi_ctx_t::NO_BRUSH, 0, 1);
    return gdi_ctx.get_window_height();

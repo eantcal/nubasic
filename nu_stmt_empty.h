@@ -51,7 +51,7 @@ struct stmt_empty_t : public stmt_t
    {}
 
    virtual void run(rt_prog_ctx_t& ctx) override;
-   virtual stmt_cl_t get_cl() const throw() override;
+   virtual stmt_cl_t get_cl() const NU_NOEXCEPT override;
 
 };
 

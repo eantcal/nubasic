@@ -45,7 +45,7 @@ namespace nu
 variant_t::variant_t(
    const char* s_value,
    type_t t,
-   size_t vect_size) throw() :
+   size_t vect_size) NU_NOEXCEPT :
    _type(t),
    _vector_type(vect_size > 0),
    _vect_size(vect_size)
@@ -72,7 +72,7 @@ variant_t::variant_t(
 variant_t::variant_t(
    const string_t& value,
    type_t t,
-   size_t vect_size) throw() :
+   size_t vect_size) NU_NOEXCEPT :
    variant_t(value.c_str(), t, vect_size)
 {
 }
@@ -82,7 +82,7 @@ variant_t::variant_t(
 
 variant_t::variant_t(
    const string_t& value,
-   size_t vect_size) throw()
+   size_t vect_size) NU_NOEXCEPT
    : variant_t(value, type_t::STRING, vect_size)
 {
 }
@@ -92,7 +92,7 @@ variant_t::variant_t(
 
 variant_t::variant_t(
    const char* value,
-   size_t vect_size) throw()
+   size_t vect_size) NU_NOEXCEPT
    :
    variant_t(value, type_t::STRING, vect_size)
 {
@@ -101,7 +101,7 @@ variant_t::variant_t(
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const real_t& value, size_t vect_size) throw()
+variant_t::variant_t(const real_t& value, size_t vect_size) NU_NOEXCEPT
    :
    _type(type_t::FLOAT),
    _vect_size(vect_size),
@@ -116,7 +116,7 @@ variant_t::variant_t(const real_t& value, size_t vect_size) throw()
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const double_t& value, size_t vect_size ) throw()
+variant_t::variant_t(const double_t& value, size_t vect_size ) NU_NOEXCEPT
    :
    _type(type_t::DOUBLE),
    _vect_size(vect_size),
@@ -131,7 +131,7 @@ variant_t::variant_t(const double_t& value, size_t vect_size ) throw()
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const integer_t& value, size_t vect_size ) throw()
+variant_t::variant_t(const integer_t& value, size_t vect_size ) NU_NOEXCEPT
    :
    _type(type_t::INTEGER),
    _vect_size(vect_size),
@@ -146,7 +146,7 @@ variant_t::variant_t(const integer_t& value, size_t vect_size ) throw()
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const bool_t& value, size_t vect_size ) throw()
+variant_t::variant_t(const bool_t& value, size_t vect_size ) NU_NOEXCEPT
    :
    _type(type_t::BOOLEAN),
    _vect_size(vect_size),
@@ -161,7 +161,7 @@ variant_t::variant_t(const bool_t& value, size_t vect_size ) throw()
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const long64_t& value, size_t vect_size ) throw()
+variant_t::variant_t(const long64_t& value, size_t vect_size ) NU_NOEXCEPT
    :
    _type(type_t::LONG64),
    _vect_size(vect_size),
@@ -176,7 +176,7 @@ variant_t::variant_t(const long64_t& value, size_t vect_size ) throw()
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const std::vector<byte_t>& value) throw()
+variant_t::variant_t(const std::vector<byte_t>& value) NU_NOEXCEPT
    :
    variant_t(0, type_t::BYTEVECTOR, value.size())
 {
@@ -187,7 +187,7 @@ variant_t::variant_t(const std::vector<byte_t>& value) throw()
 
 /* -------------------------------------------------------------------------- */
 
-size_t variant_t::size() const throw()
+size_t variant_t::size() const NU_NOEXCEPT
 {
    auto vs = vector_size();
 
@@ -210,7 +210,7 @@ size_t variant_t::size() const throw()
 
 /* -------------------------------------------------------------------------- */
 
-const char* variant_t::get_type_desc(const type_t& type) throw()
+const char* variant_t::get_type_desc(const type_t& type) NU_NOEXCEPT
 {
    switch (type)
    {
@@ -248,7 +248,7 @@ const char* variant_t::get_type_desc(const type_t& type) throw()
 
 /* -------------------------------------------------------------------------- */
 
-size_t variant_t::item_size() const throw()
+size_t variant_t::item_size() const NU_NOEXCEPT
 {
    switch (get_type())
    {
@@ -507,7 +507,7 @@ static variant_t binary_operation(
 
 /* -------------------------------------------------------------------------- */
 
-template <class T> static inline bool gteq(T a, T b) throw()
+template <class T> static inline bool gteq(T a, T b) NU_NOEXCEPT
 {
    return a >= b;
 }
@@ -515,7 +515,7 @@ template <class T> static inline bool gteq(T a, T b) throw()
 
 /* -------------------------------------------------------------------------- */
 
-template <class T> static inline bool lteq(T a, T b) throw()
+template <class T> static inline bool lteq(T a, T b) NU_NOEXCEPT
 {
    return a <= b;
 }
@@ -523,7 +523,7 @@ template <class T> static inline bool lteq(T a, T b) throw()
 
 /* -------------------------------------------------------------------------- */
 
-template <class T> static inline bool neq(T a, T b) throw()
+template <class T> static inline bool neq(T a, T b) NU_NOEXCEPT
 {
    return a != b;
 }
@@ -531,7 +531,7 @@ template <class T> static inline bool neq(T a, T b) throw()
 
 /* -------------------------------------------------------------------------- */
 
-template <class T> static inline bool eq(T a, T b) throw()
+template <class T> static inline bool eq(T a, T b) NU_NOEXCEPT
 {
    return a == b;
 }
@@ -539,14 +539,14 @@ template <class T> static inline bool eq(T a, T b) throw()
 
 /* -------------------------------------------------------------------------- */
 
-template <class T> static inline bool gt(T a, T b) throw()
+template <class T> static inline bool gt(T a, T b) NU_NOEXCEPT
 {
    return a > b;
 }
 
 /* -------------------------------------------------------------------------- */
 
-template <class T> static inline bool lt(T a, T b) throw()
+template <class T> static inline bool lt(T a, T b) NU_NOEXCEPT
 {
    return a < b;
 }
@@ -554,7 +554,7 @@ template <class T> static inline bool lt(T a, T b) throw()
 
 /* -------------------------------------------------------------------------- */
 
-template <class T> static inline T sum(T a, T b) throw()
+template <class T> static inline T sum(T a, T b) NU_NOEXCEPT
 {
    return a + b;
 }

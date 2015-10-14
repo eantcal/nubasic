@@ -85,7 +85,7 @@ void stmt_endsub_t::run(rt_prog_ctx_t & ctx)
 
 /* -------------------------------------------------------------------------- */
 
-stmt_t::stmt_cl_t stmt_endsub_t::get_cl() const throw()
+stmt_t::stmt_cl_t stmt_endsub_t::get_cl() const NU_NOEXCEPT
 {
    return stmt_cl_t::SUB_END;
 }

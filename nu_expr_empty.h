@@ -52,7 +52,7 @@ public:
    }
 
    //! Returns true for an empty expression
-   virtual bool empty() const throw( ) override
+   virtual bool empty() const NU_NOEXCEPT override
    {
       return true;
    }

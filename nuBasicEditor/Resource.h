@@ -61,7 +61,7 @@
 #define IDM_DEBUG_GOTO_PC               40033
 #define IDM_DEBUG_STEP                  40034
 
-#define IDM_MENU_SEACH_POS              4
+#define IDM_MENU_SEARCH_POS             4
 
 // Used to map function reference
 // IDM >= 41000 are dinamically assigned

@@ -33,7 +33,7 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
-icstring_t& icstring_t::operator=(icstring_t&& s) throw()
+icstring_t& icstring_t::operator=(icstring_t&& s) NU_NOEXCEPT
 {
    if (this != &s)
       _data = std::move(s._data);
@@ -62,7 +62,7 @@ size_t icstring_t::find(std::string searching_s)
 
 /* -------------------------------------------------------------------------- */
 
-bool icstring_t::operator<(const icstring_t& s) const throw()
+bool icstring_t::operator<(const icstring_t& s) const NU_NOEXCEPT
 {
    if (s._data.empty())
       return false;

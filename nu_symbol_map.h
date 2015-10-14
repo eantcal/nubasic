@@ -83,7 +83,7 @@ public:
    }
 
 
-   bool is_defined(const std::string& name) const throw()
+   bool is_defined(const std::string& name) const NU_NOEXCEPT
    {
       return _symbols.find(name) != _symbols.end();
    }
@@ -112,19 +112,19 @@ public:
    }
 
 
-   bool empty() const throw()
+   bool empty() const NU_NOEXCEPT
    {
       return _symbols.empty();
    }
 
 
-   size_t size() const throw()
+   size_t size() const NU_NOEXCEPT
    {
       return _symbols.size();
    }
 
 
-   const std::map< String, Symb >& map() const throw()
+   const std::map< String, Symb >& map() const NU_NOEXCEPT
    {
       return _symbols;
    }
@@ -149,7 +149,7 @@ public:
 
 protected:
 
-   std::map< String, Symb >& map() throw()
+   std::map< String, Symb >& map() NU_NOEXCEPT
    {
       return _symbols;
    }

@@ -99,7 +99,7 @@ bool stmt_block_t::run_pos(rt_prog_ctx_t& ctx, int pos)
 
 /* -------------------------------------------------------------------------- */
 
-int stmt_block_t::find_stmt_pos(int stmtid) const throw( )
+int stmt_block_t::find_stmt_pos(int stmtid) const NU_NOEXCEPT
 {
    int stmt_pos = -1;
 

@@ -176,6 +176,11 @@ protected:
 
          extract_next_token(tl, token);
 
+         // TODO determinare il tipo
+         //      valutando i due token successivi (privi di blank)
+         //      conviene fare una funzione che scorre la lista dei token
+         //      alla ricerca di "As" <blnk>,... "Type"
+
          if (token.type() == tkncl_t::SUBEXP_BEGIN)
          {
             scan_token(tkncl_t::INTEGRAL);

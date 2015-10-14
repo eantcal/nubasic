@@ -60,14 +60,14 @@ struct file_dscrptr_t
    using handle_t = std::shared_ptr < file_dscrptr_t > ;
 
    file_dscrptr_t() = delete;
-   FILE* data() const throw( );
+   FILE* data() const NU_NOEXCEPT;
 
    ~file_dscrptr_t();
    file_dscrptr_t(FILE * fptr) : _fptr(fptr) {}
 
 protected:
    FILE* _fptr = nullptr;
-   bool close() throw( );
+   bool close() NU_NOEXCEPT;
 };
 
 
@@ -86,12 +86,12 @@ struct file_dscrptr_tbl_t
    bool flush_fd(unsigned int fd);
    void trace(std::stringstream & ss);
 
-   bool empty() const throw( )
+   bool empty() const NU_NOEXCEPT
    {
       return _file_tbl.empty();
    }
 
-   void clear() throw( )
+   void clear() NU_NOEXCEPT
    {
       _file_tbl.clear();
    }

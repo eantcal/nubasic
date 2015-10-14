@@ -85,19 +85,19 @@ protected:
    }
 
 
-   bool break_event() const throw( )
+   bool break_event() const NU_NOEXCEPT
    {
       return _break_event;
    }
 
 
-   void reset_break_event() throw( )
+   void reset_break_event() NU_NOEXCEPT
    {
       _break_event = false;
    }
 
 
-   void set_break_event() throw( )
+   void set_break_event() NU_NOEXCEPT
    {
       _break_event = true;
    }

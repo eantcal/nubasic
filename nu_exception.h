@@ -104,9 +104,9 @@ protected:
 
 struct error_code_t
 {
-   virtual int get() const throw( ) = 0;
+   virtual int get() const NU_NOEXCEPT = 0;
 
-   operator int() const throw( )
+   operator int() const NU_NOEXCEPT
    {
       return get();
    }
@@ -138,13 +138,13 @@ public:
    }
 
    //! Return error code
-   int get_error_code() const throw( )
+   int get_error_code() const NU_NOEXCEPT
    {
       return _error_code;
    }
 
    //! Return error code
-   int get_line_num() const throw( )
+   int get_line_num() const NU_NOEXCEPT
    {
       return _line_num;
    }

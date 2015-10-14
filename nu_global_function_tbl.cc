@@ -686,7 +686,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       ===>
 
-      struct _sin { float operator()(float x) throw() { return ::sin(x); } };
+      struct _sin { float operator()(float x) NU_NOEXCEPT { return ::sin(x); } };
       fmap["sin"] = functor<float, _sin>;
 
       */
@@ -698,7 +698,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 #endif
 
 #define __FUNCTOR_BUILDER(_FNC_) \
-            struct _##_FNC_{ float operator()(float x) throw() { return _FNC_(x); } }; \
+            struct _##_FNC_{ float operator()(float x) NU_NOEXCEPT { return _FNC_(x); } }; \
             fmap[#_FNC_] = math_functor<float, _##_FNC_>;
 
       __FUNCTOR_BUILDER(truncf);
@@ -710,7 +710,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
 
 #define __DOUBLE_FUNCTOR_BUILDER(_FNC_) \
-            struct _##_FNC_{ double operator()(double x) throw() { return _FNC_(x); } }; \
+            struct _##_FNC_{ double operator()(double x) NU_NOEXCEPT { return _FNC_(x); } }; \
             fmap[#_FNC_] = math_functor<double, _##_FNC_>;
 
       __DOUBLE_FUNCTOR_BUILDER(sin);
@@ -731,7 +731,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _sign
       {
-         double operator()(double x) throw()
+         double operator()(double x) NU_NOEXCEPT
          {
             return x > 0.0F ? 1.0F : (x == 0.0F ? 0.0F : -1.0F);
          }
@@ -743,7 +743,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _min
       {
-         double operator()(double x, double y) throw()
+         double operator()(double x, double y) NU_NOEXCEPT
          {
             return x < y ? x : y;
          }
@@ -755,7 +755,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _max
       {
-         double operator()(double x, double y) throw()
+         double operator()(double x, double y) NU_NOEXCEPT
          {
             return x > y ? x : y;
          }
@@ -767,7 +767,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _pow
       {
-         double operator()(double x, double y) throw()
+         double operator()(double x, double y) NU_NOEXCEPT
          {
             return ::pow(x,y);
          }
@@ -779,7 +779,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _int_truncate
       {
-         int operator()(double x) throw()
+         int operator()(double x) NU_NOEXCEPT
          {
             // Truncate to greatest integer less or equal to Argument
             // Example:
@@ -802,7 +802,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _rnd
       {
-         double operator()(double x) throw()
+         double operator()(double x) NU_NOEXCEPT
          {
             if (x < 0.0F)
             {
@@ -833,7 +833,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _boolean_not
       {
-         int operator()(double x) throw()
+         int operator()(double x) NU_NOEXCEPT
          {
             return int((x == 0.0F) ? 1 : 0);
          }
@@ -844,7 +844,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _bitwise_not
       {
-         int operator()(int x) throw()
+         int operator()(int x) NU_NOEXCEPT
          {
             return ~x;
          }
@@ -855,7 +855,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _len_str
       {
-         int operator()(const std::string x) throw()
+         int operator()(const std::string x) NU_NOEXCEPT
          {
             return int( x.size() );
          }
@@ -867,7 +867,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _input_str
       {
-         std::string operator()(int n) throw()
+         std::string operator()(int n) NU_NOEXCEPT
          {
             return _os_input_str(n);
          }
@@ -878,7 +878,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _asc_str
       {
-         int operator()(const std::string x) throw()
+         int operator()(const std::string x) NU_NOEXCEPT
          {
             return (x.empty() ? 0 : x.c_str()[0]) & 0xff;
          }
@@ -890,7 +890,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _space_str
       {
-         std::string operator()(int nspace) throw()
+         std::string operator()(int nspace) NU_NOEXCEPT
          {
             std::string s;
             nspace = nspace < 0 ? 0 : nspace;
@@ -909,7 +909,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _chr_str
       {
-         std::string operator()(int code) throw()
+         std::string operator()(int code) NU_NOEXCEPT
          {
             char s[2] = { 0 };
             s[0] = code;
@@ -923,7 +923,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _left_str
       {
-         std::string operator()(const std::string& s,int n) throw()
+         std::string operator()(const std::string& s,int n) NU_NOEXCEPT
          {
             if (n <= 0)
                return std::string();
@@ -940,7 +940,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _lcase_str
       {
-         std::string operator()(const std::string& s) throw()
+         std::string operator()(const std::string& s) NU_NOEXCEPT
          {
             std::string ret = s;
             std::transform(ret.begin(), ret.end(), ret.begin(), ::tolower);
@@ -954,7 +954,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _ucase_str
       {
-         std::string operator()(const std::string& s) throw()
+         std::string operator()(const std::string& s) NU_NOEXCEPT
          {
             std::string ret = s;
             std::transform(ret.begin(), ret.end(), ret.begin(), ::toupper);
@@ -980,7 +980,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _right_str
       {
-         std::string operator()(const std::string& s, int n) throw()
+         std::string operator()(const std::string& s, int n) NU_NOEXCEPT
          {
             if (n <= 0)
                return s;
@@ -1001,7 +1001,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
       {
          int operator()(
             const std::string& s,
-            const std::string& search_str) throw()
+            const std::string& search_str) NU_NOEXCEPT
          {
             if (search_str.empty())
                return 0;
@@ -1033,7 +1033,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
       {
          int operator()(
             const std::string& s,
-            const std::string& search_str) throw()
+            const std::string& search_str) NU_NOEXCEPT
          {
             std::string mys = s;
             std::string ss = search_str;
@@ -1054,7 +1054,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
          //with the pos-th character (0 is first character)
          //Comment: pos >= 0, n >= 0
 
-         std::string operator()(const std::string& s, int pos, int n) throw()
+         std::string operator()(const std::string& s, int pos, int n) NU_NOEXCEPT
          {
             if (pos<1)
                pos = 0;
@@ -1083,7 +1083,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
          //with the pos-th character (1 is first character)
          //Comment: pos >= 1, n >= 0
 
-         std::string operator()(const std::string& s, int pos, int n) throw()
+         std::string operator()(const std::string& s, int pos, int n) NU_NOEXCEPT
          {
             --pos;
 
@@ -1114,7 +1114,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
          //return a string s$ with the pos-th character replaced by c
          //with pos >= 0
 
-         std::string operator()(const std::string& s, int pos, const std::string& c_s) throw()
+         std::string operator()(const std::string& s, int pos, const std::string& c_s) NU_NOEXCEPT
          {
 
             if (pos >= int(s.size()))
@@ -1143,7 +1143,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _val_str
       {
-         double operator()(const std::string& x) throw()
+         double operator()(const std::string& x) NU_NOEXCEPT
          {
             try
             {
@@ -1164,7 +1164,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _to_str
       {
-         std::string operator()(double x) throw()
+         std::string operator()(double x) NU_NOEXCEPT
          {
             if (::floor(x) == x)
             {
@@ -1182,7 +1182,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _to_hex_str
       {
-         std::string operator()(double x) throw()
+         std::string operator()(double x) NU_NOEXCEPT
          {
             std::stringstream ss;
             ss << std::hex << int(x);
@@ -1361,7 +1361,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _getenv_str
       {
-         std::string operator()(const std::string& x) throw()
+         std::string operator()(const std::string& x) NU_NOEXCEPT
          {
             std::string ret;
 
@@ -1380,7 +1380,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _setenv_str
       {
-         int operator()(const std::string& var, const std::string& val) throw()
+         int operator()(const std::string& var, const std::string& val) NU_NOEXCEPT
          {
             return _os_setenv(var.c_str(), val.c_str());
          }
@@ -1391,7 +1391,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _unsetenv_str
       {
-         int operator()(const std::string& var) throw()
+         int operator()(const std::string& var) NU_NOEXCEPT
          {
             return _os_unsetenv(var.c_str());
          }
@@ -1402,7 +1402,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _erase_file
       {
-         int operator()(const std::string& var) throw()
+         int operator()(const std::string& var) NU_NOEXCEPT
          {
             return _os_erase_file(var.c_str());
          }
@@ -1413,7 +1413,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _erase_dir
       {
-         int operator()(const std::string& var) throw()
+         int operator()(const std::string& var) NU_NOEXCEPT
          {
             return _os_erase_dir(var.c_str());
          }
@@ -1424,7 +1424,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _make_dir
       {
-         int operator()(const std::string& var) throw()
+         int operator()(const std::string& var) NU_NOEXCEPT
          {
             return _os_make_dir(var.c_str());
          }
@@ -1661,7 +1661,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
       {
          int operator()(
             const std::string& title,
-            const std::string& message) throw()
+            const std::string& message) NU_NOEXCEPT
          {
             return _os_msg_box(title, message, 0);
          }
@@ -1675,7 +1675,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
       {
          int operator()(
             const std::string& filename,
-            int flg) throw()
+            int flg) NU_NOEXCEPT
          {
             return _os_play_sound(filename, flg);
          }
@@ -1687,7 +1687,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _move_window
       {
-         int operator()(int x, int y, int dx, int dy) throw()
+         int operator()(int x, int y, int dx, int dy) NU_NOEXCEPT
          {
             return _os_move_window(x,y,dx,dy);
          }
@@ -1700,7 +1700,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       struct _rgb
       {
-         int operator()(int r, int g, int b) throw()
+         int operator()(int r, int g, int b) NU_NOEXCEPT
          {
             return 
                ((int)(((uint8_t)(r) | 

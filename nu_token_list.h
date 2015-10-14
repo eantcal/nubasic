@@ -77,21 +77,21 @@ public:
 
 
    //! Removes all elements from the token list
-   void clear() throw()
+   void clear() NU_NOEXCEPT
    {
       data().clear();
    }
 
 
    //! Returns whether the token list is empty
-   bool empty() const throw()
+   bool empty() const NU_NOEXCEPT
    {
       return data().empty();
    }
 
 
    //! Returns the number of elements in the token list
-   size_t size() const throw()
+   size_t size() const NU_NOEXCEPT
    {
       return data().size();
    }
@@ -99,7 +99,7 @@ public:
 
    //! Returns an iterator pointing to the first element in the
    //! token list
-   data_t::iterator begin() throw()
+   data_t::iterator begin() NU_NOEXCEPT
    {
       return data().begin();
    }
@@ -107,7 +107,7 @@ public:
 
    //! Returns an iterator referring to the past-the-end
    //! element in the token list
-   data_t::iterator end() throw()
+   data_t::iterator end() NU_NOEXCEPT
    {
       return data().end();
    }
@@ -115,7 +115,7 @@ public:
 
    //! Returns a reverse iterator pointing to the last element in the
    //! token list
-   data_t::reverse_iterator rbegin() throw()
+   data_t::reverse_iterator rbegin() NU_NOEXCEPT
    {
       return data().rbegin();
    }
@@ -123,7 +123,7 @@ public:
 
    //! Returns a reverse iterator pointing to the theoretical element
    //! preceding the first element in the token list
-   data_t::reverse_iterator rend() throw()
+   data_t::reverse_iterator rend() NU_NOEXCEPT
    {
       return data().rend();
    }
@@ -131,7 +131,7 @@ public:
 
    //! Returns a const_iterator pointing to the first element in the
    //! token list
-   data_t::const_iterator cbegin() const throw()
+   data_t::const_iterator cbegin() const NU_NOEXCEPT
    {
       return data().cbegin();
    }
@@ -139,7 +139,7 @@ public:
 
    //! Returns a const_iterator pointing to the past-the-end
    //! element in the token list
-   data_t::const_iterator cend() const throw()
+   data_t::const_iterator cend() const NU_NOEXCEPT
    {
       return data().cend();
    }
@@ -149,7 +149,7 @@ public:
 
 
    //! Append a new token at the tail of the token list
-   token_list_t& operator+=(const token_t& tkn) throw()
+   token_list_t& operator+=(const token_t& tkn) NU_NOEXCEPT
    {
       _data.push_back(tkn);
       return *this;

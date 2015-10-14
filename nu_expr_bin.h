@@ -67,7 +67,7 @@ public:
    }
 
    //! Returns false for a binary expression
-   virtual bool empty() const throw( ) override
+   virtual bool empty() const NU_NOEXCEPT override
    {
       return false;
    }

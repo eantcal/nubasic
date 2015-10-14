@@ -101,17 +101,17 @@ public:
    static bool is_integer(const std::string& value);
    static bool is_real(const std::string& value);
 
-   variant_t(const string_t& value, type_t t, size_t vect_size = 0) throw();
-   variant_t(const char* value, type_t t, size_t vect_size = 0) throw();
-   variant_t(const string_t& value, size_t vect_size = 0) throw();
-   variant_t(const char* value, size_t vect_size = 0) throw();
-   variant_t(const real_t& value, size_t vect_size = 0) throw();
-   variant_t(const double_t& value, size_t vect_size = 0) throw();
-   variant_t(const integer_t& value, size_t vect_size = 0) throw();
-   variant_t(const bool_t& value, size_t vect_size = 0) throw();
-   variant_t(const long64_t& value, size_t vect_size = 0) throw();
+   variant_t(const string_t& value, type_t t, size_t vect_size = 0) NU_NOEXCEPT;
+   variant_t(const char* value, type_t t, size_t vect_size = 0) NU_NOEXCEPT;
+   variant_t(const string_t& value, size_t vect_size = 0) NU_NOEXCEPT;
+   variant_t(const char* value, size_t vect_size = 0) NU_NOEXCEPT;
+   variant_t(const real_t& value, size_t vect_size = 0) NU_NOEXCEPT;
+   variant_t(const double_t& value, size_t vect_size = 0) NU_NOEXCEPT;
+   variant_t(const integer_t& value, size_t vect_size = 0) NU_NOEXCEPT;
+   variant_t(const bool_t& value, size_t vect_size = 0) NU_NOEXCEPT;
+   variant_t(const long64_t& value, size_t vect_size = 0) NU_NOEXCEPT;
 
-   variant_t(const std::vector<byte_t>& value) throw();
+   variant_t(const std::vector<byte_t>& value) NU_NOEXCEPT;
 
    variant_t() = default;
 
@@ -121,23 +121,23 @@ public:
    variant_t(variant_t&& v);
    variant_t& operator=(variant_t&& v);
 
-   bool is_const() const throw()
+   bool is_const() const NU_NOEXCEPT
    {
       return _constant;
    }
 
-   bool is_vector() const throw()
+   bool is_vector() const NU_NOEXCEPT
    {
       return _vector_type;
    }
 
-   size_t vector_size() const throw()
+   size_t vector_size() const NU_NOEXCEPT
    {
       return _vect_size;
    }
 
-   size_t item_size() const throw();
-   size_t size() const throw();
+   size_t item_size() const NU_NOEXCEPT;
+   size_t size() const NU_NOEXCEPT;
 
    real_t to_real(size_t idx = 0) const
    {
@@ -170,27 +170,27 @@ public:
       return to_long64(idx) != 0;
    }
 
-   type_t get_type() const throw()
+   type_t get_type() const NU_NOEXCEPT
    {
       return _type;
    }
 
-   bool is_number() const throw()
+   bool is_number() const NU_NOEXCEPT
    {
       return variable_t::is_number(get_type());
    }
 
-   bool is_integral() const throw()
+   bool is_integral() const NU_NOEXCEPT
    {
       return variable_t::is_integral(get_type());
    }
 
-   bool is_float() const throw()
+   bool is_float() const NU_NOEXCEPT
    {
       return variable_t::is_float(get_type());
    }
 
-   static const char* get_type_desc(const type_t& type) throw();
+   static const char* get_type_desc(const type_t& type) NU_NOEXCEPT;
 
    explicit operator real_t() const
    {
@@ -326,7 +326,7 @@ public:
       _set(value, _i_data, type_t::LONG64, idx);
    }
 
-   void set_const( bool enable ) throw()
+   void set_const( bool enable ) NU_NOEXCEPT
    {
       _constant = enable;
    }

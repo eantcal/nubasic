@@ -91,7 +91,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release64|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
     <CLRSupport>false</CLRSupport>
@@ -398,6 +398,7 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="nu_base_tknzr.h" />
     <ClInclude Include="nu_basic_defs.h" />
+    <ClInclude Include="nu_cpp_lang.h" />
     <ClInclude Include="nu_error_codes.h" />
     <ClInclude Include="nu_builtin_help.h" />
     <ClInclude Include="nu_eval_expr.h" />

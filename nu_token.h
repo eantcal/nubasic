@@ -33,6 +33,8 @@
 #include <algorithm>
 #include <deque>
 
+#include "nu_cpp_lang.h"
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -79,7 +81,7 @@ public:
       const std::string& id,
       tkncl_t t,
       size_t pos,
-      data_ptr_t expr_ptr) throw();
+      data_ptr_t expr_ptr) NU_NOEXCEPT;
 
    token_t() = delete;
    token_t(const token_t&) = default;
@@ -87,42 +89,42 @@ public:
 
    void set_identifier(const std::string& id, case_t casemode);
 
-   const std::string& identifier() const throw()
+   const std::string& identifier() const NU_NOEXCEPT
    {
       return _identifier;
    }
 
-   const std::string& org_id() const throw()
+   const std::string& org_id() const NU_NOEXCEPT
    {
       return _org_id;
    }
 
-   tkncl_t type() const throw()
+   tkncl_t type() const NU_NOEXCEPT
    {
       return _type;
    }
 
-   void set_type(tkncl_t cl) throw()
+   void set_type(tkncl_t cl) NU_NOEXCEPT
    {
       _type = cl;
    }
 
-   size_t position() const throw()
+   size_t position() const NU_NOEXCEPT
    {
       return _position;
    }
 
-   void set_position(size_t pos) throw()
+   void set_position(size_t pos) NU_NOEXCEPT
    {
       _position = pos;
    }
 
-   std::string expression() const throw()
+   std::string expression() const NU_NOEXCEPT
    {
       return *_expression_ptr;
    }
 
-   data_ptr_t expression_ptr() const throw()
+   data_ptr_t expression_ptr() const NU_NOEXCEPT
    {
       return _expression_ptr;
    }
@@ -151,7 +153,7 @@ public:
    }
 
 protected:
-   token_t(size_t pos, data_ptr_t expr_ptr) throw()
+   token_t(size_t pos, data_ptr_t expr_ptr) NU_NOEXCEPT
       :
       _position(pos),
       _expression_ptr(expr_ptr)

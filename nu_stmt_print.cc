@@ -45,12 +45,13 @@ void stmt_print_t::run(rt_prog_ctx_t & ctx)
    {
       bool _hide;
 
-      _hide_cursor_guard_t(bool hide) throw() : _hide(hide)
+      _hide_cursor_guard_t(bool hide) NU_NOEXCEPT : 
+      _hide(hide)
       {
          if (_hide) _os_cursor_visible(false);
       }
 
-      ~_hide_cursor_guard_t() throw()
+      ~_hide_cursor_guard_t() NU_NOEXCEPT
       {
          if (_hide) _os_cursor_visible(true);
       }

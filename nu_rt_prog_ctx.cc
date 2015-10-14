@@ -50,13 +50,13 @@ rt_prog_ctx_t::rt_prog_ctx_t(
    flag.define(FLG_RETURN_REQUEST);
    flag.define(FLG_JUMP_REQUEST);
    flag.define(FLG_SKIP_TILL_NEXT);
-   flag.define(FLG_STEP_MODE_ON);
+   step_mode_active = false;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-void rt_prog_ctx_t::go_to(const prog_pointer_t& pc) throw()
+void rt_prog_ctx_t::go_to(const prog_pointer_t& pc) NU_NOEXCEPT
 {
    goingto_pc = pc;
    flag.set(FLG_JUMP_REQUEST, true);
@@ -65,7 +65,7 @@ void rt_prog_ctx_t::go_to(const prog_pointer_t& pc) throw()
 
 /* -------------------------------------------------------------------------- */
 
-void rt_prog_ctx_t::go_to_next() throw()
+void rt_prog_ctx_t::go_to_next() NU_NOEXCEPT
 {
    goingto_pc.go_to(0);
    flag.set(FLG_JUMP_REQUEST, false);
@@ -74,7 +74,7 @@ void rt_prog_ctx_t::go_to_next() throw()
 
 /* -------------------------------------------------------------------------- */
 
-void rt_prog_ctx_t::set_return_line(const rt_prog_ctx_t::return_point_t& rp) throw()
+void rt_prog_ctx_t::set_return_line(const rt_prog_ctx_t::return_point_t& rp) NU_NOEXCEPT
 {
    if (rp.first > 0)
       return_stack.push_front(rp);
@@ -83,7 +83,7 @@ void rt_prog_ctx_t::set_return_line(const rt_prog_ctx_t::return_point_t& rp) thr
 
 /* -------------------------------------------------------------------------- */
 
-rt_prog_ctx_t::return_point_t  rt_prog_ctx_t::get_return_line() throw()
+rt_prog_ctx_t::return_point_t  rt_prog_ctx_t::get_return_line() NU_NOEXCEPT
 {
    if (return_stack.empty())
       return std::make_pair( 0, 0 );
@@ -159,7 +159,7 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
    ss << "Jump request pending: "
       << (flag[rt_prog_ctx_t::FLG_JUMP_REQUEST] ? "Y" : "N") << std::endl;
    ss << "Step mode on: "
-      << (flag[rt_prog_ctx_t::FLG_STEP_MODE_ON] ? "Y" : "N") << std::endl;
+      << (step_mode_active ? "Y" : "N") << std::endl;
 
    auto var = proc_scope.get();
    auto scope_id = proc_scope.get_scope_id();
@@ -204,7 +204,7 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
    if (!file_tbl.empty())
       file_tbl.trace(ss);
 
-   }
+}
 
 
 /* -------------------------------------------------------------------------- */

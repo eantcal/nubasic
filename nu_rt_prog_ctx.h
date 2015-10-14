@@ -60,12 +60,13 @@ public:
       FLG_END_REQUEST,
       FLG_RETURN_REQUEST,
       FLG_JUMP_REQUEST,
-      FLG_SKIP_TILL_NEXT,
-      FLG_STEP_MODE_ON
+      FLG_SKIP_TILL_NEXT
+      //FLG_STEP_MODE_ON
    };
 
 
    flag_map_t flag;
+   bool step_mode_active = false;
 
 
    //Program counter (line, stmt)
@@ -101,8 +102,8 @@ public:
       source_line_t & sl);
 
 
-   void go_to(const prog_pointer_t& pc) throw( );
-   void go_to_next() throw( );
+   void go_to(const prog_pointer_t& pc) NU_NOEXCEPT;
+   void go_to_next() NU_NOEXCEPT;
 
 
    runnable_t & program()
@@ -111,10 +112,10 @@ public:
    }
 
 
-   void set_return_line(const return_point_t& return_point) throw( );
+   void set_return_line(const return_point_t& return_point) NU_NOEXCEPT;
 
 
-   return_point_t get_return_line() throw( );
+   return_point_t get_return_line() NU_NOEXCEPT;
 
 
    void clear_rtdata();
@@ -125,14 +126,14 @@ public:
 
 
    //Set running statement error number
-   void set_errno(int errno_) throw( )
+   void set_errno(int errno_) NU_NOEXCEPT
    {
       _errno = errno_;
    }
 
 
    //Get last error number of running program
-   int get_errno() const throw( )
+   int get_errno() const NU_NOEXCEPT
    {
       return _errno;
    }

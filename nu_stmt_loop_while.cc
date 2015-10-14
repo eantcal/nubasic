@@ -81,7 +81,7 @@ void stmt_loop_while_t::run(rt_prog_ctx_t & ctx)
 
 /* -------------------------------------------------------------------------- */
 
-stmt_t::stmt_cl_t stmt_loop_while_t::get_cl() const throw()
+stmt_t::stmt_cl_t stmt_loop_while_t::get_cl() const NU_NOEXCEPT
 {
    return stmt_cl_t::DO_END;
 }

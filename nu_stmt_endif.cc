@@ -36,7 +36,7 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
-stmt_endif_t::stmt_cl_t stmt_endif_t::get_cl() const throw()
+stmt_endif_t::stmt_cl_t stmt_endif_t::get_cl() const NU_NOEXCEPT
 {
    return stmt_cl_t::IF_BLOCK_END;
 }

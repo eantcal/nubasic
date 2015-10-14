@@ -43,7 +43,6 @@ public:
     txtinfobox_t(
         HWND hParentWnd, 
         HINSTANCE hInst, 
-        int id,
         const std::string& fontName = "Verdana",
         const int fontSize = 14,
         DWORD dwStyle = /*WS_BORDER |*/ ES_READONLY | ES_RIGHT | ES_MULTILINE);

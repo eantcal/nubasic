@@ -60,10 +60,10 @@ public:
    stmt_t() = delete;
    stmt_t(const stmt_t&) = delete;
    stmt_t& operator=( const stmt_t& ) = delete;
-   stmt_t(prog_ctx_t & ctx) throw();
+   stmt_t(prog_ctx_t & ctx) NU_NOEXCEPT;
 
 
-   int get_stmt_id() const throw()
+   int get_stmt_id() const NU_NOEXCEPT
    {
       return _stmt_id;
    }
@@ -93,7 +93,7 @@ public:
    virtual void run(rt_prog_ctx_t&) = 0;
 
    //! Identify the class of statement
-   virtual stmt_cl_t get_cl() const throw();
+   virtual stmt_cl_t get_cl() const NU_NOEXCEPT;
 
    //dtor
    virtual ~stmt_t();

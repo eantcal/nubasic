@@ -42,7 +42,7 @@ expr_unary_op_t::expr_unary_op_t(const std::string& op_name, expr_any_t::handle_
 
 /* -------------------------------------------------------------------------- */
 
-bool expr_unary_op_t::empty() const throw()
+bool expr_unary_op_t::empty() const NU_NOEXCEPT
 {
    return false;
 }

@@ -97,7 +97,7 @@ public:
 
 
    //! Reset buffer pointer to zero
-   void reset() throw( )
+   void reset() NU_NOEXCEPT
    {
       _rst_cptr();
    }
@@ -114,14 +114,14 @@ public:
 
 protected:
    //! Get current pointed character within the buffer
-   char get_symbol() const throw( )
+   char get_symbol() const NU_NOEXCEPT
    {
       return !eol() ? ( *_data )[tell()] : 0;
    }
 
 
    //! If not eof, move buffer pointer to next symbol
-   void seek_next() throw( )
+   void seek_next() NU_NOEXCEPT
    {
       if ( tell() < size() ) _inc_cptr();
    }
@@ -135,31 +135,31 @@ protected:
 
 
    //! If not begin of buffer, move cptr to the previous symbol
-   void seek_prev() throw( )
+   void seek_prev() NU_NOEXCEPT
    {
       if ( tell() ) _dec_cptr();
    }
 
 
    //! Return a shared_ptr to internal data
-   token_t::data_ptr_t data() const throw( )
+   token_t::data_ptr_t data() const NU_NOEXCEPT
    {
       return _data;
    }
 
 
 private:
-   void _inc_cptr() throw( )
+   void _inc_cptr() NU_NOEXCEPT
    {
       ++_cptr;
    }
 
-   void _dec_cptr() throw( )
+   void _dec_cptr() NU_NOEXCEPT
    {
       --_cptr;
    }
 
-   void _rst_cptr() throw( )
+   void _rst_cptr() NU_NOEXCEPT
    {
       _cptr = 0;
    }

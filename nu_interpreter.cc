@@ -756,7 +756,7 @@ interpreter_t::exec_res_t interpreter_t::break_if(
 
 interpreter_t::exec_res_t interpreter_t::set_step_mode(bool on)
 {
-   get_rt_ctx().flag.set(rt_prog_ctx_t::FLG_STEP_MODE_ON, on);
+   get_rt_ctx().step_mode_active = on;
    return exec_res_t::CMD_EXEC;
 }
 

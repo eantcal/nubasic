@@ -50,7 +50,7 @@ public:
    expr_unary_op_t& operator=( const expr_unary_op_t& ) = default;
 
    variant_t eval(rt_prog_ctx_t & ctx) const override;
-   bool empty() const throw( ) override;
+   bool empty() const NU_NOEXCEPT override;
 
 protected:
    std::string _op_name;
