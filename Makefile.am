@@ -2,6 +2,7 @@ bin_PROGRAMS = nubasic
 
 
 nubasic_SOURCES = config.h \
+   nu_cpp_lang.h \
    main.cc \
    nu_basic_defs.h \
    nu_about.h \
