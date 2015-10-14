@@ -315,8 +315,12 @@ Sub ProcessPlayerCollisions(lin%, col%)
    beep
 
 Repeat:
-   a$=Inkey$
-   If a$=quit_key$ Then End else Goto Repeat
+   a$=Inkey$()
+   if len(a$)=0 then Goto Repeat 
+   
+   If a$=quit_key$ Then 
+      End 
+   End If
    
    b%=-1
    Cls

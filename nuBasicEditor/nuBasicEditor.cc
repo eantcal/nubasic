@@ -1600,6 +1600,12 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
 
    alloc_console();
 
+   if (flg != dbg_flg_t::SINGLE_STEP_EXECUTION)
+   {
+      SetWindowPos(GetConsoleWindow(),
+         HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+   }
+
    g_editor.interpreter().register_break_event();
 
    switch ( flg )
@@ -2451,6 +2457,16 @@ void nu::editor_t::exec_command(int id)
 
       case IDM_DEBUG_REMOVEALLBRK:
          remove_all_breakpoints();
+         break;
+
+      case IDM_DEBUG_TOPMOST:
+         SetWindowPos(GetConsoleWindow(),
+            HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+         break;
+
+      case IDM_DEBUG_NOTOPMOST:
+         SetWindowPos(GetConsoleWindow(),
+            HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
          break;
 
       case IDM_DEBUG_RUN:

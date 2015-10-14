@@ -140,6 +140,9 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Start &Without Debugging\tCtrl+F5", IDM_DEBUG_RUN
         MENUITEM SEPARATOR
+        MENUITEM "Debug window topmost", IDM_DEBUG_TOPMOST
+        MENUITEM "Debug window no-topmost", IDM_DEBUG_NOTOPMOST
+        MENUITEM SEPARATOR
         MENUITEM "&Toggle Breakpoint\tF9", IDM_DEBUG_TOGGLEBRK
         MENUITEM "&Delete all Breakpoints", IDM_DEBUG_REMOVEALLBRK
         MENUITEM SEPARATOR

@@ -4,6 +4,13 @@ Author - Antonino Calderone - antonino.calderone@ericsson.com - (c) 2014, 2015
 
 Please send nuBASIC / nuBasicEditor bug reports to <acaldmail@gmail.com>.
 
+Oct 14, 2015
+* Released nuBASIC 1.31
+- Improvements and bug-fixes
+- Win32/64 rebuilt with VS2015
+- Add Debug Window top-most / no-top-most command
+
+
 Jun 9, 2015
 * Released nuBASIC 1.30
 - Improve Randomize implementation
