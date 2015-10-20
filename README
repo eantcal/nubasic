@@ -146,10 +146,18 @@ Different precompiled nuBASIC versions are provided:
 - nubasic-and-editor-<ver>-setup_x64.zip (64 bit)
 - nubasic-and-editor-<ver>-setup.zip (32 bit)
 
-This version has been built by using Microsoft Visual C++ 2013 
-It includes a syntax highlighting editor based on Scintilla 
-(http://www.scintilla.org/)
-In this case, you may need to install Visual C++ Redistributable Packages.
+Those versions include IDE with an advanced editor based on Scintilla 
+(http://www.scintilla.org/).
+
+Since version 1.31, binaries for Windows have been built by using 
+Microsoft Visual C++ 2015, so you may need to install Visual C++ Redistributable 
+Packages 2015.
+To do this, search for "Visual C++ Redistributable Packages for Visual Studio 2015"
+or use the link https://www.microsoft.com/en-us/download/details.aspx?id=48145 
+
+Until version 1.30, binaries for Windows have been built by using Microsoft 
+Visual C++ 2013. In this case, you may need to install Visual C++ Redistributable 
+Packages 2013.
 To do this, search for "Visual C++ Redistributable Packages for Visual Studio 
 2013" or use the following link 
 http://www.microsoft.com/en-us/download/details.aspx?id=4078

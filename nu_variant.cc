@@ -45,7 +45,7 @@ namespace nu
 variant_t::variant_t(
    const char* s_value,
    type_t t,
-   size_t vect_size) NU_NOEXCEPT :
+   size_t vect_size) :
    _type(t),
    _vector_type(vect_size > 0),
    _vect_size(vect_size)
@@ -72,7 +72,7 @@ variant_t::variant_t(
 variant_t::variant_t(
    const string_t& value,
    type_t t,
-   size_t vect_size) NU_NOEXCEPT :
+   size_t vect_size) :
    variant_t(value.c_str(), t, vect_size)
 {
 }
@@ -82,7 +82,7 @@ variant_t::variant_t(
 
 variant_t::variant_t(
    const string_t& value,
-   size_t vect_size) NU_NOEXCEPT
+   size_t vect_size)
    : variant_t(value, type_t::STRING, vect_size)
 {
 }
@@ -92,7 +92,7 @@ variant_t::variant_t(
 
 variant_t::variant_t(
    const char* value,
-   size_t vect_size) NU_NOEXCEPT
+   size_t vect_size)
    :
    variant_t(value, type_t::STRING, vect_size)
 {
@@ -101,11 +101,11 @@ variant_t::variant_t(
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const real_t& value, size_t vect_size) NU_NOEXCEPT
+variant_t::variant_t(const real_t& value, size_t vect_size)
    :
    _type(type_t::FLOAT),
-   _vect_size(vect_size),
-   _vector_type(vect_size>=1)
+   _vector_type(vect_size>=1),
+   _vect_size(vect_size)
 {
    if (vect_size<1)
       vect_size = 1;
@@ -116,11 +116,11 @@ variant_t::variant_t(const real_t& value, size_t vect_size) NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const double_t& value, size_t vect_size ) NU_NOEXCEPT
+variant_t::variant_t(const double_t& value, size_t vect_size )
    :
    _type(type_t::DOUBLE),
-   _vect_size(vect_size),
-   _vector_type(vect_size >= 1)
+   _vector_type(vect_size >= 1),
+   _vect_size(vect_size)
 {
    if (vect_size<1)
       vect_size = 1;
@@ -131,7 +131,7 @@ variant_t::variant_t(const double_t& value, size_t vect_size ) NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const integer_t& value, size_t vect_size ) NU_NOEXCEPT
+variant_t::variant_t(const integer_t& value, size_t vect_size )
    :
    _type(type_t::INTEGER),
    _vect_size(vect_size),
@@ -146,7 +146,7 @@ variant_t::variant_t(const integer_t& value, size_t vect_size ) NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const bool_t& value, size_t vect_size ) NU_NOEXCEPT
+variant_t::variant_t(const bool_t& value, size_t vect_size )
    :
    _type(type_t::BOOLEAN),
    _vect_size(vect_size),
@@ -161,7 +161,7 @@ variant_t::variant_t(const bool_t& value, size_t vect_size ) NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const long64_t& value, size_t vect_size ) NU_NOEXCEPT
+variant_t::variant_t(const long64_t& value, size_t vect_size )
    :
    _type(type_t::LONG64),
    _vect_size(vect_size),
@@ -176,7 +176,7 @@ variant_t::variant_t(const long64_t& value, size_t vect_size ) NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const std::vector<byte_t>& value) NU_NOEXCEPT
+variant_t::variant_t(const std::vector<byte_t>& value)
    :
    variant_t(0, type_t::BYTEVECTOR, value.size())
 {
@@ -1049,13 +1049,13 @@ bool variant_t::is_real(const std::string& value)
 
 variant_t::variant_t(variant_t&& v)
    :
+   _type(std::move(v._type)),
+   _constant(std::move(v._constant)),
    _vector_type (std::move(v._vector_type)),
    _vect_size (std::move(v._vect_size)),
-   _type (std::move(v._type)),
-   _constant (std::move(v._constant)),
+   _s_data(std::move(v._s_data)),
    _i_data(std::move(v._i_data)),
-   _f_data (std::move(v._f_data)),
-   _s_data(std::move(v._s_data))
+   _f_data (std::move(v._f_data))
 {
 }
 
