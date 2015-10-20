@@ -4,12 +4,20 @@ Author - Antonino Calderone - antonino.calderone@ericsson.com - (c) 2014, 2015
 
 Please send nuBASIC / nuBasicEditor bug reports to <acaldmail@gmail.com>.
 
+Win32/64 built with VS2015 needs "Visual C++ Redistributable Packages for Visual Studio 2015"
+https://www.microsoft.com/en-us/download/details.aspx?id=48145
+
+Oct 20, 2015
+* Released nuBASIC 1.32
+- Improvements and bug-fixes
+
 Oct 14, 2015
 * Released nuBASIC 1.31
 - Improvements and bug-fixes
 - Win32/64 rebuilt with VS2015
+  It needs "Visual C++ Redistributable Packages for Visual Studio 2015"
+  https://www.microsoft.com/en-us/download/details.aspx?id=48145
 - Add Debug Window top-most / no-top-most command
-
 
 Jun 9, 2015
 * Released nuBASIC 1.30

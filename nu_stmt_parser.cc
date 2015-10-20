@@ -1619,7 +1619,7 @@ stmt_t::handle_t stmt_parser_t::parse_label(
 
       if (prog_label.is_defined(label))
       {
-         syntax_error_if(prog_label[label] != _parsing_line,
+         syntax_error_if(int(prog_label[label]) != _parsing_line,
                          "Label '" + token.identifier() +
                          "' alrady defined at " + nu::to_string(_parsing_line));
       }

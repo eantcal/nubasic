@@ -87,6 +87,12 @@ nu::interpreter_t::exec_res_t exec_command(
       return nu::interpreter_t::exec_res_t::RT_ERROR;
    }
 
+   catch (...)
+   {
+      printf("Runtime Error\n");
+      return nu::interpreter_t::exec_res_t::RT_ERROR;
+   }
+
    return nu::interpreter_t::exec_res_t::CMD_EXEC;
 }
 

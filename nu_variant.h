@@ -101,17 +101,17 @@ public:
    static bool is_integer(const std::string& value);
    static bool is_real(const std::string& value);
 
-   variant_t(const string_t& value, type_t t, size_t vect_size = 0) NU_NOEXCEPT;
-   variant_t(const char* value, type_t t, size_t vect_size = 0) NU_NOEXCEPT;
-   variant_t(const string_t& value, size_t vect_size = 0) NU_NOEXCEPT;
-   variant_t(const char* value, size_t vect_size = 0) NU_NOEXCEPT;
-   variant_t(const real_t& value, size_t vect_size = 0) NU_NOEXCEPT;
-   variant_t(const double_t& value, size_t vect_size = 0) NU_NOEXCEPT;
-   variant_t(const integer_t& value, size_t vect_size = 0) NU_NOEXCEPT;
-   variant_t(const bool_t& value, size_t vect_size = 0) NU_NOEXCEPT;
-   variant_t(const long64_t& value, size_t vect_size = 0) NU_NOEXCEPT;
+   variant_t(const string_t& value, type_t t, size_t vect_size = 0);
+   variant_t(const char* value, type_t t, size_t vect_size = 0);
+   variant_t(const string_t& value, size_t vect_size = 0);
+   variant_t(const char* value, size_t vect_size = 0);
+   variant_t(const real_t& value, size_t vect_size = 0);
+   variant_t(const double_t& value, size_t vect_size = 0);
+   variant_t(const integer_t& value, size_t vect_size = 0);
+   variant_t(const bool_t& value, size_t vect_size = 0);
+   variant_t(const long64_t& value, size_t vect_size = 0);
 
-   variant_t(const std::vector<byte_t>& value) NU_NOEXCEPT;
+   variant_t(const std::vector<byte_t>& value);
 
    variant_t() = default;
 
