@@ -30,6 +30,7 @@
 
 #include "nu_prog_pointer.h"
 #include "nu_expr_any.h"
+#include "nu_variant.h"
 
 #include <map>
 #include <string>
@@ -87,6 +88,25 @@ struct proc_prototype_tbl_t
 
    proc_prototype_tbl_t() = default;
    proc_prototype_tbl_t(const proc_prototype_tbl_t&) = default;
+};
+
+
+/* -------------------------------------------------------------------------- */
+
+using struct_prototype_t = variant_t;
+
+
+/* -------------------------------------------------------------------------- */
+
+struct struct_prototype_tbl_t
+{
+   std::map <
+      std::string,
+      std::pair < prog_pointer_t, struct_prototype_t >
+   > data;
+
+   struct_prototype_tbl_t() = default;
+   struct_prototype_tbl_t(const struct_prototype_tbl_t&) = default;
 };
 
 

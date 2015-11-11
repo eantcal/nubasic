@@ -35,7 +35,7 @@ namespace nu
 
 const std::set<std::string> reserved_keywords_t::list =
 {
-   "and", "band", "bor", "bshl", "bshr", "bxor", "chdir", "div", "mod", "or",
+   "and", "as", "band", "bor", "bshl", "bshr", "bxor", "chdir", "div", "mod", "or",
    "xor ", "beep", "close", "cls", "const", "delay", "dim", "do", "ellipse",
    "else", "elif", "exit", "end", "fillellipse", "fillrect", "fopen", "for",
    "function", "gosub", "goto", "if", "input", "let", "line", "playsound",
@@ -53,7 +53,7 @@ const std::set<std::string> reserved_keywords_t::list =
    "sqr", "sqrt", "str", "substr", "tan", "tanh", "time", "truncf", "ucase",
    "val", "ver", "systime", "sysday", "syshour", "sysmin", "syssec", "sysyday",
    "syswday", "sysyear", "sysmonth", "boolean", "integer", "double", "float",
-   "string", "type", "elseif", "setpixel"
+   "string", "type", "elseif", "setpixel", "struct"
 };
 
 

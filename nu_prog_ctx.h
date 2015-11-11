@@ -78,6 +78,9 @@ public:
    proc_prototype_tbl_t proc_prototypes;
    std::set<std::string> function_tbl;
 
+   //Structure prototypes
+   struct_prototype_tbl_t struct_prototypes;
+
    //Procedure variable space table
    proc_scope_t proc_scope;
 
@@ -101,6 +104,11 @@ public:
 
    //Procedure metadata (created compiling BASIC source code)
    instrblock_metadata_t procedure_metadata;
+
+   //Struct metadata (created compiling BASIC source code)
+   instrblock_metadata_t struct_metadata;
+   std::string compiling_struct_name;
+
 
    prog_ctx_t(FILE * stdout_ptr, FILE * stdin_ptr);
 

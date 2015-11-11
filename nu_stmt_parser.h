@@ -131,23 +131,37 @@ protected:
       token_list_t & tl);
 
 
+   //! parse a definition of structure
+   stmt_t::handle_t stmt_parser_t::parse_struct(
+      prog_ctx_t & ctx,
+      token_t token,
+      token_list_t & tl);
+   
+
+   //! parse a definition of structure element
+   stmt_t::handle_t stmt_parser_t::parse_struct_element(
+      prog_ctx_t & ctx,
+      token_t token,
+      token_list_t & tl);
+
+
    //! parse a label list
    stmt_on_goto_t::label_list_t parse_label_list(
       prog_ctx_t & ctx,
-      nu::token_t token,
-      nu::token_list_t & tl);
+      token_t token,
+      token_list_t & tl);
 
 
-   //! parse explicit typename // TODO move impl into .cc
-   bool search_for__as_type(const nu::token_list_t & tl, std::string & tname);
+   //! parse explicit typename
+   bool search_for__as_type(const token_list_t & tl, std::string & tname);
    
 
    //! parse instruction parameter list
    template<class T, typename ...E>
    stmt_t::handle_t parse_parameter_list(
       prog_ctx_t & ctx,
-      nu::token_t token,
-      nu::token_list_t & tl,
+      token_t token,
+      token_list_t & tl,
       const std::string & end_token,
       E&&... xprms)
    {
@@ -159,6 +173,47 @@ protected:
       {
          extract_next_token(tl, token);
          syntax_error_if(token.type() != tc, token.expression(), token.position());
+      };
+
+      auto get_type = [&](
+         variable_t::type_t& type, 
+         const std::string& variable_name)
+      {
+         type = variable_t::type_by_name(variable_name);
+
+         if (!tl.empty())
+         {
+            token = *tl.begin();
+
+            if (token.type() == tkncl_t::IDENTIFIER &&
+               token.identifier() == "as")
+            {
+               --tl;
+               remove_blank(tl);
+
+               syntax_error_if(
+                  tl.empty(),
+                  token.expression(),
+                  token.position());
+
+               token = *tl.begin();
+
+               syntax_error_if(
+                  token.type() != tkncl_t::IDENTIFIER,
+                  token.expression(),
+                  token.position());
+
+               type = variable_t::type_by_typename(token.identifier());
+
+               syntax_error_if(
+                  type == variable_t::type_t::UNDEFINED,
+                  token.expression(),
+                  token.position());
+
+               --tl;
+               remove_blank(tl);
+            }
+         }
       };
 
       stmt_t::handle_t handle(std::make_shared<T>(std::forward<E>(xprms)...));
@@ -174,16 +229,21 @@ protected:
 
          std::string variable_name = token.identifier();
 
-         extract_next_token(tl, token);
+         syntax_error_if(!
+            variable_t::is_valid_name(variable_name),
+            variable_name + " is an invalid identifier");
 
-         // TODO determinare il tipo
-         //      valutando i due token successivi (privi di blank)
-         //      conviene fare una funzione che scorre la lista dei token
-         //      alla ricerca di "As" <blnk>,... "Type"
+         extract_next_token(tl, token);
 
          if (token.type() == tkncl_t::SUBEXP_BEGIN)
          {
-            scan_token(tkncl_t::INTEGRAL);
+            extract_next_token(tl, token);
+
+            syntax_error_if(
+               token.type() != tkncl_t::INTEGRAL &&
+               token.type() != tkncl_t::IDENTIFIER, 
+               token.expression(), 
+               token.position());
 
             token_list_t etl;
             expr_parser_t ep;
@@ -193,16 +253,20 @@ protected:
             T * ptr = dynamic_cast<T*>(handle.get());
             assert(ptr);
 
-            ptr->define(
-               variable_name,
-               variable_t::type_by_name(variable_name), //TODO VAR
-               ep.compile(etl, token.position()),
-               std::forward<E>(xprms)...);
-
             scan_token(tkncl_t::SUBEXP_END);
 
             --tl;
             remove_blank(tl);
+
+            variable_t::type_t type = variable_t::type_t::UNDEFINED;
+
+            get_type(type, variable_name);
+
+            ptr->define(
+               variable_name,
+               type,
+               ep.compile(etl, token.position()),
+               std::forward<E>(xprms)...);
          }
 
          else
@@ -210,9 +274,12 @@ protected:
             T * ptr = dynamic_cast<T*>(handle.get());
             assert(ptr);
 
+            variable_t::type_t type = variable_t::type_t::UNDEFINED;
+            get_type(type, variable_name);
+
             ptr->define(
                variable_name,
-               variable_t::type_by_name(variable_name), //TODO VAR
+               type, 
                std::make_shared<expr_literal_t>(0),
                std::forward<E>(xprms)...);
          }
@@ -397,7 +464,7 @@ protected:
       nu::token_list_t & tl);
 
 
-   //! parse End [If|While|Sub] statement
+   //! parse End [If|While|Sub|Function|Struct] statement
    stmt_t::handle_t parse_end(
       prog_ctx_t & ctx,
       token_t token,

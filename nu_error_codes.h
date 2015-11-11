@@ -86,7 +86,8 @@ public:
       E_VAL_OUT_OF_RANGE,
       E_EXIT_FOR_OUT,
       E_NO_MATCH_FOR,
-
+      E_STRUCT_UNDEF,
+      E_NO_MATCH_STRUCT,
    };
 
 

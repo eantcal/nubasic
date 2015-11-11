@@ -22,21 +22,19 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __NU_STMT_H__
-#define __NU_STMT_H__
+#ifndef __NU_EXPR_STRUCT_H__
+#define __NU_EXPR_STRUCT_H__
 
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_stdtype.h"
-#include "nu_exception.h"
 #include "nu_expr_any.h"
-#include "nu_error_codes.h"
+#include "nu_var_scope.h"
+#include "nu_global_function_tbl.h" // TODO
 
-#include <memory>
+
+#include <string>
 #include <list>
-#include <cassert>
-
 
 /* -------------------------------------------------------------------------- */
 
@@ -46,70 +44,47 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
-class prog_ctx_t;
-
-
-/* -------------------------------------------------------------------------- */
-
-/**
- * This is the base class of a hierarchy of statement classes.
- */
-class stmt_t
+//! This class represents a function-call expression
+class expr_struct_t : public expr_any_t
 {
 public:
-   stmt_t() = default;
-   stmt_t(const stmt_t&) = delete;
-   stmt_t& operator=( const stmt_t& ) = delete;
-   stmt_t(prog_ctx_t & ctx) NU_NOEXCEPT;
+   // Parser should produce a list of pairs. Each of them is 
+   // something like <identifier, vector index>
+   //
+   // id1(index).id2.id3(index3) --> 
+   //
+   // <"id1",index>, <"id2",0>, <"id3",index3>
+   //
+   using member_idx_t = 
+      std::pair< std::string /* id */, expr_any_t::handle_t /* vector idx */ >;
 
+   using member_call_list_t = std::vector<member_idx_t>;
 
-   int get_stmt_id() const NU_NOEXCEPT
-   {
-      return _stmt_id;
-   }
+   //! ctor
+   expr_struct_t(const member_call_list_t& member_call_list) NU_NOEXCEPT :
+      _member_call_list(member_call_list)
+   {}
 
+   expr_struct_t() = delete;
+   expr_struct_t(const expr_struct_t&) = default;
+   expr_struct_t& operator=( const expr_struct_t& ) = default;
 
-   enum class stmt_cl_t
-   {
-      NA,
-      EMPTY,
-      BLOCK_OF_CODE,
-      WHILE_BEGIN,
-      WHILE_END,
-      FOR_BEGIN,
-      FOR_END,
-      IF_BLOCK_BEGIN,
-      IF_BLOCK_END,
-      SUB_BEGIN,
-      SUB_END,
-      DO_BEGIN,
-      DO_END,
-      ELSE,
-      STRUCT_BEGIN,
-      STRUCT_END
-   };
+   //! Evaluates the function (using name and arguments given to the ctor)
+   variant_t eval(rt_prog_ctx_t & ctx) const override;
 
-   using handle_t = std::shared_ptr < stmt_t > ;
+   //! Returns false for this type of object
+   bool empty() const NU_NOEXCEPT override;
 
-   //! Executes the statement
-   virtual void run(rt_prog_ctx_t&) = 0;
-
-   //! Identify the class of statement
-   virtual stmt_cl_t get_cl() const NU_NOEXCEPT;
-
-   //dtor
-   virtual ~stmt_t();
-
-private:
-   int _stmt_id = 0;
+protected:
+   member_call_list_t _member_call_list;
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace
 
 
 /* -------------------------------------------------------------------------- */
 
-#endif // __NU_STMT_H__
+#endif // __NU_EXPR_STRUCT_H__

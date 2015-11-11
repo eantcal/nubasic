@@ -38,6 +38,7 @@
     <ProjectGuid>{E0C5DA15-A4C6-4FB4-BAC6-92DEB60B6B49}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>nubasic</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -55,13 +56,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug64|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -83,7 +84,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
     <CLRSupport>false</CLRSupport>
@@ -321,6 +322,7 @@
     <ClCompile Include="nu_error_codes.cc" />
     <ClCompile Include="nu_expr_function.cc" />
     <ClCompile Include="nu_expr_parser.cc" />
+    <ClCompile Include="nu_expr_struct.cc" />
     <ClCompile Include="nu_expr_subscrop.cc" />
     <ClCompile Include="nu_expr_tknzr.cc" />
     <ClCompile Include="nu_expr_syntax_tree.cc" />
@@ -354,6 +356,7 @@
     <ClCompile Include="nu_stmt_end.cc" />
     <ClCompile Include="nu_stmt_endfunction.cc" />
     <ClCompile Include="nu_stmt_endif.cc" />
+    <ClCompile Include="nu_stmt_endstruct.cc" />
     <ClCompile Include="nu_stmt_endsub.cc" />
     <ClCompile Include="nu_stmt_exit_do.cc" />
     <ClCompile Include="nu_stmt_exit_for.cc" />
@@ -383,6 +386,8 @@
     <ClCompile Include="nu_stmt_print.cc" />
     <ClCompile Include="nu_stmt_read.cc" />
     <ClCompile Include="nu_stmt_redim.cc" />
+    <ClCompile Include="nu_stmt_struct.cc" />
+    <ClCompile Include="nu_stmt_struct_element.cc" />
     <ClCompile Include="nu_stmt_sub.cc" />
     <ClCompile Include="nu_stmt_wend.cc" />
     <ClCompile Include="nu_stmt_while.cc" />
@@ -409,6 +414,7 @@
     <ClInclude Include="nu_expr_any.h" />
     <ClInclude Include="nu_expr_literal.h" />
     <ClInclude Include="nu_expr_parser.h" />
+    <ClInclude Include="nu_expr_struct.h" />
     <ClInclude Include="nu_expr_subscrop.h" />
     <ClInclude Include="nu_expr_unary_op.h" />
     <ClInclude Include="nu_expr_var.h" />
@@ -426,6 +432,7 @@
     <ClInclude Include="nu_reserved_keywords.h" />
     <ClInclude Include="nu_stdtype.h" />
     <ClInclude Include="nu_stmt_delay.h" />
+    <ClInclude Include="nu_stmt_endstruct.h" />
     <ClInclude Include="nu_stmt_expr.h" />
     <ClInclude Include="nu_stmt_on_goto.h" />
     <ClInclude Include="nu_os_console.h" />
@@ -477,6 +484,7 @@
     <ClInclude Include="nu_stmt_read.h" />
     <ClInclude Include="nu_stmt_redim.h" />
     <ClInclude Include="nu_stmt_return.h" />
+    <ClInclude Include="nu_stmt_struct_element.h" />
     <ClInclude Include="nu_stmt_sub.h" />
     <ClInclude Include="nu_stmt_wend.h" />
     <ClInclude Include="nu_stmt_while.h" />

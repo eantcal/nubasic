@@ -58,8 +58,11 @@ void prog_ctx_t::clear_metadata()
    if_metadata.clear();
    procedure_metadata.clear();
    proc_prototypes.data.clear();
+   struct_prototypes.data.clear();
+   struct_metadata.clear();
    prog_label.clear();
    compiletime_pc.reset();
+   compiling_struct_name.clear();
 
    // Remove user-defined-functions
    auto & funcs = global_function_tbl_t::get_instance();
@@ -114,10 +117,30 @@ void prog_ctx_t::trace_metadata(std::stringstream& ss)
       }
    }
 
+   if (!struct_prototypes.data.empty())
+   {
+      ss << "Structure Prototypes:\n";
+
+      for (const auto& s : struct_prototypes.data)
+      {
+         ss << "\tline:" << std::setw(5) << s.second.first.get_line() << " ";
+         ss << "Struct " << s.first << "\n";
+         s.second.second.describe_type(ss);
+         ss << "\n";
+      }
+   }
+
    if (!procedure_metadata.empty())
    {
       ss << "Sub Procedures:\n";
       procedure_metadata.trace(ss);
+      ss << std::endl;
+   }
+
+   if (!struct_metadata.empty())
+   {
+      ss << "Structures:\n";
+      struct_metadata.trace(ss);
       ss << std::endl;
    }
 

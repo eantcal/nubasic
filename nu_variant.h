@@ -37,6 +37,7 @@
 #include <iostream>
 #include <vector>
 #include <functional>
+#include <sstream>
 
 
 /* -------------------------------------------------------------------------- */
@@ -44,6 +45,19 @@
 namespace nu
 {
 
+//! Structure type
+struct struct_variant_t
+{
+   explicit struct_variant_t(const std::string& prototype_name) NU_NOEXCEPT
+      : _prototype_name(prototype_name) {}
+
+   const std::string& get() const NU_NOEXCEPT { return _prototype_name; }
+private:
+   std::string _prototype_name;
+};
+
+
+/* -------------------------------------------------------------------------- */
 
 /**
  * A variant is a special data type that can contain any kind of typed data
@@ -56,7 +70,11 @@ class variant_t
 protected:
    void _resize(size_t size)
    {
-      if (is_number())
+      if (is_struct())
+      {
+         _struct_data.resize(size);
+      }
+      else if (is_number())
       {
          if (is_integral())
             _i_data.resize(size);
@@ -93,7 +111,8 @@ protected:
       else
          data[idx] = value;
    }
-
+     
+   
 public:
    using handle_t = std::shared_ptr<variant_t>;
    using type_t = variable_t::type_t;
@@ -101,6 +120,21 @@ public:
    static bool is_integer(const std::string& value);
    static bool is_real(const std::string& value);
 
+   variant_t(const struct_variant_t& value, size_t vect_size = 0) :
+      variant_t(value.get(), type_t::STRUCT, vect_size) {}
+
+protected:
+   using struct_data_t = std::map<std::string, variant_t::handle_t>;
+
+   variant_t(const std::string& name, const struct_data_t& value) :
+      _type(type_t::STRUCT),
+      _struct_data_type_name(name)
+   {
+      _struct_data.resize(1);
+      _struct_data[0] = value;
+   }
+
+public:
    variant_t(const string_t& value, type_t t, size_t vect_size = 0);
    variant_t(const char* value, type_t t, size_t vect_size = 0);
    variant_t(const string_t& value, size_t vect_size = 0);
@@ -121,6 +155,47 @@ public:
    variant_t(variant_t&& v);
    variant_t& operator=(variant_t&& v);
 
+   // Struct
+   void define_struct_member(
+      const std::string& field_name, 
+      const variant_t& value);
+
+   handle_t struct_member(
+      const std::string& field_name, 
+      size_t vector_idx = 0);
+   
+   const std::string& struct_type_name() const NU_NOEXCEPT
+   {
+      return _struct_data_type_name;
+   }
+
+   void describe_type(std::stringstream & ss) const NU_NOEXCEPT
+   {
+      if (is_struct())
+      {
+         ss << "\t\tSTRUCT " << struct_type_name() << "\n";
+         ss << "\t\t{\n";
+
+         if (!_struct_data.empty()) for (auto & s : _struct_data[0])
+         {
+            ss << "\t\t\t" << s.first << " As ";
+
+            if (s.second)
+               s.second->describe_type(ss);
+            else
+               ss << "undefined";
+
+            ss << "\n";
+         }
+         ss << "\t\t}";
+      }
+      else
+      {
+         ss << get_type_desc(get_type());
+      }
+   }
+
+
    bool is_const() const NU_NOEXCEPT
    {
       return _constant;
@@ -129,6 +204,11 @@ public:
    bool is_vector() const NU_NOEXCEPT
    {
       return _vector_type;
+   }
+
+   bool is_struct() const NU_NOEXCEPT
+   {
+      return _type == type_t::STRUCT;
    }
 
    size_t vector_size() const NU_NOEXCEPT
@@ -146,6 +226,12 @@ public:
 
    double_t to_double(size_t idx = 0) const
    {
+      rt_error_code_t::get_instance().throw_if(
+         _type == type_t::STRUCT,
+         0,
+         rt_error_code_t::E_TYPE_ILLEGAL,
+         "");
+
       if (is_number())
          return is_integral() ? double_t(_at_i(idx)) : _at_f(idx);
 
@@ -159,6 +245,12 @@ public:
 
    long64_t to_long64(size_t idx = 0) const
    {
+      rt_error_code_t::get_instance().throw_if(
+         _type == type_t::STRUCT,
+         0,
+         rt_error_code_t::E_TYPE_ILLEGAL,
+         "");
+
       if (is_number())
          return is_integral() ? _at_i(idx) : long64_t(_at_f(idx));
 
@@ -224,6 +316,12 @@ public:
 
    const string_t& to_str(size_t idx = 0) const
    {
+      rt_error_code_t::get_instance().throw_if(
+         _type == type_t::STRUCT,
+         0,
+         rt_error_code_t::E_TYPE_ILLEGAL,
+         "");
+      
       if (is_number())
       {
          _s_data.resize(idx + 1);
@@ -333,10 +431,13 @@ public:
 
    variant_t operator[](size_t idx) const
    {
-      return is_number() ?
-         (is_integral() ? 
-            variant_t(_at_i(idx)) : variant_t(_at_f(idx))) : 
-         variant_t(_at_s(idx));
+      if (is_struct())
+         return variant_t(struct_type_name(), _struct_data[idx]);
+      else
+         return is_number() ?
+            (is_integral() ? 
+               variant_t(_at_i(idx)) : variant_t(_at_f(idx))) : 
+            variant_t(_at_s(idx));
    }
 
    void set_bvect(const std::vector<byte_t>& value);
@@ -374,8 +475,11 @@ protected:
    size_t _vect_size = 0;
 
    mutable std::vector<string_t> _s_data;
-   std::vector<long64_t>    _i_data;
-   std::vector<double_t>    _f_data;
+   std::vector<long64_t>         _i_data;
+   std::vector<double_t>         _f_data;
+
+   std::vector<struct_data_t> _struct_data;
+   std::string _struct_data_type_name;
 
    const std::string& _at_s(size_t idx) const
    {

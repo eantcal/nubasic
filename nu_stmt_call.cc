@@ -138,7 +138,9 @@ void stmt_call_t::run(
       {
          variant_t val = *values_it;
 
-         const auto variable_name = arg_it->var_name;
+         const auto & variable_name = arg_it->var_name;
+         const auto & variable_type = arg_it->type_name;
+
          int vsize = 0;
 
          if (arg_it->vsize)
@@ -147,7 +149,9 @@ void stmt_call_t::run(
             vsize = size.to_int();
          }
 
-         auto var_type = variable_t::type_by_name(variable_name);
+         auto var_type = variable_type.empty() ?
+            variable_t::type_by_name(variable_name) :
+            variable_t::type_by_typename(variable_type); // TODO struct
 
          rt_error_if(
             vsize && (!val.is_vector() || int(val.vector_size()) != vsize),

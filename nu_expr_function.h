@@ -46,7 +46,10 @@ class expr_function_t : public expr_any_t
 {
 public:
    //! ctor
-   expr_function_t(const std::string& name, func_args_t var);
+   expr_function_t(const std::string& name, func_args_t var) NU_NOEXCEPT : 
+      _name(name),
+      _var(var)
+   {}
 
    expr_function_t() = delete;
    expr_function_t(const expr_function_t&) = default;

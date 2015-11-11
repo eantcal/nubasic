@@ -53,8 +53,15 @@ variant_t::variant_t(
    if (vect_size<1)
       vect_size = 1;
 
-   if (is_number())
+   if (is_struct())
    {
+      _struct_data_type_name = s_value;
+   }
+   else if (is_number())
+   {
+      if (s_value[0]=='\0')
+         s_value = "0";
+
       if (is_integral())
          _i_data.resize(vect_size, std::stoll(s_value));
       else
@@ -940,6 +947,10 @@ std::ostream& operator << (std::ostream& os, const variant_t& val)
             os << "\"" << val.to_str(i) << "\"";
             break;
 
+         case variant_t::type_t::STRUCT:
+            //TODO
+            break;
+
          default:
             os << val.to_str(i);
             break;
@@ -1051,11 +1062,13 @@ variant_t::variant_t(variant_t&& v)
    :
    _type(std::move(v._type)),
    _constant(std::move(v._constant)),
-   _vector_type (std::move(v._vector_type)),
-   _vect_size (std::move(v._vect_size)),
+   _vector_type(std::move(v._vector_type)),
+   _vect_size(std::move(v._vect_size)),
    _s_data(std::move(v._s_data)),
    _i_data(std::move(v._i_data)),
-   _f_data (std::move(v._f_data))
+   _f_data(std::move(v._f_data)),
+   _struct_data(std::move(v._struct_data)),
+   _struct_data_type_name(std::move(v._struct_data_type_name))
 {
 }
 
@@ -1069,6 +1082,8 @@ variant_t& variant_t::operator=(variant_t&& v)
       _i_data = std::move(v._i_data);
       _f_data = std::move(v._f_data);
       _s_data = std::move(v._s_data);
+      _struct_data = std::move(v._struct_data);
+      _struct_data_type_name = std::move(v._struct_data_type_name);
 
       _vector_type = std::move(v._vector_type);
       _vect_size = std::move(v._vect_size);
@@ -1089,6 +1104,8 @@ variant_t& variant_t::operator=(const variant_t& v)
       _i_data = v._i_data;
       _f_data = v._f_data;
       _s_data = v._s_data;
+      _struct_data = v._struct_data;
+      _struct_data_type_name = v._struct_data_type_name;
 
       _vector_type = v._vector_type;
       _vect_size = v._vect_size;
@@ -1097,6 +1114,51 @@ variant_t& variant_t::operator=(const variant_t& v)
    }
 
    return *this;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void variant_t::define_struct_member(
+   const std::string& field_name, 
+   const variant_t& value)
+{
+   rt_error_code_t::get_instance().throw_if(
+      _type != type_t::STRUCT,
+      0,
+      rt_error_code_t::E_TYPE_ILLEGAL,
+      "");
+
+   auto hvalue = std::make_shared<variant_t>(value);
+
+   if (_struct_data.empty())
+      _struct_data.resize(1);
+
+   _struct_data[0].insert(std::make_pair(field_name, hvalue));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+variant_t::handle_t variant_t::struct_member(
+   const std::string& field_name,
+   size_t vector_idx)
+{
+   rt_error_code_t::get_instance().throw_if(
+      _type != type_t::STRUCT || vector_idx>=_struct_data.size(),
+      0,
+      rt_error_code_t::E_TYPE_ILLEGAL,
+      "");
+
+   auto it = _struct_data[vector_idx].find(field_name);
+
+   rt_error_code_t::get_instance().throw_if(
+      it == _struct_data[vector_idx].end(),
+      0,
+      rt_error_code_t::E_INV_IDENTIF,
+      "");
+
+   return it->second;
 }
 
 

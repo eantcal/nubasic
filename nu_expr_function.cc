@@ -33,14 +33,6 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
-expr_function_t::expr_function_t(const std::string& name, func_args_t var) :
-   _name(name),
-   _var(var)
-{}
-
-
-/* -------------------------------------------------------------------------- */
-
 bool expr_function_t::empty() const NU_NOEXCEPT
 {
    return false;

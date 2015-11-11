@@ -22,14 +22,9 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __NU_VARIABLE_H__
-#define __NU_VARIABLE_H__
-
-#include "nu_reserved_keywords.h"
-#include "nu_cpp_lang.h"
-
-#include <string>
-#include <set>
+#include "nu_rt_prog_ctx.h"
+#include "nu_stmt_struct_element.h"
+#include "nu_error_codes.h"
 
 
 /* -------------------------------------------------------------------------- */
@@ -40,63 +35,35 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
-struct variable_t
+stmt_struct_element_t::stmt_struct_element_t(
+   prog_ctx_t & ctx,
+   const std::string& name,
+   variable_t::type_t type,
+   vec_size_t vect_size)
 {
-   enum class type_t
-   {
-      UNDEFINED,
-      INTEGER,
-      FLOAT,
-      DOUBLE,
-      STRING,
-      BYTEVECTOR,
-      BOOLEAN,
-      LONG64,
-      STRUCT
-   };
+   auto element_it =
+      ctx.struct_prototypes.data.find(ctx.compiling_struct_name);
+
+   syntax_error_if(
+      element_it == ctx.struct_prototypes.data.end(),
+         name,
+         0,
+         "Struct... End Struct");
+
+   element_it->second.second.define_struct_member(
+      name,
+      variant_t(string_t(), type, vect_size));
+}
 
 
-   static type_t type_by_name(const std::string& name);
-   static bool is_valid_name(std::string name);
-   static type_t type_by_typename(std::string name);
-   static std::string typename_by_type(type_t type);
+/* -------------------------------------------------------------------------- */
 
-
-   static inline bool is_number( type_t t ) NU_NOEXCEPT
-   {
-      return
-         t == type_t::LONG64 ||
-         t == type_t::INTEGER ||
-         t == type_t::FLOAT ||
-         t == type_t::DOUBLE ||
-         t == type_t::BOOLEAN;
-   }
-
-
-   static inline bool is_float(type_t t) NU_NOEXCEPT
-   {
-      return
-         t == type_t::FLOAT ||
-         t == type_t::DOUBLE;
-   }
-
-
-   static inline bool is_integral(type_t t) NU_NOEXCEPT
-   {
-      return
-         t == type_t::LONG64 ||
-         t == type_t::INTEGER ||
-         t == type_t::BOOLEAN;
-   }
-
-};
+void stmt_struct_element_t::run(rt_prog_ctx_t & ctx)
+{
+   ctx.go_to_next();
+}
 
 
 /* -------------------------------------------------------------------------- */
 
 } // namespace nu
-
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __NU_VARIABLE_H__

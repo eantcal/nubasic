@@ -22,14 +22,20 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __NU_VARIABLE_H__
-#define __NU_VARIABLE_H__
+#ifndef __NU_STMT_STRUCT_ELEMENT_H__
+#define __NU_STMT_STRUCT_ELEMENT_H__
 
-#include "nu_reserved_keywords.h"
-#include "nu_cpp_lang.h"
+
+/* -------------------------------------------------------------------------- */
+
+#include "nu_expr_any.h"
+#include "nu_stmt.h"
+#include "nu_variable.h"
+#include "nu_var_scope.h"
+#include "nu_token_list.h"
+#include "nu_prog_ctx.h"
 
 #include <string>
-#include <set>
 
 
 /* -------------------------------------------------------------------------- */
@@ -40,63 +46,31 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
-struct variable_t
+class stmt_struct_element_t : public stmt_t
 {
-   enum class type_t
-   {
-      UNDEFINED,
-      INTEGER,
-      FLOAT,
-      DOUBLE,
-      STRING,
-      BYTEVECTOR,
-      BOOLEAN,
-      LONG64,
-      STRUCT
-   };
+public:
+   using vec_size_t = size_t;
 
+   stmt_struct_element_t(
+      prog_ctx_t & ctx,
+      const std::string& name,
+      variable_t::type_t type,
+      vec_size_t vect_size);
 
-   static type_t type_by_name(const std::string& name);
-   static bool is_valid_name(std::string name);
-   static type_t type_by_typename(std::string name);
-   static std::string typename_by_type(type_t type);
+   stmt_struct_element_t() = delete;
+   stmt_struct_element_t(const stmt_struct_element_t&) = delete;
+   stmt_struct_element_t& operator=(const stmt_struct_element_t&) = delete;
 
-
-   static inline bool is_number( type_t t ) NU_NOEXCEPT
-   {
-      return
-         t == type_t::LONG64 ||
-         t == type_t::INTEGER ||
-         t == type_t::FLOAT ||
-         t == type_t::DOUBLE ||
-         t == type_t::BOOLEAN;
-   }
-
-
-   static inline bool is_float(type_t t) NU_NOEXCEPT
-   {
-      return
-         t == type_t::FLOAT ||
-         t == type_t::DOUBLE;
-   }
-
-
-   static inline bool is_integral(type_t t) NU_NOEXCEPT
-   {
-      return
-         t == type_t::LONG64 ||
-         t == type_t::INTEGER ||
-         t == type_t::BOOLEAN;
-   }
-
+   virtual void run(rt_prog_ctx_t& ctx) override;
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-} // namespace nu
+
+}
 
 
 /* -------------------------------------------------------------------------- */
 
-#endif // __NU_VARIABLE_H__
+#endif //__NU_STMT_DIM_H__

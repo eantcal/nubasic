@@ -53,9 +53,8 @@ void stmt_let_t::run(rt_prog_ctx_t & ctx)
    var_scope_t::handle_t scope =
       ctx.proc_scope.get(ctx.proc_scope.get_type(_variable));
 
-   variable_t::type_t vart = variable_t::type_by_name(_variable);
-
    variant_t & var = (*scope)[_variable];
+   variable_t::type_t vart = var.get_type();
 
    bool is_vector = var.is_vector();
 

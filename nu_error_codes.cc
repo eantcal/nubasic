@@ -136,6 +136,8 @@ rt_error_code_t::rt_error_code_t()
    e[E_CANNOT_MOD_CONST]= "cannot modify a constant value";
    e[E_VAL_OUT_OF_RANGE] = "value out of range";
    e[E_NO_MATCH_FOR] = "matching FOR statement not found";
+   e[E_STRUCT_UNDEF] = "STRUCT not defined";
+   e[E_NO_MATCH_STRUCT] = "matching STRUCT statement not defined";
 }
 
 

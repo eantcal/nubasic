@@ -75,7 +75,7 @@ void stmt_dim_t::run(rt_prog_ctx_t & ctx)
             break;
       }
 
-      rt_error_if(vsize<=0,
+      rt_error_if(vsize<0,
                   rt_error_code_t::E_INV_VECT_SIZE,
                   "Dim: '" + name + "'");
 

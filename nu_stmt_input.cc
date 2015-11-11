@@ -75,8 +75,11 @@ void stmt_input_t::run(rt_prog_ctx_t & ctx)
             idx >= var.vector_size(),
             "'" + name + "(" + nu::to_string(idx) + ")' is"
             "out of range");
+         
+         variant_t::type_t t = var.get_type();
 
-         variant_t::type_t t = variable_t::type_by_name(name);
+         if (t==variant_t::type_t::UNDEFINED)
+            t = variable_t::type_by_name(name);
 
          switch (t)
          {
@@ -124,7 +127,13 @@ void stmt_input_t::run(rt_prog_ctx_t & ctx)
          var_scope_t::handle_t scope =
             ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
-         switch (variable_t::type_by_name(name))
+         variant_t var = (*scope)[name];
+         variant_t::type_t t = var.get_type();
+
+         if (t == variant_t::type_t::UNDEFINED)
+            t = variable_t::type_by_name(name);
+
+         switch (t)
          {
             case variable_t::type_t::STRING:
                scope->define(name, value);

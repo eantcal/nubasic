@@ -64,6 +64,13 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t & ctx)
    {
       var_scope_t::handle_t scope = ctx.proc_scope.get(scope_type);
 
+      if (scope->is_defined(_variable))
+      {
+         auto type = (*scope)[_variable].get_type();
+         if (type != variable_t::type_t::UNDEFINED)
+            vartype = type;
+      }
+
       switch (vartype)
       {
          case variable_t::type_t::STRING:

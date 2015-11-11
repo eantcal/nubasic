@@ -66,6 +66,9 @@
 #include "nu_stmt_wend.h"
 #include "nu_stmt_sub.h"
 #include "nu_stmt_function.h"
+#include "nu_stmt_struct.h"
+#include "nu_stmt_endstruct.h"
+#include "nu_stmt_struct_element.h"
 
 
 #include "nu_stmt_parser.h"
@@ -868,10 +871,9 @@ stmt_t::handle_t stmt_parser_t::parse_let(
    remove_blank(tl);
 
    if (tl.empty())
-   {
       return stmt_t::handle_t(std::make_shared<stmt_empty_t>(ctx));
-   }
 
+   
    token_t token(*tl.begin());
    size_t pos = token.position();
    std::string expr = token.expression();
@@ -880,6 +882,10 @@ stmt_t::handle_t stmt_parser_t::parse_let(
 
    std::string identifier = token.identifier();
 
+   syntax_error_if(!
+      variable_t::is_valid_name(identifier), 
+      identifier + " is an invalid identifier");
+   
    --tl;
    remove_blank(tl);
 
@@ -969,6 +975,10 @@ stmt_t::handle_t stmt_parser_t::parse_for_to_step(
 
    std::string variable_name = token.identifier();
 
+   syntax_error_if(!
+      variable_t::is_valid_name(variable_name),
+      variable_name + " is an invalid identifier");
+
    token = *tl.begin();
 
    syntax_error_if(
@@ -1056,6 +1066,10 @@ stmt_t::handle_t stmt_parser_t::parse_next(
             token.position());
 
          variable_name = token.identifier();
+
+         syntax_error_if(!
+            variable_t::is_valid_name(variable_name),
+            variable_name + " is an invalid identifier");
 
          --tl;
          remove_blank(tl);
@@ -1174,6 +1188,129 @@ stmt_t::handle_t stmt_parser_t::parse_procedure(
    return parse_parameter_list<T>(ctx, token, tl, ")", ctx, id);
 }
 
+
+/* -------------------------------------------------------------------------- */
+
+stmt_t::handle_t stmt_parser_t::parse_struct(
+   prog_ctx_t & ctx,
+   nu::token_t token,
+   nu::token_list_t & tl)
+{
+   //Skip keyword STRUCT
+   --tl;
+   remove_blank(tl);
+   syntax_error_if(tl.empty(), token.expression(), token.position());
+
+   token = *tl.begin();
+
+   syntax_error_if(
+      token.type() != tkncl_t::IDENTIFIER,
+      token.expression(),
+      token.position());
+
+   const std::string& id = token.identifier();
+
+   syntax_error_if(
+      !variable_t::is_valid_name(id), 
+      token.expression(),
+      token.position(),
+      "'" + id + "' is an invalid identifier");
+
+   --tl;
+   remove_blank(tl);
+   syntax_error_if(!tl.empty(), token.expression(), token.position());
+
+   ctx.compiling_struct_name = id;
+
+   return stmt_t::handle_t(std::make_shared<stmt_struct_t>(ctx, id));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+stmt_t::handle_t stmt_parser_t::parse_struct_element(
+   prog_ctx_t & ctx,
+   nu::token_t token,
+   nu::token_list_t & tl)
+{
+   --tl;
+   remove_blank(tl);
+   syntax_error_if(tl.empty(), token.expression(), token.position());
+
+   token = *tl.begin();
+
+   syntax_error_if(
+      token.type() != tkncl_t::IDENTIFIER,
+      token.expression(),
+      token.position());
+
+   const std::string& id = token.identifier();
+
+   syntax_error_if(
+      !variable_t::is_valid_name(id),
+      token.expression(),
+      token.position(),
+      "'" + id + "' is an invalid identifier");
+
+   --tl;
+   remove_blank(tl);
+
+   auto type = variable_t::type_by_name(id);
+   size_t size = 0;
+   
+   if (tl.empty())
+      return stmt_t::handle_t(
+         std::make_shared<stmt_struct_element_t>(ctx, id, type, size));
+
+   --tl;
+   remove_blank(tl);
+   token = *tl.begin();
+
+   if (token.type() == tkncl_t::SUBEXP_BEGIN)
+   {
+      --tl;
+      remove_blank(tl);
+      syntax_error_if(tl.empty(), token.expression(), token.position());
+
+      token = *tl.begin();
+
+      syntax_error_if(
+         token.type() != tkncl_t::INTEGRAL,
+         token.expression(),
+         token.position());
+
+      try
+      {
+         size = nu::stoll(token.identifier());
+      }
+      catch (...)
+      {
+         syntax_error(token.expression(), token.position());
+      }
+
+      --tl;
+      remove_blank(tl);
+      syntax_error_if(tl.empty(), token.expression(), token.position());
+
+      token = *tl.begin();
+
+      syntax_error_if(
+         token.type() != tkncl_t::SUBEXP_END,
+         token.expression(),
+         token.position(),
+         "'" + id + "' is an invalid identifier");
+
+      --tl;
+      remove_blank(tl);
+
+      if (tl.empty())
+         return stmt_t::handle_t(std::make_shared<stmt_struct_element_t>(ctx, id, type, size));
+   }
+
+   // TODO 
+
+   return stmt_t::handle_t(std::make_shared<stmt_struct_element_t>(ctx, id, type, size));
+}
 
 /* -------------------------------------------------------------------------- */
 
@@ -1678,8 +1815,7 @@ stmt_t::handle_t stmt_parser_t::parse_end(
 {
    --tl;
    remove_blank(tl);
-
-   //If a stmt follows "END" it must be WHILE
+      
    if (!tl.empty())
    {
       token_t token = *tl.begin();
@@ -1711,6 +1847,13 @@ stmt_t::handle_t stmt_parser_t::parse_end(
          --tl;
          return stmt_t::handle_t(std::make_shared<stmt_endfunction_t>(ctx));
       }
+      else if (id == "struct")
+      {
+         ctx.compiling_struct_name.clear();;
+
+         --tl;
+         return stmt_t::handle_t(std::make_shared<stmt_endstruct_t>(ctx));
+      }
       else
       {
          syntax_error(token.expression(), token.position());
@@ -1738,6 +1881,14 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
       return std::make_shared<stmt_empty_t>(ctx);
 
    const std::string& identifier = token.identifier();
+
+   syntax_error_if(
+      !ctx.compiling_struct_name.empty() && 
+      (token.type() != tkncl_t::IDENTIFIER ||
+       (token.identifier() != "dim" && token.identifier() != "end")),
+      token.expression(),
+      token.position(),
+      "Invalid statement inside Struct '" + ctx.compiling_struct_name + "'" );
 
    syntax_error_if(
       (token.type() != tkncl_t::IDENTIFIER) &&
@@ -1877,7 +2028,13 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
    }
 
    if (identifier == "dim")
-      return parse_parameter_list<stmt_dim_t>(ctx, token, tl, ":", ctx);
+   {
+      if (ctx.compiling_struct_name.empty())
+         return parse_parameter_list<stmt_dim_t>(ctx, token, tl, ":", ctx);
+      else
+         return parse_struct_element(ctx, token, tl);
+   }
+
 
    if (identifier == "redim")
       return parse_parameter_list<stmt_redim_t>(ctx, token, tl, ":", ctx);
@@ -1911,6 +2068,9 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
 
    if (identifier == "sub")
       return parse_procedure<stmt_sub_t>(ctx, token, tl);
+
+   if (identifier == "struct")
+      return parse_struct(ctx, token, tl);
 
    if (identifier == "function")
       return parse_procedure<stmt_function_t>(ctx, token, tl);
@@ -2005,7 +2165,6 @@ stmt_t::handle_t stmt_parser_t::compile_line(
 
 /* -------------------------------------------------------------------------- */
 
-//! parse explicit typename // TODO move impl into .cc
 bool stmt_parser_t::search_for__as_type(
    const nu::token_list_t & tl, 
    std::string & tname)
