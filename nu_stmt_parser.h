@@ -176,10 +176,12 @@ protected:
       };
 
       auto get_type = [&](
-         variable_t::type_t& type, 
+         std::string& type, 
          const std::string& variable_name)
       {
-         type = variable_t::type_by_name(variable_name);
+         type = 
+            variable_t::typename_by_type(
+               variable_t::type_by_name(variable_name));
 
          if (!tl.empty())
          {
@@ -203,12 +205,7 @@ protected:
                   token.expression(),
                   token.position());
 
-               type = variable_t::type_by_typename(token.identifier());
-
-               syntax_error_if(
-                  type == variable_t::type_t::UNDEFINED,
-                  token.expression(),
-                  token.position());
+               type = token.identifier();
 
                --tl;
                remove_blank(tl);
@@ -230,7 +227,7 @@ protected:
          std::string variable_name = token.identifier();
 
          syntax_error_if(!
-            variable_t::is_valid_name(variable_name),
+            variable_t::is_valid_name(variable_name, false),
             variable_name + " is an invalid identifier");
 
          extract_next_token(tl, token);
@@ -258,7 +255,7 @@ protected:
             --tl;
             remove_blank(tl);
 
-            variable_t::type_t type = variable_t::type_t::UNDEFINED;
+            std::string type;
 
             get_type(type, variable_name);
 
@@ -274,7 +271,7 @@ protected:
             T * ptr = dynamic_cast<T*>(handle.get());
             assert(ptr);
 
-            variable_t::type_t type = variable_t::type_t::UNDEFINED;
+            std::string type;
             get_type(type, variable_name);
 
             ptr->define(

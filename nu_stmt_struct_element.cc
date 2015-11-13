@@ -38,7 +38,7 @@ namespace nu
 stmt_struct_element_t::stmt_struct_element_t(
    prog_ctx_t & ctx,
    const std::string& name,
-   variable_t::type_t type,
+   const std::string& type,
    vec_size_t vect_size)
 {
    auto element_it =
@@ -50,9 +50,28 @@ stmt_struct_element_t::stmt_struct_element_t(
          0,
          "Struct... End Struct");
 
-   element_it->second.second.define_struct_member(
-      name,
-      variant_t(string_t(), type, vect_size));
+   auto user_def_type = ctx.struct_prototypes.data.find(type);
+
+   auto type_code = variable_t::type_by_typename(type);
+
+   if (user_def_type != ctx.struct_prototypes.data.end())
+   {
+      element_it->second.second.define_struct_member(
+         name,
+         user_def_type->second.second);
+   }
+   else
+   {
+      syntax_error_if(
+         type_code == variable_t::type_t::UNDEFINED,
+         name,
+         0,
+         "Struct... End Struct");
+
+      element_it->second.second.define_struct_member(
+         name,
+         variant_t(string_t(), type_code, vect_size));
+   }
 }
 
 

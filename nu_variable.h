@@ -57,7 +57,7 @@ struct variable_t
 
 
    static type_t type_by_name(const std::string& name);
-   static bool is_valid_name(std::string name);
+   static bool is_valid_name(std::string name, bool ignore_builtin);
    static type_t type_by_typename(std::string name);
    static std::string typename_by_type(type_t type);
 

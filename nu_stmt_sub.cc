@@ -101,7 +101,7 @@ void stmt_sub_t::run(rt_prog_ctx_t & ctx)
 
 void stmt_sub_t::define(
    const std::string& var,
-   variable_t::type_t vtype,
+   const std::string& vtype,
    vec_size_t vect_size,
    prog_ctx_t & ctx,
    const std::string& id)
@@ -120,7 +120,7 @@ void stmt_sub_t::define(
    fproto.parameters.push_back(
       func_param_t(
          var,
-         variable_t::typename_by_type(vtype),
+         vtype,
          vect_size));
 }
 

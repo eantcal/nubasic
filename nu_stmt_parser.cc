@@ -881,10 +881,6 @@ stmt_t::handle_t stmt_parser_t::parse_let(
    syntax_error_if(token.type() != tkncl_t::IDENTIFIER, expr, pos);
 
    std::string identifier = token.identifier();
-
-   syntax_error_if(!
-      variable_t::is_valid_name(identifier), 
-      identifier + " is an invalid identifier");
    
    --tl;
    remove_blank(tl);
@@ -939,6 +935,10 @@ stmt_t::handle_t stmt_parser_t::parse_let(
       ":", tkncl_t::OPERATOR  // end-of-expression
    );
 
+   syntax_error_if(!
+      variable_t::is_valid_name(identifier, false),
+      identifier + " is an invalid identifier");
+
    return stmt_t::handle_t(
              std::make_shared<stmt_let_t>(
                 ctx,
@@ -976,7 +976,7 @@ stmt_t::handle_t stmt_parser_t::parse_for_to_step(
    std::string variable_name = token.identifier();
 
    syntax_error_if(!
-      variable_t::is_valid_name(variable_name),
+      variable_t::is_valid_name(variable_name, false),
       variable_name + " is an invalid identifier");
 
    token = *tl.begin();
@@ -1068,7 +1068,7 @@ stmt_t::handle_t stmt_parser_t::parse_next(
          variable_name = token.identifier();
 
          syntax_error_if(!
-            variable_t::is_valid_name(variable_name),
+            variable_t::is_valid_name(variable_name, false),
             variable_name + " is an invalid identifier");
 
          --tl;
@@ -1156,8 +1156,9 @@ stmt_t::handle_t stmt_parser_t::parse_procedure(
 
    std::string id = token.identifier();
 
-   syntax_error_if(!
-                   variable_t::is_valid_name(id), id + " is an invalid identifier");
+   syntax_error_if(
+      !variable_t::is_valid_name(id, false), 
+      id + " is an invalid identifier");
 
    token = *tl.begin();
 
@@ -1211,7 +1212,7 @@ stmt_t::handle_t stmt_parser_t::parse_struct(
    const std::string& id = token.identifier();
 
    syntax_error_if(
-      !variable_t::is_valid_name(id), 
+      !variable_t::is_valid_name(id, false), 
       token.expression(),
       token.position(),
       "'" + id + "' is an invalid identifier");
@@ -1244,10 +1245,10 @@ stmt_t::handle_t stmt_parser_t::parse_struct_element(
       token.expression(),
       token.position());
 
-   const std::string& id = token.identifier();
+   std::string id = token.identifier();
 
    syntax_error_if(
-      !variable_t::is_valid_name(id),
+      !variable_t::is_valid_name(id, false),
       token.expression(),
       token.position(),
       "'" + id + "' is an invalid identifier");
@@ -1255,17 +1256,23 @@ stmt_t::handle_t stmt_parser_t::parse_struct_element(
    --tl;
    remove_blank(tl);
 
-   auto type = variable_t::type_by_name(id);
+   auto type = 
+      variable_t::typename_by_type(variable_t::type_by_name(id));
+
    size_t size = 0;
    
    if (tl.empty())
       return stmt_t::handle_t(
          std::make_shared<stmt_struct_element_t>(ctx, id, type, size));
 
-   --tl;
-   remove_blank(tl);
    token = *tl.begin();
 
+   syntax_error_if(
+      ! ((token.type() == tkncl_t::IDENTIFIER && token.identifier() == "as") ||
+           token.type() == tkncl_t::SUBEXP_BEGIN),
+      token.expression(),
+      token.position());
+      
    if (token.type() == tkncl_t::SUBEXP_BEGIN)
    {
       --tl;
@@ -1302,12 +1309,36 @@ stmt_t::handle_t stmt_parser_t::parse_struct_element(
 
       --tl;
       remove_blank(tl);
-
-      if (tl.empty())
-         return stmt_t::handle_t(std::make_shared<stmt_struct_element_t>(ctx, id, type, size));
    }
+      
+   if (tl.empty())
+      return stmt_t::handle_t(
+         std::make_shared<stmt_struct_element_t>(ctx, id, type, size));
 
-   // TODO 
+   token = *tl.begin();
+
+   if (token.type() == tkncl_t::IDENTIFIER && token.identifier() == "as")
+   {
+      --tl;
+      remove_blank(tl);
+
+      syntax_error_if(
+         tl.empty(),
+         token.expression(),
+         token.position());
+
+      token = *tl.begin();
+
+      syntax_error_if(
+         token.type() != tkncl_t::IDENTIFIER,
+         token.expression(),
+         token.position());
+
+      type = token.identifier();
+
+      --tl;
+      remove_blank(tl);
+   }
 
    return stmt_t::handle_t(std::make_shared<stmt_struct_element_t>(ctx, id, type, size));
 }

@@ -1649,7 +1649,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
          std::vector< variant_t > vargs;
          get_functor_vargs(ctx, name, args, { variant_t::type_t::UNDEFINED }, vargs);
 
-         return nu::variant_t(integer_t( vargs[0].size() ));
+         return nu::variant_t(integer_t( vargs[0].vector_size() ));
       };
 
 

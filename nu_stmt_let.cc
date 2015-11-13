@@ -50,13 +50,28 @@ void stmt_let_t::run(rt_prog_ctx_t & ctx)
 
    variant_t val = _arg->eval(ctx);
 
-   var_scope_t::handle_t scope =
-      ctx.proc_scope.get(ctx.proc_scope.get_type(_variable));
+   size_t idx = 0;
+   
+   var_scope_t::handle_t scope;
+   variant_t * var = nullptr;
 
-   variant_t & var = (*scope)[_variable];
-   variable_t::type_t vart = var.get_type();
+   if (_variable.find('.')!=size_t(-1))
+      var = ctx.get_struct_member_value(_variable, scope, 0);
 
-   bool is_vector = var.is_vector();
+   if (! var)
+   {
+      if (scope == nullptr)
+         scope = ctx.proc_scope.get(ctx.proc_scope.get_type(_variable));
+
+      var = &((*scope)[_variable]);
+   }
+      
+   variable_t::type_t vart = var->get_type();
+
+   if (vart == variable_t::type_t::UNDEFINED)
+      vart = variable_t::type_by_name(_variable);
+
+   bool is_vector = var->is_vector();
 
    if (is_vector)
    {
@@ -65,35 +80,35 @@ void stmt_let_t::run(rt_prog_ctx_t & ctx)
          size_t idx = _vect_idx->eval(ctx).to_int();
 
          //check size
-         if (idx >= var.vector_size())
+         if (idx >= var->vector_size())
             rt_error(
                rt_error_code_t::E_VEC_IDX_OUT_OF_RANGE,
                "'" + _variable + "(" + nu::to_string(idx) + ")'");
 
-         _assign<size_t>(ctx, var, val, vart, idx);
-         var.set_const(_constant);
+         _assign<size_t>(ctx, *var, val, vart, idx);
+         var->set_const(_constant);
       }
       else
       {
          // expression can be only another vector with same size
 
-         if (var.size() != val.size() ||
-               var.get_type() != val.get_type())
+         if (var->vector_size() != val.vector_size() ||
+               var->get_type() != val.get_type())
          {
             rt_error(
                rt_error_code_t::E_TYPE_MISMATCH,
                "'" + _variable + "'");
          }
 
-         var.set_const(_constant);
+         var->set_const(_constant);
          scope->define(_variable, val);
       }
 
    }
    else
    {
-      _assign<>(ctx, var, val, vart);
-      var.set_const(_constant);
+      _assign<>(ctx, *var, val, vart);
+      var->set_const(_constant);
    }
 
    ctx.go_to_next();

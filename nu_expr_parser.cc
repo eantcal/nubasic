@@ -243,7 +243,7 @@ expr_any_t::handle_t expr_parser_t::parse_operand(token_list_t& tl)
                if (id.size() > 1 && *id.rbegin() == NU_BASIC_BEGIN_SUBSCR)
                   id = id.substr(0, id.size() - 1);
 
-               if (!variable_t::is_valid_name(id))
+               if (!variable_t::is_valid_name(id, false))
                {
                   syntax_error(t.expression(), t.position(),
                                "\"" + id + "\" is an invalid identifier");

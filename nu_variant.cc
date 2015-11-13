@@ -194,29 +194,6 @@ variant_t::variant_t(const std::vector<byte_t>& value)
 
 /* -------------------------------------------------------------------------- */
 
-size_t variant_t::size() const NU_NOEXCEPT
-{
-   auto vs = vector_size();
-
-   if (vs < 1)
-      vs = 1;
-
-   if (get_type() == type_t::STRING)
-   {
-      size_t bsize = 0;
-
-      for (decltype(vs) i = 0; i < vs; ++i)
-         bsize += _s_data[i].size();
-
-      return bsize;
-   }
-
-   return vs*item_size();
-}
-
-
-/* -------------------------------------------------------------------------- */
-
 const char* variant_t::get_type_desc(const type_t& type) NU_NOEXCEPT
 {
    switch (type)
@@ -242,6 +219,9 @@ const char* variant_t::get_type_desc(const type_t& type) NU_NOEXCEPT
       case type_t::STRING:
          return "string";
 
+      case type_t::STRUCT:
+         return "struct";
+
       case type_t::UNDEFINED:
          break;
 
@@ -250,40 +230,6 @@ const char* variant_t::get_type_desc(const type_t& type) NU_NOEXCEPT
    }
 
    return "undef";
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-size_t variant_t::item_size() const NU_NOEXCEPT
-{
-   switch (get_type())
-   {
-      case type_t::FLOAT:
-         return sizeof(real_t);
-
-      case type_t::DOUBLE:
-         return sizeof(double_t);
-
-      case type_t::INTEGER:
-         return sizeof(integer_t);
-
-      case type_t::BOOLEAN:
-         return sizeof(bool_t);
-
-      case type_t::LONG64:
-         return sizeof(long64_t);
-
-      case type_t::STRING:
-         return _s_data.size();
-
-      case variant_t::type_t::BYTEVECTOR:
-         return sizeof(byte_t);
-
-      case variant_t::type_t::UNDEFINED:
-      default:
-         return 0;
-   }
 }
 
 
@@ -855,12 +801,12 @@ std::ostream& operator << (std::ostream& os, const variant_t& val)
 
    enum { VECT_LIMIT=64, VECT_LINES=4, VECT_COL=16 };
 
-   os << variant_t::get_type_desc(val.get_type());
+   os << variant_t::get_type_desc(val.get_type()) << " ";
 
    if (val.is_vector())
       os << "[" << val.vector_size() << "] ";
 
-   os << "(bytes:" << val.size() << "): ";
+   os << "=";
 
    if (val.get_type() == variant_t::type_t::BYTEVECTOR)
    {
@@ -948,8 +894,20 @@ std::ostream& operator << (std::ostream& os, const variant_t& val)
             break;
 
          case variant_t::type_t::STRUCT:
-            //TODO
+         {
+            os << " " << val._struct_data_type_name << "\n";
+            os << "\t\t{\n";
+
+            for (const auto& e : val._struct_data[0])
+            {
+               os << "\t\t  " << e.first << " : ";
+               if (e.second)
+                  os << *e.second << "\n";
+            }
+
+            os << "\t\t}";
             break;
+         }
 
          default:
             os << val.to_str(i);

@@ -51,8 +51,8 @@ variable_t::type_t variable_t::type_by_typename(std::string name)
    if (name == "string")
       return type_t::STRING;
 
-   //if (name == "BYTE")
-   //    return type_t::BYTE;
+   if (name == "bytevect")
+       return type_t::BYTEVECTOR;
 
    if (name == "double")
       return type_t::DOUBLE;
@@ -142,14 +142,14 @@ variable_t::type_t variable_t::type_by_name(const std::string& name)
 
 /* -------------------------------------------------------------------------- */
 
-bool variable_t::is_valid_name(std::string name)
+bool variable_t::is_valid_name(std::string name, bool ingnore_builtin)
 {
    if (name.empty())
       return false;
 
    std::transform(name.begin(), name.end(), name.begin(), tolower);
 
-   if (reserved_keywords_t::list.find(name) != reserved_keywords_t::list.cend())
+   if (!ingnore_builtin && reserved_keywords_t::list.find(name) != reserved_keywords_t::list.cend())
       return false;
 
    auto letter = [](char c)

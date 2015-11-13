@@ -78,6 +78,61 @@ void prog_ctx_t::clear_metadata()
 
 /* -------------------------------------------------------------------------- */
 
+std::vector<std::string> split(const std::string &s, char delim='.') 
+{
+   std::vector<std::string> elems;
+   std::stringstream ss(s);
+   std::string item;
+
+   while (std::getline(ss, item, delim))
+      elems.push_back(item);
+
+   return elems;
+}
+
+/* -------------------------------------------------------------------------- */
+
+variant_t * prog_ctx_t::get_struct_member_value(
+   const std::string& qualified_variable_name,
+   var_scope_t::handle_t& scope,
+   size_t index)
+{
+   auto reflist = split(qualified_variable_name);
+   const auto& member = reflist[0];
+
+   scope = proc_scope.get(proc_scope.get_type(member));
+
+   variant_t * value = nullptr;
+
+   if (scope->is_defined(member))
+   {
+      value = &((*scope)[member]);
+
+      size_t level = 1;
+      while (value && value->is_struct() && level < reflist.size())
+      {
+         const auto & struct_type_name = value->struct_type_name();
+         assert(!struct_type_name.empty());
+
+         auto it = struct_prototypes.data.find(struct_type_name);
+
+         if (it == struct_prototypes.data.end())
+            return nullptr;
+
+         //const auto & struct_prototype = it->second.second;
+         const auto & member_name = reflist[level++];
+
+         auto value_handle = value->struct_member(member_name);
+         value = value_handle.get();
+      }
+   }
+         
+   return value;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 void prog_ctx_t::trace_metadata(std::stringstream& ss)
 {
    ss << "Explicit line number reference detected: "

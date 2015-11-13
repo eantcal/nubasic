@@ -50,7 +50,7 @@ class stmt_dim_t : public stmt_t
 {
 public:
    using vec_size_t = expr_any_t::handle_t;
-   using vinfo_t = std::pair< variable_t::type_t , vec_size_t >;
+   using vinfo_t = std::pair< std::string , vec_size_t >;
 
    using dim_var_map_t = std::map<std::string, vinfo_t>;
 
@@ -66,7 +66,7 @@ public:
 
    void define(
       const std::string& var,
-      variable_t::type_t vtype,
+      const std::string& vtype,
       vec_size_t vect_size,
       prog_ctx_t & ctx)
    {

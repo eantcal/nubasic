@@ -54,7 +54,7 @@ public:
    stmt_struct_element_t(
       prog_ctx_t & ctx,
       const std::string& name,
-      variable_t::type_t type,
+      const std::string& type,
       vec_size_t vect_size);
 
    stmt_struct_element_t() = delete;

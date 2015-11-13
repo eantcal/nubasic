@@ -66,10 +66,12 @@ void stmt_redim_t::run(rt_prog_ctx_t & ctx)
                   rt_error_code_t::E_VAR_UNDEF,
                   "REDIM '" + name + "'");
 
-      auto vtype = v.second.first; //variable_t::type_by_name(name); // TODO VAR
+      auto vtype = v.second.first; 
       std::string init_val = "0";
 
-      switch (vtype)
+      auto vtype_code = variable_t::type_by_name(vtype); // TODO Struct
+
+      switch (vtype_code)
       {
          case variable_t::type_t::STRING:
             init_val = "";
@@ -79,7 +81,7 @@ void stmt_redim_t::run(rt_prog_ctx_t & ctx)
          case variable_t::type_t::LONG64:
          case variable_t::type_t::BOOLEAN:
          case variable_t::type_t::BYTEVECTOR:
-            scope->define(name, variant_t(init_val, vtype, vsize));
+            scope->define(name, variant_t(init_val, vtype_code, vsize));
             break;
 
          default:

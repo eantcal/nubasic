@@ -83,9 +83,11 @@ void stmt_dim_t::run(rt_prog_ctx_t & ctx)
          ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
       auto vtype = v.second.first;
-      std::string init_val = "0";
+      auto vtype_code = variable_t::type_by_typename(vtype);
 
-      switch (vtype)
+      std::string init_val;
+
+      switch (vtype_code)
       {
          case variable_t::type_t::STRING:
             init_val = "";
@@ -95,13 +97,28 @@ void stmt_dim_t::run(rt_prog_ctx_t & ctx)
          case variable_t::type_t::LONG64:
          case variable_t::type_t::BOOLEAN:
          case variable_t::type_t::BYTEVECTOR:
-            scope->define(name, variant_t(init_val, vtype, vsize));
+            init_val = "0";
+            scope->define(name, variant_t(init_val, vtype_code, vsize));
             break;
+         
+         case variable_t::type_t::STRUCT:
+         case variable_t::type_t::UNDEFINED:
+         {
+            auto & sprototypes = ctx.struct_prototypes.data;
+            auto it = sprototypes.find(vtype);
+
+            rt_error_if(it == sprototypes.end(),
+               rt_error_code_t::E_STRUCT_UNDEF,
+               "Dim: '" + name + "'");
+                                                
+            scope->define(name, it->second.second /*struct prototype*/);
+            break;
+         }
 
          default:
             rt_error_if(true,
                         rt_error_code_t::E_INV_VECT_SIZE,
-                        "Dim: '" + v.first + "'");
+                        "Dim: '" + name + "'");
       }
    }
 

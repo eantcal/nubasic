@@ -123,7 +123,6 @@ public:
    variant_t(const struct_variant_t& value, size_t vect_size = 0) :
       variant_t(value.get(), type_t::STRUCT, vect_size) {}
 
-protected:
    using struct_data_t = std::map<std::string, variant_t::handle_t>;
 
    variant_t(const std::string& name, const struct_data_t& value) :
@@ -215,9 +214,6 @@ public:
    {
       return _vect_size;
    }
-
-   size_t item_size() const NU_NOEXCEPT;
-   size_t size() const NU_NOEXCEPT;
 
    real_t to_real(size_t idx = 0) const
    {

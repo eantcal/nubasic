@@ -109,7 +109,11 @@ public:
    instrblock_metadata_t struct_metadata;
    std::string compiling_struct_name;
 
-
+   variant_t * get_struct_member_value(
+      const std::string& qualified_variable_name,
+      var_scope_t::handle_t& scope,
+      size_t index = 0);
+   
    prog_ctx_t(FILE * stdout_ptr, FILE * stdin_ptr);
 
    void clear_metadata();

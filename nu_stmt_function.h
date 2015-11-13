@@ -59,7 +59,7 @@ public:
 
    void define(
       const std::string& var,
-      variable_t::type_t vtype,
+      const std::string& vtype,
       vec_size_t vect_size,
       prog_ctx_t & ctx,
       const std::string& id);
