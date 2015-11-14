@@ -74,6 +74,8 @@ nubasic_SOURCES = config.h \
    nu_stmt_endsub.cc \
    nu_stmt_endfunction.h \
    nu_stmt_endfunction.cc \
+   nu_stmt_endstruct.h \
+   nu_stmt_endstruct.cc \
    nu_stmt_else.cc \
    nu_stmt_else.h \
    nu_stmt_for_to_step.cc \
@@ -120,6 +122,10 @@ nubasic_SOURCES = config.h \
    nu_stmt_expr.cc \
    nu_stmt_function.h \
    nu_stmt_function.cc \
+   nu_stmt_struct.cc \
+   nu_stmt_struct.h \
+   nu_stmt_struct_element.cc \
+   nu_stmt_struct_element.h \
    nu_symbol_map.h \
    nu_terminal.cc \
    nu_terminal.h \

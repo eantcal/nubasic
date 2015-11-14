@@ -132,14 +132,14 @@ protected:
 
 
    //! parse a definition of structure
-   stmt_t::handle_t stmt_parser_t::parse_struct(
+   stmt_t::handle_t parse_struct(
       prog_ctx_t & ctx,
       token_t token,
       token_list_t & tl);
    
 
    //! parse a definition of structure element
-   stmt_t::handle_t stmt_parser_t::parse_struct_element(
+   stmt_t::handle_t parse_struct_element(
       prog_ctx_t & ctx,
       token_t token,
       token_list_t & tl);
