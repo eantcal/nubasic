@@ -68,23 +68,7 @@ private:
 class variant_t
 {
 protected:
-   void _resize(size_t size)
-   {
-      if (is_struct())
-      {
-         _struct_data.resize(size);
-      }
-      else if (is_number())
-      {
-         if (is_integral())
-            _i_data.resize(size);
-         else
-            _f_data.resize(size);
-      }
-      else
-         _s_data.resize(size);
-   }
-
+   void _resize(size_t size);
 
    template <class T, class DT=T>
    void _set(const T& value, std::vector<DT>& data, variable_t::type_t t)
@@ -111,8 +95,8 @@ protected:
       else
          data[idx] = value;
    }
-     
    
+
 public:
    using handle_t = std::shared_ptr<variant_t>;
    using type_t = variable_t::type_t;
@@ -125,6 +109,16 @@ public:
 
    using struct_data_t = std::map<std::string, variant_t::handle_t>;
 
+   static void copy_struct_data(struct_data_t& dst, const struct_data_t& src)
+   {
+      dst = src;
+      for (auto & e : dst)
+      {
+         if (e.second)
+            e.second = std::make_shared<variant_t>(*e.second);
+      }
+   }
+
    variant_t(const std::string& name, const struct_data_t& value) :
       _type(type_t::STRUCT),
       _struct_data_type_name(name)
@@ -133,7 +127,6 @@ public:
       _struct_data[0] = value;
    }
 
-public:
    variant_t(const string_t& value, type_t t, size_t vect_size = 0);
    variant_t(const char* value, type_t t, size_t vect_size = 0);
    variant_t(const string_t& value, size_t vect_size = 0);
@@ -168,33 +161,15 @@ public:
       return _struct_data_type_name;
    }
 
-   void describe_type(std::stringstream & ss) const NU_NOEXCEPT
+   void describe_type(std::stringstream & ss) const NU_NOEXCEPT;
+
+   void resize(size_t size)
    {
-      if (is_struct())
-      {
-         ss << "\t\tSTRUCT " << struct_type_name() << "\n";
-         ss << "\t\t{\n";
-
-         if (!_struct_data.empty()) for (auto & s : _struct_data[0])
-         {
-            ss << "\t\t\t" << s.first << " As ";
-
-            if (s.second)
-               s.second->describe_type(ss);
-            else
-               ss << "undefined";
-
-            ss << "\n";
-         }
-         ss << "\t\t}";
-      }
-      else
-      {
-         ss << get_type_desc(get_type());
-      }
+      _vector_type = size > 0;
+      _vect_size = size;
+      _resize(size);
    }
-
-
+   
    bool is_const() const NU_NOEXCEPT
    {
       return _constant;

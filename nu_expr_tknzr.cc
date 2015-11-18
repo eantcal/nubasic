@@ -111,6 +111,76 @@ static inline bool identifier_char(char c)
 
 token_t expr_tknzr_t::next()
 {
+   // Fix . operator for real numbers
+
+   auto pointer = tell();
+   auto tkn = _next();
+
+   if (!(tkn.type() == tkncl_t::INTEGRAL ||
+      tkn.identifier() == "." && tkn.type() == tkncl_t::OPERATOR))
+   {
+      return tkn;
+   }
+
+   auto position = tkn.position();
+   std::string id = tkn.identifier();
+
+   if (tkn.type() == tkncl_t::INTEGRAL)
+   {
+      tkn = _next();
+
+      if (tkn.type() != tkncl_t::OPERATOR || tkn.identifier() != ".")
+      {
+         set_cptr(pointer);
+         return _next();
+      }
+
+      id += tkn.identifier();
+
+      tkn = _next();
+
+      if (tkn.type() != tkncl_t::INTEGRAL)
+      {
+         set_cptr(pointer);
+         return _next();
+      }
+
+      id += tkn.identifier();
+   }
+   else if (tkn.identifier() == "." && tkn.type() == tkncl_t::OPERATOR)
+   {
+      tkn = _next();
+
+      if (tkn.type() != tkncl_t::INTEGRAL)
+      {
+         set_cptr(pointer);
+         return _next();
+      }
+
+      id = "0." + tkn.identifier();
+   }
+   else
+   {
+      set_cptr(pointer);
+      return _next();
+   }
+
+   tkn.set_identifier(
+      id,
+      token_t::case_t::NOCHANGE);
+
+   tkn.set_position(position);
+   tkn.set_type(tkncl_t::REAL);
+
+   return tkn;
+}
+
+
+
+/* -------------------------------------------------------------------------- */
+
+token_t expr_tknzr_t::_next()
+{
    std::string other;
 
    auto token_class = [&](const std::string& tk) -> tkncl_t

@@ -65,25 +65,8 @@ void stmt_endstruct_t::run(rt_prog_ctx_t & ctx)
          rt_error_code_t::E_NO_MATCH_STRUCT,
          "");
 
-#if 0
-   if (! handle->flag[instrblock_t::EXIT])
-   {
-      ctx.flag.set(rt_prog_ctx_t::FLG_RETURN_REQUEST, true);
-
-      //Clean up any FOR-loop dynamic data
-      auto scope_name = ctx.proc_scope.get_scope_id();
-      ctx.for_loop_tbl.cleanup_data(scope_name);
-
-      ctx.proc_scope.exit_scope();
-   }
-   else
-   {
-#endif
-      //Struct completed, go to next line
-      ctx.go_to_next();
-#if 0
-   }
-#endif
+   //Struct completed, go to next line
+   ctx.go_to_next();
 }
 
 

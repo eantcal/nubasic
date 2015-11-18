@@ -322,12 +322,12 @@
     <ClCompile Include="nu_error_codes.cc" />
     <ClCompile Include="nu_expr_function.cc" />
     <ClCompile Include="nu_expr_parser.cc" />
-    <ClCompile Include="nu_expr_struct.cc" />
     <ClCompile Include="nu_expr_subscrop.cc" />
     <ClCompile Include="nu_expr_tknzr.cc" />
     <ClCompile Include="nu_expr_syntax_tree.cc" />
     <ClCompile Include="nu_eval_expr.cc" />
     <ClCompile Include="nu_expr_unary_op.cc" />
+    <ClCompile Include="nu_expr_var.cc" />
     <ClCompile Include="nu_global_function_tbl.cc" />
     <ClCompile Include="nu_file_dscrptr_tbl.cc" />
     <ClCompile Include="nu_for_loop_rtdata.cc" />
@@ -414,7 +414,6 @@
     <ClInclude Include="nu_expr_any.h" />
     <ClInclude Include="nu_expr_literal.h" />
     <ClInclude Include="nu_expr_parser.h" />
-    <ClInclude Include="nu_expr_struct.h" />
     <ClInclude Include="nu_expr_subscrop.h" />
     <ClInclude Include="nu_expr_unary_op.h" />
     <ClInclude Include="nu_expr_var.h" />

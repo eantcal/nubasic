@@ -61,6 +61,17 @@ public:
    //! Returns false for this type of object
    bool empty() const NU_NOEXCEPT override;
 
+   std::string name() const NU_NOEXCEPT override
+   {
+      return _name;
+   }
+
+   func_args_t get_args() const NU_NOEXCEPT override
+   {
+      return _var;
+   }
+
+
 protected:
    std::string _name;
    func_args_t _var;

@@ -49,9 +49,13 @@ class rt_prog_ctx_t;
 struct expr_any_t
 {
    using handle_t = std::shared_ptr < expr_any_t > ;
+   using func_args_t = std::vector < expr_any_t::handle_t >;
 
    virtual variant_t eval(rt_prog_ctx_t & ctx) const = 0;
    virtual bool empty() const NU_NOEXCEPT = 0;
+
+   virtual std::string name() const NU_NOEXCEPT = 0;
+   virtual func_args_t get_args() const NU_NOEXCEPT = 0;
 
    virtual ~expr_any_t() {}
 };
@@ -80,7 +84,8 @@ using var_list_t = std::list < var_arg_t > ;
 /* -------------------------------------------------------------------------- */
 
 //! Built-in function arguments
-using func_args_t = std::vector < expr_any_t::handle_t > ;
+using func_args_t = expr_any_t::func_args_t;
+
 
 
 /* -------------------------------------------------------------------------- */

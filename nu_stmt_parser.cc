@@ -303,16 +303,16 @@ var_arg_t stmt_parser_t::parse_var_arg(
    --tl;
    remove_blank(tl);
 
-   expr_any_t::handle_t opt_vector_idx = nullptr;
+   expr_any_t::handle_t variable_vector_index = nullptr;
 
    if (!tl.empty())
    {
       token = *tl.begin();
       token_list_t vect_etl;
-      opt_vector_idx = parse_sub_expr(ctx, token, tl, vect_etl);
+      variable_vector_index = parse_sub_expr(ctx, token, tl, vect_etl);
    }
 
-   return std::make_pair(variable_name, opt_vector_idx);
+   return std::make_pair(variable_name, variable_vector_index);
 }
 
 
@@ -872,7 +872,6 @@ stmt_t::handle_t stmt_parser_t::parse_let(
 
    if (tl.empty())
       return stmt_t::handle_t(std::make_shared<stmt_empty_t>(ctx));
-
    
    token_t token(*tl.begin());
    size_t pos = token.position();
@@ -886,10 +885,8 @@ stmt_t::handle_t stmt_parser_t::parse_let(
    remove_blank(tl);
 
    if (tl.empty())
-   {
       return stmt_t::handle_t(
                 std::make_shared<stmt_call_t>(identifier, ctx));
-   }
 
    token = *tl.begin();
 
@@ -910,13 +907,60 @@ stmt_t::handle_t stmt_parser_t::parse_let(
    }
 
    token_list_t vect_etl;
-   expr_any_t::handle_t opt_vector_idx
-      = parse_sub_expr( ctx, token, tl, vect_etl );
+   expr_any_t::handle_t variable_vector_index  = 
+      parse_sub_expr( ctx, token, tl, vect_etl );
 
    remove_blank(tl);
    syntax_error_if(tl.empty(), expr, pos);
    token = *tl.begin();
 
+   bool struct_member_id = false;
+
+   nu::expr_any_t::handle_t struct_member_vector_index;
+
+   if (token.type() == tkncl_t::OPERATOR && token.identifier() == ".")
+   {
+      --tl;
+      remove_blank(tl);
+      syntax_error_if(tl.empty(), expr, pos);
+
+      token = *tl.begin();
+
+      syntax_error_if(token.type() != tkncl_t::IDENTIFIER, expr, pos);
+
+      identifier += ".";
+      identifier += token.identifier();
+
+      --tl;
+      remove_blank(tl);
+      syntax_error_if(tl.empty(), expr, pos);
+
+      token = *tl.begin();
+
+      token_list_t etl;
+
+      if (token.type() == tkncl_t::SUBEXP_BEGIN)
+      {
+         move_sub_expression(
+            tl,                     // source
+            etl,                    // destination
+            "=", tkncl_t::OPERATOR  // end-of-expression
+            );
+
+         expr_parser_t ep;
+         struct_member_vector_index = ep.compile(etl, pos);
+
+         syntax_error_if(
+            tl.empty(),
+            token.expression(),
+            token.position());
+
+         token = *tl.begin();
+      }
+
+      struct_member_id = true;
+   }
+  
    syntax_error_if(token.type() != tkncl_t::OPERATOR ||
                    token.identifier() != "=", expr, pos);
 
@@ -935,8 +979,8 @@ stmt_t::handle_t stmt_parser_t::parse_let(
       ":", tkncl_t::OPERATOR  // end-of-expression
    );
 
-   syntax_error_if(!
-      variable_t::is_valid_name(identifier, false),
+   syntax_error_if(
+      !variable_t::is_valid_name(identifier, false),
       identifier + " is an invalid identifier");
 
    return stmt_t::handle_t(
@@ -944,7 +988,9 @@ stmt_t::handle_t stmt_parser_t::parse_let(
                 ctx,
                 identifier,
                 ep.compile(etl, pos),
-                opt_vector_idx,
+                variable_vector_index,
+                struct_member_vector_index,
+                struct_member_id,
                 constant));
 }
 
@@ -1234,8 +1280,6 @@ stmt_t::handle_t stmt_parser_t::parse_struct_element(
    nu::token_t token,
    nu::token_list_t & tl)
 {
-   --tl;
-   remove_blank(tl);
    syntax_error_if(tl.empty(), token.expression(), token.position());
 
    token = *tl.begin();
@@ -1913,13 +1957,14 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
 
    const std::string& identifier = token.identifier();
 
-   syntax_error_if(
-      !ctx.compiling_struct_name.empty() && 
-      (token.type() != tkncl_t::IDENTIFIER ||
-       (token.identifier() != "dim" && token.identifier() != "end")),
-      token.expression(),
-      token.position(),
-      "Invalid statement inside Struct '" + ctx.compiling_struct_name + "'" );
+   if (!ctx.compiling_struct_name.empty())
+   {
+      if (token.identifier() != "end" &&
+         token.identifier() != "rem")
+      {
+         return parse_struct_element(ctx, token, tl);
+      }
+   }
 
    syntax_error_if(
       (token.type() != tkncl_t::IDENTIFIER) &&
@@ -2059,13 +2104,7 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
    }
 
    if (identifier == "dim")
-   {
-      if (ctx.compiling_struct_name.empty())
-         return parse_parameter_list<stmt_dim_t>(ctx, token, tl, ":", ctx);
-      else
-         return parse_struct_element(ctx, token, tl);
-   }
-
+     return parse_parameter_list<stmt_dim_t>(ctx, token, tl, ":", ctx);
 
    if (identifier == "redim")
       return parse_parameter_list<stmt_redim_t>(ctx, token, tl, ":", ctx);

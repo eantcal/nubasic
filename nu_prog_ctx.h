@@ -113,6 +113,13 @@ public:
       const std::string& qualified_variable_name,
       var_scope_t::handle_t& scope,
       size_t index = 0);
+
+   variant_t resolve_struct_element(
+      const std::string& variable_name,
+      size_t variable_vect_index,
+      const std::string& element_name,
+      size_t element_vect_index,
+      std::string & err_msg);
    
    prog_ctx_t(FILE * stdout_ptr, FILE * stdin_ptr);
 

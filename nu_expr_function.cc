@@ -46,21 +46,24 @@ variant_t expr_function_t::eval(rt_prog_ctx_t & ctx) const
 
    if (!global_function_tbl_t::get_instance().is_defined(_name))
    {
-      var_scope_t::handle_t scope =
-         ctx.proc_scope.get(ctx.proc_scope.get_type(_name));
+      var_scope_t::handle_t scope;
+      variant_t * var = nullptr;
+      size_t idx = 0;
 
-      // If it is not a function, could be a vector...
-      if (scope->is_defined(_name))
+      if (scope == nullptr)
+         scope = ctx.proc_scope.get(
+            ctx.proc_scope.get_type(_name));
+
+      if (!var && scope->is_defined(_name))
       {
-         const variant_t& var_value = (*scope)[_name];
-
-         if (var_value.is_vector())
-            return var_value[_var[0]->eval(ctx).to_int()];
+         var = &((*scope)[_name]);
       }
 
-      throw exception_t(
+      if (!var) throw exception_t(
          std::string("Error: \"" + _name + "\" undefined symbol"));
-   }
+
+      return (*var)[_var[0]->eval(ctx).to_int()];
+}
 
    return global_function_tbl_t::get_instance()[_name](ctx, _name, _var);
 }

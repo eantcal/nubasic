@@ -72,6 +72,39 @@ public:
       return false;
    }
 
+   std::string name() const NU_NOEXCEPT override
+   {
+      std::string ret;
+
+      if (_var1)
+      {
+         ret = _var1->name();
+
+         if (_var2 && !_var2->name().empty())
+         {
+            ret += ".";
+            ret += _var2->name();
+         }
+      }
+
+      return ret;
+   }
+
+   func_args_t get_args() const NU_NOEXCEPT override
+   {
+      func_args_t ret;
+
+      if (_var1)
+         ret = _var1->get_args();
+      if (_var2)
+      {
+         for (const auto & e : _var2->get_args())
+            ret.push_back(e);
+      }
+
+      return ret;
+   }
+
 
 protected:
    func_bin_t _func;
@@ -80,6 +113,61 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
+
+class expr_struct_access_t : public expr_bin_t
+{
+public:
+   using func_t = func_bin_t;
+
+   //! ctor
+   expr_struct_access_t(
+      expr_any_t::handle_t var1,
+      expr_any_t::handle_t var2) :
+      expr_bin_t(nu::func_bin_t(), var1, var2)
+   {}
+
+   expr_struct_access_t() = delete;
+   expr_struct_access_t(const expr_struct_access_t&) = default;
+   expr_struct_access_t& operator=(const expr_struct_access_t&) = default;
+
+   //! Returns f(var1, var2) appling ctor given arguments
+   variant_t eval(rt_prog_ctx_t & ctx) const override
+   {
+      if (!_var1 || !_var2)
+         throw exception_t(
+            std::string("Cannot resolve struct element"));
+
+      auto var_name = _var1->name();
+      auto var_idx = _var1->get_args();
+
+      auto member_element = _var2->name();
+      auto var_member_idx = _var2->get_args();
+      
+      if (var_idx.size()>1 || var_member_idx.size()>1 || member_element.empty())
+         throw exception_t(
+            std::string("Cannot resolve struct element"));
+
+      size_t var_vec_idx = 0;
+      size_t element_vec_idx = 0;
+
+      if (!var_idx.empty())
+         var_vec_idx = var_idx[0]->eval(ctx).to_long64();
+
+      if (!var_member_idx.empty())
+         element_vec_idx = var_member_idx[0]->eval(ctx).to_long64();
+
+      std::string err;
+
+      variant_t res = ctx.resolve_struct_element(
+         var_name, var_vec_idx, member_element, element_vec_idx, err);
+
+      if (!err.empty())
+         throw exception_t(err);
+
+      return res;
+   }
+
+};
 
 }
 

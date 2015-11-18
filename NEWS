@@ -10,14 +10,12 @@ https://www.microsoft.com/en-us/download/details.aspx?id=48145
 Nov (TBD), 2015
 * Released nuBASIC 1.40
 - Add explicit type declaration (Example: Dim aString as String)
-- Enable user to define and use the structures
-  
-  Example:
+- Enable user to define and use the structures, example:
 
   Struct AStructType
-     Dim element as String
-	 Dim element2 as Integer
-	 Dim element3(4) as Double
+     element as String
+	 element2 as Integer
+	 element3(4) as Double
   End Struct
 
   Dim a as AStructType

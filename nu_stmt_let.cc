@@ -37,35 +37,36 @@ namespace nu
 
 void stmt_let_t::run(rt_prog_ctx_t & ctx)
 {
-   auto rt_error = [&](
-                      rt_error_code_t::value_t err,
-                      const std::string desc)
-   {
-      rt_error_code_t::get_instance().throw_if(
-         true,
-         ctx.runtime_pc.get_line(),
-         err,
-         desc);
-   };
-
    variant_t val = _arg->eval(ctx);
 
    size_t idx = 0;
-   
+
    var_scope_t::handle_t scope;
    variant_t * var = nullptr;
 
-   if (_variable.find('.')!=size_t(-1))
-      var = ctx.get_struct_member_value(_variable, scope, 0);
+   if (_struct_member)
+   {
+      if (_vect_idx) 
+         idx = _vect_idx->eval(ctx).to_int();
 
-   if (! var)
+      var = ctx.get_struct_member_value(_variable, scope, idx);
+
+      rt_error_code_t::get_instance().throw_if(
+         !var,
+         ctx.runtime_pc.get_line(),
+         rt_error_code_t::E_TYPE_MISMATCH,
+         "'" + _variable + "'");
+   }
+
+   if (!var)
    {
       if (scope == nullptr)
-         scope = ctx.proc_scope.get(ctx.proc_scope.get_type(_variable));
+         scope = ctx.proc_scope.get(
+            ctx.proc_scope.get_type(_variable));
 
       var = &((*scope)[_variable]);
    }
-      
+
    variable_t::type_t vart = var->get_type();
 
    if (vart == variable_t::type_t::UNDEFINED)
@@ -73,17 +74,23 @@ void stmt_let_t::run(rt_prog_ctx_t & ctx)
 
    bool is_vector = var->is_vector();
 
+   if (_element_vect_idx != nullptr)
+   {
+      is_vector = true;
+      _vect_idx = _element_vect_idx;
+   }
+
    if (is_vector)
    {
       if (_vect_idx)
       {
          size_t idx = _vect_idx->eval(ctx).to_int();
 
-         //check size
-         if (idx >= var->vector_size())
-            rt_error(
-               rt_error_code_t::E_VEC_IDX_OUT_OF_RANGE,
-               "'" + _variable + "(" + nu::to_string(idx) + ")'");
+         rt_error_code_t::get_instance().throw_if(
+            idx >= var->vector_size(),
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::E_VEC_IDX_OUT_OF_RANGE,
+            "'" + _variable + "(" + nu::to_string(idx) + ")'");
 
          _assign<size_t>(ctx, *var, val, vart, idx);
          var->set_const(_constant);
@@ -92,13 +99,12 @@ void stmt_let_t::run(rt_prog_ctx_t & ctx)
       {
          // expression can be only another vector with same size
 
-         if (var->vector_size() != val.vector_size() ||
-               var->get_type() != val.get_type())
-         {
-            rt_error(
-               rt_error_code_t::E_TYPE_MISMATCH,
-               "'" + _variable + "'");
-         }
+         rt_error_code_t::get_instance().throw_if(
+            var->vector_size() != val.vector_size() ||
+            var->get_type() != val.get_type(),
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::E_TYPE_MISMATCH,
+            "'" + _variable + "'");
 
          var->set_const(_constant);
          scope->define(_variable, val);

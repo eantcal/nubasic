@@ -52,25 +52,7 @@ public:
    expr_var_t& operator=( const expr_var_t& ) = default;
 
 
-   variant_t eval(rt_prog_ctx_t & ctx) const override
-   {
-      //NOTE: if symbol <name> does not exist,
-      //it will be create on-the-fly within current
-      //(subroutine) scope
-
-      auto var_scope_type = ctx.proc_scope.get_type(_name);
-
-      var_scope_t::handle_t scope = ctx.proc_scope.get(var_scope_type);
-
-      if ( !scope->is_defined(_name) )
-      {
-         auto vtype = variable_t::type_by_name(_name);
-         variant_t value("", vtype, 0);
-         scope->define(_name, value);
-      }
-
-      return ( *scope )[_name];
-   }
+   variant_t eval(rt_prog_ctx_t & ctx) const override;
 
 
    virtual bool empty() const NU_NOEXCEPT override
@@ -79,9 +61,16 @@ public:
    }
 
 
-   const std::string& name() const NU_NOEXCEPT
+   std::string name() const NU_NOEXCEPT override
    {
       return _name;
+   }
+
+
+   func_args_t get_args() const NU_NOEXCEPT override
+   {
+      func_args_t dummy;
+      return dummy;
    }
 
 protected:

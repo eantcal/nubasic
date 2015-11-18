@@ -36,7 +36,7 @@ namespace nu
 
 expr_syntax_tree_t::expr_syntax_tree_t()
 {
-   change_operator_precedence(op_preced_t::MATH_MUL_DIV);
+   change_operator_precedence(op_preced_t::STRUCT_ACCESS);
 }
 
 
@@ -49,7 +49,105 @@ void expr_syntax_tree_t::change_operator_precedence(op_preced_t precedence)
 
    switch (precedence)
    {
+      case op_preced_t::STRUCT_ACCESS:
+         processing_ops.insert(".");
+
+         ignoring_ops.insert("*");
+         ignoring_ops.insert("/");
+         ignoring_ops.insert("^");
+         ignoring_ops.insert("\\");
+         ignoring_ops.insert("mod");
+         ignoring_ops.insert("div");
+
+         ignoring_ops.insert("+");
+         ignoring_ops.insert("-");
+
+         ignoring_ops.insert("=");
+         ignoring_ops.insert("<");
+         ignoring_ops.insert(">");
+         ignoring_ops.insert(">=");
+         ignoring_ops.insert("<>");
+         ignoring_ops.insert("<=");
+
+         ignoring_ops.insert("and");
+         ignoring_ops.insert("or");
+         ignoring_ops.insert("xor");
+
+         ignoring_ops.insert("band");
+         ignoring_ops.insert("bor");
+         ignoring_ops.insert("bxor");
+         ignoring_ops.insert("bshl");
+         ignoring_ops.insert("bshr");
+         break;
+
+      case op_preced_t::RELATIONAL_OP:
+         ignoring_ops.insert(".");
+
+         ignoring_ops.insert("*");
+         ignoring_ops.insert("/");
+         ignoring_ops.insert("^");
+         ignoring_ops.insert("\\");
+         ignoring_ops.insert("mod");
+         ignoring_ops.insert("div");
+
+         ignoring_ops.insert("+");
+         ignoring_ops.insert("-");
+
+         processing_ops.insert("=");
+         processing_ops.insert("<>");
+         processing_ops.insert("<");
+         processing_ops.insert(">");
+         processing_ops.insert(">=");
+         processing_ops.insert("<=");
+
+         ignoring_ops.insert("and");
+         ignoring_ops.insert("or");
+         ignoring_ops.insert("xor");
+
+         ignoring_ops.insert("band");
+         ignoring_ops.insert("bor");
+         ignoring_ops.insert("bxor");
+         ignoring_ops.insert("bshl");
+         ignoring_ops.insert("bshr");
+      break;
+
+      case op_preced_t::RELATIONAL_ANDOR_OP:
+         ignoring_ops.insert(".");
+
+         ignoring_ops.insert("*");
+         ignoring_ops.insert("/");
+         ignoring_ops.insert("^");
+         ignoring_ops.insert("\\");
+         ignoring_ops.insert("mod");
+         ignoring_ops.insert("div");
+
+         ignoring_ops.insert("+");
+         ignoring_ops.insert("-");
+
+         ignoring_ops.insert("=");
+         ignoring_ops.insert("<>");
+
+         ignoring_ops.insert("<");
+         ignoring_ops.insert(">");
+         ignoring_ops.insert(">=");
+         ignoring_ops.insert("<=");
+
+         processing_ops.insert("and");
+         processing_ops.insert("or");
+         processing_ops.insert("xor");
+
+         ignoring_ops.insert("band");
+         ignoring_ops.insert("bor");
+         ignoring_ops.insert("bxor");
+         ignoring_ops.insert("bshl");
+         ignoring_ops.insert("bshr");
+         break;
+
+      
+
       case op_preced_t::MATH_MUL_DIV:
+         ignoring_ops.insert(".");
+
          processing_ops.insert("*");
          processing_ops.insert("/");
          processing_ops.insert("^");
@@ -61,9 +159,10 @@ void expr_syntax_tree_t::change_operator_precedence(op_preced_t precedence)
          ignoring_ops.insert("-");
 
          ignoring_ops.insert("=");
+         ignoring_ops.insert(">=");
+
          ignoring_ops.insert("<");
          ignoring_ops.insert(">");
-         ignoring_ops.insert(">=");
          ignoring_ops.insert("<>");
          ignoring_ops.insert("<=");
 
@@ -79,6 +178,8 @@ void expr_syntax_tree_t::change_operator_precedence(op_preced_t precedence)
          break;
 
       case op_preced_t::MATH_SUM:
+         ignoring_ops.insert(".");
+
          ignoring_ops.insert("*");
          ignoring_ops.insert("/");
          ignoring_ops.insert("^");
@@ -90,10 +191,11 @@ void expr_syntax_tree_t::change_operator_precedence(op_preced_t precedence)
          processing_ops.insert("-");
 
          ignoring_ops.insert("=");
+         ignoring_ops.insert("<>");
+
          ignoring_ops.insert("<");
          ignoring_ops.insert(">");
          ignoring_ops.insert(">=");
-         ignoring_ops.insert("<>");
          ignoring_ops.insert("<=");
 
          ignoring_ops.insert("and");
@@ -107,36 +209,11 @@ void expr_syntax_tree_t::change_operator_precedence(op_preced_t precedence)
          ignoring_ops.insert("bshr");
          break;
 
-      case op_preced_t::LOGICAL_BINOP:
-         ignoring_ops.insert("*");
-         ignoring_ops.insert("/");
-         ignoring_ops.insert("^");
-         ignoring_ops.insert("\\");
-         ignoring_ops.insert("mod");
-         ignoring_ops.insert("div");
+     
 
-         ignoring_ops.insert("+");
-         ignoring_ops.insert("-");
+      case op_preced_t::BITWISE_OP:
+         ignoring_ops.insert(".");
 
-         processing_ops.insert("=");
-         processing_ops.insert("<");
-         processing_ops.insert(">");
-         processing_ops.insert(">=");
-         processing_ops.insert("<>");
-         processing_ops.insert("<=");
-
-         ignoring_ops.insert("and");
-         ignoring_ops.insert("or");
-         ignoring_ops.insert("xor");
-
-         ignoring_ops.insert("band");
-         ignoring_ops.insert("bor");
-         ignoring_ops.insert("bxor");
-         ignoring_ops.insert("bshl");
-         ignoring_ops.insert("bshr");
-         break;
-
-      case op_preced_t::LOGICAL_ANDOR:
          ignoring_ops.insert("*");
          ignoring_ops.insert("/");
          ignoring_ops.insert("^");
@@ -148,15 +225,16 @@ void expr_syntax_tree_t::change_operator_precedence(op_preced_t precedence)
          ignoring_ops.insert("-");
 
          ignoring_ops.insert("=");
+         ignoring_ops.insert("<>");
+
          ignoring_ops.insert("<");
          ignoring_ops.insert(">");
          ignoring_ops.insert(">=");
-         ignoring_ops.insert("<>");
          ignoring_ops.insert("<=");
 
-         processing_ops.insert("and");
-         processing_ops.insert("or");
-         processing_ops.insert("xor");
+         ignoring_ops.insert("and");
+         ignoring_ops.insert("or");
+         ignoring_ops.insert("xor");
 
          processing_ops.insert("band");
          processing_ops.insert("bor");
@@ -630,14 +708,14 @@ token_list_t expr_syntax_tree_t::rework_token_list(token_list_t tl)
       i = tl.begin();
    }
 
-   //If an expression bengins with "-"...
+   //If an expression begins with "-"...
    if (i != tl.end() && (i->identifier() == "-" && i->type()==tkncl_t::OPERATOR))
    {
       rework_minus_operator(tl, i);
       i = tl.begin();
    }
 
-   //If an expression bengins with increment or decrement unary operator...
+   //If an expression begins with increment or decrement unary operator...
    if (i != tl.end() && (i->type() == tkncl_t::OPERATOR &&
           (i->identifier() == NU_BASIC_OP_INC || i->identifier() == NU_BASIC_OP_DEC)))
    {
@@ -687,15 +765,30 @@ token_list_t expr_syntax_tree_t::operator()(token_list_t tl)
    tl = rework_token_list(remove_blank(tl));
 
    swap_lr_markers();
+   change_operator_precedence(op_preced_t::STRUCT_ACCESS);
+   tl = rework_token_list(tl);
+   
+   swap_lr_markers();
+   change_operator_precedence(op_preced_t::MATH_MUL_DIV);
+   tl = rework_token_list(tl);
+
+   swap_lr_markers();
    change_operator_precedence(op_preced_t::MATH_SUM);
    tl = rework_token_list(tl);
 
    swap_lr_markers();
-   change_operator_precedence(op_preced_t::LOGICAL_BINOP);
+   change_operator_precedence(op_preced_t::RELATIONAL_OP);
    tl = rework_token_list(tl);
 
    swap_lr_markers();
-   change_operator_precedence(op_preced_t::LOGICAL_ANDOR);
+   change_operator_precedence(op_preced_t::RELATIONAL_ANDOR_OP);
+   tl = rework_token_list(tl);
+
+   swap_lr_markers();
+   change_operator_precedence(op_preced_t::BITWISE_OP);
+   tl = rework_token_list(tl);
+
+   swap_lr_markers();
    tl = rework_token_list(tl);
 
    return tl;

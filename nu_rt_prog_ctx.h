@@ -61,7 +61,6 @@ public:
       FLG_RETURN_REQUEST,
       FLG_JUMP_REQUEST,
       FLG_SKIP_TILL_NEXT
-      //FLG_STEP_MODE_ON
    };
 
 
@@ -147,13 +146,8 @@ public:
    variant_t exported_result;
 
 private:
-
-
    runnable_t & _program_code;
-
-
    source_line_t & _source_line;
-
 
    // Running program errno
    int _errno = 0;

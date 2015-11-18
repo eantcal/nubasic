@@ -351,7 +351,7 @@ expr_any_t::handle_t expr_parser_t::parse(
       first_param = parse_operand(tl);
 
    if (!first_param)
-      return first_param;
+      return nullptr;
 
    if (tl.empty())
       return first_param;
@@ -361,9 +361,17 @@ expr_any_t::handle_t expr_parser_t::parse(
    std::string op;
    expr_any_t::handle_t second_param;
 
-   syntax_error_if(!parse_operator(tl, op), NU_BASIC_ERROR_STR__SYNTAXERROR);
+   auto err = !parse_operator(tl, op);
+   syntax_error_if(err, NU_BASIC_ERROR_STR__SYNTAXERROR);
+
    second_param = parse_operand(tl);
    syntax_error_if(!second_param, NU_BASIC_ERROR_STR__SYNTAXERROR);
+
+   if (op == ".")
+   {
+      return expr_any_t::handle_t(
+         std::make_shared<expr_struct_access_t>(first_param, second_param));
+   }
 
    // resolve built-in operator implementation
    auto operator_implementation = global_operator_tbl_t::get_instance()[op];
@@ -371,7 +379,7 @@ expr_any_t::handle_t expr_parser_t::parse(
    // create the expression object using built-in
    // operator_implementation semantic
    return expr_any_t::handle_t(
-             std::make_shared<expr_bin_t>(operator_implementation, first_param, second_param));
+      std::make_shared<expr_bin_t>(operator_implementation, first_param, second_param));
 }
 
 

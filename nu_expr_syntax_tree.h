@@ -69,10 +69,12 @@ protected:
 
    enum class op_preced_t
    {
+      STRUCT_ACCESS,
+      RELATIONAL_OP,
+      RELATIONAL_ANDOR_OP,
       MATH_MUL_DIV,
       MATH_SUM,
-      LOGICAL_BINOP,
-      LOGICAL_ANDOR
+      BITWISE_OP
    };
 
    void change_operator_precedence(op_preced_t precedence);
@@ -85,6 +87,7 @@ protected:
    void rework_minus_operator(token_list_t & tl, token_list_t::data_t::iterator i);
    void rework_unary_operator(token_list_t & tl, token_list_t::data_t::iterator i);
    void rework_identifier(token_list_t & tl, token_list_t::data_t::iterator i);
+
    token_list_t rework_token_list(token_list_t tl);
 
 

@@ -78,7 +78,7 @@ void prog_ctx_t::clear_metadata()
 
 /* -------------------------------------------------------------------------- */
 
-std::vector<std::string> split(const std::string &s, char delim='.') 
+static std::vector<std::string> split(const std::string &s, char delim='.')
 {
    std::vector<std::string> elems;
    std::stringstream ss(s);
@@ -90,12 +90,14 @@ std::vector<std::string> split(const std::string &s, char delim='.')
    return elems;
 }
 
+
 /* -------------------------------------------------------------------------- */
 
 variant_t * prog_ctx_t::get_struct_member_value(
    const std::string& qualified_variable_name,
    var_scope_t::handle_t& scope,
-   size_t index)
+   size_t index
+)
 {
    auto reflist = split(qualified_variable_name);
    const auto& member = reflist[0];
@@ -111,23 +113,70 @@ variant_t * prog_ctx_t::get_struct_member_value(
       size_t level = 1;
       while (value && value->is_struct() && level < reflist.size())
       {
-         const auto & struct_type_name = value->struct_type_name();
-         assert(!struct_type_name.empty());
-
-         auto it = struct_prototypes.data.find(struct_type_name);
-
-         if (it == struct_prototypes.data.end())
-            return nullptr;
-
-         //const auto & struct_prototype = it->second.second;
          const auto & member_name = reflist[level++];
 
-         auto value_handle = value->struct_member(member_name);
+         auto value_handle = value->struct_member(member_name, index);
          value = value_handle.get();
       }
    }
          
    return value;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+variant_t prog_ctx_t::resolve_struct_element(
+   const std::string& variable_name,
+   size_t variable_vect_index,
+   const std::string& element_name,
+   size_t element_vect_index,
+   std::string & err_msg)
+{
+   auto scope = proc_scope.get(proc_scope.get_type(variable_name));
+
+   if (!scope || !scope->is_defined(variable_name))
+   {
+      err_msg = "Variable '" + variable_name + "' undefined";
+      return variant_t();
+   }
+
+   variant_t value = (*scope)[variable_name];
+
+   if (!value.is_struct())
+   {
+      err_msg = "Variable '" + variable_name + "' is not a Struct";
+      return variant_t();
+   }
+   
+   auto member_handle = 
+      value.struct_member(element_name, variable_vect_index);
+
+   if (!member_handle)
+   {
+      err_msg = "Variable '" + variable_name 
+         + "' has not member named '"
+         + element_name + "'";
+
+      return variant_t();
+   }
+
+   if (member_handle->is_vector())
+   {
+      if (element_vect_index >= member_handle->vector_size())
+      {
+         err_msg = 
+            "Element vector index of '" + 
+            element_name + 
+            "' is out of range";
+
+         return variant_t();
+      }
+
+      return (*member_handle)[element_vect_index];
+   }
+
+   return (*member_handle);
 }
 
 

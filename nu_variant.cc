@@ -859,46 +859,47 @@ std::ostream& operator << (std::ostream& os, const variant_t& val)
 
       os << "\n\t";
    }
-   else for (size_t i = 0; i < vect_size; ++i)
+   else for (size_t vidx = 0; vidx < vect_size; ++vidx)
    {
       if (bigvect)
          vect_size = 10;
 
       if (bvector)
-         os << "[" << i << "]:";
+         os << "[" << vidx << "]:";
 
       switch (val.get_type())
       {
          case variant_t::type_t::DOUBLE:
-            os << val.to_double(i);
+            os << val.to_double(vidx);
             break;
 
          case variant_t::type_t::FLOAT:
-            os << val.to_real(i);
+            os << val.to_real(vidx);
             break;
 
          case variant_t::type_t::INTEGER:
-            os << val.to_int(i);
+            os << val.to_int(vidx);
             break;
 
          case variant_t::type_t::LONG64:
-            os << val.to_long64(i);
+            os << val.to_long64(vidx);
             break;
 
          case variant_t::type_t::BOOLEAN:
-            os << val.to_bool(i);
+            os << val.to_bool(vidx);
             break;
 
          case variant_t::type_t::STRING:
-            os << "\"" << val.to_str(i) << "\"";
+            os << "\"" << val.to_str(vidx) << "\"";
             break;
 
          case variant_t::type_t::STRUCT:
          {
             os << " " << val._struct_data_type_name << "\n";
+
             os << "\t\t{\n";
 
-            for (const auto& e : val._struct_data[0])
+            for (const auto& e : val._struct_data[vidx])
             {
                os << "\t\t  " << e.first << " : ";
                if (e.second)
@@ -910,11 +911,11 @@ std::ostream& operator << (std::ostream& os, const variant_t& val)
          }
 
          default:
-            os << val.to_str(i);
+            os << val.to_str(vidx);
             break;
       }
 
-      if (bvector && i<(vect_size-1))
+      if (bvector && vidx<(vect_size-1))
          os << ", ";
 
       else if (bvector)
@@ -1117,6 +1118,73 @@ variant_t::handle_t variant_t::struct_member(
       "");
 
    return it->second;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void variant_t::_resize(size_t size)
+{
+   if (is_struct())
+   {
+      if (size != _struct_data.size())
+      {
+         _struct_data.resize(size);
+
+         if (size > 0)
+         {
+            auto it = _struct_data.begin();
+            auto prototype = *it;
+            ++it;
+            for (; it != _struct_data.end(); ++it)
+               copy_struct_data(*it, prototype);
+         }
+      }
+   }
+   else if (is_number())
+   {
+      if (is_integral())
+         _i_data.resize(size);
+      else
+         _f_data.resize(size);
+   }
+   else
+      _s_data.resize(size);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void variant_t::describe_type(std::stringstream & ss) const NU_NOEXCEPT
+{
+   if (is_struct())
+   {
+      ss << "\t\tStruct " << struct_type_name() << "\n";
+      ss << "\t\t{\n";
+
+      for (size_t i = 0; i < _struct_data.size(); ++i)
+         if (!_struct_data.empty()) for (auto & s : _struct_data[i])
+         {
+            ss << "\t\t  " << s.first << " As ";
+
+            if (s.second)
+               s.second->describe_type(ss);
+            else
+               ss << "undefined";
+
+            if (is_vector())
+               ss << "[" << i << "]";
+
+            ss << "\n";
+         }
+      ss << "\t\t}";
+   }
+   else
+   {
+      ss << get_type_desc(get_type());
+      if (is_vector())
+         ss << "[" << vector_size() << "]";
+   }
 }
 
 

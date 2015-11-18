@@ -107,6 +107,9 @@ public:
 
 
 protected:
+   //! Get a token and advance to the next one (if any)
+   token_t _next();
+
    size_t _pos = 0;
    std::string _subexp_begin_symb;
    std::string _subexp_end_symb;

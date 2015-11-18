@@ -77,6 +77,17 @@ public:
       return false;
    }
 
+   std::string name() const NU_NOEXCEPT override
+   {
+      return "";
+   }
+   
+   func_args_t get_args() const NU_NOEXCEPT override
+   {
+      func_args_t dummy;
+      return dummy;
+   }
+
 protected:
    variant_t _val;
 };

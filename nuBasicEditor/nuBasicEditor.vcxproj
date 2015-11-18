@@ -284,6 +284,7 @@
     <ClInclude Include="..\nu_stmt_end.h" />
     <ClInclude Include="..\nu_stmt_endfunction.h" />
     <ClInclude Include="..\nu_stmt_endif.h" />
+    <ClInclude Include="..\nu_stmt_endstruct.h" />
     <ClInclude Include="..\nu_stmt_endsub.h" />
     <ClInclude Include="..\nu_stmt_exit_do.h" />
     <ClInclude Include="..\nu_stmt_exit_for.h" />
@@ -310,6 +311,8 @@
     <ClInclude Include="..\nu_stmt_read.h" />
     <ClInclude Include="..\nu_stmt_redim.h" />
     <ClInclude Include="..\nu_stmt_return.h" />
+    <ClInclude Include="..\nu_stmt_struct.h" />
+    <ClInclude Include="..\nu_stmt_struct_element.h" />
     <ClInclude Include="..\nu_stmt_sub.h" />
     <ClInclude Include="..\nu_stmt_wend.h" />
     <ClInclude Include="..\nu_stmt_while.h" />
@@ -341,6 +344,7 @@
     <ClCompile Include="..\nu_expr_syntax_tree.cc" />
     <ClCompile Include="..\nu_expr_tknzr.cc" />
     <ClCompile Include="..\nu_expr_unary_op.cc" />
+    <ClCompile Include="..\nu_expr_var.cc" />
     <ClCompile Include="..\nu_file_dscrptr_tbl.cc" />
     <ClCompile Include="..\nu_for_loop_rtdata.cc" />
     <ClCompile Include="..\nu_global_function_tbl.cc" />
@@ -375,6 +379,7 @@
     <ClCompile Include="..\nu_stmt_end.cc" />
     <ClCompile Include="..\nu_stmt_endfunction.cc" />
     <ClCompile Include="..\nu_stmt_endif.cc" />
+    <ClCompile Include="..\nu_stmt_endstruct.cc" />
     <ClCompile Include="..\nu_stmt_endsub.cc" />
     <ClCompile Include="..\nu_stmt_exit_do.cc" />
     <ClCompile Include="..\nu_stmt_exit_for.cc" />
@@ -398,6 +403,8 @@
     <ClCompile Include="..\nu_stmt_print.cc" />
     <ClCompile Include="..\nu_stmt_read.cc" />
     <ClCompile Include="..\nu_stmt_redim.cc" />
+    <ClCompile Include="..\nu_stmt_struct.cc" />
+    <ClCompile Include="..\nu_stmt_struct_element.cc" />
     <ClCompile Include="..\nu_stmt_sub.cc" />
     <ClCompile Include="..\nu_stmt_wend.cc" />
     <ClCompile Include="..\nu_stmt_while.cc" />

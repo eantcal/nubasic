@@ -333,6 +333,15 @@
     <ClInclude Include="..\nu_reserved_keywords.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="..\nu_stmt_struct.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="..\nu_stmt_endstruct.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
+    <ClInclude Include="..\nu_stmt_struct_element.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -576,6 +585,18 @@
       <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_reserved_keywords.cc">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\nu_stmt_struct.cc">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\nu_stmt_endstruct.cc">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\nu_stmt_struct_element.cc">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\nu_expr_var.cc">
       <Filter>File di origine</Filter>
     </ClCompile>
   </ItemGroup>

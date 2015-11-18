@@ -110,8 +110,13 @@ void stmt_dim_t::run(rt_prog_ctx_t & ctx)
             rt_error_if(it == sprototypes.end(),
                rt_error_code_t::E_STRUCT_UNDEF,
                "Dim: '" + name + "'");
-                                                
-            scope->define(name, it->second.second /*struct prototype*/);
+
+            auto value = it->second.second; // struct prototype
+
+            if (vsize > 0)
+               value.resize(vsize);
+
+            scope->define(name, value);
             break;
          }
 
