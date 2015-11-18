@@ -32,6 +32,7 @@ nubasic_SOURCES = config.h \
    nu_expr_tknzr.cc \
    nu_expr_tknzr.h \
    nu_expr_var.h \
+   nu_expr_var.cc \
    nu_flag_map.h \
    nu_icstring.h \
    nu_icstring.cc \
