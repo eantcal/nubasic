@@ -1266,13 +1266,13 @@ builtin_help_t& builtin_help_t::get_instance()
 
       hmap[ {lang_item_t::INSTRUCTION, "dim"}] =
       {
-         "Allocate storage space for array variable\n"
+         "Allocate storage space for variable and array variable\n"
          "An array must be declared in order to be used "
          "and once dimensioned, can be re-dimensioned by using ReDim\n"
          "The Dim statement sets all the elements of the specified "
          "arrays to an initial value of zero or empty string\n"
          "See also: ReDim",
-         "Dim var1(dim1), var2(dim2), ..., varN(dimN)\n"
+         "Dim var1[(dim1)] [as Type], ..., varN[(dimN)] [As OtherType]\n"
       };
 
       hmap[ {lang_item_t::INSTRUCTION, "redim"}] =
@@ -1494,6 +1494,19 @@ builtin_help_t& builtin_help_t::get_instance()
          "Executes a shell command\n"
          "\nSee also Errno, Errno$",
          "Shell \"command...\""
+      };
+
+      hmap[{lang_item_t::INSTRUCTION, "struct"}] =
+      {
+         "A structure in nuBASIC is a composite data type\n"
+         "consisting of a number elements of other types.\n"
+         "\nSee also Dim",
+         "Struct <struct_name>\n"
+         "   field1[as FieldType1]\n"
+         "   field2[as FieldType2]\n"
+         "   ...\n"
+         "   fieldn[as FieldTypeN]\n"
+         "End Struct\n"
       };
    }
 

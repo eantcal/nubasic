@@ -1332,7 +1332,7 @@ stmt_t::handle_t stmt_parser_t::parse_struct_element(
 
       try
       {
-         size = nu::stoll(token.identifier());
+         size = size_t(nu::stoll(token.identifier()));
       }
       catch (...)
       {

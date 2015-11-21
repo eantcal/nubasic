@@ -151,10 +151,10 @@ public:
       size_t element_vec_idx = 0;
 
       if (!var_idx.empty())
-         var_vec_idx = var_idx[0]->eval(ctx).to_long64();
+         var_vec_idx = size_t(var_idx[0]->eval(ctx).to_long64());
 
       if (!var_member_idx.empty())
-         element_vec_idx = var_member_idx[0]->eval(ctx).to_long64();
+         element_vec_idx = size_t(var_member_idx[0]->eval(ctx).to_long64());
 
       std::string err;
 

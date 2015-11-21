@@ -177,13 +177,13 @@ bool variable_t::is_valid_name(std::string name, bool ingnore_builtin)
       char c = name.c_str()[i];
 
       bool valid = letter(c) ||
-                   (c == '.' && prev_c !='.') ||
-                   c == '_' ||
-                   number(c) ||
-                   (i == (name.size() - 1) &&
-                    (c == '%' || c == '#' ||
-                     c == '$' || c == '@' || 
-                     c == '!' || c == '&' ));
+         (c == '.' && prev_c !='.') ||
+         c == '_' ||
+         number(c) ||
+         (i == (name.size() - 1) &&
+         (c == '%' || c == '#' ||
+         c == '$' || c == '@' || 
+         c == '!' || c == '&' ));
 
       if (!valid)
          return false;

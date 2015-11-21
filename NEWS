@@ -7,10 +7,10 @@ Please send nuBASIC / nuBasicEditor bug reports to <acaldmail@gmail.com>.
 Win32/64 built with VS2015 needs "Visual C++ Redistributable Packages for Visual Studio 2015"
 https://www.microsoft.com/en-us/download/details.aspx?id=48145
 
-Nov (TBD), 2015
+Nov 21, 2015
 * Released nuBASIC 1.40
 - Add explicit type declaration (Example: Dim aString as String)
-- Enable user to define and use the structures, example:
+- Add structures support:
 
   Struct AStructType
      element as String

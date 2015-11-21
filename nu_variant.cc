@@ -211,7 +211,7 @@ const char* variant_t::get_type_desc(const type_t& type) NU_NOEXCEPT
          return "integer";
 
       case type_t::BOOLEAN:
-         return "bool";
+         return "boolean";
 
       case type_t::LONG64:
          return "long64";
