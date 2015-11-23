@@ -62,20 +62,30 @@ void stmt_input_t::run(rt_prog_ctx_t & ctx)
          var_scope_t::handle_t scope =
             ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
-         syntax_error_if(
+         rt_error_code_t::get_instance().throw_if(
             !scope->is_defined(name),
-            "'" + name + "' must be defined using DIM");
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::E_VAR_UNDEF,
+            "'" + name + "'");
 
          size_t idx = index->eval(ctx).to_int();
 
-         variant_t var = (*scope)[name];
+         auto & v = (*scope)[name];
+         variant_t var = v.first;
+         const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
 
-         //check size
-         syntax_error_if(
+         rt_error_code_t::get_instance().throw_if(
+            const_var,
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::E_CANNOT_MOD_CONST,
+            "'" + name + "'");
+
+         rt_error_code_t::get_instance().throw_if(
             idx >= var.vector_size(),
-            "'" + name + "(" + nu::to_string(idx) + ")' is"
-            "out of range");
-         
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::E_VEC_IDX_OUT_OF_RANGE,
+            "'" + name + "'");
+
          variant_t::type_t t = var.get_type();
 
          if (t==variant_t::type_t::UNDEFINED)
@@ -83,6 +93,15 @@ void stmt_input_t::run(rt_prog_ctx_t & ctx)
 
          switch (t)
          {
+            case variant_t::type_t::UNDEFINED:
+            case variant_t::type_t::STRUCT:
+               rt_error_code_t::get_instance().throw_if(
+                  true,
+                  ctx.runtime_pc.get_line(),
+                  rt_error_code_t::E_TYPE_ILLEGAL,
+                  "'" + name + "'");
+               break;
+
             case variant_t::type_t::STRING:
                var.set_str(value, idx);
                break;
@@ -111,23 +130,25 @@ void stmt_input_t::run(rt_prog_ctx_t & ctx)
             case variant_t::type_t::LONG64:
                var.set_long64(nu::stoll(value), idx);
                break;
-
-            case variant_t::type_t::UNDEFINED:
-               syntax_error_if(
-                  true,
-                  "'" + name + "(" + nu::to_string(idx) + ")' is"
-                  " undefined");
-               break;
          }
 
-         scope->define(name, var);
+         scope->define(name, var_value_t(var, VAR_ACCESS_RW));
       }
       else
       {
          var_scope_t::handle_t scope =
             ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
-         variant_t var = (*scope)[name];
+         auto & v = (*scope)[name];
+         const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
+
+         rt_error_code_t::get_instance().throw_if(
+            const_var,
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::E_CANNOT_MOD_CONST,
+            "'" + name + "'");
+
+         variant_t var = v.first;
          variant_t::type_t t = var.get_type();
 
          if (t == variant_t::type_t::UNDEFINED)
@@ -136,17 +157,23 @@ void stmt_input_t::run(rt_prog_ctx_t & ctx)
          switch (t)
          {
             case variable_t::type_t::STRING:
-               scope->define(name, value);
+               scope->define(
+                  name, 
+                  var_value_t(value, VAR_ACCESS_RW));
                break;
 
             case variable_t::type_t::DOUBLE:
                try
                {
-                  scope->define(name, nu::stod(value));
+                  scope->define(
+                     name, 
+                     var_value_t(nu::stod(value), VAR_ACCESS_RW));
                }
                catch (...)
                {
-                  scope->define(name, double(0));
+                  scope->define(
+                     name, 
+                     var_value_t(double(0), VAR_ACCESS_RW));
                }
 
                break;
@@ -154,11 +181,15 @@ void stmt_input_t::run(rt_prog_ctx_t & ctx)
             case variable_t::type_t::FLOAT:
                try
                {
-                  scope->define(name, nu::stof(value));
+                  scope->define(
+                     name, 
+                     var_value_t(nu::stof(value), VAR_ACCESS_RW));
                }
                catch (...)
                {
-                  scope->define(name, float(0));
+                  scope->define(
+                     name, 
+                     var_value_t(float(0), VAR_ACCESS_RW));
                }
 
                break;
@@ -166,11 +197,15 @@ void stmt_input_t::run(rt_prog_ctx_t & ctx)
             case variable_t::type_t::LONG64:
                try
                {
-                  scope->define(name, nu::stoll(value));
+                  scope->define(
+                     name, 
+                     var_value_t(
+                        nu::stoll(value), 
+                        VAR_ACCESS_RW));
                }
                catch (...)
                {
-                  scope->define(name, 0);
+                  scope->define(name, var_value_t(0, VAR_ACCESS_RW));
                }
 
                break;
@@ -178,13 +213,16 @@ void stmt_input_t::run(rt_prog_ctx_t & ctx)
             case variable_t::type_t::BOOLEAN:
                try
                {
-                  scope->define(name,
-                                strcasecmp(value.c_str(),"false")!=0 &&
-                                strcasecmp(value.c_str(), "0") != 0);
+                  scope->define(
+                     name,
+                     var_value_t(
+                        strcasecmp(value.c_str(),"false")!=0 &&
+                        strcasecmp(value.c_str(), "0") != 0, 
+                        VAR_ACCESS_RW));
                }
                catch (...)
                {
-                  scope->define(name, false);
+                  scope->define(name, var_value_t(false, VAR_ACCESS_RW));
                }
 
                break;
@@ -193,13 +231,23 @@ void stmt_input_t::run(rt_prog_ctx_t & ctx)
             default:
                try
                {
-                  scope->define(name, nu::stoi(value));
+                  scope->define(
+                     name, var_value_t(nu::stoi(value), VAR_ACCESS_RW));
                }
                catch (...)
                {
-                  scope->define(name, 0);
+                  scope->define(name, var_value_t(0, VAR_ACCESS_RW));
                }
 
+               break;
+
+            case variant_t::type_t::UNDEFINED:
+            case variant_t::type_t::STRUCT:
+               rt_error_code_t::get_instance().throw_if(
+                  true,
+                  ctx.runtime_pc.get_line(),
+                  rt_error_code_t::E_TYPE_ILLEGAL,
+                  "'" + name + "'");
                break;
          }
       }

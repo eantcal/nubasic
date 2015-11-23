@@ -85,8 +85,13 @@ void stmt_input_file_t::run(rt_prog_ctx_t & ctx)
             break;
 
          case nu::variable_t::type_t::UNDEFINED:
+         case nu::variable_t::type_t::STRUCT:
          default:
-            throw exception_t("input# failed reading variable");
+            rt_error_code_t::get_instance().throw_if(
+               true,
+               ctx.runtime_pc.get_line(),
+               rt_error_code_t::E_TYPE_ILLEGAL,
+               "input#");
             break;
       }
 
@@ -97,19 +102,29 @@ void stmt_input_file_t::run(rt_prog_ctx_t & ctx)
 
       if (is_vector)
       {
-         syntax_error_if(
-            !ctx.proc_scope.get()->is_defined(name),
-            "'" + name + "' must be defined using DIM");
+         rt_error_code_t::get_instance().throw_if(
+            true,
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::E_VAR_UNDEF,
+            "'" + name + "'");
 
          size_t idx = index->eval(ctx).to_int();
+         auto & v = (*(ctx.proc_scope.get()))[name];
+         const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
 
-         variant_t var = (*(ctx.proc_scope.get()))[name];
+         variant_t var = v.first;
 
-         //check size
-         syntax_error_if(
+         rt_error_code_t::get_instance().throw_if(
+            const_var,
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::E_CANNOT_MOD_CONST,
+            "'" + name + "'");
+
+         rt_error_code_t::get_instance().throw_if(
             idx >= var.vector_size(),
-            "'" + name + "(" + nu::to_string(idx) + ")' is"
-            "out of range");
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::E_VEC_IDX_OUT_OF_RANGE,
+            "'" + name + "'");
 
          switch (vtype)
          {
@@ -145,81 +160,134 @@ void stmt_input_file_t::run(rt_prog_ctx_t & ctx)
 
             case nu::variable_t::type_t::UNDEFINED:
                break;
+
+            case nu::variable_t::type_t::STRUCT:
+               rt_error_code_t::get_instance().throw_if(
+                  true,
+                  ctx.runtime_pc.get_line(),
+                  rt_error_code_t::E_TYPE_ILLEGAL,
+                  "'" + name + "'");
+               break;
          }
 
-         ctx.proc_scope.get()->define(name, var);
+         ctx.proc_scope.get()->define(
+            name, var_value_t(var, VAR_ACCESS_RW));
       }
-
       else
+      {
+         var_scope_t::handle_t scope =
+            ctx.proc_scope.get(ctx.proc_scope.get_type(name));
+
+         auto & v = (*scope)[name];
+         const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
+
+         rt_error_code_t::get_instance().throw_if(
+            const_var,
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::E_CANNOT_MOD_CONST,
+            "'" + name + "'");
+
+         variant_t var = v.first;
+         variant_t::type_t vtype = var.get_type();
+
+         if (vtype == variant_t::type_t::UNDEFINED)
+            vtype = variable_t::type_by_name(name);
+
          switch (vtype)
          {
-            case variable_t::type_t::STRING:
-               (ctx.proc_scope.get())->define(name, svalue);
-               break;
+         case variable_t::type_t::STRING:
+            (ctx.proc_scope.get())->define(
+               name,
+               var_value_t(svalue, VAR_ACCESS_RW));
+            break;
 
-            case variable_t::type_t::DOUBLE:
-               try
-               {
-                  (ctx.proc_scope.get())->define(name, dvalue);
-               }
-               catch (...)
-               {
-                  (ctx.proc_scope.get())->define(name, double(0));
-               }
+         case variable_t::type_t::DOUBLE:
+            try
+            {
+               (ctx.proc_scope.get())->define(
+                  name,
+                  var_value_t(dvalue, VAR_ACCESS_RW));
+            }
+            catch (...)
+            {
+               (ctx.proc_scope.get())->define(
+                  name, var_value_t(double(0), VAR_ACCESS_RW));
+            }
 
-               break;
+            break;
 
-            case variable_t::type_t::FLOAT:
-               try
-               {
-                  (ctx.proc_scope.get())->define(name, fvalue);
-               }
-               catch (...)
-               {
-                  (ctx.proc_scope.get())->define(name, float(0));
-               }
+         case variable_t::type_t::FLOAT:
+            try
+            {
+               (ctx.proc_scope.get())->define(
+                  name, var_value_t(fvalue, VAR_ACCESS_RW));
+            }
+            catch (...)
+            {
+               (ctx.proc_scope.get())->define(
+                  name, var_value_t(float(0), VAR_ACCESS_RW));
+            }
 
-               break;
+            break;
 
-            case variable_t::type_t::BOOLEAN:
-               try
-               {
-                  (ctx.proc_scope.get())->define(name,
-                                                 strcasecmp(svalue.c_str(), "false") != 0 &&
-                                                 strcasecmp(svalue.c_str(), "0") != 0);
-               }
-               catch (...)
-               {
-                  (ctx.proc_scope.get())->define(name, false);
-               }
+         case variable_t::type_t::BOOLEAN:
+            try
+            {
+               (ctx.proc_scope.get())->define(
+                  name,
+                  var_value_t(
+                     strcasecmp(svalue.c_str(), "false") != 0 &&
+                     strcasecmp(svalue.c_str(), "0") != 0,
+                     VAR_ACCESS_RW));
+            }
+            catch (...)
+            {
+               (ctx.proc_scope.get())->define(
+                  name, var_value_t(false, VAR_ACCESS_RW));
+            }
 
-               break;
+            break;
 
-            case variable_t::type_t::LONG64:
-               try
-               {
-                  (ctx.proc_scope.get())->define(name, llvalue);
-               }
-               catch (...)
-               {
-                  (ctx.proc_scope.get())->define(name, (long long)0);
-               }
+         case variable_t::type_t::LONG64:
+            try
+            {
+               (ctx.proc_scope.get())->define(name,
+                  var_value_t(llvalue, VAR_ACCESS_RW));
+            }
+            catch (...)
+            {
+               (ctx.proc_scope.get())->define(
+                  name,
+                  var_value_t((long long)0, VAR_ACCESS_RW));
+            }
 
-               break;
+            break;
 
-            case variable_t::type_t::INTEGER:
-            default:
-               try
-               {
-                  (ctx.proc_scope.get())->define(name, ivalue);
-               }
-               catch (...)
-               {
-                  (ctx.proc_scope.get())->define(name, 0);
-               }
+         case nu::variable_t::type_t::STRUCT:
+            rt_error_code_t::get_instance().throw_if(
+               true,
+               ctx.runtime_pc.get_line(),
+               rt_error_code_t::E_TYPE_ILLEGAL,
+               "'" + name + "'");
+            break;
 
-               break;
+         case variable_t::type_t::INTEGER:
+         default:
+            try
+            {
+               (ctx.proc_scope.get())->define(
+                  name,
+                  var_value_t(ivalue, VAR_ACCESS_RW));
+            }
+            catch (...)
+            {
+               (ctx.proc_scope.get())->define(
+                  name, var_value_t(0, VAR_ACCESS_RW));
+            }
+
+            break;
          }
+      }
    }
 
    ctx.set_errno(ret != 0 ? errno : 0);

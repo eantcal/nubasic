@@ -237,15 +237,6 @@ const char* variant_t::get_type_desc(const type_t& type) NU_NOEXCEPT
 
 variant_t& variant_t::operator+=(const variant_t& b)
 {
-   if (is_const())
-   {
-      rt_error_code_t::get_instance().throw_if(
-         true,
-         0,
-         rt_error_code_t::E_CANNOT_MOD_CONST,
-         "");
-   }
-
    *this = *this + b;
    return *this;
 }
@@ -255,15 +246,6 @@ variant_t& variant_t::operator+=(const variant_t& b)
 
 variant_t& variant_t::operator-=(const variant_t& b)
 {
-   if (is_const())
-   {
-      rt_error_code_t::get_instance().throw_if(
-         true,
-         0,
-         rt_error_code_t::E_CANNOT_MOD_CONST,
-         "");
-   }
-
    *this = *this - b;
    return *this;
 }
@@ -273,16 +255,6 @@ variant_t& variant_t::operator-=(const variant_t& b)
 
 variant_t variant_t::power(const variant_t& b) const
 {
-   if (is_const())
-   {
-      rt_error_code_t::get_instance().throw_if(
-         true,
-         0,
-         rt_error_code_t::E_CANNOT_MOD_CONST,
-         "");
-   }
-   
-
    if (get_type() == variant_t::type_t::DOUBLE ||
          b.get_type() == variant_t::type_t::DOUBLE)
    {
@@ -320,14 +292,8 @@ variant_t variant_t::power(const variant_t& b) const
 
 variant_t variant_t::increment()
 {
-   if (is_const() || is_vector())
+   if (is_vector())
    {
-      rt_error_code_t::get_instance().throw_if(
-         is_const(),
-         0,
-         rt_error_code_t::E_CANNOT_MOD_CONST,
-         "");
-
       rt_error_code_t::get_instance().throw_if(
          is_vector(),
          0,
@@ -366,15 +332,9 @@ variant_t variant_t::increment()
 
 variant_t variant_t::decrement()
 {
-   if (is_const() || is_vector())
+   if (is_vector())
    {
-      rt_error_code_t::get_instance().throw_if(
-         is_const(),
-         0,
-         rt_error_code_t::E_CANNOT_MOD_CONST,
-         "");
-
-      rt_error_code_t::get_instance().throw_if(
+     rt_error_code_t::get_instance().throw_if(
          is_vector(),
          0,
          rt_error_code_t::E_TYPE_ILLEGAL,
@@ -1020,7 +980,6 @@ bool variant_t::is_real(const std::string& value)
 variant_t::variant_t(variant_t&& v)
    :
    _type(std::move(v._type)),
-   _constant(std::move(v._constant)),
    _vector_type(std::move(v._vector_type)),
    _vect_size(std::move(v._vect_size)),
    _s_data(std::move(v._s_data)),
@@ -1035,7 +994,6 @@ variant_t::variant_t(variant_t&& v)
 variant_t::variant_t(const variant_t& v)
    :
    _type(v._type),
-   _constant(v._constant),
    _vector_type(v._vector_type),
    _vect_size(v._vect_size),
    _s_data(v._s_data),
@@ -1067,7 +1025,6 @@ variant_t& variant_t::operator=(variant_t&& v)
       _vector_type = std::move(v._vector_type);
       _vect_size = std::move(v._vect_size);
       _type = std::move(v._type);
-      _constant = std::move(v._constant);
    }
 
    return *this;
@@ -1095,7 +1052,6 @@ variant_t& variant_t::operator=(const variant_t& v)
       _vector_type = v._vector_type;
       _vect_size = v._vect_size;
       _type = v._type;
-      _constant = v._constant;
    }
 
    return *this;

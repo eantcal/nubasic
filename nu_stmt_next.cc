@@ -89,7 +89,7 @@ void stmt_next_t::run(rt_prog_ctx_t & ctx)
    var_scope_t::handle_t scope = ctx.proc_scope.get(scope_type);
 
    auto & forctx = ctx.for_loop_tbl[counter_name];
-   auto & counter = (*scope)[_variable];
+   auto & counter = (*scope)[_variable].first;
 
    forctx.pc_next_stmt = ctx.runtime_pc;
    counter += forctx.step;

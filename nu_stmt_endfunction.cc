@@ -74,7 +74,7 @@ void stmt_endfunction_t::run(rt_prog_ctx_t & ctx)
       if (expected_retval)
       {
          // Get return-value
-         variant_t value = (*(ctx.proc_scope.get()))[identifier];
+         variant_t value = (*(ctx.proc_scope.get()))[identifier].first;
 
          // Insert the return value in the context
          ctx.function_retval_tbl[identifier].push_back(value);

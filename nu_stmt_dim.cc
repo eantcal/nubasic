@@ -99,7 +99,11 @@ void stmt_dim_t::run(rt_prog_ctx_t & ctx)
          case variable_t::type_t::BOOLEAN:
          case variable_t::type_t::BYTEVECTOR:
             init_val = "0";
-            scope->define(name, variant_t(init_val, vtype_code, vsize));
+            scope->define(
+               name, 
+               var_value_t(
+                  variant_t(init_val, vtype_code, vsize),
+                  VAR_ACCESS_RW));
             break;
          
          case variable_t::type_t::STRUCT:
@@ -117,7 +121,7 @@ void stmt_dim_t::run(rt_prog_ctx_t & ctx)
             if (vsize > 0)
                value.resize(vsize);
 
-            scope->define(name, value);
+            scope->define(name, var_value_t( value, VAR_ACCESS_RW ));
             break;
          }
 

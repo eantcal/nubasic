@@ -22,7 +22,20 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_expr_function.h"
+#ifndef __NU_STMT_CONST_H__
+#define __NU_STMT_CONST_H__
+
+
+/* -------------------------------------------------------------------------- */
+
+#include "nu_expr_any.h"
+#include "nu_stmt.h"
+#include "nu_variable.h"
+#include "nu_var_scope.h"
+#include "nu_token_list.h"
+#include "nu_prog_ctx.h"
+
+#include <string>
 
 
 /* -------------------------------------------------------------------------- */
@@ -33,41 +46,40 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
-bool expr_function_t::empty() const NU_NOEXCEPT
+class stmt_const_t : public stmt_t
 {
-   return false;
-}
+public:
+   using arg_t = expr_any_t::handle_t;
 
-
-/* -------------------------------------------------------------------------- */
-
-variant_t expr_function_t::eval(rt_prog_ctx_t & ctx) const
-{
-
-   if (!global_function_tbl_t::get_instance().is_defined(_name))
+   stmt_const_t(prog_ctx_t & ctx, 
+      const std::string& var,
+      const std::string& vtype, 
+      arg_t value) :
+      stmt_t(ctx),
+      _var(var),
+      _vtype(vtype),
+      _arg(value)
    {
-      var_scope_t::handle_t scope;
-      variant_t * var = nullptr;
+   }
 
-      if (scope == nullptr)
-         scope = ctx.proc_scope.get(
-            ctx.proc_scope.get_type(_name));
+   stmt_const_t() = delete;
+   stmt_const_t(const stmt_const_t&) = delete;
+   stmt_const_t& operator=(const stmt_const_t&) = delete;
 
-      if (!var && scope->is_defined(_name))
-      {
-         var = &(((*scope)[_name]).first);
-      }
+   virtual void run(rt_prog_ctx_t& ctx) override;
 
-      if (!var) throw exception_t(
-         std::string("Error: \"" + _name + "\" undefined symbol"));
+protected:
+   std::string _var;
+   std::string _vtype;
+   arg_t _arg;
+};
 
-      return (*var)[_var[0]->eval(ctx).to_int()];
-}
 
-   return global_function_tbl_t::get_instance()[_name](ctx, _name, _var);
+/* -------------------------------------------------------------------------- */
+
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-} // namespace nu
+#endif //__NU_STMT_CONST_H__

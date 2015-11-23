@@ -42,7 +42,7 @@ variant_t expr_subscrop_t::eval(rt_prog_ctx_t & ctx) const
       throw exception_t(
          std::string("Error: \"" + _name + "\" undefined symbol"));
 
-   const variant_t& var_value = (*scope)[_name];
+   const variant_t& var_value = (*scope)[_name].first;
    (void) var_value; // TODO
 
    //TODO apply to string!

@@ -49,14 +49,14 @@ namespace nu
             scope = ctx.proc_scope.get(
                ctx.proc_scope.get_type(_name));
 
-         return (*scope)[_name];
+         return (*scope)[_name].first;
       }
 
       auto vtype = variable_t::type_by_name(_name);
       variant_t value("", vtype, 0);
-      scope->define(_name, value);
+      scope->define(_name, var_value_t(value, VAR_ACCESS_RW));
 
-      return (*scope)[_name];
+      return (*scope)[_name].first;
    }
 
    /* -------------------------------------------------------------------------- */

@@ -92,9 +92,12 @@ void stmt_read_t::run(rt_prog_ctx_t & ctx)
 
    int ret = 0;
 
-   auto const & variable = _var;
+   auto const & variable = _var;  
 
-   auto vtype = variable_t::type_by_name(variable.first);
+   auto index = variable.second;
+   auto name = variable.first;
+   bool is_vector = index != nullptr;
+           
 
    std::string svalue;
    int ivalue = 0;
@@ -104,83 +107,92 @@ void stmt_read_t::run(rt_prog_ctx_t & ctx)
 
    std::vector<byte_t> buf(size);
 
+   var_scope_t::handle_t scope =
+      ctx.proc_scope.get(ctx.proc_scope.get_type(name));
+
+   auto & v = (*scope)[name];
+   variant_t var = v.first;
+   const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
+
+   rt_error_if(
+      const_var,
+      rt_error_code_t::E_CANNOT_MOD_CONST,
+      "Read " + name);
+
+   auto vtype = var.get_type();
+
+   if (vtype == variant_t::type_t::UNDEFINED)
+      vtype = variable_t::type_by_name(name);
+
    switch (vtype)
    {
-      case nu::variable_t::type_t::INTEGER:
-         rt_error_if(
-            size != sizeof(integer_t),
-            rt_error_code_t::E_TYPE_ILLEGAL,
-            "Read (size=" + to_string(size) + ")");
+   case nu::variable_t::type_t::INTEGER:
+      rt_error_if(
+         size != sizeof(integer_t),
+         rt_error_code_t::E_TYPE_ILLEGAL,
+         "Read (size=" + to_string(size) + ")");
 
-         ret = fscanf(s_in, "%i", &ivalue);
-         break;
+      ret = fscanf(s_in, "%i", &ivalue);
+      break;
 
 
-      case nu::variable_t::type_t::LONG64:
-         rt_error_if(
-            size != sizeof(long64_t),
-            rt_error_code_t::E_TYPE_ILLEGAL,
-            "Read (size=" + to_string(size) + ")");
+   case nu::variable_t::type_t::LONG64:
+      rt_error_if(
+         size != sizeof(long64_t),
+         rt_error_code_t::E_TYPE_ILLEGAL,
+         "Read (size=" + to_string(size) + ")");
 
-         ret = fscanf(s_in, "%lli", &llvalue);
-         break;
+      ret = fscanf(s_in, "%lli", &llvalue);
+      break;
 
-      case nu::variable_t::type_t::FLOAT:
-         rt_error_if(
-            size != sizeof(real_t),
-            rt_error_code_t::E_TYPE_ILLEGAL,
-            "Read (size=" + to_string(size) + ")");
+   case nu::variable_t::type_t::FLOAT:
+      rt_error_if(
+         size != sizeof(real_t),
+         rt_error_code_t::E_TYPE_ILLEGAL,
+         "Read (size=" + to_string(size) + ")");
 
-         ret = fscanf(s_in, "%f", &fvalue);
-         break;
+      ret = fscanf(s_in, "%f", &fvalue);
+      break;
 
-      case nu::variable_t::type_t::DOUBLE:
-         rt_error_if(
-            size != sizeof(double_t),
-            rt_error_code_t::E_TYPE_ILLEGAL,
-            "Read (size=" + to_string(size) + ")");
+   case nu::variable_t::type_t::DOUBLE:
+      rt_error_if(
+         size != sizeof(double_t),
+         rt_error_code_t::E_TYPE_ILLEGAL,
+         "Read (size=" + to_string(size) + ")");
 
-         ret = fscanf(s_in, "%lf", &dvalue);
-         break;
+      ret = fscanf(s_in, "%lf", &dvalue);
+      break;
 
-      case nu::variable_t::type_t::STRING:
-      case nu::variable_t::type_t::BOOLEAN:
-      case nu::variable_t::type_t::BYTEVECTOR:
-         size = ::fread(buf.data(), 1, size, s_in);
-         ret = size >= 0;
+   case nu::variable_t::type_t::STRING:
+   case nu::variable_t::type_t::BOOLEAN:
+   case nu::variable_t::type_t::BYTEVECTOR:
+      size = ::fread(buf.data(), 1, size, s_in);
+      ret = size >= 0;
 
-         if (vtype == nu::variable_t::type_t::STRING ||
-             vtype == nu::variable_t::type_t::BOOLEAN)
-         {
-            svalue = std::string(buf.begin(), buf.end());
-         }
+      if (vtype == nu::variable_t::type_t::STRING ||
+         vtype == nu::variable_t::type_t::BOOLEAN)
+      {
+         svalue = std::string(buf.begin(), buf.end());
+      }
 
-         break;
+      break;
 
-      case nu::variable_t::type_t::UNDEFINED:
-      default:
-         rt_error_if(true, rt_error_code_t::E_TYPE_ILLEGAL, "Read");
-         break;
+   case nu::variable_t::type_t::UNDEFINED:
+   case nu::variable_t::type_t::STRUCT:
+   default:
+      rt_error_if(true, rt_error_code_t::E_TYPE_ILLEGAL, "Read");
+      break;
    }
 
-   auto index = variable.second;
-   auto name = variable.first;
-
-   bool is_vector = index != nullptr;
-
+   
    if (is_vector)
    {
-      var_scope_t::handle_t scope =
-         ctx.proc_scope.get(ctx.proc_scope.get_type(name));
-
       rt_error_if(
          !scope->is_defined(name),
          rt_error_code_t::E_VAR_UNDEF,
          "Read '" + name + "'");
 
       size_t idx = index->eval(ctx).to_int();
-
-      variant_t var = (*scope)[name];
 
       if (var.get_type() == variant_t::type_t::BYTEVECTOR)
       {
@@ -232,28 +244,24 @@ void stmt_read_t::run(rt_prog_ctx_t & ctx)
          }
       }
 
-      scope->define(name, var);
+      scope->define(name, var_value_t(var, VAR_ACCESS_RW));
    }
-
    else
    {
-      var_scope_t::handle_t scope =
-         ctx.proc_scope.get(ctx.proc_scope.get_type(name));
-
       switch (vtype)
       {
          case variable_t::type_t::STRING:
-            scope->define(name, svalue);
+            scope->define(name, var_value_t(svalue, VAR_ACCESS_RW));
             break;
 
          case variable_t::type_t::FLOAT:
             try
             {
-               scope->define(name, fvalue);
+               scope->define(name, var_value_t(fvalue, VAR_ACCESS_RW));
             }
             catch (...)
             {
-               scope->define(name, float(0));
+               scope->define(name, var_value_t(float(0), VAR_ACCESS_RW));
             }
 
             break;
@@ -261,11 +269,11 @@ void stmt_read_t::run(rt_prog_ctx_t & ctx)
          case variable_t::type_t::DOUBLE:
             try
             {
-               scope->define(name, dvalue);
+               scope->define(name, var_value_t(dvalue,VAR_ACCESS_RW));
             }
             catch (...)
             {
-               scope->define(name, double(0));
+               scope->define(name, var_value_t(double(0), VAR_ACCESS_RW));
             }
 
             break;
@@ -274,11 +282,11 @@ void stmt_read_t::run(rt_prog_ctx_t & ctx)
          case variable_t::type_t::LONG64:
             try
             {
-               scope->define(name, llvalue);
+               scope->define(name, var_value_t(llvalue, VAR_ACCESS_RW));
             }
             catch (...)
             {
-               scope->define(name, (long long) 0);
+               scope->define(name, var_value_t((long long) 0, VAR_ACCESS_RW));
             }
 
             break;
@@ -288,19 +296,20 @@ void stmt_read_t::run(rt_prog_ctx_t & ctx)
             try
             {
                scope->define(name,
-                             strcasecmp(svalue.c_str(), "false") != 0 &&
-                             strcasecmp(svalue.c_str(), "0") != 0);
+                  var_value_t(
+                     strcasecmp(svalue.c_str(), "false") != 0 &&
+                     strcasecmp(svalue.c_str(), "0") != 0, VAR_ACCESS_RW));
             }
             catch (...)
             {
-               scope->define(name, false);
+               scope->define(name, var_value_t(false, VAR_ACCESS_RW));
             }
 
             break;
 
          case variable_t::type_t::BYTEVECTOR:
             if (buf.size() > 0)
-               scope->define(name, buf);
+               scope->define(name, var_value_t(buf, VAR_ACCESS_RW));
 
             break;
 
@@ -308,11 +317,11 @@ void stmt_read_t::run(rt_prog_ctx_t & ctx)
          default:
             try
             {
-               scope->define(name, ivalue);
+               scope->define(name, var_value_t(ivalue, VAR_ACCESS_RW));
             }
             catch (...)
             {
-               scope->define(name, 0);
+               scope->define(name, var_value_t(0, VAR_ACCESS_RW));
             }
 
             break;

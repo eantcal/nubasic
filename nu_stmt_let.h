@@ -60,16 +60,14 @@ public:
       arg_t arg,
       expr_any_t::handle_t vect_idx,
       expr_any_t::handle_t element_vect_idx,
-      bool struct_member,
-      bool constant)
+      bool struct_member)
       :
       stmt_t(ctx),
       _variable(variable),
       _arg(arg),
       _vect_idx(vect_idx),
       _element_vect_idx(element_vect_idx),
-      _struct_member(struct_member),
-      _constant(constant)
+      _struct_member(struct_member)
    {}
 
    virtual void run(rt_prog_ctx_t& ctx) override;
@@ -128,7 +126,6 @@ protected:
    expr_any_t::handle_t _vect_idx;
    expr_any_t::handle_t _element_vect_idx;
    bool _struct_member = false;
-   bool _constant = false;
 };
 
 

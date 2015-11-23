@@ -66,7 +66,7 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t & ctx)
 
       if (scope->is_defined(_variable))
       {
-         auto type = (*scope)[_variable].get_type();
+         auto type = (*scope)[_variable].first.get_type();
          if (type != variable_t::type_t::UNDEFINED)
             vartype = type;
       }
@@ -83,20 +83,24 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t & ctx)
             break;
 
          case variable_t::type_t::FLOAT:
-            scope->define(_variable, val.to_real());
+            scope->define(
+               _variable, var_value_t( val.to_real(), VAR_ACCESS_RW ));
             break;
 
          case variable_t::type_t::DOUBLE:
-            scope->define(_variable, val.to_double());
+            scope->define(
+               _variable, var_value_t(val.to_double(), VAR_ACCESS_RW));
             break;
 
          case variable_t::type_t::LONG64:
-            scope->define(_variable, val.to_long64());
+            scope->define(
+               _variable, var_value_t(val.to_long64(), VAR_ACCESS_RW));
             break;
 
          case variable_t::type_t::INTEGER:
          default:
-            scope->define(_variable, val.to_int());
+            scope->define(
+               _variable, var_value_t(val.to_int(), VAR_ACCESS_RW));
             break;
       }
 

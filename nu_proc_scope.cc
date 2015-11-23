@@ -195,5 +195,3 @@ proc_scope_t::type_t proc_scope_t::get_type( const std::string& varname) const N
 
 } // namespace nu
 
-
-

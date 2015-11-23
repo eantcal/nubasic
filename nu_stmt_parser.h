@@ -151,6 +151,12 @@ protected:
       token_t token,
       token_list_t & tl);
 
+   //! parse const statement
+   stmt_t::handle_t parse_const(
+      prog_ctx_t & ctx,
+      token_t token,
+      token_list_t & tl);
+
 
    //! parse explicit typename
    bool search_for__as_type(const token_list_t & tl, std::string & tname);
@@ -405,11 +411,10 @@ protected:
       token_list_t & tl);
 
 
-   //! parse Let / Const statement
+   //! parse Let statement
    stmt_t::handle_t parse_let(
       prog_ctx_t & ctx,
-      token_list_t & tl,
-      bool constant = false);
+      token_list_t & tl);
 
 
    //! parse Locate statement

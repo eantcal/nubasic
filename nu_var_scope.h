@@ -41,11 +41,20 @@ namespace nu
 
 /* -------------------------------------------------------------------------- */
 
+enum 
+{ 
+   VAR_ACCESS_RW, 
+   VAR_ACCESS_RO = 1 
+};
+
+using var_scope_flag_t = unsigned int;
+using var_value_t = std::pair< variant_t, var_scope_flag_t >;
+
 /**
  * This class holds the value of variables that belong to the same
  * definition scope
  */
-class var_scope_t : public symbol_map_t < icstring_t, variant_t >
+class var_scope_t : public symbol_map_t < icstring_t, var_value_t >
 {
 public:
    using handle_t = std::shared_ptr < var_scope_t > ;
@@ -54,7 +63,10 @@ public:
    var_scope_t(const var_scope_t&) = default;
    var_scope_t& operator=(const var_scope_t&) = default;
 
-   bool define(const std::string& name, const variant_t& value) override;
+   bool define(
+      const std::string& name, 
+      const var_value_t& value) override;
+
    friend std::stringstream& operator<<(std::stringstream& ss, var_scope_t& obj);
 
 protected:

@@ -77,18 +77,22 @@ void stmt_redim_t::run(rt_prog_ctx_t & ctx)
             init_val = "";
 
          case variable_t::type_t::FLOAT:
+         case variable_t::type_t::DOUBLE:
          case variable_t::type_t::INTEGER:
          case variable_t::type_t::LONG64:
          case variable_t::type_t::BOOLEAN:
          case variable_t::type_t::BYTEVECTOR:
-            scope->define(name, variant_t(init_val, vtype_code, vsize));
+            scope->define(
+               name, 
+               var_value_t(
+                  variant_t(init_val, vtype_code, vsize), VAR_ACCESS_RW));
             break;
 
          default:
             rt_error_if(
                true,
                rt_error_code_t::E_INV_IDENTIF,
-               "REDIM '" + name + "'");
+               "ReDim '" + name + "'");
       }
    }
 

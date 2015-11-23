@@ -170,11 +170,6 @@ public:
       _resize(size);
    }
    
-   bool is_const() const NU_NOEXCEPT
-   {
-      return _constant;
-   }
-
    bool is_vector() const NU_NOEXCEPT
    {
       return _vector_type;
@@ -395,11 +390,6 @@ public:
       _set(value, _i_data, type_t::LONG64, idx);
    }
 
-   void set_const( bool enable ) NU_NOEXCEPT
-   {
-      _constant = enable;
-   }
-
    variant_t operator[](size_t idx) const
    {
       if (is_struct())
@@ -441,7 +431,6 @@ public:
 
 protected:
    type_t _type = type_t::UNDEFINED;
-   bool _constant = false;
    bool _vector_type = false;
    size_t _vect_size = 0;
 

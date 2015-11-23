@@ -350,6 +350,7 @@
     <ClCompile Include="nu_stmt_call.cc" />
     <ClCompile Include="nu_stmt_close.cc" />
     <ClCompile Include="nu_stmt_cls.cc" />
+    <ClCompile Include="nu_stmt_const.cc" />
     <ClCompile Include="nu_stmt_do.cc" />
     <ClCompile Include="nu_stmt_else.cc" />
     <ClCompile Include="nu_stmt_empty.cc" />
@@ -430,6 +431,7 @@
     <ClInclude Include="nu_expr_tknzr.h" />
     <ClInclude Include="nu_reserved_keywords.h" />
     <ClInclude Include="nu_stdtype.h" />
+    <ClInclude Include="nu_stmt_const.h" />
     <ClInclude Include="nu_stmt_delay.h" />
     <ClInclude Include="nu_stmt_endstruct.h" />
     <ClInclude Include="nu_stmt_expr.h" />

@@ -81,6 +81,12 @@ public:
    //! Get current LOCAL or GLOBAL scope
    var_scope_t::handle_t get(type_t type = type_t::LOCAL) const NU_NOEXCEPT;
 
+   //! Get global scope
+   var_scope_t::handle_t get_global() const NU_NOEXCEPT
+   {
+      return get(type_t::GLOBAL);
+   }
+
    //! Return true for function call, false else
    bool is_func_call(const std::string& sub_name) const;
 

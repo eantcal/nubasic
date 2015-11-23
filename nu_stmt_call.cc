@@ -198,7 +198,7 @@ void stmt_call_t::run(
                break;
          } //switch
 
-         sub_xscope->define(variable_name, val);
+         sub_xscope->define(variable_name, var_value_t(val, VAR_ACCESS_RW));
 
          ++arg_it;
          ++values_it;

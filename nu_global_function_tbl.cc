@@ -646,7 +646,7 @@ static variant_t process_operator(
       rt_error_code_t::E_INV_IDENTIF,
       "");
 
-   auto variable_value = &(*scope)[variable_name];
+   auto variable_value = &(*scope)[variable_name].first;
 
    if (operator_name == NU_BASIC_OP_INC)
    {

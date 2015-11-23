@@ -64,7 +64,18 @@ void stmt_let_t::run(rt_prog_ctx_t & ctx)
          scope = ctx.proc_scope.get(
             ctx.proc_scope.get_type(_variable));
 
-      var = &((*scope)[_variable]);
+      auto & v = (*scope)[_variable];
+
+      const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
+
+      if (const_var)
+         rt_error_code_t::get_instance().throw_if(
+            true,
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::E_CANNOT_MOD_CONST,
+            "'" + _variable + "'");
+
+      var = &(v.first);
    }
 
    variable_t::type_t vart = var->get_type();
@@ -93,7 +104,6 @@ void stmt_let_t::run(rt_prog_ctx_t & ctx)
             "'" + _variable + "(" + nu::to_string(idx) + ")'");
 
          _assign<size_t>(ctx, *var, val, vart, idx);
-         var->set_const(_constant);
       }
       else
       {
@@ -106,15 +116,13 @@ void stmt_let_t::run(rt_prog_ctx_t & ctx)
             rt_error_code_t::E_TYPE_MISMATCH,
             "'" + _variable + "'");
 
-         var->set_const(_constant);
-         scope->define(_variable, val);
+         scope->define(_variable, var_value_t( val, VAR_ACCESS_RW ));
       }
 
    }
    else
    {
       _assign<>(ctx, *var, val, vart);
-      var->set_const(_constant);
    }
 
    ctx.go_to_next();

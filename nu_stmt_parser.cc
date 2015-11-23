@@ -33,6 +33,7 @@
 #include "nu_stmt_close.h"
 #include "nu_stmt_call.h"
 #include "nu_stmt_delay.h"
+#include "nu_stmt_const.h"
 #include "nu_stmt_dim.h"
 #include "nu_stmt_redim.h"
 #include "nu_stmt_end.h"
@@ -865,8 +866,7 @@ expr_any_t::handle_t stmt_parser_t::parse_sub_expr(
 
 stmt_t::handle_t stmt_parser_t::parse_let(
    prog_ctx_t & ctx,
-   nu::token_list_t & tl,
-   bool constant)
+   nu::token_list_t & tl)
 {
    remove_blank(tl);
 
@@ -990,8 +990,7 @@ stmt_t::handle_t stmt_parser_t::parse_let(
                 ep.compile(etl, pos),
                 variable_vector_index,
                 struct_member_vector_index,
-                struct_member_id,
-                constant));
+                struct_member_id));
 }
 
 
@@ -1561,7 +1560,7 @@ stmt_t::handle_t stmt_parser_t::parse_on_goto(
    auto label_list = parse_label_list(ctx, token, tl);
 
    return stmt_t::handle_t(
-             std::make_shared<stmt_on_goto_t>(ctx, condition, label_list));
+      std::make_shared<stmt_on_goto_t>(ctx, condition, label_list));
 }
 
 
@@ -1602,13 +1601,13 @@ stmt_t::handle_t stmt_parser_t::parse_while(
 
          //while <condition> do <stmt>
          return stmt_t::handle_t(
-                   std::make_shared<stmt_while_t>(ctx, condition, while_stmt));
+            std::make_shared<stmt_while_t>(ctx, condition, while_stmt));
       }
    }
 
    //while <condition> [do]
    return stmt_t::handle_t(
-             std::make_shared<stmt_while_t>(ctx, condition));
+      std::make_shared<stmt_while_t>(ctx, condition));
 }
 
 
@@ -1650,7 +1649,7 @@ stmt_t::handle_t stmt_parser_t::parse_loop_while(
 
    //LOOP WHILE <condition>
    return stmt_t::handle_t(
-             std::make_shared<stmt_loop_while_t>(ctx, condition));
+      std::make_shared<stmt_loop_while_t>(ctx, condition));
 }
 
 
@@ -1768,7 +1767,7 @@ stmt_t::handle_t stmt_parser_t::parse_open(
    }
 
    return stmt_t::handle_t(
-             std::make_shared<stmt_open_t>(ctx, filename, mode, access, fd));
+      std::make_shared<stmt_open_t>(ctx, filename, mode, access, fd));
 }
 
 
@@ -1805,6 +1804,108 @@ stmt_t::handle_t stmt_parser_t::parse_close(
    }
 
    return stmt_t::handle_t(std::make_shared<stmt_close_t>(ctx, fd));
+}
+
+
+//! parse instruction const
+stmt_t::handle_t stmt_parser_t::parse_const(
+   prog_ctx_t & ctx,
+   token_t token,
+   token_list_t & tl)
+{
+   
+   auto get_type = [&](
+      std::string& type,
+      const std::string& variable_name)
+   {
+      type =
+         variable_t::typename_by_type(
+            variable_t::type_by_name(variable_name));
+
+      if (!tl.empty())
+      {
+         token = *tl.begin();
+
+         if (token.type() == tkncl_t::IDENTIFIER &&
+            token.identifier() == "as")
+         {
+            --tl;
+            remove_blank(tl);
+
+            syntax_error_if(
+               tl.empty(),
+               token.expression(),
+               token.position());
+
+            token = *tl.begin();
+
+            syntax_error_if(
+               token.type() != tkncl_t::IDENTIFIER,
+               token.expression(),
+               token.position());
+
+            type = token.identifier();
+
+            --tl;
+            remove_blank(tl);
+         }
+      }
+   };
+
+   --tl;
+   remove_blank(tl);
+   syntax_error_if(tl.empty(), token.expression(), token.position());
+
+   token = *tl.begin();
+
+   syntax_error_if(
+      token.type() != tkncl_t::IDENTIFIER,
+      token.expression(), 
+      token.position());
+
+   std::string variable_name = token.identifier();
+
+   syntax_error_if(!
+      variable_t::is_valid_name(variable_name, false),
+      variable_name + " is an invalid identifier");
+
+   --tl;
+   remove_blank(tl);
+   syntax_error_if(tl.empty(), token.expression(), token.position());
+   token = *tl.begin();
+      
+   std::string type;
+   get_type(type, variable_name);
+
+   syntax_error_if(tl.empty(), token.expression(), token.position());
+
+   token = *tl.begin();
+
+   syntax_error_if(
+      token.type() != tkncl_t::OPERATOR ||
+      token.identifier() != "=",
+      token.expression(), token.position());
+
+   --tl;
+   remove_blank(tl);
+
+   expr_parser_t ep;
+   auto pos = token.position();
+
+   token_list_t etl;
+   remove_blank(tl);
+
+   move_sub_expression(
+      tl,                     // source
+      etl,                    // destination
+      ":", tkncl_t::OPERATOR  // end-of-expression
+      );
+
+   syntax_error_if(
+      !variable_t::is_valid_name(variable_name, false),
+      variable_name + " is an invalid identifier");
+
+   return std::make_shared<stmt_const_t>(ctx, variable_name, type, ep.compile(etl, pos));
 }
 
 
@@ -2103,6 +2204,9 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
       return stmt_t::handle_t(std::make_shared<stmt_randomize_t>(ctx));
    }
 
+   if (identifier == "const")
+      return parse_const(ctx, token, tl);
+
    if (identifier == "dim")
      return parse_parameter_list<stmt_dim_t>(ctx, token, tl, ":", ctx);
 
@@ -2148,10 +2252,9 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
    {
       bool is_constant = false;
 
-      if (identifier == "let" || identifier == "const")
+      if (identifier == "let")
       {
          --tl;
-         is_constant = identifier == "const";
       }
       else
       {
@@ -2161,7 +2264,7 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
             return h;
       }
 
-      return parse_let(ctx, tl, is_constant);
+      return parse_let(ctx, tl);
    }
 
    throw exception_t("Syntax error");

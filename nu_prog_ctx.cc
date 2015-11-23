@@ -108,7 +108,7 @@ variant_t * prog_ctx_t::get_struct_member_value(
 
    if (scope->is_defined(member))
    {
-      value = &((*scope)[member]);
+      value = &((*scope)[member].first);
 
       size_t level = 1;
       while (value && value->is_struct() && level < reflist.size())
@@ -141,7 +141,7 @@ variant_t prog_ctx_t::resolve_struct_element(
       return variant_t();
    }
 
-   variant_t value = (*scope)[variable_name];
+   variant_t value = (*scope)[variable_name].first;
 
    if (!value.is_struct())
    {
