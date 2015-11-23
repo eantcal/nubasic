@@ -28,18 +28,16 @@ Features
 Latest released packages
 -------------------------------------------------------------------------------
 Linux Installers:
-RPM (Fedora) 64 bit Installer - nubasic-1.30-1.fc21.x86_64.rpm
-Debian / Ubuntu 64 bit Installer - nubasic_1.30-1_amd64.deb
+RPM (Fedora) 64 bit Installer - nubasic-1.41-1.fc21.x86_64.rpm
+Debian / Ubuntu 64 bit Installer - nubasic_1.41-1_amd64.deb
 
 Windows Installers:
-* Windows 64 bit Installer (VC++ build) - nubasic-ide-1.30-setup_x64.zip
-* Windows 32 bit Installer (VC++ build) - nubasic-ide-1.30-setup.zip
-
-* Windows 64 bit Installer (MinGW build) - nubasic-1.30-setup_x64.zip
+* Windows 64 bit Installer (VC++ build) - nubasic-ide-1.41-setup_x64.zip
+* Windows 32 bit Installer (VC++ build) - nubasic-ide-1.41-setup.zip
 
 Source code:
-* Interpreter and IDE source code: nubasic-1.30.tar.gz
-* Examples: examples_1.30.tar.bz2
+* Interpreter and IDE source code: nubasic-1.41.tar.gz
+* Examples: examples_1.41.tar.bz2
 
 Guides (PDF, ODT):
 * nuBASIC Guide (ENG)

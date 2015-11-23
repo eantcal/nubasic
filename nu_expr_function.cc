@@ -48,7 +48,6 @@ variant_t expr_function_t::eval(rt_prog_ctx_t & ctx) const
    {
       var_scope_t::handle_t scope;
       variant_t * var = nullptr;
-      size_t idx = 0;
 
       if (scope == nullptr)
          scope = ctx.proc_scope.get(

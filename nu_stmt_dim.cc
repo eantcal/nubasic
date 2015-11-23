@@ -93,6 +93,7 @@ void stmt_dim_t::run(rt_prog_ctx_t & ctx)
             init_val = "";
 
          case variable_t::type_t::FLOAT:
+         case variable_t::type_t::DOUBLE:
          case variable_t::type_t::INTEGER:
          case variable_t::type_t::LONG64:
          case variable_t::type_t::BOOLEAN:

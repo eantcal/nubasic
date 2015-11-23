@@ -7,6 +7,11 @@ Please send nuBASIC / nuBasicEditor bug reports to <acaldmail@gmail.com>.
 Win32/64 built with VS2015 needs "Visual C++ Redistributable Packages for Visual Studio 2015"
 https://www.microsoft.com/en-us/download/details.aspx?id=48145
 
+xxx, 2015
+* Released nuBASIC 1.41
+- Fixes a bug in the Double explicit declaration
+
+
 Nov 21, 2015
 * Released nuBASIC 1.40
 - Add explicit type declaration (Example: Dim aString as String)
@@ -27,6 +32,7 @@ Nov 21, 2015
   a.element3(2) = 3.14
   
 - Improvements and bug-fixes
+
 
 Oct 20, 2015
 * Released nuBASIC 1.32

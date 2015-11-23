@@ -824,7 +824,15 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
          token = tknzr.next();
          skip_blank(tknzr, token);
 
-         return _os_change_dir(token.identifier()) ?
+         std::string arg = token.identifier();
+
+         while (!tknzr.eol())
+         {
+            token = tknzr.next();
+            arg += token.identifier();
+         }
+
+         return _os_change_dir(arg) ?
                 exec_res_t::CMD_EXEC : exec_res_t::IO_ERROR;
       }
 
@@ -909,7 +917,15 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
          skip_blank(tknzr, token);
 
-         FILE* f = fopen(token.identifier().c_str(), "r");
+         std::string arg = token.identifier();
+
+         while (!tknzr.eol())
+         {
+            token = tknzr.next();
+            arg += token.identifier();
+         }
+
+         FILE* f = fopen(arg.c_str(), "r");
 
          if (!f)
             return exec_res_t::IO_ERROR;
@@ -952,7 +968,15 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
          skip_blank(tknzr, token);
 
-         return save(token.identifier()) ?
+         std::string arg = token.identifier();
+
+         while (!tknzr.eol())
+         {
+            token = tknzr.next();
+            arg += token.identifier();
+         }
+
+         return save(arg) ?
                 exec_res_t::CMD_EXEC : exec_res_t::IO_ERROR;
       }
 
