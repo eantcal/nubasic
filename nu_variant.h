@@ -141,7 +141,7 @@ public:
 
    variant_t() = default;
 
-   variant_t(const variant_t& v) = default;
+   variant_t(const variant_t& v);
    variant_t& operator =(const variant_t& v);
 
    variant_t(variant_t&& v);

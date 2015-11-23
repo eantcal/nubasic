@@ -1032,6 +1032,26 @@ variant_t::variant_t(variant_t&& v)
 }
 
 
+variant_t::variant_t(const variant_t& v)
+   :
+   _type(v._type),
+   _constant(v._constant),
+   _vector_type(v._vector_type),
+   _vect_size(v._vect_size),
+   _s_data(v._s_data),
+   _i_data(v._i_data),
+   _f_data(v._f_data),
+   _struct_data_type_name(v._struct_data_type_name)
+{
+   if (_struct_data.size() != v._struct_data.size())
+      _struct_data.resize(v._struct_data.size());
+
+   for (size_t i = 0; i < v._struct_data.size(); ++i)
+      copy_struct_data(_struct_data[i], v._struct_data[i]);
+
+}
+
+
 /* -------------------------------------------------------------------------- */
 
 variant_t& variant_t::operator=(variant_t&& v)
@@ -1063,7 +1083,13 @@ variant_t& variant_t::operator=(const variant_t& v)
       _i_data = v._i_data;
       _f_data = v._f_data;
       _s_data = v._s_data;
-      _struct_data = v._struct_data;
+
+      if (_struct_data.size() != v._struct_data.size())
+         _struct_data.resize(v._struct_data.size());
+
+      for (size_t i = 0; i < v._struct_data.size(); ++i)
+         copy_struct_data(_struct_data[i], v._struct_data[i]);
+
       _struct_data_type_name = v._struct_data_type_name;
 
       _vector_type = v._vector_type;
