@@ -59,15 +59,15 @@ void stmt_dim_t::run(rt_prog_ctx_t & ctx)
       switch (scope_type)
       {
          case proc_scope_t::type_t::GLOBAL:
-            rt_error_if(ctx.proc_scope.get_scope_id().empty(),
+            rt_error_if(true,
                         rt_error_code_t::E_VAR_REDEF,
-                        "Dim: '" + name + "'");
+                        "Global '" + name + "'");
             break;
 
          case proc_scope_t::type_t::LOCAL:
             rt_error_if(true,
                         rt_error_code_t::E_VAR_REDEF,
-                        "Dim: '" + name + "'");
+                        "Local '" + name + "'");
             break;
 
          case proc_scope_t::type_t::UNDEF:
