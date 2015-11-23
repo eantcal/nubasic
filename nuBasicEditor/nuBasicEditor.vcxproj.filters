@@ -342,6 +342,9 @@
     <ClInclude Include="..\nu_stmt_struct_element.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
+    <ClInclude Include="..\nu_stmt_const.h">
+      <Filter>File di intestazione</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -597,6 +600,9 @@
       <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_expr_var.cc">
+      <Filter>File di origine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\nu_stmt_const.cc">
       <Filter>File di origine</Filter>
     </ClCompile>
   </ItemGroup>

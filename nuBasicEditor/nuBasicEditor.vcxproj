@@ -277,6 +277,7 @@
     <ClInclude Include="..\nu_stmt_call.h" />
     <ClInclude Include="..\nu_stmt_close.h" />
     <ClInclude Include="..\nu_stmt_cls.h" />
+    <ClInclude Include="..\nu_stmt_const.h" />
     <ClInclude Include="..\nu_stmt_delay.h" />
     <ClInclude Include="..\nu_stmt_dim.h" />
     <ClInclude Include="..\nu_stmt_do.h" />
@@ -372,6 +373,7 @@
     <ClCompile Include="..\nu_stmt_call.cc" />
     <ClCompile Include="..\nu_stmt_close.cc" />
     <ClCompile Include="..\nu_stmt_cls.cc" />
+    <ClCompile Include="..\nu_stmt_const.cc" />
     <ClCompile Include="..\nu_stmt_delay.cc" />
     <ClCompile Include="..\nu_stmt_dim.cc" />
     <ClCompile Include="..\nu_stmt_do.cc" />

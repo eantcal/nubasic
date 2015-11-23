@@ -65,7 +65,7 @@ const COLORREF darkBlue = RGB(0, 0, 0x80);
 
 /* -------------------------------------------------------------------------- */
 
-const int toolbar_n_of_bmps = 9;
+const int toolbar_n_of_bmps = 11;
 const int toolbar_btn_state = TBSTATE_ENABLED;
 const int toolbar_btn_style = BTNS_BUTTON | TBSTATE_ELLIPSES;
 
@@ -89,7 +89,12 @@ TBBUTTON toolbar_buttons[] =
 
    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-   { 9, IDM_SEARCH_FIND, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "Find" }
+   { 9, IDM_SEARCH_FIND, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, ( INT_PTR ) "Find" },
+
+   { 0, 0, TBSTATE_ENABLED, BTNS_SEP,{ 0 }, NULL, NULL },
+
+   { 10, IDM_DEBUG_TOPMOST, toolbar_btn_state, toolbar_btn_style,{ 0 }, NULL, (INT_PTR) "Dbg Top" },
+   { 11, IDM_DEBUG_NOTOPMOST, toolbar_btn_state, toolbar_btn_style,{ 0 }, NULL, (INT_PTR) "Dbg No-Top" }
 
 };
 
@@ -1516,8 +1521,8 @@ void nu::editor_t::show_splash()
    if ( !image )
       return;
 
-   const int wdx = 450;
-   const int wdy = 250;
+   const int wdx = 400;
+   const int wdy = 170 + GetSystemMetrics(SM_CYCAPTION);
 
    RECT r = { 0 };
    GetClientRect(GetDesktopWindow(), &r);
@@ -1536,7 +1541,7 @@ void nu::editor_t::show_splash()
    BITMAP bm = { 0 };
    ::GetObject(image, sizeof(bm), &bm);
 
-   GetWindowRect(hwnd, &r);
+   GetClientRect(hwnd, &r);
 
    int dx = r.right - r.left;
    int dy = r.bottom - r.top;

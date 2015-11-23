@@ -102,7 +102,6 @@ Sub DrawHand(x60 as Double, rmin as Integer, t as Integer, l as integer, c as in
       Line pcx%, pcy%, px% + r% div 2, py% + r% div 2, c
    next i%
 
-   ' FillEllipse px%, py%, px% + r%, py% + r%, c
 End Sub
 
 
