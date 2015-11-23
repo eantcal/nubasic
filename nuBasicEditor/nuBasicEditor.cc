@@ -1516,7 +1516,19 @@ void nu::editor_t::show_splash()
    if ( !image )
       return;
 
-   HDC hdc = GetDC(GetDesktopWindow());
+   const int wdx = 450;
+   const int wdy = 250;
+
+   RECT r = { 0 };
+   GetClientRect(GetDesktopWindow(), &r);
+
+   auto wx = (r.right - r.left - wdx) / 2;
+   auto wy = (r.bottom - r.top - wdy) / 2;
+
+   HWND hwnd = ::CreateWindowA(
+      "STATIC", EDITOR_INFO, WS_VISIBLE, wx, wy, wdx, wdy, NULL, NULL, NULL, NULL);
+   
+   HDC hdc = GetDC(hwnd);
 
    HDC hdcMem = ::CreateCompatibleDC(hdc);
    auto hbmOld = ::SelectObject(hdcMem, ( HGDIOBJ ) image);
@@ -1524,8 +1536,7 @@ void nu::editor_t::show_splash()
    BITMAP bm = { 0 };
    ::GetObject(image, sizeof(bm), &bm);
 
-   RECT r;
-   GetWindowRect(GetDesktopWindow(), &r);
+   GetWindowRect(hwnd, &r);
 
    int dx = r.right - r.left;
    int dy = r.bottom - r.top;
@@ -1539,10 +1550,14 @@ void nu::editor_t::show_splash()
       hdcMem, 0, 0,
       SRCCOPY);
 
-   Sleep(2000);
+   Sleep(3000);
 
    ::SelectObject(hdcMem, hbmOld);
    ::DeleteDC(hdcMem);
+
+   ::ReleaseDC(hwnd, hdc);
+
+   ::DestroyWindow(hwnd);
 }
 
 
