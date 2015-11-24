@@ -65,6 +65,8 @@ nubasic_SOURCES = config.h \
    nu_stmt_cls.h \
    nu_stmt_delay.cc \
    nu_stmt_delay.h \
+   nu_stmt_const.cc \
+   nu_stmt_const.h \
    nu_stmt_dim.cc \
    nu_stmt_dim.h \
    nu_stmt_do.cc \

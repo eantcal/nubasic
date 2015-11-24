@@ -44,7 +44,7 @@ sub DrawBg()
    dim x as Double
    dim y as Double
 
-   FillRect offset_x%-offset_x%/2, offset_x%*2/2, 500,50,0
+   FillRect offset_x%-offset_x%/2, 20, 600,80,0
    TextOut offset_x%*2-offset_x%/2, offset_y%/2, SysTime$(), rgb(255,255,255)
 
    FillEllipse offset_x%, offset_y%, offset_x%+2*ray%, offset_y%+2*ray%, bgcolor% 
