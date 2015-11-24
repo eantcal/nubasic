@@ -114,13 +114,14 @@ sub DrawHands(hh as Double, mm as Double, ss as Double)
    dim m_alpha as Double
 
    m_alpha = mm * alpha_h/60
+   m_mm = mm / 12.0
 
    hh=hh-3
    mm=mm-15
 
    DrawHand mm, 15, 5, (ray% - 30), mcolor%
    DrawHand ss, 15, 1, (ray% - 25), scolor%
-   DrawHand hh*5+mm/12, 15, 7, (ray% - 60), hcolor% 
+   DrawHand hh*5+m_mm, 15, 7, (ray% - 60), hcolor%
    
      
 end sub
