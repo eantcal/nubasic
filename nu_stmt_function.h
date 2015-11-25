@@ -64,6 +64,12 @@ public:
       prog_ctx_t & ctx,
       const std::string& id);
 
+   void define_ret_type(const std::string& type, prog_ctx_t & ctx)
+   {
+      auto & fproto = ctx.proc_prototypes.data[_id].second;
+      fproto.ret_type = type;
+   }
+
    virtual stmt_cl_t get_cl() const NU_NOEXCEPT override;
    virtual void run(rt_prog_ctx_t& ctx) override;
 

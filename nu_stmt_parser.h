@@ -307,13 +307,6 @@ protected:
                remove_blank(tl);
             }
 
-            //A procedure parameter list must be terminated by ")"
-            //No other tokens in the line can be present
-            syntax_error_if(
-               end_token == ")" && !tl.empty(),
-               token.expression(),
-               token.position());
-
             break;
          }
 

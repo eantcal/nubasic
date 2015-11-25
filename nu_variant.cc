@@ -859,12 +859,13 @@ std::ostream& operator << (std::ostream& os, const variant_t& val)
 
             os << "\t\t{\n";
 
-            for (const auto& e : val._struct_data[vidx])
-            {
-               os << "\t\t  " << e.first << " : ";
-               if (e.second)
-                  os << *e.second << "\n";
-            }
+            if (val._struct_data.size()>vidx) 
+               for (const auto& e : val._struct_data[vidx])
+               {
+                  os << "\t\t  " << e.first << " : ";
+                  if (e.second)
+                     os << *e.second << "\n";
+               }
 
             os << "\t\t}";
             break;

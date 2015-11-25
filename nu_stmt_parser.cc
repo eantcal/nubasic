@@ -1217,21 +1217,54 @@ stmt_t::handle_t stmt_parser_t::parse_procedure(
 
    token = *tl.begin();
 
+   stmt_t::handle_t stmt_handle;
+
    if (token.type() == tkncl_t::SUBEXP_END)
    {
       --tl;
       remove_blank(tl);
-
-      syntax_error_if(!tl.empty(), token.expression(), token.position());
-      return stmt_t::handle_t(std::make_shared<T>(ctx, id));
+            
+      stmt_handle = stmt_t::handle_t(std::make_shared<T>(ctx, id));
    }
    else
    {
       //reset '(' before other tokens
       tl.data().push_front(token);
+      stmt_handle = parse_parameter_list<T>(ctx, token, tl, ")", ctx, id);
+   }
+      
+
+   if (stmt_handle &&
+      !tl.empty() && 
+      tl.begin()->type()==tkncl_t::IDENTIFIER && 
+      tl.begin()->identifier()=="as")
+   {
+      --tl;
+      remove_blank(tl);
+
+      syntax_error_if(
+         tl.empty() || tl.begin()->type() != tkncl_t::IDENTIFIER,
+         token.expression(),
+         token.position());
+
+      auto ret_type = tl.begin()->identifier();
+
+      stmt_function_t * ptr = 
+         dynamic_cast<stmt_function_t*>(stmt_handle.get());
+
+      syntax_error_if(
+         ptr == nullptr,
+         token.expression(),
+         token.position());
+
+      --tl;
+      remove_blank(tl);
+
+      ptr->define_ret_type(ret_type, ctx);
    }
 
-   return parse_parameter_list<T>(ctx, token, tl, ")", ctx, id);
+
+   return stmt_handle;
 }
 
 

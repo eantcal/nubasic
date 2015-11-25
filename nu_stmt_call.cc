@@ -102,10 +102,10 @@ void stmt_call_t::run(
       rt_error_code_t::E_SUB_UNDEF,
       _name);
 
-   auto & argument_list = i->second.second;
+   auto & function_prototype = i->second.second;
 
    rt_error_if(
-      argument_list.parameters.size() != _args.size(),
+      function_prototype.parameters.size() != _args.size(),
       rt_error_code_t::E_WRG_NUM_ARGS,
       _name);
 
@@ -127,7 +127,57 @@ void stmt_call_t::run(
    ctx.go_to(i->second.first);
    ctx.proc_scope.enter_scope(_name, _fncall);
 
-   auto arg_it = argument_list.parameters.begin();
+   if (!function_prototype.ret_type.empty())
+   {
+      auto sub_xscope = ctx.proc_scope.get();
+      auto vtype_code = variable_t::type_by_typename(function_prototype.ret_type);
+
+      std::string init_val;
+
+      switch (vtype_code)
+      {
+      case variable_t::type_t::STRING:
+         init_val = "";
+
+      case variable_t::type_t::FLOAT:
+      case variable_t::type_t::DOUBLE:
+      case variable_t::type_t::INTEGER:
+      case variable_t::type_t::LONG64:
+      case variable_t::type_t::BOOLEAN:
+      case variable_t::type_t::BYTEVECTOR:
+         init_val = "0";
+         sub_xscope->define(
+            _name,
+            var_value_t(
+               variant_t(init_val, vtype_code, 0),
+               VAR_ACCESS_RW));
+         break;
+
+      case variable_t::type_t::STRUCT:
+      case variable_t::type_t::UNDEFINED:
+      {
+         auto & sprototypes = ctx.struct_prototypes.data;
+         auto it = sprototypes.find(function_prototype.ret_type);
+
+         rt_error_if(it == sprototypes.end(),
+            rt_error_code_t::E_STRUCT_UNDEF,
+            "'" + _name + "'");
+
+         auto value = it->second.second; // struct prototype
+
+         sub_xscope->define(_name, var_value_t(value, VAR_ACCESS_RW));
+         break;
+      }
+
+      default:
+         rt_error_if(true,
+            rt_error_code_t::E_INV_VECT_SIZE,
+            "'" + _name + "'");
+      }
+
+   }
+
+   auto arg_it = function_prototype.parameters.begin();
 
    if (! values.empty())
    {
@@ -151,7 +201,7 @@ void stmt_call_t::run(
 
          auto var_type = variable_type.empty() ?
             variable_t::type_by_name(variable_name) :
-            variable_t::type_by_typename(variable_type); // TODO struct
+            variable_t::type_by_typename(variable_type); 
 
          rt_error_if(
             vsize && (!val.is_vector() || int(val.vector_size()) != vsize),
@@ -177,6 +227,19 @@ void stmt_call_t::run(
                   rt_error_code_t::E_TYPE_MISMATCH,
                   _name + ", Parameter '" + variable_name + "'");
                break;
+
+            case variable_t::type_t::STRUCT:
+            case variable_t::type_t::UNDEFINED:
+            {
+               auto & sprototypes = ctx.struct_prototypes.data;
+               auto it = sprototypes.find(variable_type);
+
+               rt_error_if(it == sprototypes.end(),
+                  rt_error_code_t::E_STRUCT_UNDEF,
+                  "'" + variable_type + "'");
+
+               break;
+            }
 
             case variant_t::type_t::STRING:
             default:

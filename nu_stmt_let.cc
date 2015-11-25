@@ -103,7 +103,20 @@ void stmt_let_t::run(rt_prog_ctx_t & ctx)
             rt_error_code_t::E_VEC_IDX_OUT_OF_RANGE,
             "'" + _variable + "(" + nu::to_string(idx) + ")'");
 
-         _assign<size_t>(ctx, *var, val, vart, idx);
+         if (val.is_struct())
+         {
+            rt_error_code_t::get_instance().throw_if(
+               var->struct_type_name() != val.struct_type_name(),
+               ctx.runtime_pc.get_line(),
+               rt_error_code_t::E_TYPE_MISMATCH,
+               "'" + _variable + "(" + nu::to_string(idx) + ")'");
+
+            var->set_struct_value(val, idx);
+         }
+         else
+         {
+            _assign<size_t>(ctx, *var, val, vart, idx);
+         }
       }
       else
       {
@@ -122,7 +135,14 @@ void stmt_let_t::run(rt_prog_ctx_t & ctx)
    }
    else
    {
-      _assign<>(ctx, *var, val, vart);
+      if (val.is_struct())
+      {
+         var->set_struct_value(val, 0);
+      }
+      else
+      {
+         _assign<>(ctx, *var, val, vart);
+      }
    }
 
    ctx.go_to_next();

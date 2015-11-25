@@ -1342,6 +1342,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
       };
 
       fmap["inkey$"] = functor_inkeys;
+      fmap["inkey"] = functor_inkeys;
 
 
       auto functor_pwd = [](
@@ -1624,6 +1625,7 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
       };
 
       fmap["systime$"] = functor_sys_time;
+      fmap["systime"] = functor_sys_time;
 
 
       auto functor_sizeof_bv = [](

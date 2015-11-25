@@ -155,6 +155,21 @@ public:
    handle_t struct_member(
       const std::string& field_name, 
       size_t vector_idx = 0);
+
+   void set_struct_value(const variant_t& v, size_t vector_idx = 0)
+   {
+      rt_error_code_t::get_instance().throw_if(
+         _type != type_t::STRUCT ||
+         v._type != type_t::STRUCT ||
+         _struct_data_type_name != v._struct_data_type_name ||
+         vector_idx >= _struct_data.size() ||
+         v._struct_data.size() != 1,
+         0,
+         rt_error_code_t::E_TYPE_ILLEGAL,
+         "");
+
+      _struct_data[vector_idx] = v._struct_data[0];
+   }
    
    const std::string& struct_type_name() const NU_NOEXCEPT
    {

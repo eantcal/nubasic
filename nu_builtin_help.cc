@@ -443,9 +443,9 @@ builtin_help_t& builtin_help_t::get_instance()
       {
          "Reads a keyboard character from the standard input buffer"
          ", without echoing it to the screen. "
-         "InKey$ will return immediately, even if there are no character"
+         "InKey[$] will return immediately, even if there are no character"
          " to retrieve",
-         "InKey$()"
+         "InKey[$]()"
       };
 
       hmap[ {lang_item_t::FUNCTION, "input$"}] =
@@ -810,10 +810,10 @@ builtin_help_t& builtin_help_t::get_instance()
          "SysMin()"
       };
 
-      hmap[ {lang_item_t::FUNCTION, "systime$"}] =
+      hmap[ {lang_item_t::FUNCTION, "systime"}] =
       {
          "returns a local time and date in the format 'DDD MMM DN HH:MM:SS YYYY'",
-         "SysTime$()"
+         "SysTime[$]()"
       };
 
 
@@ -1310,7 +1310,7 @@ builtin_help_t& builtin_help_t::get_instance()
          "own function name variable in one or more statements "
          "of the procedure.\n"
          "See also: Sub",
-         "Function function_name ( [parameterlist] )\n"
+         "Function function_name ( [parameterlist] ) [as Type]\n"
          "   [statement(s)]\n"
          "   [function_name = return-value\n"
          "   [Exit Function]]\n"

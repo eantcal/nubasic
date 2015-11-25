@@ -114,6 +114,10 @@ protected:
             var.set_bool(val.to_bool(), idx...);
             break;
 
+         case variable_t::type_t::STRUCT:
+            var = val;
+            break;
+
          case variable_t::type_t::INTEGER:
          default:
             var.set_int(val.to_int(), idx...);

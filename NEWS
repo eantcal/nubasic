@@ -7,6 +7,14 @@ Please send nuBASIC / nuBasicEditor bug reports to <acaldmail@gmail.com>.
 Win32/64 built with VS2015 needs "Visual C++ Redistributable Packages for Visual Studio 2015"
 https://www.microsoft.com/en-us/download/details.aspx?id=48145
 
+
+Nov 25, 2015
+* Released nuBASIC 1.42
+- Explicit type definition extended to function return type
+- Extended function syntax in order to pass return struct objects
+- Improvements and bug-fixes
+
+
 Nov 24, 2015
 * Released nuBASIC 1.41
 - Const statement syntax extended in order to support explicit type declaration

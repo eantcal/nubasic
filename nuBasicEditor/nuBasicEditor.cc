@@ -1946,7 +1946,7 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) NU_NOEXCEPT
       gethwnd(), ( HMENU ) 0, get_instance_handle(), NULL);
 
 
-   int cb = doc_size > 100 ? int(doc_size / 10) : int(doc_size);
+   int cb = int(doc_size / 10);
 
    // Set the range and increment of the progress bar. 
    SendMessage(hwndPB, PBM_SETRANGE, 0, MAKELPARAM(0, cb));
@@ -1965,7 +1965,7 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) NU_NOEXCEPT
 
    while ( i < doc_size )
    {
-      if ( doc_size <= 100 || ( i % 10 ) == 0 )
+      if ( ( i % 10 ) == 0 )
          SendMessage(hwndPB, PBM_STEPIT, 0, 0);
 
       char ch = data[i];
