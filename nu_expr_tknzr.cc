@@ -117,7 +117,7 @@ token_t expr_tknzr_t::next()
    auto tkn = _next();
 
    if (!(tkn.type() == tkncl_t::INTEGRAL ||
-      tkn.identifier() == "." && tkn.type() == tkncl_t::OPERATOR))
+      (tkn.identifier() == "." && tkn.type() == tkncl_t::OPERATOR)))
    {
       return tkn;
    }

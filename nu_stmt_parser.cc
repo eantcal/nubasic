@@ -2283,8 +2283,6 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
       return parse_procedure<stmt_function_t>(ctx, token, tl);
    else
    {
-      bool is_constant = false;
-
       if (identifier == "let")
       {
          --tl;

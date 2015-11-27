@@ -37,7 +37,6 @@ namespace nu
    {
       var_scope_t::handle_t scope;
       variant_t * var = nullptr;
-      size_t idx = 0;
 
       if (scope == nullptr)
          scope = ctx.proc_scope.get(
