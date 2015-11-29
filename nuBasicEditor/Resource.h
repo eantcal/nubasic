@@ -76,6 +76,9 @@
 #define IDI_NUBASIC_SPLASH              103
 #define IDI_NUBASIC_TOOLBAR             105
 #define IDD_DIALOG_RUNNING              107
+#define IDD_VSPLITTER                   108
+#define IDD_HSPLITTER                   109
+#define IDD_INFOBOX                     110
 
 
 // Next default values for new objects

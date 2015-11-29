@@ -118,10 +118,13 @@ std::string interpreter_t::skip_blank(expr_tknzr_t& tz, nu::token_t & t)
 
 /* -------------------------------------------------------------------------- */
 
-void interpreter_t::version()
+std::string interpreter_t::version()
 {
    using namespace about;
-   fprintf(get_rt_ctx().get_stdout_ptr(),
+
+   char buf[4096] = { 0 };
+
+   snprintf(buf, sizeof(buf)-1,
            "%s - %s\n"    //prog ver
            "(c) %s <%s>" //(c) author <mail>
            " - %s\n"     // - <year> <CR>
@@ -132,6 +135,8 @@ void interpreter_t::version()
            copyright,
            homepage,
            description);
+
+   return buf;
 }
 
 
@@ -879,7 +884,9 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
       if (cmd == "ver")
       {
-         version();
+         auto ver = version();
+         fprintf(get_stdout_ptr(), "%s\n", ver.c_str());
+
          return exec_res_t::CMD_EXEC;
       }
 

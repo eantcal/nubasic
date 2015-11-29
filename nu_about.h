@@ -49,10 +49,8 @@ static const char * const license = "GNU General Public License v2.0";
 static const char * const version = PACKAGE_VERSION;
 static const char * const copyright = "2014, 2015";
 static const char * const description =
-   "nuBASIC is an implementation of BASIC programming language "
-   "interpreter\ndesigned mainly for educational purposes.\n"
-   "nuBASIC is developed using C++11 and distributed as source\n"
-   "code under GPLv2 License."
+   "nuBASIC is a programming language from the BASIC family.\n"
+   "nuBASIC is developed in C++11 and distributed under GPLv2 License."
 #ifdef TINY_NUBASIC_VER
    "\nThis version of nuBASIC is 'lite' and does not include \n"
    "any graphics, sound, mouse or windows manager support."

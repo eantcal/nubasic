@@ -177,7 +177,8 @@ static int nuBASIC_console(int argc, char* argv[])
 
    if (command_line.empty())
    {
-      nuBASIC.version();
+      auto ver_str = nuBASIC.version();
+      printf("%s", ver_str.c_str());
       printf(NU_BASIC_MSG_STR__READY NU_BASIC_PROMPT_NEWLINE);
    }
 

@@ -24,6 +24,8 @@
 #include "targetver.h"
 
 #include <windows.h>
+#include <WinUser.h>
+#include <windowsx.h>
 
 #include <stdlib.h>
 #include <malloc.h>

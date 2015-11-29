@@ -57,6 +57,11 @@ public:
    void disable(DWORD id);
 
    bool get_rect(RECT& rect);
+
+   HWND get_hwnd() const throw()
+   {
+      return _toolbar;
+   }
 };
 
 

@@ -161,7 +161,7 @@ public:
    exec_res_t exec_command(const std::string& cmd);
 
 
-   void version();
+   std::string version();
 
 
    prog_pointer_t::line_number_t get_cur_line_n() const NU_NOEXCEPT
