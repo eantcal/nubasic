@@ -110,6 +110,8 @@ BEGIN
     
     POPUP "Se&ttings"
     BEGIN
+        MENUITEM "&Clear message window",       IDM_CLEAR_INFOBOX
+        MENUITEM SEPARATOR
         MENUITEM "&Font...",                    IDM_SETTINGS_FONT
         MENUITEM SEPARATOR
         MENUITEM "&Reset default",              IDM_SETTINGS_RESETDEFAULTS

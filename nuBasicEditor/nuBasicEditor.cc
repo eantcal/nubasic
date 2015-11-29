@@ -44,85 +44,85 @@ namespace nu
 {
 
 
-   /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
-   namespace editor
-   {
+namespace editor
+{
 
-      /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
-      const char application_name[] = EDITOR_RESOURCE_NAME;
-      const char class_name[] = EDITOR_RESOURCE_NAME"Window";
+const char application_name[] = EDITOR_RESOURCE_NAME;
+const char class_name[] = EDITOR_RESOURCE_NAME"Window";
 
-      const COLORREF black = RGB(0, 0, 0);
-      const COLORREF white = RGB(0xff, 0xff, 0xff);
-      const COLORREF red = RGB(0xFF, 0, 0);
-      const COLORREF offWhite = RGB(0xFF, 0xFB, 0xF0);
-      const COLORREF darkGreen = RGB(0, 0x80, 0);
-      const COLORREF darkBlue = RGB(0, 0, 0x80);
-
-
-      /* -------------------------------------------------------------------------- */
-
-      const int toolbar_n_of_bmps = 11;
-      const int toolbar_btn_state = TBSTATE_ENABLED;
-      const int toolbar_btn_style = BTNS_BUTTON | TBSTATE_ELLIPSES;
-
-
-      TBBUTTON toolbar_buttons[] =
-      {
-         { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
-
-         { 0, IDM_FILE_NEW, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "New" },
-         { 1, IDM_FILE_OPEN, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Open" },
-         { 2, IDM_FILE_SAVE, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Save" },
-
-         { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
-
-         { 3, IDM_DEBUG_START, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Debug" },
-         { 4, IDM_DEBUG_TOGGLEBRK, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Breakpoint" },
-         { 5, IDM_INTERPRETER_BUILD, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Build" },
-         { 6, IDM_DEBUG_EVALSEL, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Evaluate" },
-         { 7, IDM_DEBUG_STEP, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Step" },
-         { 8, IDM_DEBUG_CONT, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Cont" },
-
-         { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
-
-         { 9, IDM_SEARCH_FIND, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Find" },
-
-         { 0, 0, TBSTATE_ENABLED, BTNS_SEP,{ 0 }, NULL, NULL },
-
-         { 10, IDM_DEBUG_TOPMOST, toolbar_btn_state, toolbar_btn_style,{ 0 }, NULL, (INT_PTR) "Dbg Top" },
-         { 11, IDM_DEBUG_NOTOPMOST, toolbar_btn_state, toolbar_btn_style,{ 0 }, NULL, (INT_PTR) "Dbg No-Top" }
-
-      };
-
-      const int toolbar_n_of_buttons = sizeof(toolbar_buttons) / sizeof(TBBUTTON);
-
-
-      /* -------------------------------------------------------------------------- */
-
-      struct autocompl_t
-      {
-         std::string data;
-
-         autocompl_t()
-         {
-            for (auto & token : nu::reserved_keywords_t::list)
-            {
-               data += token;
-               data += " ";
-            }
-         }
-      };
-
-
-      static autocompl_t autocomplete_list;
+const COLORREF black = RGB(0, 0, 0);
+const COLORREF white = RGB(0xff, 0xff, 0xff);
+const COLORREF red = RGB(0xFF, 0, 0);
+const COLORREF offWhite = RGB(0xFF, 0xFB, 0xF0);
+const COLORREF darkGreen = RGB(0, 0x80, 0);
+const COLORREF darkBlue = RGB(0, 0, 0x80);
 
 
 /* -------------------------------------------------------------------------- */
 
-   } // namespace editor
+const int toolbar_n_of_bmps = 11;
+const int toolbar_btn_state = TBSTATE_ENABLED;
+const int toolbar_btn_style = BTNS_BUTTON | TBSTATE_ELLIPSES;
+
+
+TBBUTTON toolbar_buttons[] =
+{
+   { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+
+   { 0, IDM_FILE_NEW, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "New" },
+   { 1, IDM_FILE_OPEN, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Open" },
+   { 2, IDM_FILE_SAVE, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Save" },
+
+   { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+
+   { 3, IDM_DEBUG_START, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Debug" },
+   { 4, IDM_DEBUG_TOGGLEBRK, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Breakpoint" },
+   { 5, IDM_INTERPRETER_BUILD, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Build" },
+   { 6, IDM_DEBUG_EVALSEL, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Evaluate" },
+   { 7, IDM_DEBUG_STEP, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Step" },
+   { 8, IDM_DEBUG_CONT, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Cont" },
+
+   { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+
+   { 9, IDM_SEARCH_FIND, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Find" },
+
+   { 0, 0, TBSTATE_ENABLED, BTNS_SEP,{ 0 }, NULL, NULL },
+
+   { 10, IDM_DEBUG_TOPMOST, toolbar_btn_state, toolbar_btn_style,{ 0 }, NULL, (INT_PTR) "Dbg Top" },
+   { 11, IDM_DEBUG_NOTOPMOST, toolbar_btn_state, toolbar_btn_style,{ 0 }, NULL, (INT_PTR) "Dbg No-Top" }
+
+};
+
+const int toolbar_n_of_buttons = sizeof(toolbar_buttons) / sizeof(TBBUTTON);
+
+
+/* -------------------------------------------------------------------------- */
+
+struct autocompl_t
+{
+   std::string data;
+
+   autocompl_t()
+   {
+      for (auto & token : nu::reserved_keywords_t::list)
+      {
+         data += token;
+         data += " ";
+      }
+   }
+};
+
+
+static autocompl_t autocomplete_list;
+
+
+/* -------------------------------------------------------------------------- */
+
+} // namespace editor
 
 
 
@@ -131,1094 +131,1123 @@ namespace nu
 
    //! nuBasic Editor application implementation
    //
-   class editor_t
+class editor_t
+{
+   friend LRESULT CALLBACK HSplitterWndProc(HWND, WORD, WORD, LONG);
+   //friend LRESULT CALLBACK VSplitterWndProc(HWND, WORD, WORD, LONG);
+   nu::interpreter_t _interpreter;
+
+public:
+   enum {
+      SPLIT_BAR_WIDTH = 8,
+      SPLIT_BAR_HEIGHT = 8,
+
+      SEARCH_BOX_X = 10,
+      SEARCH_BOX_Y = 10,
+      SEARCH_BOX_DX = 100,
+      SEARCH_BOX_DY = 30
+   };
+
+   enum class marker_t
    {
-      friend LRESULT CALLBACK HSplitterWndProc(HWND, WORD, WORD, LONG);
-      //friend LRESULT CALLBACK VSplitterWndProc(HWND, WORD, WORD, LONG);
-      nu::interpreter_t _interpreter;     
-
-   public:
-      enum {
-         SPLIT_BAR_WIDTH = 8,
-         SPLIT_BAR_HEIGHT = 8,
-
-         SEARCH_BOX_X = 10,
-         SEARCH_BOX_Y = 10,
-         SEARCH_BOX_DX = 100,
-         SEARCH_BOX_DY = 30
-      };
-
-      enum class marker_t
-      {
-         BOOKMARK = 0,
-         BREAKPOINT = 1,
-         PROGCOUNTER = 2,
-         LINESELECTION = 4,
-      };
-
-      nu::interpreter_t & interpreter()
-      {
-         return _interpreter;
-      }
-
-      enum
-      {
-         LINENUM_WIDTH = 5,
-         DEF_TABWIDTH = 3,
-         DEF_INDENT = DEF_TABWIDTH,
-         DEF_MARGIN_WIDTH = 16,
-         DEF_CARETPERIOD = 400 // ms
-      };
-
-
-      /**
-      * editor_t ctor
-      */
-      editor_t();
-
-
-      /**
-      * Set main window handle
-      */
-      void set_hwnd(HWND hWnd) NU_NOEXCEPT
-      {
-         _hwnd_main = hWnd;
-      }
-
-
-      /**
-      * Get main window handle
-      */
-      HWND get_main_hwnd() const NU_NOEXCEPT
-      {
-         return _hwnd_main;
-      }
-
-
-      /**
-      * Get editor window handle
-      */
-      HWND get_editor_hwnd() const NU_NOEXCEPT
-      {
-         return _hwnd_editor;
-      }
-
-
-      /**
-       * Set editor window handle
-       */
-      void set_editor_hwnd(HWND hwnd) NU_NOEXCEPT
-      {
-         _hwnd_editor = hwnd;
-      }
-
-
-      /**
-       * Set splitter position
-       */
-      void set_splitbar_pos(DWORD wDX, DWORD oDY)
-      {
-         MoveWindow(
-            _h_splitter, 
-            0, 
-            oDY, 
-            wDX, 
-            SPLIT_BAR_HEIGHT, 
-            TRUE);
-      }
-
-
-      /**
-      * Set splitter position
-      */
-      void set_infobox_pos(DWORD x, DWORD y, DWORD dx, DWORD dy)
-      {
-         MoveWindow(
-            _h_infobox,
-            x,
-            y,
-            dx,
-            dy,
-            TRUE);
-      }
-
-      /**
-       * Set splitter position
-       */
-      LONG get_splitbar_ypos() const
-      {
-         RECT r;
-         GetWindowRect(_h_splitter, &r);
-         return r.top;
-      }
-
-      /**
-       * Create splitter control
-       */
-      void create_splitter(HWND hWnd)
-      {
-         WNDCLASSEX wcex;
-
-         wcex.cbSize = sizeof(WNDCLASSEX);
-
-         wcex.style = CS_HREDRAW | CS_VREDRAW;
-         wcex.lpfnWndProc = (WNDPROC)HSplitterWndProc;
-         wcex.cbClsExtra = 0;
-         wcex.cbWndExtra = 0;
-         wcex.hInstance = get_instance_handle();
-         wcex.hIcon = NULL;
-         wcex.hCursor = LoadCursor(NULL, IDC_SIZENS);
-         wcex.hbrBackground = NULL;
-         wcex.lpszMenuName = NULL;
-         wcex.lpszClassName = "HSPLITTER_WND_CLASS";
-         wcex.hIconSm = NULL;
-
-         RegisterClassEx(&wcex);
-
-         _h_splitter = CreateWindow(
-            TEXT("HSPLITTER_WND_CLASS"),
-            NULL,
-            WS_CHILD | WS_VISIBLE,
-            0, 0, CW_USEDEFAULT, CW_USEDEFAULT,
-            hWnd,
-            (HMENU)IDD_HSPLITTER,              // Control identifier
-            get_instance_handle(),
-            NULL);
-      }
-     
-
-      /**
-       * Create search controls
-       */
-      void create_search_replace_cntrls(HWND hWnd)
-      {
-         auto ver = interpreter().version();
-
-         _h_infobox = CreateWindowEx(
-            WS_EX_CLIENTEDGE | WS_EX_DLGMODALFRAME, // make rich edit control appear
-            "RICHEDIT", // class name of rich edit control
-            ver.c_str(), // text of rich edit control
-            WS_CHILD | WS_VISIBLE |
-            ES_MULTILINE | ES_SAVESEL | ES_READONLY | WS_HSCROLL | WS_VSCROLL,
-
-            0, 0, // initially create 0 size,
-            0, 0, // main window's WM_SIZE handler will resize
-            hWnd, // use main parent
-            (HMENU)0,
-            get_instance_handle(), // this app instance owns this window
-            NULL);
-
-         HANDLE hFont = NULL;
-         LOGFONT lFont;
-
-         lFont.lfHeight = 14;
-         lFont.lfWidth = 0;
-         lFont.lfEscapement = 0;
-         lFont.lfOrientation = 0;
-         lFont.lfWeight = 0;
-         lFont.lfItalic = 0;
-         lFont.lfUnderline = 0;
-         lFont.lfStrikeOut = 0;
-         lFont.lfCharSet = ANSI_CHARSET;
-         lFont.lfOutPrecision = OUT_DEFAULT_PRECIS;
-         lFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-         lFont.lfQuality = ANTIALIASED_QUALITY;
-         lFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;
-         strcpy(lFont.lfFaceName, "Consolas");
-         hFont = CreateFontIndirect(&lFont);
-         SendMessage(_h_infobox,
-            WM_SETFONT, (WPARAM)hFont, (DWORD)TRUE);
-      }
-
-
-      void add_info(std::string msg, DWORD message_style)
-      {
-         CHARFORMAT char_format = { 0 };
-
-         char_format.cbSize = sizeof(char_format);
-         char_format.dwMask = CFM_BOLD | CFM_ITALIC | CFE_UNDERLINE;
-
-         SendMessage(_h_infobox,
-            EM_GETCHARFORMAT, 0, (LPARAM)& char_format);
-
-         SYSTEMTIME st;
-         GetLocalTime(&st);
-
-         char szDateTime[256];
-         sprintf(szDateTime,
-            "\n%02i-%02i-%i %02i:%02i:%02i\n",
-            st.wDay, st.wMonth, st.wYear,
-            st.wHour, st.wMinute, st.wSecond);
-
-         SendMessage(_h_infobox, EM_SCROLL, (LPARAM)SB_TOP, 0);
-
-         SendMessage(_h_infobox, EM_SETSEL, 0, 0);
-
-         SendMessage(_h_infobox,
-            EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)& char_format);
-
-         char_format.dwEffects = message_style;
-
-         SendMessage(_h_infobox,
-            EM_REPLACESEL, 0, (LPARAM)szDateTime);
-
-         SendMessage(_h_infobox,
-            EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)& char_format);
-
-         msg += "\n";
-
-         SendMessage(_h_infobox, EM_REPLACESEL, 0, (LPARAM)msg.c_str());
-      }
-
-
-      /**
-      * Set replace msg
-      */
-      void set_find_replace_msg(UINT msg) NU_NOEXCEPT
-      {
-         _find_replace_msg = msg;
-      }
-
-
-      /**
-      * Get replace msg
-      */
-      UINT get_find_replace_msg() const NU_NOEXCEPT
-      {
-         return _find_replace_msg;
-      }
-
-
-      /**
-      * Get instance handle
-      */
-      HINSTANCE get_instance_handle() const NU_NOEXCEPT
-      {
-         return _hInstance;
-      }
-
-
-      /**
-      * Set instance handle
-      */
-      void set_instance_handle(HINSTANCE hInst) NU_NOEXCEPT
-      {
-         _hInstance = hInst;
-      }
-
-
-      /**
-      * Export a reference to the current dialog window handle
-      */
-      HWND & current_dialog() NU_NOEXCEPT
-      {
-         return _current_dialog;
-      }
-
-
-      /**
-      * Set the reference to the current dialog window handle
-      */
-      void set_current_dialog(HWND hwnd)
-      {
-         _current_dialog = hwnd;
-      }
-
-
-      /**
-      * Export a reference to the "Go to ..." line
-      */
-      int & goto_line() NU_NOEXCEPT
-      {
-         return _goto_line;
-      }
-
-
-      /**
-      * Send a command to the editor control
-      */
-      LRESULT send_command(UINT Msg, WPARAM wParam = 0, LPARAM lParam = 0) const
-      {
-         return ::SendMessage(_hwnd_editor, Msg, wParam, lParam);
-
-      }
-
-      /**
-      * Get editor text within the range [start, end]
-      */
-      void get_text_range(int start, int end, char *text) const;
-
-
-      /**
-      * Set main window title to current file name
-      */
-      void set_title();
-
-
-      /**
-      * New document
-      */
-      void set_new_document(bool clear_title = true);
-
-
-      /**
-      * Show open document dialog
-      */
-      void open_document();
-
-
-      /**
-      * Open document filename
-      */
-      void open_document_file(const char *fileName);
-
-
-      /**
-      * Save editing document
-      */
-      void save_document();
-
-
-      /**
-      * Show "save as..." dialog
-      */
-      void save_document_as();
-
-
-      /**
-      * Save editing document with fileName
-      */
-      void save_file(const std::string& filename);
-
-
-      /**
-      * Check and save open document if needed
-      */
-      int save_if_unsure();
-
-
-      /**
-      * Dispatch menu and accelerator commands
-      */
-      void exec_command(int id);
-
-
-      /**
-      * Enable / disable menu item accordlying current editor state
-      */
-      void check_menus();
-
-
-      /**
-      * Process editor notifications
-      */
-      void notify(SCNotification *notification);
-
-
-      /**
-      * Set editor item style
-      */
-      void set_item_style(
-         int style,
-         COLORREF fore,
-         COLORREF back = editor::white,
-         int size = -1,
-         const char *face = 0);
-
-      /**
-      * Get line count
-      */
-      int get_line_count() const NU_NOEXCEPT
-      {
-         return int((send_command(SCI_GETLINECOUNT, 0, 0)));
-      }
-
-
-      /**
-      * Toggle the display of the folding margin
-      */
-      void set_folding_margin(bool enable) NU_NOEXCEPT
-      {
-         send_command(SCI_SETMARGINWIDTHN, 2, enable ? DEF_MARGIN_WIDTH : 0);
-      }
-
-
-      /**
-      * Calculate the width for line numbers
-      * \return number of pixels for the margin width of margin (0)
-      */
-      int get_line_num_width() const NU_NOEXCEPT
-      {
-         return int(
-            LINENUM_WIDTH *
-            send_command(SCI_TEXTWIDTH, STYLE_LINENUMBER, (LPARAM)("9")));
-      }
-
-
-      /**
-      *  Set the display of line numbers on or off.
-      * \param enable if we shuld display line numbers
-      */
-      void set_numbers_margin(bool enable)
-      {
-         send_command(
-            SCI_SETMARGINWIDTHN,
-            0,
-            enable ? get_line_num_width() + 4 : 0);
-      }
-
-
-      /**
-      * Toggle the display of the selection bookmark margin
-      */
-      void set_selection_margin(bool enable)
-      {
-         send_command(
-            SCI_SETMARGINWIDTHN, 1, enable ? DEF_MARGIN_WIDTH : 0);
-      }
-
-
-      /**
-      * Initilize the editor
-      */
-      void init_editor(const std::string& fontname, int height);
-
-
-      /**
-      * Refresh editor
-      */
-      void refresh();
-
-
-      /**
-      * Update UI and do brace matching
-      */
-      void update_ui();
-
-
-      /**
-      * Add a bookmark if not already present at given line
-      * Otherwise remove it
-      * \param line where to add/remove bookmark - lines start at 1
-      */
-      void toggle_bookmark(long line) NU_NOEXCEPT
-      {
-         //just one of following function will be effect !
-         if (!add_bookmark(line))
-            remove_bookmark(line);
-      }
-
-
-      /**
-      * Add a bookmark at given line
-      * \param line where to add bookmark - lines start at 1
-      */
-      bool add_bookmark(long line) NU_NOEXCEPT
-      {
-         if (!has_bookmark(line))
-         {
-            const auto m = int(marker_t::BOOKMARK);
-
-            send_command(SCI_MARKERDEFINE, m, SC_MARK_BOOKMARK);
-            send_command(SCI_MARKERSETFORE, m, RGB(0, 0, 0));
-            send_command(SCI_MARKERSETBACK, m, RGB(0, 255, 0));
-
-            send_command(SCI_MARKERADD, line - 1, m);
-            return true;
-         }
-
-         return false;
-      }
-
-
-      /**
-      * Remove the program counter marker
-      */
-      void remove_prog_cnt_marker()
-      {
-         send_command(SCI_MARKERDELETEALL, int(marker_t::PROGCOUNTER), 0);
-         send_command(SCI_MARKERDELETEALL, int(marker_t::LINESELECTION), 0);
-         send_command(SCI_LINESCROLLDOWN, 0, 0);
-         send_command(SCI_LINESCROLLUP, 0, 0);
-      }
-
-
-      /**
-      * Show execution point
-      */
-      bool show_execution_point(int line) NU_NOEXCEPT;
-
-
-      /**
-      * Show error line
-      */
-      bool show_error_line(int line) NU_NOEXCEPT;
-
-
-      /**
-      * Remove a bookmark at given line
-      * \param line where to delete bookmark - lines start at 1
-      */
-      bool remove_bookmark(long line) NU_NOEXCEPT
-      {
-         if (has_bookmark(line))
-         {
-            send_command(SCI_MARKERDELETE, line - 1, 0);
-            return true;
-         }
-
-         return false;
-      }
-
-
-      /**
-      * Add a breakpoint at given line
-      * \param line where to add breakpoint - lines start at 1
-      */
-      bool add_breakpoint(long line) NU_NOEXCEPT
-      {
-         const auto m = int(marker_t::BREAKPOINT);
-         send_command(SCI_MARKERDEFINE, m, SC_MARK_CIRCLE);
-         send_command(SCI_MARKERSETFORE, m, RGB(255, 255, 255));
-         send_command(SCI_MARKERSETBACK, m, RGB(255, 0, 0));
-
-         send_command(SCI_MARKERADD, line - 1, m);
-
-         return true;
-      }
-
-
-      /**
-      * Add a breakpoint at given line
-      * \param line where to add breakpoint - lines start at 1
-      */
-      bool toggle_breakpoint(long line) NU_NOEXCEPT
-      {
-         if (!remove_breakpoint(line))
-            add_breakpoint(line);
-
-         return true;
-      }
-
-
-      /**
-      * Remove a breakpoint at given line
-      * \param line where to delete bookmark - lines start at 1
-      */
-      bool remove_breakpoint(long line) NU_NOEXCEPT
-      {
-         if (has_breakpoint(line))
-         {
-            send_command(SCI_MARKERDELETE, line - 1, 1);
-            return true;
-         }
-
-         return false;
-      }
-
-      /**
-      * Remove all bookmarks
-      */
-      void remove_all_bookmarks() NU_NOEXCEPT
-      {
-         send_command(SCI_MARKERDELETEALL, int(marker_t::BOOKMARK), 0);
-      }
-
-
-      /**
-      * Remove all breakpoints
-      */
-      void remove_all_breakpoints() NU_NOEXCEPT
-      {
-         send_command(SCI_MARKERDELETEALL, int(marker_t::BREAKPOINT), 0);
-      }
-
-
-      /**
-      * Reset all breakpoints
-      */
-      void reset_all_breakpoints() NU_NOEXCEPT
-      {
-         auto linecount = get_line_count();
-
-         interpreter().exec_command("clrbrk");
-
-         for (int i = 0; i < linecount; ++i)
-            if (has_breakpoint(i + 1))
-               interpreter().exec_command("break " + std::to_string(i + 1));
-      }
-
-
-      /**
-      * Check if given line has a bookmark
-      * \param line where to add bookmark - lines start at 1
-      * \return true if given line has a bookmark - otherwise false
-      */
-      bool has_bookmark(long line) const NU_NOEXCEPT
-      {
-         const auto m = int(marker_t::BOOKMARK) + 1;
-         return ((send_command(SCI_MARKERGET, line - 1, 0) & m) == m);
-      }
-
-      /**
-      * Check if given line has a breakpoint
-      * \param line where to add breakpoint - lines start at 1
-      * \return true if given line has a breakpoint - otherwise false
-      */
-      bool has_breakpoint(long line) const NU_NOEXCEPT
-      {
-         const auto m = int(marker_t::BREAKPOINT) + 1;
-         return ((send_command(SCI_MARKERGET, line - 1, 0) & m) == m);
-      }
-
-
-      /**
-      * Find next bookmark from current line
-      */
-      void find_next_bookmark();
-
-
-      /**
-      * Find previous bookmark from current line
-      */
-      void find_prev_bookmark();
-
-
-      /**
-      * Goto given character position
-      * \param pos new character position
-      */
-      void go_to_pos(long pos) NU_NOEXCEPT
-      {
-         send_command(SCI_GOTOPOS, pos, 0);
-      }
-
-
-      /**
-      * Get the current line number - this the with the caret in it
-      * \return line number with the caret in it - starts with 1
-      */
-      LRESULT get_current_line() const NU_NOEXCEPT;
-
-
-      /**
-      * Get the current column number = position of the caret within the line.
-      * This return value my be affected by the TAB setting! Starts with 1
-      * \return current column number
-      */
-      LRESULT get_current_colum() const NU_NOEXCEPT;
-
-
-      /**
-      * Return the current character position within the file.
-      * \return current character position
-      */
-      LRESULT get_current_position() const NU_NOEXCEPT;
-
-
-      /**
-      * Return the current style at the caret
-      * \return the current style index
-      */
-      LRESULT get_current_style() const NU_NOEXCEPT;
-
-
-      /**
-      * Return the current folding level at the caret line
-      * \return the current folding level
-      */
-      int get_fold_level() const NU_NOEXCEPT;
-
-
-      /**
-      * Set the fontname
-      */
-      void set_font(int style, const std::string& name) NU_NOEXCEPT
-      {
-         send_command(
-            SCI_STYLESETFONT, style, reinterpret_cast<LPARAM>(name.c_str()));
-      }
-
-
-      /**
-      * Set the font height in points
-      */
-      void set_font_height(int style, int height) NU_NOEXCEPT
-      {
-         send_command(SCI_STYLESETSIZE, style, static_cast<LPARAM>(height));
-      }
-
-
-      /**
-      * Set the foreground color
-      */
-      void set_fg(int style, COLORREF crForeground) NU_NOEXCEPT
-      {
-         send_command(SCI_STYLESETFORE, style, static_cast<LPARAM>(crForeground));
-      }
-
-
-      /**
-      * Set the backgroundcolor
-      */
-      void set_bg(int style, COLORREF crBackground) NU_NOEXCEPT
-      {
-         send_command(SCI_STYLESETBACK, style, static_cast<LPARAM>(crBackground));
-      }
-
-
-      /**
-      * Set given style to bold
-      */
-      void set_font_bold(int style, bool enable) NU_NOEXCEPT
-      {
-         send_command(SCI_STYLESETBOLD, style, static_cast<LPARAM>(enable));
-      }
-
-
-      /**
-      * Set given style to italic
-      */
-      void set_font_italic(int style, bool enable) NU_NOEXCEPT
-      {
-         send_command(SCI_STYLESETITALIC, style, static_cast<LPARAM>(enable));
-      }
-
-
-      /**
-      * Set given style to underline
-      */
-      void set_font_underline(int style, bool enable) NU_NOEXCEPT
-      {
-         send_command(SCI_STYLESETUNDERLINE, style, static_cast<LPARAM>(enable));
-      }
-
-
-      /**
-      * Get true if overstrike is enabled
-      */
-      bool get_overstrike() const NU_NOEXCEPT
-      {
-         return send_command(SCI_GETOVERTYPE, 0, 0) != 0;
-      }
-
-
-      /**
-      * Set overstrike state
-      */
-      void nu::editor_t::set_overstrike(bool enable) NU_NOEXCEPT
-      {
-         send_command(SCI_SETOVERTYPE, enable ? TRUE : FALSE, 0);
-      }
-
-      /**
-      * Goto givven line position
-      * \param line new line - lines start at 1
-      */
-      void go_to_line(long line)
-      {
-         send_command(SCI_GOTOLINE, line - 1, 0);
-      }
-
-
-      /**
-      * Search forward for a given string and select it if found.
-      * You may use regular expressions on the text.
-      * \param text to search
-      * \return TRUE if text is ffound else FALSE
-      */
-      bool search_forward(LPSTR szText);
-
-
-      /**
-      * Search backward for a given string and select it if found.
-      * You may use regular expressions on the text.
-      * \param szText text to search
-      * \return TRUE if text is ffound else FALSE
-      */
-      bool search_backward(LPSTR szText);
-
-
-      /**
-      * Replace a text with a new text. You can use regular
-      * expression with tagging on the replacement text.
-      * \param szText new text
-      */
-      void replace_searching_text(PCSTR szText);
-
-
-      /**
-      * Get start of selection as character position
-      * \return character position of selection begin
-      *  otherwise -1 on error
-      */
-      LRESULT get_selection_begin() const NU_NOEXCEPT
-      {
-         return send_command(SCI_GETSELECTIONSTART, 0, 0);
-      }
-
-
-      /**
-      * Get end of selection as character position
-      * \return character position of selection end
-      *  otherwise -1 on error
-      */
-      LRESULT get_selection_end() const NU_NOEXCEPT
-      {
-         return send_command(SCI_GETSELECTIONEND, 0, 0);
-      }
-
-
-      /**
-      * Get selected string
-      * \return string with currentliy selected text
-      */
-      std::string get_selection();
-
-
-      /**
-      * Replace a text in a selection or in the complete file multiple times
-      * \return number of replacements
-      */
-      int replace_all(LPCSTR szFind, LPCSTR szReplace, BOOL bUseSelection);
-
-
-      /*
-      * Called from WinMain to set application command line
-      * \param cmdLine passed to WinMain startup function
-      */
-      void set_command_line(LPCSTR cmdLine)
-      {
-         _command_line = cmdLine;
-      }
-
-
-      /**
-      * Returns program command line (set with set_command_line)
-      * \return command line
-      */
-      const std::string& get_command_line() const
-      {
-         return _command_line;
-      }
-
-
-      /**
-         * Returns scintilla search flags
-         * \return flags
-         */
-      int get_search_flags() const
-      {
-         return int(send_command(SCI_GETSEARCHFLAGS, 0, 0));
-      }
-
-
-      /**
-      * Set up search flags to scintilla
-      * \return flags
-      */
-      void set_search_flags(int flags)
-      {
-         _search_flags = flags;
-         send_command(SCI_SETSEARCHFLAGS, _search_flags, 0);
-      }
-
-
-      /**
-      * Invert search direction flg
-      */
-      void invert_search_direction() NU_NOEXCEPT
-      {
-         _invert_search_direction = !_invert_search_direction;
-      }
-
-
-      /**
-      * Get search direction flg
-      */
-      bool get_search_direction() const NU_NOEXCEPT
-      {
-         return _invert_search_direction;
-      }
-
-
-      /**
-      * Rebuild code and check code syntax
-      */
-      bool rebuild_code(bool show_msg_error) NU_NOEXCEPT;
-
-
-      /**
-      * Remove functions reference menu
-      */
-      void remove_funcs_menu() NU_NOEXCEPT
-      {
-         HMENU hmenu = GetMenu(get_main_hwnd());
-
-         if (_func_submenu)
-            DeleteMenu(hmenu, (UINT)1, MF_BYCOMMAND);
-      }
-
-      /**
-      * Create functions reference menu
-      */
-      void create_funcs_menu() NU_NOEXCEPT;
-
-
-      /**
-      * Resolve function line using id of "functions" menu
-      */
-      int resolve_funclinenum_from_id(int id) const NU_NOEXCEPT
-      {
-         const auto i = _func_map.find(id);
-
-         if (i == _func_map.end())
-            return -1;
-
-         return i->second;
-      }
-
-
-      /**
-      * Show splash
-      */
-      void show_splash();
-
-
-      /**
-      * Create a console if needed
-      */
-      void alloc_console();
-
-
-      enum class dbg_flg_t
-      {
-         NORMAL_EXECUTION,
-         CONTINUE_EXECUTION = 1,
-         SINGLE_STEP_EXECUTION = 2
-      };
-
-      /**
-      * Start program debugging
-      */
-      void start_debugging(dbg_flg_t flg = dbg_flg_t::NORMAL_EXECUTION);
-
-
-      /**
-      * Start program debugging
-      */
-      void continue_debugging()
-      {
-         start_debugging(dbg_flg_t::CONTINUE_EXECUTION);
-      }
-
-      /**
-      * Continue one statement
-      */
-      void singlestep_debugging()
-      {
-         start_debugging(dbg_flg_t::SINGLE_STEP_EXECUTION);
-      }
-
-
-      /**
-      * Evaluate selection
-      */
-      void eval_sel();
-
-
-      /**
-      * Show running-mode dialog box
-      */
-      void show_running_dialog();
-
-
-      /**
-      * Send a command to interpreter
-      */
-      bool exec_interpreter_cmd(const std::string& cmd, bool bgmode);
-
-
-      /**
-      * Ask the interpreter to evaluate an expression
-      */
-      bool evaluate_expression(const std::string& expression);
-
-
-      /*
-      * Return true if document has been modified but not saved
-      */
-      bool is_dirty() const NU_NOEXCEPT
-      {
-         return _is_dirty;
-      }
-
-   protected:
-      using func_map_t = std::map < int, int >;
-      func_map_t _func_map;
-      HMENU _func_submenu = (HMENU) nullptr;
-
-      HINSTANCE _hInstance;
-      HWND _current_dialog;
-      HWND _hwnd_main;
-      HWND _hwnd_editor;
-
-      HWND _h_splitter;
-      HWND _h_infobox;
-
-      bool _is_dirty = false;
-      bool _need_build = true;
-
-      int _goto_line = 0;
-      std::string _command_line;
-
-      ///! Open/Save dialog file filter
-      const char *filter = EDITOR_FILE_FILTER;
-
-      //! Set dirty flag
-      void set_dirty_flag()
-      {
-         _is_dirty = true;
-         _need_build = true;
-      }
-
-      /**
-      * Called from notification handler. Set default folding
-      *
-      * \param margin maring we want to handle
-      * \param pos character position where user clicked margin
-      */
-      void set_def_folding(int margin, long pos);
-
-      /**
-      * Enable/Disable a menu item
-      */
-      void enable_menu_item(int id, bool enable);
-
-      //! build the basic line
-      bool build_basic_line(const std::string& line, int line_num, bool dump_err_msg);
-
-      // Search and replace stuff
-      UINT _find_replace_msg = 0;
-      std::string _full_path_str;
-      FINDREPLACE _find_replace_data;
-      int  _search_flags = 0;
-      bool _invert_search_direction = false;
-
-      enum
-      {
-         FIND_STR_LEN = 1024
-      };
-
-      char _find_str[FIND_STR_LEN];
-      char _replace_str[FIND_STR_LEN];
-
-      LOGFONT _logfont;
-
+      BOOKMARK = 0,
+      BREAKPOINT = 1,
+      PROGCOUNTER = 2,
+      LINESELECTION = 4,
+   };
+
+   nu::interpreter_t & interpreter()
+   {
+      return _interpreter;
+   }
+
+   enum
+   {
+      LINENUM_WIDTH = 5,
+      DEF_TABWIDTH = 3,
+      DEF_INDENT = DEF_TABWIDTH,
+      DEF_MARGIN_WIDTH = 16,
+      DEF_CARETPERIOD = 400 // ms
    };
 
 
-   /* -------------------------------------------------------------------------- */
+   /**
+   * editor_t ctor
+   */
+   editor_t();
+
+
+   /**
+   * Set main window handle
+   */
+   void set_hwnd(HWND hWnd) NU_NOEXCEPT
+   {
+      _hwnd_main = hWnd;
+   }
+
+
+   /**
+   * Get main window handle
+   */
+   HWND get_main_hwnd() const NU_NOEXCEPT
+   {
+      return _hwnd_main;
+   }
+
+
+   /**
+   * Get editor window handle
+   */
+   HWND get_editor_hwnd() const NU_NOEXCEPT
+   {
+      return _hwnd_editor;
+   }
+
+
+   /**
+    * Set editor window handle
+    */
+   void set_editor_hwnd(HWND hwnd) NU_NOEXCEPT
+   {
+      _hwnd_editor = hwnd;
+   }
+
+
+   /**
+    * Set splitter position
+    */
+   void set_splitbar_pos(DWORD wDX, DWORD oDY)
+   {
+      MoveWindow(
+         _h_splitter,
+         0,
+         oDY,
+         wDX,
+         SPLIT_BAR_HEIGHT,
+         TRUE);
+   }
+
+
+   /**
+   * Set splitter position
+   */
+   void set_infobox_pos(DWORD x, DWORD y, DWORD dx, DWORD dy)
+   {
+      MoveWindow(
+         _h_infobox,
+         x,
+         y,
+         dx,
+         dy,
+         TRUE);
+   }
+
+   /**
+    * Set splitter position
+    */
+   LONG get_splitbar_ypos() const
+   {
+      RECT r;
+      GetWindowRect(_h_splitter, &r);
+      return r.top;
+   }
+
+   /**
+    * Create splitter control
+    */
+   void create_splitter(HWND hWnd)
+   {
+      WNDCLASSEX wcex;
+
+      wcex.cbSize = sizeof(WNDCLASSEX);
+
+      wcex.style = CS_HREDRAW | CS_VREDRAW;
+      wcex.lpfnWndProc = (WNDPROC)HSplitterWndProc;
+      wcex.cbClsExtra = 0;
+      wcex.cbWndExtra = 0;
+      wcex.hInstance = get_instance_handle();
+      wcex.hIcon = NULL;
+      wcex.hCursor = LoadCursor(NULL, IDC_SIZENS);
+      wcex.hbrBackground = NULL;
+      wcex.lpszMenuName = NULL;
+      wcex.lpszClassName = "HSPLITTER_WND_CLASS";
+      wcex.hIconSm = NULL;
+
+      RegisterClassEx(&wcex);
+
+      _h_splitter = CreateWindow(
+         TEXT("HSPLITTER_WND_CLASS"),
+         NULL,
+         WS_CHILD | WS_VISIBLE,
+         0, 0, CW_USEDEFAULT, CW_USEDEFAULT,
+         hWnd,
+         (HMENU)IDD_HSPLITTER,              // Control identifier
+         get_instance_handle(),
+         NULL);
+   }
+
+
+   /**
+    * Create search controls
+    */
+   void create_search_replace_cntrls(HWND hWnd)
+   {
+      auto ver = interpreter().version();
+
+      _h_infobox = CreateWindowEx(
+         WS_EX_CLIENTEDGE | WS_EX_DLGMODALFRAME, // make rich edit control appear
+         "RICHEDIT", // class name of rich edit control
+         ver.c_str(), // text of rich edit control
+         WS_CHILD | WS_VISIBLE |
+         ES_MULTILINE | ES_SAVESEL | ES_READONLY | WS_HSCROLL | WS_VSCROLL,
+
+         0, 0, // initially create 0 size,
+         0, 0, // main window's WM_SIZE handler will resize
+         hWnd, // use main parent
+         (HMENU)0,
+         get_instance_handle(), // this app instance owns this window
+         NULL);
+
+      HANDLE hFont = NULL;
+      LOGFONT lFont;
+
+      lFont.lfHeight = 14;
+      lFont.lfWidth = 0;
+      lFont.lfEscapement = 0;
+      lFont.lfOrientation = 0;
+      lFont.lfWeight = 0;
+      lFont.lfItalic = 0;
+      lFont.lfUnderline = 0;
+      lFont.lfStrikeOut = 0;
+      lFont.lfCharSet = ANSI_CHARSET;
+      lFont.lfOutPrecision = OUT_DEFAULT_PRECIS;
+      lFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+      lFont.lfQuality = ANTIALIASED_QUALITY;
+      lFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;
+      strcpy(lFont.lfFaceName, "Consolas");
+      hFont = CreateFontIndirect(&lFont);
+      SendMessage(_h_infobox,
+         WM_SETFONT, (WPARAM)hFont, (DWORD)TRUE);
+   }
+
+
+   /**
+    * Append a string to info box
+    */
+   void add_info(std::string msg, DWORD message_style)
+   {
+      CHARFORMAT char_format = { 0 };
+
+      char_format.cbSize = sizeof(char_format);
+      char_format.dwMask = CFM_BOLD | CFM_ITALIC | CFE_UNDERLINE;
+
+      SendMessage(_h_infobox,
+         EM_GETCHARFORMAT, 0, (LPARAM)& char_format);
+
+      SYSTEMTIME st;
+      GetLocalTime(&st);
+
+      char szDateTime[256];
+      sprintf(szDateTime,
+         "\n%02i-%02i-%i %02i:%02i:%02i\n",
+         st.wDay, st.wMonth, st.wYear,
+         st.wHour, st.wMinute, st.wSecond);
+
+      SendMessage(_h_infobox, EM_SCROLL, (LPARAM)SB_TOP, 0);
+
+      SendMessage(_h_infobox, EM_SETSEL, 0, 0);
+
+      SendMessage(_h_infobox,
+         EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)& char_format);
+
+      char_format.dwEffects = message_style;
+
+      SendMessage(_h_infobox,
+         EM_REPLACESEL, 0, (LPARAM)szDateTime);
+
+      SendMessage(_h_infobox,
+         EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)& char_format);
+
+      msg += "\n";
+
+      SendMessage(_h_infobox, EM_REPLACESEL, 0, (LPARAM)msg.c_str());
+   }
+   
+   /**
+    * Clear info box
+    */
+   void clear_info()
+   {
+      if (IDYES == MessageBox(
+         get_main_hwnd(),
+         "Are you sure ?",
+         "Clear message window",
+         MB_ICONQUESTION | MB_YESNO))
+      {
+         if (IDYES == MessageBox(get_main_hwnd(),
+            "Do you want to save status information to the clipboard ?",
+            "Clear message window", MB_ICONQUESTION | MB_YESNO))
+         {
+            SendMessage(_h_infobox, EM_SETSEL, 0, -1);
+            SendMessage(_h_infobox, WM_COPY, 0, 0);
+            MessageBox(get_main_hwnd(), "Logs copied to the clipboard !",
+               "Operation completed", MB_OK | MB_ICONINFORMATION);
+         }
+
+         SendMessage(_h_infobox, EM_SETSEL, 0, -1);
+         SendMessage(_h_infobox, EM_REPLACESEL, 0, 0);
+      }
+   }
+
+
+   /**
+   * Set replace msg
+   */
+   void set_find_replace_msg(UINT msg) NU_NOEXCEPT
+   {
+      _find_replace_msg = msg;
+   }
+
+
+   /**
+   * Get replace msg
+   */
+   UINT get_find_replace_msg() const NU_NOEXCEPT
+   {
+      return _find_replace_msg;
+   }
+
+
+   /**
+   * Get instance handle
+   */
+   HINSTANCE get_instance_handle() const NU_NOEXCEPT
+   {
+      return _hInstance;
+   }
+
+
+   /**
+   * Set instance handle
+   */
+   void set_instance_handle(HINSTANCE hInst) NU_NOEXCEPT
+   {
+      _hInstance = hInst;
+   }
+
+
+   /**
+   * Export a reference to the current dialog window handle
+   */
+   HWND & current_dialog() NU_NOEXCEPT
+   {
+      return _current_dialog;
+   }
+
+
+   /**
+   * Set the reference to the current dialog window handle
+   */
+   void set_current_dialog(HWND hwnd)
+   {
+      _current_dialog = hwnd;
+   }
+
+
+   /**
+   * Export a reference to the "Go to ..." line
+   */
+   int & goto_line() NU_NOEXCEPT
+   {
+      return _goto_line;
+   }
+
+
+   /**
+   * Send a command to the editor control
+   */
+   LRESULT send_command(UINT Msg, WPARAM wParam = 0, LPARAM lParam = 0) const
+   {
+      return ::SendMessage(_hwnd_editor, Msg, wParam, lParam);
+
+   }
+
+   /**
+   * Get editor text within the range [start, end]
+   */
+   void get_text_range(int start, int end, char *text) const;
+
+
+   /**
+   * Set main window title to current file name
+   */
+   void set_title();
+
+
+   /**
+   * New document
+   */
+   void set_new_document(bool clear_title = true);
+
+
+   /**
+   * Show open document dialog
+   */
+   void open_document();
+
+
+   /**
+   * Open document filename
+   */
+   void open_document_file(const char *fileName);
+
+
+   /**
+   * Save editing document
+   */
+   void save_document();
+
+
+   /**
+   * Show "save as..." dialog
+   */
+   void save_document_as();
+
+
+   /**
+   * Save editing document with fileName
+   */
+   void save_file(const std::string& filename);
+
+
+   /**
+   * Check and save open document if needed
+   */
+   int save_if_unsure();
+
+
+   /**
+   * Dispatch menu and accelerator commands
+   */
+   void exec_command(int id);
+
+
+   /**
+   * Enable / disable menu item accordlying current editor state
+   */
+   void check_menus();
+
+
+   /**
+   * Process editor notifications
+   */
+   void notify(SCNotification *notification);
+
+
+   /**
+   * Set editor item style
+   */
+   void set_item_style(
+      int style,
+      COLORREF fore,
+      COLORREF back = editor::white,
+      int size = -1,
+      const char *face = 0);
+
+   /**
+   * Get line count
+   */
+   int get_line_count() const NU_NOEXCEPT
+   {
+      return int((send_command(SCI_GETLINECOUNT, 0, 0)));
+   }
+
+
+   /**
+   * Toggle the display of the folding margin
+   */
+   void set_folding_margin(bool enable) NU_NOEXCEPT
+   {
+      send_command(SCI_SETMARGINWIDTHN, 2, enable ? DEF_MARGIN_WIDTH : 0);
+   }
+
+
+   /**
+   * Calculate the width for line numbers
+   * \return number of pixels for the margin width of margin (0)
+   */
+   int get_line_num_width() const NU_NOEXCEPT
+   {
+      return int(
+         LINENUM_WIDTH *
+         send_command(SCI_TEXTWIDTH, STYLE_LINENUMBER, (LPARAM)("9")));
+   }
+
+
+   /**
+   *  Set the display of line numbers on or off.
+   * \param enable if we shuld display line numbers
+   */
+   void set_numbers_margin(bool enable)
+   {
+      send_command(
+         SCI_SETMARGINWIDTHN,
+         0,
+         enable ? get_line_num_width() + 4 : 0);
+   }
+
+
+   /**
+   * Toggle the display of the selection bookmark margin
+   */
+   void set_selection_margin(bool enable)
+   {
+      send_command(
+         SCI_SETMARGINWIDTHN, 1, enable ? DEF_MARGIN_WIDTH : 0);
+   }
+
+
+   /**
+   * Initilize the editor
+   */
+   void init_editor(const std::string& fontname, int height);
+
+
+   /**
+   * Refresh editor
+   */
+   void refresh();
+
+
+   /**
+   * Update UI and do brace matching
+   */
+   void update_ui();
+
+
+   /**
+   * Add a bookmark if not already present at given line
+   * Otherwise remove it
+   * \param line where to add/remove bookmark - lines start at 1
+   */
+   void toggle_bookmark(long line) NU_NOEXCEPT
+   {
+      //just one of following function will be effect !
+      if (!add_bookmark(line))
+         remove_bookmark(line);
+   }
+
+
+   /**
+   * Add a bookmark at given line
+   * \param line where to add bookmark - lines start at 1
+   */
+   bool add_bookmark(long line) NU_NOEXCEPT
+   {
+      if (!has_bookmark(line))
+      {
+         const auto m = int(marker_t::BOOKMARK);
+
+         send_command(SCI_MARKERDEFINE, m, SC_MARK_BOOKMARK);
+         send_command(SCI_MARKERSETFORE, m, RGB(0, 0, 0));
+         send_command(SCI_MARKERSETBACK, m, RGB(0, 255, 0));
+
+         send_command(SCI_MARKERADD, line - 1, m);
+         return true;
+      }
+
+      return false;
+   }
+
+
+   /**
+   * Remove the program counter marker
+   */
+   void remove_prog_cnt_marker()
+   {
+      send_command(SCI_MARKERDELETEALL, int(marker_t::PROGCOUNTER), 0);
+      send_command(SCI_MARKERDELETEALL, int(marker_t::LINESELECTION), 0);
+      send_command(SCI_LINESCROLLDOWN, 0, 0);
+      send_command(SCI_LINESCROLLUP, 0, 0);
+   }
+
+
+   /**
+   * Show execution point
+   */
+   bool show_execution_point(int line) NU_NOEXCEPT;
+
+
+   /**
+   * Show error line
+   */
+   bool show_error_line(int line) NU_NOEXCEPT;
+
+
+   /**
+   * Remove a bookmark at given line
+   * \param line where to delete bookmark - lines start at 1
+   */
+   bool remove_bookmark(long line) NU_NOEXCEPT
+   {
+      if (has_bookmark(line))
+      {
+         send_command(SCI_MARKERDELETE, line - 1, 0);
+         return true;
+      }
+
+      return false;
+   }
+
+
+   /**
+   * Add a breakpoint at given line
+   * \param line where to add breakpoint - lines start at 1
+   */
+   bool add_breakpoint(long line) NU_NOEXCEPT
+   {
+      const auto m = int(marker_t::BREAKPOINT);
+      send_command(SCI_MARKERDEFINE, m, SC_MARK_CIRCLE);
+      send_command(SCI_MARKERSETFORE, m, RGB(255, 255, 255));
+      send_command(SCI_MARKERSETBACK, m, RGB(255, 0, 0));
+
+      send_command(SCI_MARKERADD, line - 1, m);
+
+      return true;
+   }
+
+
+   /**
+   * Add a breakpoint at given line
+   * \param line where to add breakpoint - lines start at 1
+   */
+   bool toggle_breakpoint(long line) NU_NOEXCEPT
+   {
+      if (!remove_breakpoint(line))
+         add_breakpoint(line);
+
+      return true;
+   }
+
+
+   /**
+   * Remove a breakpoint at given line
+   * \param line where to delete bookmark - lines start at 1
+   */
+   bool remove_breakpoint(long line) NU_NOEXCEPT
+   {
+      if (has_breakpoint(line))
+      {
+         send_command(SCI_MARKERDELETE, line - 1, 1);
+         return true;
+      }
+
+      return false;
+   }
+
+   /**
+   * Remove all bookmarks
+   */
+   void remove_all_bookmarks() NU_NOEXCEPT
+   {
+      send_command(SCI_MARKERDELETEALL, int(marker_t::BOOKMARK), 0);
+   }
+
+
+   /**
+   * Remove all breakpoints
+   */
+   void remove_all_breakpoints() NU_NOEXCEPT
+   {
+      send_command(SCI_MARKERDELETEALL, int(marker_t::BREAKPOINT), 0);
+   }
+
+
+   /**
+   * Reset all breakpoints
+   */
+   void reset_all_breakpoints() NU_NOEXCEPT
+   {
+      auto linecount = get_line_count();
+
+      interpreter().exec_command("clrbrk");
+
+      for (int i = 0; i < linecount; ++i)
+         if (has_breakpoint(i + 1))
+            interpreter().exec_command("break " + std::to_string(i + 1));
+   }
+
+
+   /**
+   * Check if given line has a bookmark
+   * \param line where to add bookmark - lines start at 1
+   * \return true if given line has a bookmark - otherwise false
+   */
+   bool has_bookmark(long line) const NU_NOEXCEPT
+   {
+      const auto m = int(marker_t::BOOKMARK) + 1;
+      return ((send_command(SCI_MARKERGET, line - 1, 0) & m) == m);
+   }
+
+   /**
+   * Check if given line has a breakpoint
+   * \param line where to add breakpoint - lines start at 1
+   * \return true if given line has a breakpoint - otherwise false
+   */
+   bool has_breakpoint(long line) const NU_NOEXCEPT
+   {
+      const auto m = int(marker_t::BREAKPOINT) + 1;
+      return ((send_command(SCI_MARKERGET, line - 1, 0) & m) == m);
+   }
+
+
+   /**
+   * Find next bookmark from current line
+   */
+   void find_next_bookmark();
+
+
+   /**
+   * Find previous bookmark from current line
+   */
+   void find_prev_bookmark();
+
+
+   /**
+   * Goto given character position
+   * \param pos new character position
+   */
+   void go_to_pos(long pos) NU_NOEXCEPT
+   {
+      send_command(SCI_GOTOPOS, pos, 0);
+   }
+
+
+   /**
+   * Get the current line number - this the with the caret in it
+   * \return line number with the caret in it - starts with 1
+   */
+   LRESULT get_current_line() const NU_NOEXCEPT;
+
+
+   /**
+   * Get the current column number = position of the caret within the line.
+   * This return value my be affected by the TAB setting! Starts with 1
+   * \return current column number
+   */
+   LRESULT get_current_colum() const NU_NOEXCEPT;
+
+
+   /**
+   * Return the current character position within the file.
+   * \return current character position
+   */
+   LRESULT get_current_position() const NU_NOEXCEPT;
+
+
+   /**
+   * Return the current style at the caret
+   * \return the current style index
+   */
+   LRESULT get_current_style() const NU_NOEXCEPT;
+
+
+   /**
+   * Return the current folding level at the caret line
+   * \return the current folding level
+   */
+   int get_fold_level() const NU_NOEXCEPT;
+
+
+   /**
+   * Set the fontname
+   */
+   void set_font(int style, const std::string& name) NU_NOEXCEPT
+   {
+      send_command(
+         SCI_STYLESETFONT, style, reinterpret_cast<LPARAM>(name.c_str()));
+   }
+
+
+   /**
+   * Set the font height in points
+   */
+   void set_font_height(int style, int height) NU_NOEXCEPT
+   {
+      send_command(SCI_STYLESETSIZE, style, static_cast<LPARAM>(height));
+   }
+
+
+   /**
+   * Set the foreground color
+   */
+   void set_fg(int style, COLORREF crForeground) NU_NOEXCEPT
+   {
+      send_command(SCI_STYLESETFORE, style, static_cast<LPARAM>(crForeground));
+   }
+
+
+   /**
+   * Set the backgroundcolor
+   */
+   void set_bg(int style, COLORREF crBackground) NU_NOEXCEPT
+   {
+      send_command(SCI_STYLESETBACK, style, static_cast<LPARAM>(crBackground));
+   }
+
+
+   /**
+   * Set given style to bold
+   */
+   void set_font_bold(int style, bool enable) NU_NOEXCEPT
+   {
+      send_command(SCI_STYLESETBOLD, style, static_cast<LPARAM>(enable));
+   }
+
+
+   /**
+   * Set given style to italic
+   */
+   void set_font_italic(int style, bool enable) NU_NOEXCEPT
+   {
+      send_command(SCI_STYLESETITALIC, style, static_cast<LPARAM>(enable));
+   }
+
+
+   /**
+   * Set given style to underline
+   */
+   void set_font_underline(int style, bool enable) NU_NOEXCEPT
+   {
+      send_command(SCI_STYLESETUNDERLINE, style, static_cast<LPARAM>(enable));
+   }
+
+
+   /**
+   * Get true if overstrike is enabled
+   */
+   bool get_overstrike() const NU_NOEXCEPT
+   {
+      return send_command(SCI_GETOVERTYPE, 0, 0) != 0;
+   }
+
+
+   /**
+   * Set overstrike state
+   */
+   void nu::editor_t::set_overstrike(bool enable) NU_NOEXCEPT
+   {
+      send_command(SCI_SETOVERTYPE, enable ? TRUE : FALSE, 0);
+   }
+
+   /**
+   * Goto givven line position
+   * \param line new line - lines start at 1
+   */
+   void go_to_line(long line)
+   {
+      send_command(SCI_GOTOLINE, line - 1, 0);
+   }
+
+
+   /**
+   * Search forward for a given string and select it if found.
+   * You may use regular expressions on the text.
+   * \param text to search
+   * \return TRUE if text is ffound else FALSE
+   */
+   bool search_forward(LPSTR szText);
+
+
+   /**
+   * Search backward for a given string and select it if found.
+   * You may use regular expressions on the text.
+   * \param szText text to search
+   * \return TRUE if text is ffound else FALSE
+   */
+   bool search_backward(LPSTR szText);
+
+
+   /**
+   * Replace a text with a new text. You can use regular
+   * expression with tagging on the replacement text.
+   * \param szText new text
+   */
+   void replace_searching_text(PCSTR szText);
+
+
+   /**
+   * Get start of selection as character position
+   * \return character position of selection begin
+   *  otherwise -1 on error
+   */
+   LRESULT get_selection_begin() const NU_NOEXCEPT
+   {
+      return send_command(SCI_GETSELECTIONSTART, 0, 0);
+   }
+
+
+   /**
+   * Get end of selection as character position
+   * \return character position of selection end
+   *  otherwise -1 on error
+   */
+   LRESULT get_selection_end() const NU_NOEXCEPT
+   {
+      return send_command(SCI_GETSELECTIONEND, 0, 0);
+   }
+
+
+   /**
+   * Get selected string
+   * \return string with currentliy selected text
+   */
+   std::string get_selection();
+
+
+   /**
+   * Replace a text in a selection or in the complete file multiple times
+   * \return number of replacements
+   */
+   int replace_all(LPCSTR szFind, LPCSTR szReplace, BOOL bUseSelection);
+
+
+   /*
+   * Called from WinMain to set application command line
+   * \param cmdLine passed to WinMain startup function
+   */
+   void set_command_line(LPCSTR cmdLine)
+   {
+      _command_line = cmdLine;
+   }
+
+
+   /**
+   * Returns program command line (set with set_command_line)
+   * \return command line
+   */
+   const std::string& get_command_line() const
+   {
+      return _command_line;
+   }
+
+
+   /**
+      * Returns scintilla search flags
+      * \return flags
+      */
+   int get_search_flags() const
+   {
+      return int(send_command(SCI_GETSEARCHFLAGS, 0, 0));
+   }
+
+
+   /**
+   * Set up search flags to scintilla
+   * \return flags
+   */
+   void set_search_flags(int flags)
+   {
+      _search_flags = flags;
+      send_command(SCI_SETSEARCHFLAGS, _search_flags, 0);
+   }
+
+
+   /**
+   * Invert search direction flg
+   */
+   void invert_search_direction() NU_NOEXCEPT
+   {
+      _invert_search_direction = !_invert_search_direction;
+   }
+
+
+   /**
+   * Get search direction flg
+   */
+   bool get_search_direction() const NU_NOEXCEPT
+   {
+      return _invert_search_direction;
+   }
+
+
+   /**
+   * Rebuild code and check code syntax
+   */
+   bool rebuild_code(bool show_msg_error) NU_NOEXCEPT;
+
+
+   /**
+   * Remove functions reference menu
+   */
+   void remove_funcs_menu() NU_NOEXCEPT
+   {
+      HMENU hmenu = GetMenu(get_main_hwnd());
+
+      if (_func_submenu)
+         DeleteMenu(hmenu, (UINT)1, MF_BYCOMMAND);
+   }
+
+   /**
+   * Create functions reference menu
+   */
+   void create_funcs_menu() NU_NOEXCEPT;
+
+
+   /**
+   * Resolve function line using id of "functions" menu
+   */
+   int resolve_funclinenum_from_id(int id) const NU_NOEXCEPT
+   {
+      const auto i = _func_map.find(id);
+
+      if (i == _func_map.end())
+         return -1;
+
+      return i->second;
+   }
+
+
+   /**
+   * Show splash
+   */
+   void show_splash();
+
+
+   /**
+   * Create a console if needed
+   */
+   void alloc_console();
+
+
+   enum class dbg_flg_t
+   {
+      NORMAL_EXECUTION,
+      CONTINUE_EXECUTION = 1,
+      SINGLE_STEP_EXECUTION = 2
+   };
+
+   /**
+   * Start program debugging
+   */
+   void start_debugging(dbg_flg_t flg = dbg_flg_t::NORMAL_EXECUTION);
+
+
+   /**
+   * Start program debugging
+   */
+   void continue_debugging()
+   {
+      start_debugging(dbg_flg_t::CONTINUE_EXECUTION);
+   }
+
+   /**
+   * Continue one statement
+   */
+   void singlestep_debugging()
+   {
+      start_debugging(dbg_flg_t::SINGLE_STEP_EXECUTION);
+   }
+
+
+   /**
+   * Evaluate selection
+   */
+   void eval_sel();
+
+
+   /**
+   * Show running-mode dialog box
+   */
+   void show_running_dialog();
+
+
+   /**
+   * Send a command to interpreter
+   */
+   bool exec_interpreter_cmd(const std::string& cmd, bool bgmode);
+
+
+   /**
+   * Ask the interpreter to evaluate an expression
+   */
+   bool evaluate_expression(const std::string& expression);
+
+
+   /*
+   * Return true if document has been modified but not saved
+   */
+   bool is_dirty() const NU_NOEXCEPT
+   {
+      return _is_dirty;
+   }
+
+protected:
+   using func_map_t = std::map < int, int >;
+   func_map_t _func_map;
+   HMENU _func_submenu = (HMENU) nullptr;
+
+   HINSTANCE _hInstance;
+   HWND _current_dialog;
+   HWND _hwnd_main;
+   HWND _hwnd_editor;
+
+   HWND _h_splitter;
+   HWND _h_infobox;
+
+   bool _is_dirty = false;
+   bool _need_build = true;
+
+   int _goto_line = 0;
+   std::string _command_line;
+
+   ///! Open/Save dialog file filter
+   const char *filter = EDITOR_FILE_FILTER;
+
+   //! Set dirty flag
+   void set_dirty_flag()
+   {
+      _is_dirty = true;
+      _need_build = true;
+   }
+
+   /**
+   * Called from notification handler. Set default folding
+   *
+   * \param margin maring we want to handle
+   * \param pos character position where user clicked margin
+   */
+   void set_def_folding(int margin, long pos);
+
+   /**
+   * Enable/Disable a menu item
+   */
+   void enable_menu_item(int id, bool enable);
+
+   //! build the basic line
+   bool build_basic_line(const std::string& line, int line_num, bool dump_err_msg);
+
+   // Search and replace stuff
+   UINT _find_replace_msg = 0;
+   std::string _full_path_str;
+   FINDREPLACE _find_replace_data;
+   int  _search_flags = 0;
+   bool _invert_search_direction = false;
+
+   enum
+   {
+      FIND_STR_LEN = 1024
+   };
+
+   char _find_str[FIND_STR_LEN];
+   char _replace_str[FIND_STR_LEN];
+
+   LOGFONT _logfont;
+
+};
+
+
+/* -------------------------------------------------------------------------- */
 
 } // namespace nu
 
@@ -1310,8 +1339,8 @@ bool nu::editor_t::build_basic_line(
 
          if (dump_err_msg)
          {
-            ::MessageBox(get_main_hwnd(), msg.c_str(), "Syntax Error", MB_ICONERROR);
-            g_editor.add_info("\n"+msg+"\n", CFM_BOLD | CFM_ITALIC);
+            g_editor.add_info("\n" + msg + "\n", CFM_BOLD | CFM_ITALIC);
+            MessageBox(get_main_hwnd(), msg.c_str(), "Syntax Error", MB_ICONERROR);
          }
 
          return false;
@@ -1335,14 +1364,13 @@ bool nu::editor_t::build_basic_line(
          e.what());
 
       show_error_line(line);
+      g_editor.add_info(lbuf, CFM_BOLD | CFM_ITALIC);
 
       ::MessageBox(
          get_main_hwnd(),
          lbuf,
          "Syntax Error",
          MB_ICONERROR);
-
-      g_editor.add_info(lbuf, CFM_BOLD | CFM_ITALIC);
 
       return false;
    }
@@ -1375,14 +1403,13 @@ bool nu::editor_t::build_basic_line(
             "%s\n", e.what());
       }
 
+      g_editor.add_info(lbuf, CFM_BOLD | CFM_ITALIC);
+
       ::MessageBox(
          get_main_hwnd(),
          lbuf,
          "Error",
          MB_ICONERROR);
-
-      g_editor.add_info(lbuf, CFM_BOLD | CFM_ITALIC);
-
 
       return false;
    }
@@ -1992,10 +2019,9 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
             line,
             e.what());
 
-         MessageBox(get_main_hwnd(), buf, "Runtime Error", MB_ICONERROR);
-
          g_editor.add_info(buf, CFM_BOLD | CFM_ITALIC);
-
+         MessageBox(get_main_hwnd(), buf, "Runtime Error", MB_ICONERROR);
+         
       }
       catch (std::exception &e)
       {
@@ -2015,6 +2041,7 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
                e.what());
 
          MessageBox(get_main_hwnd(), buf, "Runtime Error", MB_ICONERROR);
+         g_editor.add_info(buf, CFM_BOLD | CFM_ITALIC);
       }
 
       RunningDlgWndProc_terminate = true;
@@ -2025,13 +2052,17 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
    {
       std::thread t(async_fn);
 
+      add_info("Run Program\n", CFM_ITALIC);
+
       show_running_dialog();
 
-      g_editor.interpreter().set_step_mode(true);
+      g_editor.interpreter().set_step_mode(true);   
 
       t.join();
 
       g_editor.interpreter().set_step_mode(false);
+
+      add_info("Stop Program\n", CFM_ITALIC);
 
       return true;
    }
@@ -2196,7 +2227,10 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) NU_NOEXCEPT
          ::SetWindowText(get_main_hwnd(), line.c_str());
 
          if (!res)
+         {
+            DestroyWindow(hwndPB);
             return false;
+         }
 
          line.clear();
          ++line_num;
@@ -2215,8 +2249,7 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) NU_NOEXCEPT
 
    _need_build = false;
 
-   std::string msg = "Build succeeded";
-   g_editor.add_info(msg, CFM_ITALIC);
+   g_editor.add_info("Build succeeded\n", CFM_ITALIC);
 
 
    return true;
@@ -2309,8 +2342,7 @@ void nu::editor_t::set_new_document(bool clear_title)
       _full_path_str.clear();
       set_title();
 
-      std::string msg = "New Program\n";
-      add_info(msg, CFM_ITALIC);
+      add_info("New Program\n", CFM_ITALIC);
    }
 
    _is_dirty = false;
@@ -2384,13 +2416,13 @@ void nu::editor_t::open_document_file(const char *fileName)
 
       msg += _full_path_str + "\".";
 
-      ::MessageBox(
+      add_info(msg, CFM_BOLD | CFM_ITALIC);
+
+      MessageBox(
          _hwnd_main,
          msg.c_str(),
          editor::application_name,
          MB_OK);
-
-      add_info(msg, CFM_BOLD | CFM_ITALIC);
 
       _full_path_str = old_file_name;
       set_title();
@@ -2497,8 +2529,8 @@ void nu::editor_t::save_file(const std::string & filename)
    else
    {
       std::string msg = "Could not save file \"" + filename + "\".";
-      MessageBox(_hwnd_main, msg.c_str(), editor::application_name, MB_OK);
       add_info(msg + "\n", CFM_ITALIC | CFM_BOLD);
+      MessageBox(_hwnd_main, msg.c_str(), editor::application_name, MB_OK);
    }
 }
 
@@ -2739,6 +2771,8 @@ void nu::editor_t::exec_command(int id)
          std::replace(nubasic_exe.begin(), nubasic_exe.end(), '\\', '/');
          if (!exec_process(nubasic_exe.c_str()))
          {
+            add_info("Error loading nuBasic", CFM_BOLD | CFM_ITALIC);
+
             MessageBox(
                get_main_hwnd(),
                "Error loading nuBasic",
@@ -2759,6 +2793,7 @@ void nu::editor_t::exec_command(int id)
          {
             if (!exec_process("nubasic.exe"))
             {
+               add_info("Error loading nuBasic", CFM_BOLD | CFM_ITALIC);
                MessageBox(
                   get_main_hwnd(),
                   "Error loading nuBasic",
@@ -2769,30 +2804,6 @@ void nu::editor_t::exec_command(int id)
       }
       break;
 
-#if 0
-   case IDM_INTERPRETER_STOP:
-   {
-      auto decision =
-         MessageBox(
-            get_main_hwnd(),
-            "Are you sure ?",
-            "Stop Interpreter",
-            MB_YESNO);
-
-      if (decision == IDYES)
-      {
-         if (!stop_process("nuBASIC"))
-         {
-            MessageBox(
-               get_main_hwnd(),
-               "Error stopping nuBASIC interpreter",
-               "Stop Interpreter",
-               MB_ICONASTERISK | MB_OK);
-         }
-      }
-   }
-   break;
-#endif
    case IDC_AUTOCOMPLETE:
       send_command(
          SCI_AUTOCSHOW,
@@ -2837,6 +2848,7 @@ void nu::editor_t::exec_command(int id)
       g_editor.set_current_dialog(find_handle);
       break;
    }
+
    case IDM_SEARCH_FINDANDREPLACE:
    {
       std::string selection = g_editor.get_selection();
@@ -2903,8 +2915,14 @@ void nu::editor_t::exec_command(int id)
       break;
    }
 
+
    case IDM_SETTINGS_RESETDEFAULTS:
       g_editor.init_editor(EDITOR_DEF_FONT, EDITOR_DEF_SIZE);
+      break;
+
+
+   case IDM_CLEAR_INFOBOX:
+      g_editor.clear_info();
       break;
 
    case IDM_HELP_SEARCH_KEYWORD:
@@ -2930,9 +2948,13 @@ void nu::editor_t::exec_command(int id)
 
       if (0 != system(online_help_url.c_str()))
       {
+         const char* msg = "Error loading Interet Browser";
+
+         add_info(msg, CFM_BOLD | CFM_ITALIC);
+
          MessageBox(
             get_main_hwnd(),
-            "Error loading Internet Explorer",
+            msg,
             "Error",
             MB_ICONASTERISK | MB_OK);
       }
@@ -3251,7 +3273,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
    PAINTSTRUCT ps;
 
-   switch (iMessage) 
+   switch (iMessage)
    {
    case WM_MOUSEMOVE:
       SetCursor(LoadCursor(NULL, IDC_HAND));
@@ -3264,7 +3286,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
       // Load RichEdit Control Library
       HMODULE h_RichLib = LoadLibrary("RichEd32.Dll");
 
-      if (! h_RichLib)
+      if (!h_RichLib)
       {
          MessageBox(hWnd, "Cannot load rich edit control library", "Error", MB_ICONERROR);
          return 0;
@@ -3360,9 +3382,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
          LONG editor_size = 0;
 
-         editor_size = 
+         editor_size =
             8 * ((rc.bottom - rc.top - dy) / 10) - nu::editor_t::SPLIT_BAR_HEIGHT;
-         
+
          ::SetWindowPos(
             g_editor.get_editor_hwnd(),
             0,
@@ -3375,7 +3397,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
             rc.right - rc.left,
             rc.top + dy + editor_size);
 
-         const auto y_bottom = 
+         const auto y_bottom =
             rc.top + dy + editor_size + nu::editor_t::SPLIT_BAR_HEIGHT;
 
          g_editor.set_infobox_pos(
@@ -3488,9 +3510,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
                if (!search_result)
                {
+                  std::string msg = "'";
+                  msg += std::string(lpf->lpstrFindWhat);
+                  msg+="' not found\n";
+
+                  g_editor.add_info(msg, CFM_BOLD | CFM_ITALIC);
+
                   MessageBox(
                      0,
-                     "Text not found",
+                     msg.c_str(),
                      "Search...",
                      MB_OK | MB_ICONEXCLAMATION);
                }
@@ -3595,125 +3623,125 @@ BOOL GetClientWindowRect(HWND hWnd, RECT& rect)
 namespace nu
 {
 
-   /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
-   LRESULT CALLBACK HSplitterWndProc(HWND hWnd, WORD Message, WORD wParam, LONG lParam)
+LRESULT CALLBACK HSplitterWndProc(HWND hWnd, WORD Message, WORD wParam, LONG lParam)
+{
+   PAINTSTRUCT ps;
+
+   static RECT toolbar_rect;
+   static RECT old_editor_rect;
+   static RECT old_hsplitter_rect;
+   static RECT old_searchbox_rect;
+
+   static POINT old_pt;
+   static POINT pt;
+
+   static DWORD dy = 0;
+
+   static bool bMoved = false;
+
+   switch (Message)
    {
-      PAINTSTRUCT ps;
+   case WM_LBUTTONDOWN:
 
-      static RECT toolbar_rect;
-      static RECT old_editor_rect;
-      static RECT old_hsplitter_rect;
-      static RECT old_searchbox_rect;
+      GetClientWindowRect(g_editor.get_editor_hwnd(), old_editor_rect);
+      GetClientWindowRect(g_editor._h_splitter, old_hsplitter_rect);
+      GetClientWindowRect(g_editor._h_infobox, old_searchbox_rect);
+      if (g_toolbar)
+         GetClientWindowRect(g_toolbar->get_hwnd(), toolbar_rect);
 
-      static POINT old_pt;
-      static POINT pt;
+      SetCapture(hWnd);
+      ClipCursor(NULL);
+      bMoved = false;
 
-      static DWORD dy = 0;
+      GetCursorPos(&old_pt);
 
-      static bool bMoved = false;
+      return 0;
 
-      switch (Message)
+   case WM_MOUSEMOVE:
+      SetCursor(LoadCursor(NULL, IDC_SIZENS));
+
+      if (wParam & MK_LBUTTON)
       {
-      case WM_LBUTTONDOWN:
-         
-         GetClientWindowRect(g_editor.get_editor_hwnd(), old_editor_rect);
-         GetClientWindowRect(g_editor._h_splitter, old_hsplitter_rect);
-         GetClientWindowRect(g_editor._h_infobox, old_searchbox_rect);
-         if (g_toolbar)
-            GetClientWindowRect(g_toolbar->get_hwnd(), toolbar_rect);
+         bMoved = true;
 
-         SetCapture(hWnd);
-         ClipCursor(NULL);
-         bMoved = false;
+         GetCursorPos(&pt);
 
-         GetCursorPos(&old_pt);
+         dy = pt.y - old_pt.y;
+         auto new_y = old_hsplitter_rect.top + dy;
 
-         return 0;
-
-      case WM_MOUSEMOVE:
-         SetCursor(LoadCursor(NULL, IDC_SIZENS));
-
-         if (wParam & MK_LBUTTON)
+         if (new_y > ULONG(toolbar_rect.bottom))
          {
-            bMoved = true;
+            MoveWindow(
+               hWnd,
+               old_hsplitter_rect.left,
+               old_hsplitter_rect.top + dy,
+               old_hsplitter_rect.right - old_hsplitter_rect.left,
+               old_hsplitter_rect.bottom - old_hsplitter_rect.top,
+               TRUE);
 
-            GetCursorPos(&pt);
-
-            dy = pt.y-old_pt.y;
-            auto new_y = old_hsplitter_rect.top + dy;
-
-            if (new_y > ULONG( toolbar_rect.bottom ))
-            {
-               MoveWindow(
-                  hWnd,
-                  old_hsplitter_rect.left,
-                  old_hsplitter_rect.top + dy,
-                  old_hsplitter_rect.right - old_hsplitter_rect.left,
-                  old_hsplitter_rect.bottom - old_hsplitter_rect.top,
-                  TRUE);
-
-            }
          }
-         break;
-
-      case WM_LBUTTONUP:
-         MoveWindow(
-            hWnd,
-            old_hsplitter_rect.left,
-            old_hsplitter_rect.top + dy,
-            old_hsplitter_rect.right - old_hsplitter_rect.left,
-            old_hsplitter_rect.bottom - old_hsplitter_rect.top,
-            TRUE);
-
-         MoveWindow(
-            g_editor.get_editor_hwnd(),
-            old_editor_rect.left,
-            old_editor_rect.top,
-            old_editor_rect.right - old_editor_rect.left,
-            old_editor_rect.bottom - old_editor_rect.top + dy,
-            TRUE);
-
-         MoveWindow(
-            g_editor._h_infobox,
-            old_searchbox_rect.left,
-            old_searchbox_rect.top + dy,
-            old_searchbox_rect.right - old_searchbox_rect.left,
-            old_searchbox_rect.bottom - old_searchbox_rect.top - dy,
-            TRUE);
-
-         InvalidateRect(g_editor.get_editor_hwnd(), NULL, TRUE);
-         InvalidateRect(g_editor._h_infobox, NULL, TRUE);
-
-         UpdateWindow(g_editor.get_editor_hwnd());
-         UpdateWindow(g_editor._h_infobox);
-
-         ClipCursor(NULL);
-         ReleaseCapture();
-         return 0;
-
-      case WM_PAINT: {
-         HDC hdc = BeginPaint(hWnd, &ps);
-         RECT rect;
-         FillRect(hdc, &ps.rcPaint, GetSysColorBrush(COLOR_3DFACE)); // LIGHT GRAY
-         GetClientRect(hWnd, &rect);
-         FrameRect(hdc, &rect, GetSysColorBrush(COLOR_3DSHADOW));
-         rect.bottom = rect.top;
-         FrameRect(hdc, &rect, GetSysColorBrush(COLOR_3DLIGHT)); // WHITE 
-         EndPaint(hWnd, &ps);
       }
       break;
 
+   case WM_LBUTTONUP:
+      MoveWindow(
+         hWnd,
+         old_hsplitter_rect.left,
+         old_hsplitter_rect.top + dy,
+         old_hsplitter_rect.right - old_hsplitter_rect.left,
+         old_hsplitter_rect.bottom - old_hsplitter_rect.top,
+         TRUE);
 
-      default:
-         return DefWindowProc(hWnd, Message, wParam, lParam);
-      }
+      MoveWindow(
+         g_editor.get_editor_hwnd(),
+         old_editor_rect.left,
+         old_editor_rect.top,
+         old_editor_rect.right - old_editor_rect.left,
+         old_editor_rect.bottom - old_editor_rect.top + dy,
+         TRUE);
+
+      MoveWindow(
+         g_editor._h_infobox,
+         old_searchbox_rect.left,
+         old_searchbox_rect.top + dy,
+         old_searchbox_rect.right - old_searchbox_rect.left,
+         old_searchbox_rect.bottom - old_searchbox_rect.top - dy,
+         TRUE);
+
+      InvalidateRect(g_editor.get_editor_hwnd(), NULL, TRUE);
+      InvalidateRect(g_editor._h_infobox, NULL, TRUE);
+
+      UpdateWindow(g_editor.get_editor_hwnd());
+      UpdateWindow(g_editor._h_infobox);
+
+      ClipCursor(NULL);
+      ReleaseCapture();
       return 0;
 
+   case WM_PAINT: {
+      HDC hdc = BeginPaint(hWnd, &ps);
+      RECT rect;
+      FillRect(hdc, &ps.rcPaint, GetSysColorBrush(COLOR_3DFACE)); // LIGHT GRAY
+      GetClientRect(hWnd, &rect);
+      FrameRect(hdc, &rect, GetSysColorBrush(COLOR_3DSHADOW));
+      rect.bottom = rect.top;
+      FrameRect(hdc, &rect, GetSysColorBrush(COLOR_3DLIGHT)); // WHITE 
+      EndPaint(hWnd, &ps);
    }
+   break;
 
 
-   /* -------------------------------------------------------------------------- */
+   default:
+      return DefWindowProc(hWnd, Message, wParam, lParam);
+   }
+   return 0;
+
+}
+
+
+/* -------------------------------------------------------------------------- */
 
 }
 

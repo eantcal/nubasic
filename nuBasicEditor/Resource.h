@@ -64,6 +64,9 @@
 #define IDM_DEBUG_TOPMOST               40035
 #define IDM_DEBUG_NOTOPMOST             40036
 
+#define IDM_CLEAR_INFOBOX               40037
+
+
 
 #define IDM_MENU_SEARCH_POS             4
 
