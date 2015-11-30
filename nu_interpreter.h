@@ -82,6 +82,8 @@ protected:
 
    virtual bool notify(const event_t& ev) override;
 
+   bool get_fileparameter(tokenizer_t & tknzr, std::string& filename);
+   
 
 public:
 

@@ -783,6 +783,37 @@ interpreter_t::exec_res_t interpreter_t::set_step_mode(bool on)
 
 /* -------------------------------------------------------------------------- */
 
+bool interpreter_t::get_fileparameter(tokenizer_t & tknzr, std::string & filename)
+{
+   auto token = tknzr.next();
+
+   if (tknzr.eol())
+      return false;
+
+   skip_blank(tknzr, token);
+
+   filename = token.identifier();
+
+   while (!tknzr.eol())
+   {
+      token = tknzr.next();
+      filename += token.identifier();
+   }
+
+   // Remove trailing spaces
+   while (!filename.empty() && *filename.rbegin() == ' ')
+      filename = filename.substr(0, filename.size() - 1);
+
+   // Quote filename
+   if (!filename.empty() && *filename.begin() != '"' && *filename.rbegin() != '"')
+      filename = "\"" + filename + "\"";
+
+   return true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 {
    std::string command = cmd;
@@ -931,21 +962,10 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
       if (cmd == "load")
       {
-
-         token = tknzr.next();
-
-         if (tknzr.eol())
+         std::string arg;
+         
+         if (!get_fileparameter(tknzr, arg))
             return exec_res_t::SYNTAX_ERROR;
-
-         skip_blank(tknzr, token);
-
-         std::string arg = token.identifier();
-
-         while (!tknzr.eol())
-         {
-            token = tknzr.next();
-            arg += token.identifier();
-         }
 
          FILE* f = fopen(arg.c_str(), "r");
 
@@ -959,14 +979,12 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
       if (cmd == "exec")
       {
-         token = tknzr.next();
+         std::string arg;
 
-         if (tknzr.eol())
+         if (!get_fileparameter(tknzr, arg))
             return exec_res_t::SYNTAX_ERROR;
 
-         skip_blank(tknzr, token);
-
-         FILE* f = fopen(token.identifier().c_str(), "r");
+         FILE* f = fopen(arg.c_str(), "r");
 
          if (!f)
             return exec_res_t::IO_ERROR;
@@ -983,20 +1001,10 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
       if (cmd == "save")
       {
-         token = tknzr.next();
+         std::string arg;
 
-         if (tknzr.eol())
+         if (!get_fileparameter(tknzr, arg))
             return exec_res_t::SYNTAX_ERROR;
-
-         skip_blank(tknzr, token);
-
-         std::string arg = token.identifier();
-
-         while (!tknzr.eol())
-         {
-            token = tknzr.next();
-            arg += token.identifier();
-         }
 
          return save(arg) ?
                 exec_res_t::CMD_EXEC : exec_res_t::IO_ERROR;
