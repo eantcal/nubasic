@@ -804,10 +804,6 @@ bool interpreter_t::get_fileparameter(tokenizer_t & tknzr, std::string & filenam
    while (!filename.empty() && *filename.rbegin() == ' ')
       filename = filename.substr(0, filename.size() - 1);
 
-   // Quote filename
-   if (!filename.empty() && *filename.begin() != '"' && *filename.rbegin() != '"')
-      filename = "\"" + filename + "\"";
-
    return true;
 }
 
