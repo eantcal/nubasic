@@ -1,3 +1,4 @@
+#!/usr/local/bin/nubasic
 REM The following program is an example of the ALGOL-like BASIC dialect
 REM supported by nuBASIC
 REM See http://en.wikipedia.org/wiki/Turbo_Basic

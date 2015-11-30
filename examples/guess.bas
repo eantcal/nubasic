@@ -1,3 +1,4 @@
+#!/usr/local/bin/nubasic
 Rem Simple game
 Rem This program challenges the user to guess a randomly selected number 
 Rem within the 1-10 range, without offering the usual hints of "higher"/"lower":

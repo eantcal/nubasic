@@ -1,3 +1,4 @@
+#!/usr/local/bin/nubasic
 '  Parabola.bas - This file is part of nuBASIC
 
    Cls

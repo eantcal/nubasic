@@ -1,3 +1,4 @@
+#!/usr/local/bin/nubasic
 REM Readfile.bas - Read a text file showing its content on the screen
 REM This file is part of nuBASIC
  

@@ -1,3 +1,4 @@
+#!/usr/local/bin/nubasic
 ' Rosetta.bas - This file is part of nuBASIC
 ' See http://rosettacode.org/wiki/Mandelbrot_set
 

@@ -1,3 +1,4 @@
+#!/usr/local/bin/nubasic
 ' pingpong.bas - This file is part of nuBASIC
 
 a% = 1

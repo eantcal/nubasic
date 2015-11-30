@@ -1,3 +1,4 @@
+#!/usr/local/bin/nubasic
 ' This file is part of nuBASIC
 
 Recurs 4

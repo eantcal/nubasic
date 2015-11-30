@@ -1,3 +1,4 @@
+#!/usr/local/bin/nubasic
 5   Rem line.bas - This file is part of nuBASIC
 6   Rem
 10  Dim mx%(100), my%(100)

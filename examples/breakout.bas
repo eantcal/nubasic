@@ -1,3 +1,4 @@
+#!/usr/local/bin/nubasic
 10 Rem breakout.bas : This file is part of nuBASIC 
 20 Rem (c) acaldmail@gmail.com
 30 Rem
