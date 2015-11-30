@@ -489,6 +489,14 @@ std::string interpreter_t::read_line(FILE * f)
 bool interpreter_t::load(FILE* f)
 {
    std::string first_line = read_line(f);
+
+   if (!first_line.empty())
+   {
+      // skip executable script prefix line
+      if (first_line.size() >= 3 && first_line.substr(0, 2) == "#!")
+         first_line = read_line(f);
+   }
+
    bool old_format = false;
 
    if (!first_line.empty())
@@ -513,6 +521,13 @@ bool interpreter_t::load(FILE* f)
    while (! feof(f) && ferror(f)==0)
    {
       std::string line = read_line(f);
+
+      if (!line.empty() && ln == 0)
+      {
+         // skip executable script prefix line
+         if (line.size() > 2 && line.substr(0, 2) == "#!")
+            line = read_line(f);
+      }
 
       if (line.empty() && feof(f))
          break;

@@ -282,6 +282,21 @@ public:
 
 
    /**
+   * Hide info box
+   */
+   void hide_info()
+   {
+      resize_info(10);
+   }
+
+
+   /**
+   * Resize info box
+   */
+   void resize_info(int editor_tenth = 9);
+
+
+   /**
    * Set replace msg
    */
    void set_find_replace_msg(UINT msg) NU_NOEXCEPT
@@ -1321,6 +1336,60 @@ void nu::editor_t::clear_info()
 
 /* -------------------------------------------------------------------------- */
 
+void nu::editor_t::resize_info(int editor_tenth)
+{
+   RECT toolbar_rect = { 0 };
+   if (g_toolbar)
+   {
+      g_toolbar->on_resize();
+      g_toolbar->get_rect(toolbar_rect);
+   }
+
+   const int dy = toolbar_rect.bottom - toolbar_rect.top;
+   const int dx = toolbar_rect.right - toolbar_rect.left;
+
+   RECT rc;
+   ::GetClientRect(get_main_hwnd(), &rc);
+
+   if (g_info)
+   {
+      g_info->arrange(
+         dx - 100,
+         5,
+         90,
+         dy - 20);
+   }
+
+   LONG editor_size = 0;
+
+   editor_size =
+      editor_tenth * ((rc.bottom - rc.top - dy) / 10) - nu::editor_t::SPLIT_BAR_HEIGHT;
+
+   ::SetWindowPos(
+      g_editor.get_editor_hwnd(),
+      0,
+      rc.left,
+      rc.top + dy,
+      rc.right - rc.left,
+      editor_size, 0);
+
+   set_splitbar_pos(
+      rc.right - rc.left,
+      rc.top + dy + editor_size);
+
+   const auto y_bottom =
+      rc.top + dy + editor_size + nu::editor_t::SPLIT_BAR_HEIGHT;
+
+   set_infobox_pos(
+      0,
+      y_bottom,
+      rc.right - rc.left,
+      rc.bottom - rc.top - y_bottom);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 void nu::editor_t::add_info(std::string msg, DWORD message_style)
 {
    CHARFORMAT char_format = { 0 };
@@ -1370,6 +1439,10 @@ bool nu::editor_t::build_basic_line(
 {
    try
    {
+      //Ignore first line if it begins with #!
+      if (line_num == 1 && line.size() > 2 && line[0] == '#' && line[1] == '!')
+         return true;
+
       if (!g_editor.interpreter().update_program(line, line_num))
       {
          std::string msg = "Syntax Error at line ";
@@ -2997,6 +3070,14 @@ void nu::editor_t::exec_command(int id)
       g_editor.clear_info();
       break;
 
+   case IDM_HIDE_INFOBOX:
+      g_editor.hide_info();
+      break;
+
+   case IDM_RESIZE_INFOBOX:
+      g_editor.resize_info();
+      break;
+
    case IDM_COPY_INFOBOX_CLIPBOARD:
       g_editor.copy_info_to_clipboard();
       break;
@@ -3444,55 +3525,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
    case WM_SIZE:
       if (wParam != 1)
-      {
-         RECT toolbar_rect = { 0 };
-         if (g_toolbar)
-         {
-            g_toolbar->on_resize();
-            g_toolbar->get_rect(toolbar_rect);
-         }
-
-         const int dy = toolbar_rect.bottom - toolbar_rect.top;
-         const int dx = toolbar_rect.right - toolbar_rect.left;
-
-         RECT rc;
-         ::GetClientRect(hWnd, &rc);
-
-         if (g_info)
-         {
-            g_info->arrange(
-               dx - 100,
-               5,
-               90,
-               dy - 20);
-         }
-
-         LONG editor_size = 0;
-
-         editor_size =
-            8 * ((rc.bottom - rc.top - dy) / 10) - nu::editor_t::SPLIT_BAR_HEIGHT;
-
-         ::SetWindowPos(
-            g_editor.get_editor_hwnd(),
-            0,
-            rc.left,
-            rc.top + dy,
-            rc.right - rc.left,
-            editor_size, 0);
-
-         g_editor.set_splitbar_pos(
-            rc.right - rc.left,
-            rc.top + dy + editor_size);
-
-         const auto y_bottom =
-            rc.top + dy + editor_size + nu::editor_t::SPLIT_BAR_HEIGHT;
-
-         g_editor.set_infobox_pos(
-            0,
-            y_bottom,
-            rc.right - rc.left,
-            rc.bottom - rc.top - y_bottom);
-      }
+         g_editor.resize_info();
+   
       return 0;
 
    case WM_COMMAND:
@@ -3539,9 +3573,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
    case WM_PAINT:
    {
       HDC hdc = BeginPaint(hWnd, &ps);
-      //RECT rect;
-      //GetClientRect(hWnd, &rect);
-      //FillRect(hdc, &rect, GetSysColorBrush(COLOR_3DSHADOW));
       EndPaint(hWnd, &ps);
    }
    break;

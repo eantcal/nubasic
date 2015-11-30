@@ -36,7 +36,6 @@ namespace nu
    variant_t expr_var_t::eval(rt_prog_ctx_t & ctx) const
    {
       var_scope_t::handle_t scope;
-      variant_t * var = nullptr;
 
       if (scope == nullptr)
          scope = ctx.proc_scope.get(

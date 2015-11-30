@@ -65,6 +65,9 @@
 #define IDM_CLEAR_INFOBOX               40037
 #define IDM_COPY_INFOBOX_CLIPBOARD      40038
 #define IDM_CTX_HELP                    40039
+#define IDM_HIDE_INFOBOX                40040
+#define IDM_RESIZE_INFOBOX              40041
+
 
 
 #define IDM_MENU_SEARCH_POS             4

@@ -74,25 +74,28 @@ std::string variable_t::typename_by_type(variable_t::type_t type)
    switch (type)
    {
       case type_t::INTEGER:
-         return "Integer";
+         return "integer";
 
       case type_t::STRING:
-         return "String";
+         return "string";
 
       case type_t::BOOLEAN:
-         return "Boolean";
+         return "boolean";
 
       case type_t::FLOAT:
-         return "Float";
+         return "float";
 
       case type_t::LONG64:
-         return "Long64";
+         return "long64";
 
       case type_t::BYTEVECTOR:
-         return "ByteVect";
+         return "bytevect";
 
       case type_t::DOUBLE:
-         return "Double";
+         return "double";
+
+      case type_t::STRUCT:
+         return "struct";
 
       case type_t::UNDEFINED:
          break;

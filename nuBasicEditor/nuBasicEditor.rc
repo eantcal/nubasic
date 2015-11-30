@@ -112,6 +112,8 @@ BEGIN
     BEGIN
         MENUITEM "Co&py message window content to clipboard", IDM_COPY_INFOBOX_CLIPBOARD
         MENUITEM "&Clear message window",       IDM_CLEAR_INFOBOX
+        MENUITEM "&Hide message window",        IDM_HIDE_INFOBOX
+        MENUITEM "&Show and resize message window", IDM_RESIZE_INFOBOX
         MENUITEM SEPARATOR
         MENUITEM "&Font...",                    IDM_SETTINGS_FONT
         MENUITEM SEPARATOR

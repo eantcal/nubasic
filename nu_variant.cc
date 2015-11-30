@@ -316,13 +316,21 @@ variant_t variant_t::increment()
          ++_i_data[0];
          return *this;
       }
+
+      case variant_t::type_t::BOOLEAN:
+      case variant_t::type_t::STRING:
+      case variant_t::type_t::STRUCT:
+      case variant_t::type_t::BYTEVECTOR:
+      case variant_t::type_t::UNDEFINED:
+      default:
+         rt_error_code_t::get_instance().throw_if(
+            true,
+            0,
+            rt_error_code_t::E_TYPE_MISMATCH,
+            "");
    }
 
-   rt_error_code_t::get_instance().throw_if(
-      true,
-      0,
-      rt_error_code_t::E_TYPE_MISMATCH,
-      "");
+   
 
    return *this;
 }
@@ -356,13 +364,19 @@ variant_t variant_t::decrement()
          --_i_data[0];
          return *this;
       }
-   }
 
-   rt_error_code_t::get_instance().throw_if(
-      true,
-      0,
-      rt_error_code_t::E_TYPE_MISMATCH,
-      "");
+      case variant_t::type_t::BOOLEAN:
+      case variant_t::type_t::STRING:
+      case variant_t::type_t::STRUCT:
+      case variant_t::type_t::BYTEVECTOR:
+      case variant_t::type_t::UNDEFINED:
+      default:
+         rt_error_code_t::get_instance().throw_if(
+            true,
+            0,
+            rt_error_code_t::E_TYPE_MISMATCH,
+            "");
+   }
 
    return variant_t();
 }

@@ -446,8 +446,8 @@ public:
 
 protected:
    type_t _type = type_t::UNDEFINED;
-   bool _vector_type = false;
    size_t _vect_size = 0;
+   bool _vector_type = false;
 
    mutable std::vector<string_t> _s_data;
    std::vector<long64_t>         _i_data;

@@ -7,6 +7,14 @@ Please send nuBASIC / nuBasicEditor bug reports to <acaldmail@gmail.com>.
 Win32/64 built with VS2015 needs "Visual C++ Redistributable Packages for Visual Studio 2015"
 https://www.microsoft.com/en-us/download/details.aspx?id=48145
 
+TBD, 2015
+* Released nuBASIC 1.44
+- Support for Linux executable .bas program:
+  Your program must be start with #!/usr/bin/nubasic 
+  You have to specify correct nubasic binary path if it 
+  does not match with the above one
+- Improvements and bug-fixes
+
 
 Nov 30, 2015
 * Released nuBASIC 1.43
