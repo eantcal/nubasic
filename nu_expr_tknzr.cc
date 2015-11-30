@@ -71,12 +71,14 @@ expr_tknzr_t::expr_tknzr_t(
 
    _op.register_pattern(subexp_bsymb);
    _op.register_pattern(subexp_esymb);
+
+   _comment_line_set.insert(std::make_pair("'", tkncl_t::OPERATOR));
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-void expr_tknzr_t::get_tknlst(token_list_t & tl)
+void expr_tknzr_t::get_tknlst(token_list_t & tl, bool strip_comment)
 {
    tl.clear();
 
@@ -88,6 +90,42 @@ void expr_tknzr_t::get_tknlst(token_list_t & tl)
       tl.data().push_back(next());
    }
    while (!eol());
+
+   if (strip_comment)
+   {
+      strip_comment_line(tl, _comment_line_set);
+   }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void expr_tknzr_t::strip_comment_line(
+   token_list_t& tl,
+   const typed_token_set_t& comment_id_set)
+{
+   bool comment_found = false;
+   token_list_t ntl;
+
+   for (auto i = tl.data().begin(); i != tl.data().end(); ++i)
+   {
+      for (const auto & id : comment_id_set)
+      {
+         if (i->type() == id.second && i->identifier() == id.first)
+         {
+            comment_found = true;
+            break;
+         }
+      }
+
+      if (comment_found)
+         break;
+
+      ntl += *i;
+   }
+
+   if (comment_found)
+      tl = ntl;
 }
 
 
@@ -219,7 +257,7 @@ token_t expr_tknzr_t::_next()
       _op.reset();
 
       // Detect strings...
-      if (_strtk.accept(symbol))
+      if (_strtk.accept(symbol) && other.empty())
       {
          seek_next();
 

@@ -2093,8 +2093,11 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
 
    if (!ctx.compiling_struct_name.empty())
    {
-      if (token.identifier() != "end" &&
-         token.identifier() != "rem")
+      if (! 
+          ((token.identifier() == "end" ||
+            token.identifier() == "rem" ) 
+           &&
+            token.type() == tkncl_t::IDENTIFIER))
       {
          return parse_struct_element(ctx, token, tl);
       }
@@ -2171,7 +2174,7 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
    if (identifier == "go" || identifier == "goto" || identifier == "gosub")
       return parse_goto_gosub(ctx, token, tl);
 
-   if (identifier == "rem" || identifier == "'")
+   if (identifier == "rem")
    {
       tl.clear();
       return stmt_t::handle_t(std::make_shared<stmt_empty_t>(ctx));

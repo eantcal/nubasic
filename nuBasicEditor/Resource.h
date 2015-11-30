@@ -60,12 +60,11 @@
 #define IDM_DEBUG_EVALSEL               40032
 #define IDM_DEBUG_GOTO_PC               40033
 #define IDM_DEBUG_STEP                  40034
-
 #define IDM_DEBUG_TOPMOST               40035
 #define IDM_DEBUG_NOTOPMOST             40036
-
 #define IDM_CLEAR_INFOBOX               40037
-
+#define IDM_COPY_INFOBOX_CLIPBOARD      40038
+#define IDM_CTX_HELP                    40039
 
 
 #define IDM_MENU_SEARCH_POS             4

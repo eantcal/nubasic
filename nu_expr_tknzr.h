@@ -83,7 +83,23 @@ public:
 
 
    //! Split expression in token and copy them into a token list
-   virtual void get_tknlst(token_list_t& tl) override;
+   virtual void get_tknlst(
+      token_list_t& tl, bool strip_comment = true) override;
+
+
+   using typed_token_id_t = std::pair<std::string, tkncl_t>;
+   using typed_token_set_t = std::set< typed_token_id_t >;
+
+   void setup_comment_line_set(
+      const typed_token_set_t & comment_line_set) NU_NOEXCEPT
+   {
+      _comment_line_set = comment_line_set;
+   }
+
+   //! Remove comment lines and comments at end of token list
+   static void strip_comment_line(
+      token_list_t& tl,
+      const typed_token_set_t& comment_id_set);
 
 
    //! Get begin sub-expression symbol
@@ -118,6 +134,7 @@ protected:
    lxa_word_t _word_op;
    lxa_str_t _strtk;
 
+   typed_token_set_t _comment_line_set;
 };
 
 

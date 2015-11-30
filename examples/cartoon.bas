@@ -26,7 +26,7 @@
 MoveWindow GetWindowX(),GetWindowY(), 120, 200
 
 Cls
-FillRect   0,0,150,350,0
+FillRect 0,0,150,350,0
 
 While 1
    

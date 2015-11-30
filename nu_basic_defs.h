@@ -52,7 +52,7 @@
 #define NU_BASIC_BEGIN_SUBSCR_OP  "["
 #define NU_BASIC_END_SUBSCR_OP    "]"
 
-#define NU_BASIC_SINGLE_CHAR_OPS ".+-*/^,\\=\";:<>?"
+#define NU_BASIC_SINGLE_CHAR_OPS ".+-*/^,\\=\";:<>?'"
 #define NU_BASIC_WORD_OPS        { "bxor", "band", "bshr", "bshl", "bor", NU_BASIC_OP_INC, NU_BASIC_OP_DEC, \
                                    "mod", "div", "xor", "and","or","<>","<=",">=" \
                                  }

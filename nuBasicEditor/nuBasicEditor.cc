@@ -26,6 +26,8 @@
 #include "nu_exception.h"
 #include "nu_builtin_help.h"
 #include "nu_reserved_keywords.h"
+#include "nu_about.h"
+#include "nu_builtin_help.h"
 
 #include "toolbar.h"
 #include "textinfobox.h"
@@ -56,8 +58,9 @@ const char class_name[] = EDITOR_RESOURCE_NAME"Window";
 
 const COLORREF black = RGB(0, 0, 0);
 const COLORREF white = RGB(0xff, 0xff, 0xff);
-const COLORREF red = RGB(0xFF, 0, 0);
-const COLORREF offWhite = RGB(0xFF, 0xFB, 0xF0);
+const COLORREF red = RGB(0xff, 0, 0);
+const COLORREF yellow = RGB(0xff, 0xff, 0xe0);
+const COLORREF offWhite = RGB(0xff, 0xfb, 0xF0);
 const COLORREF darkGreen = RGB(0, 0x80, 0);
 const COLORREF darkBlue = RGB(0, 0, 0x80);
 
@@ -134,7 +137,6 @@ static autocompl_t autocomplete_list;
 class editor_t
 {
    friend LRESULT CALLBACK HSplitterWndProc(HWND, WORD, WORD, LONG);
-   //friend LRESULT CALLBACK VSplitterWndProc(HWND, WORD, WORD, LONG);
    nu::interpreter_t _interpreter;
 
 public:
@@ -154,6 +156,12 @@ public:
       BREAKPOINT = 1,
       PROGCOUNTER = 2,
       LINESELECTION = 4,
+   };
+
+   enum
+   {
+      TIMER_EVAL_SELECTION,
+      TIMER_CTX_HELP
    };
 
    nu::interpreter_t & interpreter()
@@ -242,162 +250,35 @@ public:
          TRUE);
    }
 
-   /**
-    * Set splitter position
-    */
-   LONG get_splitbar_ypos() const
-   {
-      RECT r;
-      GetWindowRect(_h_splitter, &r);
-      return r.top;
-   }
 
    /**
     * Create splitter control
     */
-   void create_splitter(HWND hWnd)
-   {
-      WNDCLASSEX wcex;
-
-      wcex.cbSize = sizeof(WNDCLASSEX);
-
-      wcex.style = CS_HREDRAW | CS_VREDRAW;
-      wcex.lpfnWndProc = (WNDPROC)HSplitterWndProc;
-      wcex.cbClsExtra = 0;
-      wcex.cbWndExtra = 0;
-      wcex.hInstance = get_instance_handle();
-      wcex.hIcon = NULL;
-      wcex.hCursor = LoadCursor(NULL, IDC_SIZENS);
-      wcex.hbrBackground = NULL;
-      wcex.lpszMenuName = NULL;
-      wcex.lpszClassName = "HSPLITTER_WND_CLASS";
-      wcex.hIconSm = NULL;
-
-      RegisterClassEx(&wcex);
-
-      _h_splitter = CreateWindow(
-         TEXT("HSPLITTER_WND_CLASS"),
-         NULL,
-         WS_CHILD | WS_VISIBLE,
-         0, 0, CW_USEDEFAULT, CW_USEDEFAULT,
-         hWnd,
-         (HMENU)IDD_HSPLITTER,              // Control identifier
-         get_instance_handle(),
-         NULL);
-   }
+   void create_splitter(HWND hWnd);
 
 
    /**
     * Create search controls
     */
-   void create_search_replace_cntrls(HWND hWnd)
-   {
-      auto ver = interpreter().version();
-
-      _h_infobox = CreateWindowEx(
-         WS_EX_CLIENTEDGE | WS_EX_DLGMODALFRAME, // make rich edit control appear
-         "RICHEDIT", // class name of rich edit control
-         ver.c_str(), // text of rich edit control
-         WS_CHILD | WS_VISIBLE |
-         ES_MULTILINE | ES_SAVESEL | ES_READONLY | WS_HSCROLL | WS_VSCROLL,
-
-         0, 0, // initially create 0 size,
-         0, 0, // main window's WM_SIZE handler will resize
-         hWnd, // use main parent
-         (HMENU)0,
-         get_instance_handle(), // this app instance owns this window
-         NULL);
-
-      HANDLE hFont = NULL;
-      LOGFONT lFont;
-
-      lFont.lfHeight = 14;
-      lFont.lfWidth = 0;
-      lFont.lfEscapement = 0;
-      lFont.lfOrientation = 0;
-      lFont.lfWeight = 0;
-      lFont.lfItalic = 0;
-      lFont.lfUnderline = 0;
-      lFont.lfStrikeOut = 0;
-      lFont.lfCharSet = ANSI_CHARSET;
-      lFont.lfOutPrecision = OUT_DEFAULT_PRECIS;
-      lFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-      lFont.lfQuality = ANTIALIASED_QUALITY;
-      lFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;
-      strcpy(lFont.lfFaceName, "Consolas");
-      hFont = CreateFontIndirect(&lFont);
-      SendMessage(_h_infobox,
-         WM_SETFONT, (WPARAM)hFont, (DWORD)TRUE);
-   }
+   void create_search_replace_cntrls(HWND hWnd);
 
 
    /**
     * Append a string to info box
     */
-   void add_info(std::string msg, DWORD message_style)
-   {
-      CHARFORMAT char_format = { 0 };
-
-      char_format.cbSize = sizeof(char_format);
-      char_format.dwMask = CFM_BOLD | CFM_ITALIC | CFE_UNDERLINE;
-
-      SendMessage(_h_infobox,
-         EM_GETCHARFORMAT, 0, (LPARAM)& char_format);
-
-      SYSTEMTIME st;
-      GetLocalTime(&st);
-
-      char szDateTime[256];
-      sprintf(szDateTime,
-         "\n%02i-%02i-%i %02i:%02i:%02i\n",
-         st.wDay, st.wMonth, st.wYear,
-         st.wHour, st.wMinute, st.wSecond);
-
-      SendMessage(_h_infobox, EM_SCROLL, (LPARAM)SB_TOP, 0);
-
-      SendMessage(_h_infobox, EM_SETSEL, 0, 0);
-
-      SendMessage(_h_infobox,
-         EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)& char_format);
-
-      char_format.dwEffects = message_style;
-
-      SendMessage(_h_infobox,
-         EM_REPLACESEL, 0, (LPARAM)szDateTime);
-
-      SendMessage(_h_infobox,
-         EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)& char_format);
-
-      msg += "\n";
-
-      SendMessage(_h_infobox, EM_REPLACESEL, 0, (LPARAM)msg.c_str());
-   }
+   void add_info(std::string msg, DWORD message_style);
    
+
+   /**
+    * Clear info box content to clipboard
+    */
+   void copy_info_to_clipboard();
+
+
    /**
     * Clear info box
     */
-   void clear_info()
-   {
-      if (IDYES == MessageBox(
-         get_main_hwnd(),
-         "Are you sure ?",
-         "Clear message window",
-         MB_ICONQUESTION | MB_YESNO))
-      {
-         if (IDYES == MessageBox(get_main_hwnd(),
-            "Do you want to save status information to the clipboard ?",
-            "Clear message window", MB_ICONQUESTION | MB_YESNO))
-         {
-            SendMessage(_h_infobox, EM_SETSEL, 0, -1);
-            SendMessage(_h_infobox, WM_COPY, 0, 0);
-            MessageBox(get_main_hwnd(), "Logs copied to the clipboard !",
-               "Operation completed", MB_OK | MB_ICONINFORMATION);
-         }
-
-         SendMessage(_h_infobox, EM_SETSEL, 0, -1);
-         SendMessage(_h_infobox, EM_REPLACESEL, 0, 0);
-      }
-   }
+   void clear_info();
 
 
    /**
@@ -744,6 +625,7 @@ public:
 
       return false;
    }
+
 
    /**
    * Remove all bookmarks
@@ -1157,6 +1039,12 @@ public:
 
 
    /**
+    * Show on-line Help
+    */
+   void show_ctx_help();
+
+   
+   /**
    * Show running-mode dialog box
    */
    void show_running_dialog();
@@ -1318,6 +1206,159 @@ static HACCEL g_hAccTable = nullptr;
 static winMsgProc g_winMsgProc(g_editor);
 static toolbar_t * g_toolbar = nullptr;
 static txtinfobox_t * g_info = nullptr;
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::create_splitter(HWND hWnd)
+{
+   WNDCLASSEX wcex;
+
+   wcex.cbSize = sizeof(WNDCLASSEX);
+
+   wcex.style = CS_HREDRAW | CS_VREDRAW;
+   wcex.lpfnWndProc = (WNDPROC)HSplitterWndProc;
+   wcex.cbClsExtra = 0;
+   wcex.cbWndExtra = 0;
+   wcex.hInstance = get_instance_handle();
+   wcex.hIcon = NULL;
+   wcex.hCursor = LoadCursor(NULL, IDC_SIZENS);
+   wcex.hbrBackground = NULL;
+   wcex.lpszMenuName = NULL;
+   wcex.lpszClassName = "HSPLITTER_WND_CLASS";
+   wcex.hIconSm = NULL;
+
+   RegisterClassEx(&wcex);
+
+   _h_splitter = CreateWindow(
+      TEXT("HSPLITTER_WND_CLASS"),
+      NULL,
+      WS_CHILD | WS_VISIBLE,
+      0, 0, CW_USEDEFAULT, CW_USEDEFAULT,
+      hWnd,
+      (HMENU)IDD_HSPLITTER,              // Control identifier
+      get_instance_handle(),
+      NULL);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::create_search_replace_cntrls(HWND hWnd)
+{
+   auto ver = interpreter().version();
+
+   _h_infobox = CreateWindowEx(
+      WS_EX_CLIENTEDGE | WS_EX_DLGMODALFRAME, // make rich edit control appear
+      "RICHEDIT", // class name of rich edit control
+      ver.c_str(), // text of rich edit control
+      WS_CHILD | WS_VISIBLE |
+      ES_MULTILINE | ES_SAVESEL | ES_READONLY | WS_HSCROLL | WS_VSCROLL,
+
+      0, 0, // initially create 0 size,
+      0, 0, // main window's WM_SIZE handler will resize
+      hWnd, // use main parent
+      (HMENU)0,
+      get_instance_handle(), // this app instance owns this window
+      NULL);
+
+   HANDLE hFont = NULL;
+   LOGFONT lFont;
+
+   lFont.lfHeight = 14;
+   lFont.lfWidth = 0;
+   lFont.lfEscapement = 0;
+   lFont.lfOrientation = 0;
+   lFont.lfWeight = 0;
+   lFont.lfItalic = 0;
+   lFont.lfUnderline = 0;
+   lFont.lfStrikeOut = 0;
+   lFont.lfCharSet = ANSI_CHARSET;
+   lFont.lfOutPrecision = OUT_DEFAULT_PRECIS;
+   lFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+   lFont.lfQuality = ANTIALIASED_QUALITY;
+   lFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;
+   strcpy(lFont.lfFaceName, "Consolas");
+   hFont = CreateFontIndirect(&lFont);
+   SendMessage(_h_infobox,
+      WM_SETFONT, (WPARAM)hFont, (DWORD)TRUE);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::copy_info_to_clipboard()
+{
+   if (IDYES == MessageBox(get_main_hwnd(),
+      "Do you want to save status information to the clipboard ?",
+      "Clear message window", MB_ICONQUESTION | MB_YESNO))
+   {
+      SendMessage(_h_infobox, EM_SETSEL, 0, -1);
+      SendMessage(_h_infobox, WM_COPY, 0, 0);
+      MessageBox(get_main_hwnd(), "Logs copied to the clipboard !",
+         "Operation completed", MB_OK | MB_ICONINFORMATION);
+   }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::clear_info()
+{
+   if (IDYES == MessageBox(
+      get_main_hwnd(),
+      "Are you sure ?",
+      "Clear message window",
+      MB_ICONQUESTION | MB_YESNO))
+   {
+      copy_info_to_clipboard();
+
+      SendMessage(_h_infobox, EM_SETSEL, 0, -1);
+      SendMessage(_h_infobox, EM_REPLACESEL, 0, 0);
+   }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::add_info(std::string msg, DWORD message_style)
+{
+   CHARFORMAT char_format = { 0 };
+
+   char_format.cbSize = sizeof(char_format);
+   char_format.dwMask = CFM_BOLD | CFM_ITALIC | CFE_UNDERLINE;
+
+   SendMessage(_h_infobox,
+      EM_GETCHARFORMAT, 0, (LPARAM)& char_format);
+
+   SYSTEMTIME st;
+   GetLocalTime(&st);
+
+   char szDateTime[256];
+   sprintf(szDateTime,
+      "\n%02i-%02i-%i %02i:%02i:%02i\n",
+      st.wDay, st.wMonth, st.wYear,
+      st.wHour, st.wMinute, st.wSecond);
+
+   SendMessage(_h_infobox, EM_SCROLL, (LPARAM)SB_TOP, 0);
+
+   SendMessage(_h_infobox, EM_SETSEL, 0, 0);
+
+   SendMessage(_h_infobox,
+      EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)& char_format);
+
+   char_format.dwEffects = message_style;
+
+   SendMessage(_h_infobox,
+      EM_REPLACESEL, 0, (LPARAM)szDateTime);
+
+   SendMessage(_h_infobox,
+      EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)& char_format);
+
+   msg += "\n";
+
+   SendMessage(_h_infobox, EM_REPLACESEL, 0, (LPARAM)msg.c_str());
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -2097,7 +2138,7 @@ bool nu::editor_t::evaluate_expression(const std::string& expression)
       send_command(SCI_ANNOTATIONSETSTYLE, get_current_line() - 1, SCE_B_DOCLINE);
       send_command(SCI_ANNOTATIONSETTEXT, get_current_line() - 1, (LPARAM)annotation.c_str());
 
-      SetTimer(get_main_hwnd(), 0, 3000, 0);
+      SetTimer(get_main_hwnd(), TIMER_EVAL_SELECTION, 3000, 0);
 
       return true;
    }
@@ -2129,6 +2170,41 @@ void nu::editor_t::eval_sel()
    }
 
    evaluate_expression(qsel);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::show_ctx_help()
+{
+   std::string sel = get_selection();
+
+   if (sel.empty() || sel[0] == '\0')
+   {
+      g_editor.send_command(SCI_ANNOTATIONCLEARALL);
+      return;
+   }
+
+   if (sel.size() <= 32)
+   {
+      auto help_text = builtin_help_t::get_instance().help(sel);
+
+      if (!help_text.empty())
+      {
+         send_command(
+            SCI_ANNOTATIONCLEARALL);
+         send_command(
+            SCI_ANNOTATIONSETVISIBLE, ANNOTATION_BOXED);
+         send_command(
+            SCI_ANNOTATIONSETSTYLE, get_current_line() - 1, SCE_B_PREPROCESSOR);
+         send_command(
+            SCI_ANNOTATIONSETTEXT, get_current_line() - 1, (LPARAM)help_text.c_str());
+      }
+
+      KillTimer(get_main_hwnd(), TIMER_CTX_HELP);
+      SetTimer(get_main_hwnd(), TIMER_CTX_HELP, 3000, 0);
+   }
+   
 }
 
 
@@ -2906,30 +2982,34 @@ void nu::editor_t::exec_command(int id)
       cf.nFontType = SCREEN_FONTTYPE;
       cf.nSizeMin = 24;
 
-
       if (ChooseFont(&cf) == TRUE)
-      {
          g_editor.init_editor(
             _logfont.lfFaceName, abs(_logfont.lfHeight));
-      }
+
       break;
    }
-
 
    case IDM_SETTINGS_RESETDEFAULTS:
       g_editor.init_editor(EDITOR_DEF_FONT, EDITOR_DEF_SIZE);
       break;
 
-
    case IDM_CLEAR_INFOBOX:
       g_editor.clear_info();
+      break;
+
+   case IDM_COPY_INFOBOX_CLIPBOARD:
+      g_editor.copy_info_to_clipboard();
+      break;
+
+   case IDM_CTX_HELP:
+      g_editor.show_ctx_help();
       break;
 
    case IDM_HELP_SEARCH_KEYWORD:
    {
       std::string selection = g_editor.get_selection();
 
-      std::string online_help_url = "http://www.nubasic.eu";
+      std::string online_help_url = about::homepage;
 
       //Selection can contain string with '\0' chars ... empty() method
       //returns false, but we have to consider selection empty as well 
@@ -2963,16 +3043,13 @@ void nu::editor_t::exec_command(int id)
    }
 
    case IDM_ABOUT_ABOUT:
-   {
       g_editor.show_splash();
 
       MessageBox(_hwnd_main,
          EDITOR_ABOUT_TEXT,
          EDITOR_INFO,
          MB_ICONINFORMATION | MB_OK);
-
-   }
-   break;
+      break;
    };
 
 
@@ -3190,6 +3267,7 @@ void nu::editor_t::init_editor(
 
    set_item_style(SCE_B_COMMENT, RGB(0x80, 0x80, 0));
    set_item_style(SCE_B_COMMENTBLOCK, RGB(0x80, 0x80, 0));
+   set_item_style(SCE_B_PREPROCESSOR, /*editor::red*/editor::black, editor::yellow);
    set_item_style(SCE_B_DOCLINE, /*editor::red*/editor::white, editor::darkBlue);
 
    set_item_style(SCE_B_LABEL, editor::offWhite, RGB(0x40, 0x40, 0x40));
@@ -3345,14 +3423,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
       g_editor.show_splash();
 
-      ///g_editor.alloc_console();
-
       return 0;
    }
 
    case WM_TIMER:
-      KillTimer(g_editor.get_main_hwnd(), 0);
-      g_editor.eval_sel();
+      switch (wParam)
+      { 
+      case nu::editor_t::TIMER_EVAL_SELECTION:
+         KillTimer(g_editor.get_main_hwnd(), nu::editor_t::TIMER_EVAL_SELECTION);
+         g_editor.eval_sel();
+         break;
+
+      case nu::editor_t::TIMER_CTX_HELP:
+         KillTimer(g_editor.get_main_hwnd(), nu::editor_t::TIMER_CTX_HELP);
+         g_editor.show_ctx_help();
+         break;
+      }
+      
       return 0;
 
    case WM_SIZE:
@@ -3615,11 +3702,6 @@ BOOL GetClientWindowRect(HWND hWnd, RECT& rect)
 }
 
 
-
-#define STATUS_BAR_HEIGHT 0   //TODO
-#define PROGRESS_BAR_HEIGHT 0 //TODO
-
-
 namespace nu
 {
 
@@ -3744,6 +3826,7 @@ LRESULT CALLBACK HSplitterWndProc(HWND hWnd, WORD Message, WORD wParam, LONG lPa
 /* -------------------------------------------------------------------------- */
 
 }
+
 
 /* -------------------------------------------------------------------------- */
 

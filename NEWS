@@ -8,6 +8,14 @@ Win32/64 built with VS2015 needs "Visual C++ Redistributable Packages for Visual
 https://www.microsoft.com/en-us/download/details.aspx?id=48145
 
 
+Nov 30, 2015
+* Released nuBASIC 1.43
+- Added Info Message Window to IDE
+- Added context help (pressing F1); 
+  from now on-line help is mapped on Ctrl+F1
+- Improvements and bug-fixes
+
+
 Nov 25, 2015
 * Released nuBASIC 1.42
 - Explicit type definition extended to function return type

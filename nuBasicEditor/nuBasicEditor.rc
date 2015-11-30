@@ -110,6 +110,7 @@ BEGIN
     
     POPUP "Se&ttings"
     BEGIN
+        MENUITEM "Co&py message window content to clipboard", IDM_COPY_INFOBOX_CLIPBOARD
         MENUITEM "&Clear message window",       IDM_CLEAR_INFOBOX
         MENUITEM SEPARATOR
         MENUITEM "&Font...",                    IDM_SETTINGS_FONT
@@ -119,14 +120,14 @@ BEGIN
 
     POPUP "&Search"
     BEGIN
-        MENUITEM "&Go to line...\tF2",          IDM_SEARCH_GOTOLINE
+        MENUITEM "&Go to line...\tF2",            IDM_SEARCH_GOTOLINE
         MENUITEM SEPARATOR
-        MENUITEM "&Find...\tF3",                IDM_SEARCH_FIND
-        MENUITEM "Find and &Replace...\tCtrl+F3",IDM_SEARCH_FINDANDREPLACE
+        MENUITEM "&Find...\tCtrl+F",              IDM_SEARCH_FIND
+        MENUITEM "Find and &Replace...\tCtrl+R",  IDM_SEARCH_FINDANDREPLACE
         MENUITEM SEPARATOR
-        MENUITEM "&Add/Remove marker\tCtrl+F7",      IDM_SEARCH_ADDMARKER
-        MENUITEM "Find &next marker\tCtrl+F8",       IDM_SEARCH_FINDNEXTMARKER
-        MENUITEM "Find &previous marker\tCtrl+F9",   IDM_SEARCH_FINDPREVIOUSMARKER
+        MENUITEM "&Add/Remove marker\tCtrl+F7",   IDM_SEARCH_ADDMARKER
+        MENUITEM "Find &next marker\tCtrl+F8",    IDM_SEARCH_FINDNEXTMARKER
+        MENUITEM "Find &previous marker\tCtrl+F9",IDM_SEARCH_FINDPREVIOUSMARKER
         MENUITEM SEPARATOR
         MENUITEM "&Remove all markers",         IDM_SEARCH_DELALLMARKERS
     END
@@ -154,7 +155,8 @@ BEGIN
 
     POPUP "&Help"
     BEGIN
-        MENUITEM "&Help on selection\tF1", IDM_HELP_SEARCH_KEYWORD
+        MENUITEM "&Describe selected keyword\tF1", IDM_CTX_HELP
+        MENUITEM "&Online help\tCtrl+F1", IDM_HELP_SEARCH_KEYWORD
         MENUITEM SEPARATOR
         MENUITEM "&About nuBASIC", IDM_ABOUT_ABOUT
     END
@@ -168,14 +170,15 @@ END
 
 NUBASICEDITOR ACCELERATORS
 BEGIN
-    VK_F1,          IDM_HELP_SEARCH_KEYWORD, VIRTKEY, NOINVERT
+    VK_F1,          IDM_HELP_SEARCH_KEYWORD, VIRTKEY, CONTROL, NOINVERT
+    VK_F1,          IDM_CTX_HELP, VIRTKEY, NOINVERT
     VK_F5,          IDM_DEBUG_START, VIRTKEY, NOINVERT
     VK_F5,          IDM_DEBUG_RUN, VIRTKEY, CONTROL, NOINVERT
     VK_F8,          IDM_DEBUG_CONT, VIRTKEY, NOINVERT
     VK_F10,         IDM_DEBUG_STEP, VIRTKEY, NOINVERT
     VK_F2,          IDM_SEARCH_GOTOLINE,     VIRTKEY, NOINVERT
-    VK_F3,          IDM_SEARCH_FIND,         VIRTKEY, NOINVERT
-    VK_F3,          IDM_SEARCH_FINDANDREPLACE, VIRTKEY, CONTROL, NOINVERT
+    "F",            IDM_SEARCH_FIND,         VIRTKEY, CONTROL, NOINVERT
+    "R",            IDM_SEARCH_FINDANDREPLACE, VIRTKEY, CONTROL, NOINVERT
     VK_F7,          IDM_SEARCH_ADDMARKER, VIRTKEY, CONTROL, NOINVERT
     VK_F8,          IDM_SEARCH_FINDNEXTMARKER, CONTROL,  VIRTKEY, NOINVERT
     VK_F9,          IDM_SEARCH_FINDPREVIOUSMARKER, CONTROL, VIRTKEY, NOINVERT
