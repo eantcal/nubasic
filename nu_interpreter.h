@@ -66,6 +66,7 @@ class interpreter_t : protected signal_handler_t
 protected:
 
    volatile bool _break_event = false;
+   volatile bool _ignore_break_event = false;
 
 
    interpreter_t(interpreter_t&) = delete;
@@ -86,6 +87,17 @@ protected:
    
 
 public:
+   void set_ignore_break_event(bool state) NU_NOEXCEPT
+   {
+      _ignore_break_event = state;
+   }
+
+
+   bool ignore_break_event() const NU_NOEXCEPT
+   {
+      return _ignore_break_event;
+   }
+
 
    void register_break_event()
    {
@@ -141,7 +153,7 @@ public:
    {
       volatile bool res = _break_event;
       _break_event = false;
-      return res;
+      return ignore_break_event() ? false : res;
    }
 
 

@@ -82,7 +82,8 @@ interpreter_t::interpreter_t(
 bool interpreter_t::notify(const event_t& ev)
 {
    _break_event = ev == event_t::BREAK;
-   return _break_event;
+   
+   return _ignore_break_event ? false : _break_event;
 }
 
 
@@ -1286,7 +1287,12 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
    {
       clear_all();
       if (load(f))
+      {
+         set_ignore_break_event(true);
          run(0);
+         return exec_res_t::CMD_EXEC;
+      }
+
    }
 
    //Run BASIC in-line instruction
