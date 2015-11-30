@@ -1279,6 +1279,19 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
       }
    }
+   
+   // Remove trailing spaces
+   while (!command.empty() && *command.rbegin() == ' ')
+      command = command.substr(0, command.size() - 1);
+
+   // Try to load and exec filename
+   FILE* f = fopen(command.c_str(), "r");
+   if (f)
+   {
+      clear_all();
+      if (load(f))
+         run(0);
+   }
 
    //Run BASIC in-line instruction
    tokenizer_t inlinetknzr(command, 0);
