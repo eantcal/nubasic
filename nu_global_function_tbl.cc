@@ -475,6 +475,25 @@ variant_t functor_int_int_int_int_int(
              variant_t::type_t::INTEGER);
 }
 
+
+/* -------------------------------------------------------------------------- */
+
+// int F()(int, int)
+template <class F>
+variant_t functor_int_int_int(
+   rt_prog_ctx_t & ctx,
+   const std::string& name,
+   const nu::func_args_t & args)
+{
+   return functor_RT_T1_T2<F, int, int, int>(
+      ctx,
+      name,
+      args,
+      variant_t::type_t::INTEGER,
+      variant_t::type_t::INTEGER);
+}
+
+
 /* -------------------------------------------------------------------------- */
 
 // string F()(string, int, int)
@@ -1697,6 +1716,18 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
 
       fmap["movewindow"] = functor_int_int_int_int_int<_move_window>;
+
+
+      struct _get_pixel
+      {
+         int operator()(int x, int y) NU_NOEXCEPT
+         {
+            return _os_get_pixel(x, y);
+         }
+      };
+
+
+      fmap["getpixel"] = functor_int_int_int<_get_pixel>;
 #endif
 
 

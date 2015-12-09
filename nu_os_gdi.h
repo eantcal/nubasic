@@ -125,6 +125,7 @@ int _os_get_mouse_btn() NU_NOEXCEPT;
 int _os_msg_box(const std::string& title, const std::string& message, int flg);
 int _os_play_sound(const std::string& filename, int flg);
 int _os_move_window(int x, int y, int dx, int dy);
+int _os_get_pixel(int x, int y);
 
 int _os_get_window_x() NU_NOEXCEPT;
 int _os_get_window_y() NU_NOEXCEPT;

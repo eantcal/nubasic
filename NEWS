@@ -7,12 +7,22 @@ Please send nuBASIC / nuBasicEditor bug reports to <acaldmail@gmail.com>.
 Win32/64 built with VS2015 needs "Visual C++ Redistributable Packages for Visual Studio 2015"
 https://www.microsoft.com/en-us/download/details.aspx?id=48145
 
-TBD, 2015
+
+??, 2015
+* Released nuBASIC 1.45
+- Enable user to open a file dropping it into nuBASIC IDE window
+- Add GetPixel function
+- Improvements and bug-fixes
+
+
+
+Dec 1, 2015
 * Released nuBASIC 1.44
 - Support for Linux executable .bas program:
-  Your program must be start with #!/usr/bin/nubasic 
-  You have to specify correct nubasic binary path if it 
-  does not match with the above one
+  Your program must begin with #!/<bin path>/nubasic 
+  (You may use make_bas_exec.sh script in order to make a file .bas executable)
+- Windows installer associates automatically .bas to nuBASIC. 
+  If you click on one of these file, it will run automatically
 - Improvements and bug-fixes
 
 

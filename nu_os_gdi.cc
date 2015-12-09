@@ -487,6 +487,17 @@ int _os_move_window(int x, int y, int dx, int dy)
 
 /* -------------------------------------------------------------------------- */
 
+int _os_get_pixel(int x, int y)
+{
+   HDC hdc = GetDC(GetConsoleWindow());
+   auto ret = GetPixel(hdc, x, y);
+   ReleaseDC(GetConsoleWindow(), hdc);
+   return ret;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 int _os_get_window_x() NU_NOEXCEPT
 {
    RECT r = { 0 };
@@ -807,6 +818,21 @@ public:
    {
       XDrawPoint(_display, _xterm_win, _gc, x, y);
    }
+
+
+
+   void getpixel(int x, int y, )
+   {
+#if 0 //TODO
+      XColor color;
+      XImage *image;
+      image = XGetImage(_display, RootWindow(_display, DefaultScreen(_display)), x, y, 1, 1, AllPlanes, XYPixmap);
+      color.pixel = XGetPixel(image, 0, 0);
+      XFree(image);
+      XQueryColor(_display, DefaultColormap(_display, DefaultScreen(_display)), &color);
+#endif
+   }
+
 
 
    void ellipse(int x1, int y1, int x2, int y2)

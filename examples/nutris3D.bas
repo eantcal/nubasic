@@ -103,7 +103,7 @@ Sub MainLoop()
       key$ = ""
   
       While key$<>"y" and key$<>"Y"
-         key$ = Input$(1)
+         key$ = inkey$()
          If key$="n" Or key$="N" Then 
             FillRect 0,0,600,800,0
             Cls  

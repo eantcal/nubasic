@@ -297,6 +297,13 @@ public:
 
 
    /**
+   * Handle WM_DROPFILES message received from the application window
+   * which has registered as a recipient of dropped files
+   */
+   void on_drop_files(HDROP hDropInfo);
+
+
+   /**
    * Set replace msg
    */
    void set_find_replace_msg(UINT msg) NU_NOEXCEPT
@@ -1331,6 +1338,33 @@ void nu::editor_t::clear_info()
       SendMessage(_h_infobox, EM_SETSEL, 0, -1);
       SendMessage(_h_infobox, EM_REPLACESEL, 0, 0);
    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void  nu::editor_t::on_drop_files(HDROP hDropInfo)
+{
+   // A file is being dropped.
+   int iFiles;
+   char lpszFile[MAX_PATH + 1] = { 0 };
+
+   // Get the number of files.
+   iFiles = DragQueryFile(hDropInfo, (DWORD)(-1), (LPSTR)NULL, 0);
+
+   if (iFiles != 1) {
+      MessageBox(get_main_hwnd(), "One file at a time, please.", NULL, MB_OK);
+   }
+   else {
+      DragQueryFile(hDropInfo, 0, lpszFile, sizeof(lpszFile));
+      std::string fileName;
+
+      if (lpszFile) {
+         open_document_file(lpszFile);
+      }
+   }
+
+   DragFinish(hDropInfo);
 }
 
 
@@ -3504,6 +3538,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
       g_editor.show_splash();
 
+      DragAcceptFiles(hWnd, TRUE);
+
       return 0;
    }
 
@@ -3526,8 +3562,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
    case WM_SIZE:
       if (wParam != 1)
          g_editor.resize_info();
-   
       return 0;
+
+   case WM_DROPFILES:
+      g_editor.on_drop_files((HDROP)wParam);
+      break;
 
    case WM_COMMAND:
       if (LOWORD(wParam) >= IDM_INTERPRETER_BROWSER_FUN)
