@@ -1289,7 +1289,9 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
       if (load(f))
       {
          set_ignore_break_event(true);
-         run(0);
+         signal_mgr_t::instance().disable_notifications();
+         bool res = run(0);
+         exit(res ? 0 : 1);
          return exec_res_t::CMD_EXEC;
       }
 

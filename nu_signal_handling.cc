@@ -98,7 +98,10 @@ bool signal_mgr_t::dispatch(signal_handler_t::event_t ev)
 // dependences
 bool _ev_dispatcher(signal_handler_t::event_t ev)
 {
-   return signal_mgr_t::instance().dispatch(ev);
+   if (! signal_mgr_t::instance()._disable_notifications)
+      return signal_mgr_t::instance().dispatch(ev);
+
+   return true;
 }
 
 
