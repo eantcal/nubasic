@@ -820,17 +820,23 @@ public:
    }
 
 
-
-   void getpixel(int x, int y, )
+   int getpixel(int x, int y)
    {
-#if 0 //TODO
       XColor color;
+
       XImage *image;
-      image = XGetImage(_display, RootWindow(_display, DefaultScreen(_display)), x, y, 1, 1, AllPlanes, XYPixmap);
+      image = XGetImage(
+         _display, 
+         _xterm_win, 
+          x, y, 1, 1, AllPlanes, XYPixmap);
+
       color.pixel = XGetPixel(image, 0, 0);
+
       XFree(image);
+
       XQueryColor(_display, DefaultColormap(_display, DefaultScreen(_display)), &color);
-#endif
+
+      return (((color.red >> 8) & 0xff) | (color.green & 0xff00) | ((color.blue << 8) & 0xff0000));
    }
 
 
@@ -1306,6 +1312,15 @@ int _os_move_window(int x, int y, int dx, int dy)
    gdi_ctx_t gdi_ctx(0, gdi_ctx_t::NO_BRUSH, 0, 1);
    int ret = gdi_ctx.move_win(x,y);
    return ret && gdi_ctx.resize_win(dx,dy);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+int _os_get_pixel(int x, int y)
+{
+   gdi_ctx_t gdi_ctx(0, gdi_ctx_t::NO_BRUSH, 0, 1);
+   return gdi_ctx.getpixel(x,y);
 }
 
 
