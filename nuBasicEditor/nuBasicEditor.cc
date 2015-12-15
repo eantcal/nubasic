@@ -1985,12 +1985,6 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
 
    alloc_console();
 
-   if (flg != dbg_flg_t::SINGLE_STEP_EXECUTION)
-   {
-      SetWindowPos(GetConsoleWindow(),
-         HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-   }
-
    g_editor.interpreter().register_break_event();
 
    switch (flg)
@@ -2098,11 +2092,14 @@ LRESULT CALLBACK RunningDlgWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARA
 {
    switch (message) {
    case WM_INITDIALOG:
-      RunningDlgWndProc_terminate = false;
+      RunningDlgWndProc_terminate = false;  
       SetTimer(hDlg, 0, 1000, 0);
       return TRUE;
 
    case WM_TIMER:
+      SetWindowPos(GetConsoleWindow(),
+         HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
       if (RunningDlgWndProc_terminate)
       {
          KillTimer(hDlg, 0);

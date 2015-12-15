@@ -8,12 +8,13 @@ Win32/64 built with VS2015 needs "Visual C++ Redistributable Packages for Visual
 https://www.microsoft.com/en-us/download/details.aspx?id=48145
 
 
-??, 2015
+Dec 15, 2015
 * Released nuBASIC 1.45
-- Enable user to open a file dropping it into nuBASIC IDE window
-- Add GetPixel function
+- User can now open a file dropping it into nuBASIC IDE Window
+- Added GetPixel function
+- Changed behaviour of DbgWindow in running mode
+- Added new sample "plane.bas" and related bitmaps
 - Improvements and bug-fixes
-
 
 
 Dec 1, 2015

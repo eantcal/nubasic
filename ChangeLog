@@ -1,6 +1,73 @@
 nuBASIC ChangeLog
 Please send nuBASIC bug reports to <acaldmail@gmail.com>.
 
+2015-12-15
+- User can now open a file dropping it into nuBASIC IDE Window
+- Added GetPixel function
+- Changed behaviour of DbgWindow in running mode
+- Improvements and bug-fixes
+
+
+2015-12-01
+- Support for Linux executable .bas program:
+  Your program must begin with #!/<bin path>/nubasic 
+  (You may use make_bas_exec.sh script in order to make a file .bas executable)
+- Windows installer associates automatically .bas to nuBASIC. 
+  If you click on one of these file, it will run automatically
+- Improvements and bug-fixes
+
+
+2015-11-30
+- Added Info Message Window to IDE
+- Added context help (pressing F1); 
+  from now on-line help is mapped on Ctrl+F1
+- Improvements and bug-fixes
+
+
+2014-11-25
+- Explicit type definition extended to function return type
+- Extended function syntax in order to pass return struct objects
+- Improvements and bug-fixes
+
+
+2014-11-24
+- Const statement syntax extended in order to support explicit type declaration
+- New toolbar buttons related to Top/No-top most debug window selectors
+- New sample code: clock.bas
+- Improvements and bug-fixes
+
+
+2015-11-21
+- Add explicit type declaration (Example: Dim aString as String)
+- Add structures support:
+
+  Struct AStructType
+     element as String
+	 element2 as Integer
+	 element3(4) as Double
+  End Struct
+
+  Dim a as AStructType
+
+  a.element = "Hello World"
+  a.element2 = 3
+  a.element3(0) = 1.5768
+  a.element3(1) = 2.5868
+  a.element3(2) = 3.14
+  
+- Improvements and bug-fixes
+
+
+2015-10-20
+- Improvements and bug-fixes
+
+2015-10-14
+- Improvements and bug-fixes
+- Win32/64 rebuilt with VS2015
+  It needs "Visual C++ Redistributable Packages for Visual Studio 2015"
+  https://www.microsoft.com/en-us/download/details.aspx?id=48145
+- Added Debug Window top-most / no-top-most commands
+
 2015-06-09
 * Improve Randomize implementation
 
