@@ -1428,6 +1428,12 @@ builtin_help_t& builtin_help_t::get_instance()
          "SetPixel x, y, rgb_color"
       };
 
+      hmap[{lang_item_t::INSTRUCTION, "getpixel"}] =
+      {
+         "Gets color attribute from pixel at x%,y% of the working window\n",
+         "rgb_color% = GetPixel(x%, y%)"
+      };
+      
       hmap[ {lang_item_t::INSTRUCTION, "rect"}] =
       {
          "Draws a rectangle frame on the screen.\n"

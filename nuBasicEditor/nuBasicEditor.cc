@@ -82,12 +82,12 @@ TBBUTTON toolbar_buttons[] =
 
    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-   { 3, IDM_DEBUG_START, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Debug" },
-   { 4, IDM_DEBUG_TOGGLEBRK, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Breakpoint" },
-   { 5, IDM_INTERPRETER_BUILD, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Build" },
-   { 6, IDM_DEBUG_EVALSEL, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Evaluate" },
-   { 7, IDM_DEBUG_STEP, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Step" },
-   { 8, IDM_DEBUG_CONT, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Cont" },
+   { 3, IDM_DEBUG_START, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Run" },
+   { 4, IDM_DEBUG_STEP, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Step" },
+   { 5, IDM_DEBUG_CONT, toolbar_btn_state, toolbar_btn_style,{ 0 }, NULL, (INT_PTR) "Continue" },
+   { 6, IDM_DEBUG_TOGGLEBRK, toolbar_btn_state, toolbar_btn_style,{ 0 }, NULL, (INT_PTR) "Breakpoint" },
+   { 7, IDM_INTERPRETER_BUILD, toolbar_btn_state, toolbar_btn_style,{ 0 }, NULL, (INT_PTR) "Build" },
+   { 8, IDM_DEBUG_EVALSEL, toolbar_btn_state, toolbar_btn_style, { 0 }, NULL, (INT_PTR) "Evaluate" },
 
    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
@@ -2368,6 +2368,8 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) NU_NOEXCEPT
 
    remove_funcs_menu();
 
+   bool first_is_special_comment = false;
+
    while (i < doc_size)
    {
       if ((i % 10) == 0)
@@ -2384,7 +2386,13 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) NU_NOEXCEPT
       {
          if (ch == '\r') ++i;
 
-         if (line_num == 1)
+         if (line_num == 1 && line.size()>2 && line.substr(0, 2) == "#!")
+         {
+            first_is_special_comment = true;
+         }
+         else if (
+            line_num == 1 || 
+            (line_num == 2 && first_is_special_comment))
          {
             try {
                auto tokens = split(line);
