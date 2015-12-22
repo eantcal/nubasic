@@ -25,18 +25,18 @@ Features
 - Tiny version is suitable for embedded systems
 
 -------------------------------------------------------------------------------
-Latest released packages
+Released packages
 -------------------------------------------------------------------------------
 Linux Installers:
-RPM (Fedora) 64 bit Installer - nubasic-1.45-1.fc21.x86_64.rpm
-Debian / Ubuntu 64 bit Installer - nubasic_1.45-1_amd64.deb
+RPM (Fedora) 64 bit Installer - nubasic-<ver>-1.fc21.x86_64.rpm
+Debian / Ubuntu 64 bit Installer - nubasic_<ver>-1_amd64.deb
 
 Windows Installers:
-* Windows 64 bit Installer (VC++ build) - nubasic-ide-1.45-setup_x64.zip
-* Windows 32 bit Installer (VC++ build) - nubasic-ide-1.45-setup.zip
+* Windows 64 bit Installer (VC++ build) - nubasic-ide-<ver>-setup_x64.zip
+* Windows 32 bit Installer (VC++ build) - nubasic-ide-<ver>-setup.zip
 
 Source code:
-* Interpreter and IDE source code: nubasic-1.45.tar.gz
+* Interpreter and IDE source code: nubasic-<ver>.tar.gz
 
 Guides (PDF, ODT):
 * nuBASIC Guide (ENG)

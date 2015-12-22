@@ -7,6 +7,13 @@ Please send nuBASIC / nuBasicEditor bug reports to <acaldmail@gmail.com>.
 Win32/64 built with VS2015 needs "Visual C++ Redistributable Packages for Visual Studio 2015"
 https://www.microsoft.com/en-us/download/details.aspx?id=48145
 
+Dec 22, 2015
+* Released nuBASIC 1.46
+- Changed icons layout and commands order of the toolbar
+- Bug-fix: IDE did not execute old-style programs if first line is special comment "!#"
+- Bug-fix: IDE did not clean "Go to procedures" submenu before build new programs
+- Improvements and bug-fixes
+
 
 Dec 15, 2015
 * Released nuBASIC 1.45

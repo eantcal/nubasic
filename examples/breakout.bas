@@ -102,8 +102,8 @@
 1010  lives%=lives%-1
 1020  Locate h%\2,w%\2-12:   Print "Ops... you have "; lives%; " lives"
 1030  Locate h%\2+2,w%\2-12: Print "Press any key to continue"
-1040  a$=Input$(1)
-1050  If a$="q" Then End
+1040  a$=InKey$()
+1050  If a$="q" Then End Else if len(a$) = 0 then Goto 1040
 1060  b%=-1: cls
 1070  GoSub 510 : Rem Rectangle
 1080  GoSub 580 : Rem Draw wall
@@ -113,8 +113,8 @@
 1120 Rem ---- COMPLETED
 1130   Locate h%\2,w%\2-12:   Print "   Sorry, You loose !"
 1140   Locate h%\2+2,w%\2-12: Print "Press any key to continue"
-1150   a$=Input$(1)
-1160   If a$="q" Then end
+1150   a$=InKey$()
+1160   If a$="q" Then end Else goto 1150
 1170   GoTo 60
 1180 Rem Rectangle
 1190   Locate 1,1

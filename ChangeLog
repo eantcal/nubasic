@@ -2,8 +2,9 @@ nuBASIC ChangeLog
 Please send nuBASIC bug reports to <acaldmail@gmail.com>.
 
 2015-12-16
-- Changed icons and commands order of the toolbar
-- Bug-fiexd: IDE did not execute old-style programs if first line is special comment "!#"
+- Changed icons layout and commands order of the toolbar
+- Bug-fix: IDE did not execute old-style programs if first line is special comment "!#"
+- Bug-fix: IDE did not clean "Go to procedures" submenu before build new programs
 
 
 2015-12-15

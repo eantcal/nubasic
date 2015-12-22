@@ -272,7 +272,9 @@ ProcessPlayerBallCollision:
    Beep
    Beep
   
-   a$=input$(1)
+   Do 
+      a$=inkey$()
+   Loop While len(a$)<1 
   
    If a$="q" Then End
    

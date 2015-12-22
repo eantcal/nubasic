@@ -1832,9 +1832,6 @@ void nu::editor_t::create_funcs_menu() NU_NOEXCEPT
    const rt_prog_ctx_t& prog_ctx = g_editor.interpreter().get_ctx();
    const auto & prototypes = prog_ctx.proc_prototypes.data;
 
-   if (prototypes.empty())
-      return;
-
    std::string list;
 
    HMENU hmenu = GetMenu(get_main_hwnd());
@@ -2016,9 +2013,7 @@ bool nu::editor_t::show_execution_point(int line) NU_NOEXCEPT
       line = 1;
 
    auto endpos = send_command(SCI_GETLINEENDPOSITION, line - 1, 0) + 1;
-
-   //send_command(SCI_LINELENGTH, line - 1, 0)<=1
-
+   
    while (!interpreter().has_runnable_stmt(line) && line < endpos)
       ++line;
 
