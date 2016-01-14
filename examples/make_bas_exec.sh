@@ -20,7 +20,7 @@
 #  along with nuBASIC; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  US
 #
-#  Author: <antonino.calderone@ericsson.com>, <acaldmail@gmail.com>
+#  Author: Antonino Calderone <acaldmail@gmail.com>
 # -----------------------------------------------------------------------------
 
 file="$1"
@@ -44,7 +44,7 @@ dos2unix $1 2> /dev/null
 
 cp -a $1 $1.bak && echo "#!`which nubasic`" > $1 && grep -v "^#!" $1.bak >> $1 && chmod +x $1 || error=1
 
-if [ -z $err ]
+if [ -z $error ]
 then
    echo "Operation completed"
    exit 0

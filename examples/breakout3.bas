@@ -19,7 +19,7 @@
 '  along with nuBASIC; if not, write to the Free Software
 '  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  US
 '
-'  Author: <antonino.calderone@ericsson.com>, <acaldmail@gmail.com>
+'  Author: Antonino Calderone <acaldmail@gmail.com>
 ' -----------------------------------------------------------------------------
 
 ' Globals
