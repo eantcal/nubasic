@@ -283,6 +283,15 @@ static help_content_t _help_content[] =
    },
 
    {
+      lang_item_t::FUNCTION, "strp",
+      "Returns a string representation of the value of x\n"
+      "Precision% specifies the minimum number of digits to be written/\n"
+      "If the value to be written is shorter than %precision, the result\n"
+      "is padded with leading zeros",
+      "StrP[$](x, precision%)"
+   },
+
+   {
       lang_item_t::FUNCTION, "hex",
       "Returns a hexadecimal representation (as string) of the value of x",
       "Hex[$](x)"

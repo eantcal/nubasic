@@ -7,6 +7,12 @@ Please send nuBASIC / nuBasicEditor bug reports to <acaldmail@gmail.com>.
 Win32/64 built with VS2015 needs "Visual C++ Redistributable Packages for Visual Studio 2015"
 https://www.microsoft.com/en-us/download/details.aspx?id=48145
 
+TODO, 2016
+* Released nuBASIC 1.47
+- Add format function for floating point representation (StrP, StrP$)
+- Improvements and bug-fixes
+
+
 Dec 22, 2015
 * Released nuBASIC 1.46
 - Changed icons layout and commands order of the toolbar

@@ -50,7 +50,7 @@ const std::set<std::string> reserved_keywords_t::list =
    "instr", "instrcs", "rgb", "int", "lcase", "left", "len", "log", "log10",
    "max", "mid", "mid", "min", "msgbox", "not", "pi", "pow", "pwd", "pstr",
    "right", "rnd", "sign", "sin", "sinh", "sizeof", "sub", "space", "spc",
-   "sqr", "sqrt", "str", "substr", "tan", "tanh", "time", "truncf", "ucase",
+   "sqr", "sqrt", "str", "strp", "substr", "tan", "tanh", "time", "truncf", "ucase",
    "val", "ver", "systime", "sysday", "syshour", "sysmin", "syssec", "sysyday",
    "syswday", "sysyear", "sysmonth", "boolean", "integer", "double", "float",
    "string", "type", "elseif", "setpixel", "getpixel", "struct",

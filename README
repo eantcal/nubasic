@@ -57,7 +57,7 @@ How to build it?
 nuBASIC source has been written in C++11 and compiles under several operating 
 systems including Windows and Linux. 
 
-To compile nuBASIC you may create a Visual Studio 2013 console application or 
+To compile nuBASIC you may create a Visual C++ console application or 
 build it by using GCC >= 4.8.1 (both VS project files and autoconf/automake 
 source files have been provided) or using MinGW / MinGW w64 >= 4.8.x
 

@@ -403,6 +403,24 @@ variant_t functor_string_string_int(
 
 /* -------------------------------------------------------------------------- */
 
+// string F()(double, int)
+template <class F>
+variant_t functor_string_double_int(
+   rt_prog_ctx_t & ctx,
+   const std::string& name,
+   const nu::func_args_t & args)
+{
+   return functor_RT_T1_T2<F, std::string, double, int>(
+      ctx,
+      name,
+      args,
+      variant_t::type_t::DOUBLE,
+      variant_t::type_t::INTEGER);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 // int F()(string, string)
 template <class F>
 variant_t functor_int_string_string(
@@ -1197,6 +1215,22 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
 
       fmap["str"] = functor_string_double<_to_str>;
       fmap["str$"] = functor_string_double<_to_str>;
+
+
+      struct _to_str_precision
+      {
+         std::string operator()(double x, int digits) NU_NOEXCEPT
+         {
+            char buffer[1024] = { 0 };
+            std::string format = "%." + std::to_string(abs(digits)) + "f";
+            snprintf(buffer, sizeof(buffer)-1, format.c_str(), x);
+
+            return buffer;
+         }
+      };
+
+      fmap["strp"] = functor_string_double_int<_to_str_precision>;
+      fmap["strp$"] = functor_string_double_int<_to_str_precision>;
 
 
       struct _to_hex_str
