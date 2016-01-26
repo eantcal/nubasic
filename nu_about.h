@@ -49,7 +49,7 @@ static const char * const contacts = PACKAGE_BUGREPORT;
 static const char * const homepage = "http://www.nubasic.eu";
 static const char * const license = "GNU General Public License v2.0";
 static const char * const version = PACKAGE_VERSION;
-static const char * const copyright = "2014, 2015";
+static const char * const copyright = "2014-2016";
 static const char * const description =
    "nuBASIC is a programming language from the BASIC family.\n"
    "nuBASIC is developed in C++11 and distributed under GPLv2 License."
