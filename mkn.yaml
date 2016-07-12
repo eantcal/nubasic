@@ -1,0 +1,20 @@
+#
+# This file can be used to rebuild nubasic interpreter by using "maiken" which is a 
+# C++14 Cross platform YAML based build tool for GCC/CLANG/ICC/MSVC/NVCC
+#
+# Please, see also https://github.com/Dekken/maiken
+#
+# mkn clean -p nubasic-release
+# mkn build -p nubasic-release
+#
+
+name: nubasic
+version: master
+
+profile:
+  - name: nubasic-release
+    src: |
+         ., false
+    main: main.cc
+    arg: -pthread -fPIC -O2 
+    lib: X11 pthread
