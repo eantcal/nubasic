@@ -28,41 +28,38 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-expr_unary_op_t::expr_unary_op_t(const std::string& op_name, expr_any_t::handle_t var) :
-   _op_name(op_name),
-   _var(var)
-{}
-
-
-/* -------------------------------------------------------------------------- */
-
-bool expr_unary_op_t::empty() const NU_NOEXCEPT
+expr_unary_op_t::expr_unary_op_t(
+    const std::string& op_name, expr_any_t::handle_t var)
+    : _op_name(op_name)
+    , _var(var)
 {
-   return false;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-variant_t expr_unary_op_t::eval(rt_prog_ctx_t & ctx) const
+bool expr_unary_op_t::empty() const noexcept { return false; }
+
+
+/* -------------------------------------------------------------------------- */
+
+variant_t expr_unary_op_t::eval(rt_prog_ctx_t& ctx) const
 {
 
-   if (!global_function_tbl_t::get_instance().is_defined(_op_name))
-   {
-      throw exception_t(
-         std::string("Error: \"" + _op_name + "\" undefined symbol"));
-   }
+    if (!global_function_tbl_t::get_instance().is_defined(_op_name)) {
+        throw exception_t(
+            std::string("Error: \"" + _op_name + "\" undefined symbol"));
+    }
 
-   func_args_t args;
-   args.push_back(_var);
+    func_args_t args;
+    args.push_back(_var);
 
-   return global_function_tbl_t::get_instance()[_op_name](ctx, _op_name, args);
+    return global_function_tbl_t::get_instance()[_op_name](ctx, _op_name, args);
 }
 
 
@@ -72,5 +69,3 @@ variant_t expr_unary_op_t::eval(rt_prog_ctx_t & ctx) const
 
 
 /* -------------------------------------------------------------------------- */
-
-

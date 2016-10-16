@@ -28,42 +28,40 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include "nu_expr_any.h"
 #include "nu_stmt.h"
 #include "nu_stmt_empty.h"
-#include "nu_expr_any.h"
 
 #include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_close_t : public stmt_t
-{
+class stmt_close_t : public stmt_t {
 public:
-   stmt_close_t() = delete;
-   stmt_close_t(const stmt_close_t&) = delete;
-   stmt_close_t& operator=(const stmt_close_t&) = delete;
+    stmt_close_t() = delete;
+    stmt_close_t(const stmt_close_t&) = delete;
+    stmt_close_t& operator=(const stmt_close_t&) = delete;
 
-   stmt_close_t(prog_ctx_t & ctx, unsigned int fd) :
-      stmt_t(ctx),
-      _fd(fd)
-   {}
+    stmt_close_t(prog_ctx_t& ctx, unsigned int fd)
+        : stmt_t(ctx)
+        , _fd(fd)
+    {
+    }
 
-   virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual void run(rt_prog_ctx_t& ctx) override;
 
 protected:
-   unsigned int _fd = 0;
+    unsigned int _fd = 0;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

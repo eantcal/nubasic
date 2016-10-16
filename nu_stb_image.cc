@@ -25,29 +25,27 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-unsigned char *image_load(char const *filename, int &x, int &y)
+unsigned char* image_load(char const* filename, int& x, int& y)
 {
-   int comp = 0;
-   stbi_uc * image = stbi_load(filename, &x, &y, &comp, 4);
+    int comp = 0;
+    stbi_uc* image = stbi_load(filename, &x, &y, &comp, 4);
 
-   return image;
+    return image;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-void image_free( unsigned char * image )
+void image_free(unsigned char* image)
 {
-   if ( image )
-   {
-      stbi_image_free( image );
-   }
+    if (image) {
+        stbi_image_free(image);
+    }
 }
 
 

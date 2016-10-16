@@ -28,36 +28,33 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include <memory>
 #include "nu_stmt.h"
+#include <memory>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-struct stmt_empty_t : public stmt_t
-{
-   stmt_empty_t() = delete;
-   stmt_empty_t(const stmt_empty_t&) = delete;
-   stmt_empty_t& operator=(const stmt_empty_t&) = delete;
+struct stmt_empty_t : public stmt_t {
+    stmt_empty_t() = delete;
+    stmt_empty_t(const stmt_empty_t&) = delete;
+    stmt_empty_t& operator=(const stmt_empty_t&) = delete;
 
-   stmt_empty_t(prog_ctx_t & ctx) :
-      stmt_t(ctx)
-   {}
+    stmt_empty_t(prog_ctx_t& ctx)
+        : stmt_t(ctx)
+    {
+    }
 
-   virtual void run(rt_prog_ctx_t& ctx) override;
-   virtual stmt_cl_t get_cl() const NU_NOEXCEPT override;
-
+    virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual stmt_cl_t get_cl() const noexcept override;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

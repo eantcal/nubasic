@@ -27,18 +27,17 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-icstring_t& icstring_t::operator=(icstring_t&& s) NU_NOEXCEPT
+icstring_t& icstring_t::operator=(icstring_t&& s) noexcept
 {
-   if (this != &s)
-      _data = std::move(s._data);
+    if (this != &s)
+        _data = std::move(s._data);
 
-   return *this;
+    return *this;
 }
 
 
@@ -46,35 +45,31 @@ icstring_t& icstring_t::operator=(icstring_t&& s) NU_NOEXCEPT
 
 size_t icstring_t::find(std::string searching_s)
 {
-   std::string s = _data;
+    std::string s = _data;
 
-   std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
 
-   std::transform(
-      searching_s.begin(),
-      searching_s.end(),
-      searching_s.begin(),
-      ::tolower);
+    std::transform(
+        searching_s.begin(), searching_s.end(), searching_s.begin(), ::tolower);
 
-   return s.find(searching_s);
+    return s.find(searching_s);
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-bool icstring_t::operator<(const icstring_t& s) const NU_NOEXCEPT
+bool icstring_t::operator<(const icstring_t& s) const noexcept
 {
-   if (s._data.empty())
-      return false;
+    if (s._data.empty())
+        return false;
 
-   if (_data.empty())
-      return true;
+    if (_data.empty())
+        return true;
 
-   return strcasecmp(_data.c_str(), s._data.c_str()) < 0;
+    return strcasecmp(_data.c_str(), s._data.c_str()) < 0;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
 } // namespace nu
-

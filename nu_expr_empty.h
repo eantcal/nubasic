@@ -31,47 +31,38 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class expr_empty_t : public expr_any_t
-{
+class expr_empty_t : public expr_any_t {
 public:
-   //! ctors
-   expr_empty_t() = default;
-   expr_empty_t(const expr_empty_t&) = default;
-   expr_empty_t& operator =( const expr_empty_t& ) = default;
+    //! ctors
+    expr_empty_t() = default;
+    expr_empty_t(const expr_empty_t&) = default;
+    expr_empty_t& operator=(const expr_empty_t&) = default;
 
-   //! It does nothing for an empty object
-   virtual variant_t eval(rt_prog_ctx_t &) const override
-   {
-      return variant_t(0);
-   }
+    //! It does nothing for an empty object
+    virtual variant_t eval(rt_prog_ctx_t&) const override
+    {
+        return variant_t(0);
+    }
 
-   //! Returns true for an empty expression
-   virtual bool empty() const NU_NOEXCEPT override
-   {
-      return true;
-   }
+    //! Returns true for an empty expression
+    virtual bool empty() const noexcept override { return true; }
 
-   std::string name() const NU_NOEXCEPT override
-   {
-      return "";
-   }
+    std::string name() const noexcept override { return ""; }
 
-   func_args_t get_args() const NU_NOEXCEPT override
-   {
-      func_args_t dummy;
-      return dummy;
-   }
+    func_args_t get_args() const noexcept override
+    {
+        func_args_t dummy;
+        return dummy;
+    }
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 #endif // __NU_EXPR_EMPTY_H__

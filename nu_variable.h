@@ -25,70 +25,58 @@
 #ifndef __NU_VARIABLE_H__
 #define __NU_VARIABLE_H__
 
-#include "nu_reserved_keywords.h"
 #include "nu_cpp_lang.h"
+#include "nu_reserved_keywords.h"
 
-#include <string>
 #include <set>
+#include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-struct variable_t
-{
-   enum class type_t
-   {
-      UNDEFINED,
-      INTEGER,
-      FLOAT,
-      DOUBLE,
-      STRING,
-      BYTEVECTOR,
-      BOOLEAN,
-      LONG64,
-      STRUCT
-   };
+struct variable_t {
+    enum class type_t {
+        UNDEFINED,
+        INTEGER,
+        FLOAT,
+        DOUBLE,
+        STRING,
+        BYTEVECTOR,
+        BOOLEAN,
+        LONG64,
+        STRUCT
+    };
 
 
-   static type_t type_by_name(const std::string& name);
-   static bool is_valid_name(std::string name, bool ignore_builtin);
-   static type_t type_by_typename(std::string name);
-   static std::string typename_by_type(type_t type);
+    static type_t type_by_name(const std::string& name);
+    static bool is_valid_name(std::string name, bool ignore_builtin);
+    static type_t type_by_typename(std::string name);
+    static std::string typename_by_type(type_t type);
 
 
-   static inline bool is_number( type_t t ) NU_NOEXCEPT
-   {
-      return
-         t == type_t::LONG64 ||
-         t == type_t::INTEGER ||
-         t == type_t::FLOAT ||
-         t == type_t::DOUBLE ||
-         t == type_t::BOOLEAN;
-   }
+    static inline bool is_number(type_t t) noexcept
+    {
+        return t == type_t::LONG64 || t == type_t::INTEGER || t == type_t::FLOAT
+            || t == type_t::DOUBLE || t == type_t::BOOLEAN;
+    }
 
 
-   static inline bool is_float(type_t t) NU_NOEXCEPT
-   {
-      return
-         t == type_t::FLOAT ||
-         t == type_t::DOUBLE;
-   }
+    static inline bool is_float(type_t t) noexcept
+    {
+        return t == type_t::FLOAT || t == type_t::DOUBLE;
+    }
 
 
-   static inline bool is_integral(type_t t) NU_NOEXCEPT
-   {
-      return
-         t == type_t::LONG64 ||
-         t == type_t::INTEGER ||
-         t == type_t::BOOLEAN;
-   }
-
+    static inline bool is_integral(type_t t) noexcept
+    {
+        return t == type_t::LONG64 || t == type_t::INTEGER
+            || t == type_t::BOOLEAN;
+    }
 };
 
 

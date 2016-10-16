@@ -34,19 +34,16 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-struct reserved_keywords_t
-{
-   static const std::set<std::string> list;
+struct reserved_keywords_t {
+    static const std::set<std::string> list;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

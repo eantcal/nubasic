@@ -27,123 +27,96 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include <string>
-#include <string.h>
 #include <algorithm>
+#include <string.h>
+#include <string>
 
 #include "nu_os_std.h"
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class icstring_t
-{
+class icstring_t {
 public:
-   icstring_t(const std::string& str = std::string()) NU_NOEXCEPT
-      : _data(str)
-   {}
+    icstring_t(const std::string& str = std::string()) noexcept : _data(str) {}
 
 
-   icstring_t(const char* str) NU_NOEXCEPT :
-      _data(str)
-   {}
+    icstring_t(const char* str) noexcept : _data(str) {}
 
 
-   icstring_t(const icstring_t&) = default;
+    icstring_t(const icstring_t&) = default;
 
 
-   icstring_t& operator=( const icstring_t& ) = default;
+    icstring_t& operator=(const icstring_t&) = default;
 
 
-   icstring_t(icstring_t&& s) NU_NOEXCEPT
-   {
-      _data = std::move(s._data);
-   }
+    icstring_t(icstring_t&& s) noexcept { _data = std::move(s._data); }
 
 
-   icstring_t& operator=( icstring_t&& s ) NU_NOEXCEPT;
+    icstring_t& operator=(icstring_t&& s) noexcept;
 
 
-   size_t find(std::string searching_s);
+    size_t find(std::string searching_s);
 
 
-   bool operator<( const icstring_t& s ) const NU_NOEXCEPT;
+    bool operator<(const icstring_t& s) const noexcept;
 
 
-   bool operator>=( const icstring_t& s ) const NU_NOEXCEPT
-   {
-      return !( this->operator<( s ) );
-   }
+    bool operator>=(const icstring_t& s) const noexcept
+    {
+        return !(this->operator<(s));
+    }
 
 
-   bool operator<=( const icstring_t& s ) const NU_NOEXCEPT
-   {
-      return !( s.operator<( *this ) );
-   }
+    bool operator<=(const icstring_t& s) const noexcept
+    {
+        return !(s.operator<(*this));
+    }
 
 
-   bool operator==( const icstring_t& s ) const NU_NOEXCEPT
-   {
-      return this->operator<=( s ) && this->operator>=( s );
-   }
+    bool operator==(const icstring_t& s) const noexcept
+    {
+        return this->operator<=(s) && this->operator>=(s);
+    }
 
 
-   bool operator!=( const icstring_t& s ) const NU_NOEXCEPT
-   {
-      return !this->operator==( s );
-   }
+    bool operator!=(const icstring_t& s) const noexcept
+    {
+        return !this->operator==(s);
+    }
 
 
-   bool operator>( const icstring_t& s ) const NU_NOEXCEPT
-   {
-      return s.operator<( *this );
-   }
+    bool operator>(const icstring_t& s) const noexcept
+    {
+        return s.operator<(*this);
+    }
 
 
-   explicit operator std::string() const NU_NOEXCEPT
-   {
-      return _data;
-   }
+    explicit operator std::string() const noexcept { return _data; }
 
 
-   const std::string& str() const NU_NOEXCEPT
-   {
-      return _data;
-   }
+    const std::string& str() const noexcept { return _data; }
 
 
-   std::string&& str() NU_NOEXCEPT
-   {
-      return std::move(_data);
-   }
+    std::string&& str() noexcept { return std::move(_data); }
 
 
-   size_t size() const NU_NOEXCEPT
-   {
-      return _data.size();
-   }
+    size_t size() const noexcept { return _data.size(); }
 
 
-   bool empty() const NU_NOEXCEPT
-   {
-      return _data.empty();
-   }
+    bool empty() const noexcept { return _data.empty(); }
 
 
-   void clear() NU_NOEXCEPT
-   {
-      _data.clear();
-   }
+    void clear() noexcept { _data.clear(); }
 
 
 protected:
-   std::string _data;
+    std::string _data;
 };
 
 

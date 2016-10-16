@@ -27,30 +27,28 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-variant_t expr_subscrop_t::eval(rt_prog_ctx_t & ctx) const
+variant_t expr_subscrop_t::eval(rt_prog_ctx_t& ctx) const
 {
-   var_scope_t::handle_t scope =
-      ctx.proc_scope.get(ctx.proc_scope.get_type(_name));
+    var_scope_t::handle_t scope
+        = ctx.proc_scope.get(ctx.proc_scope.get_type(_name));
 
-   if (! scope->is_defined(_name))
-      throw exception_t(
-         std::string("Error: \"" + _name + "\" undefined symbol"));
+    if (!scope->is_defined(_name))
+        throw exception_t(
+            std::string("Error: \"" + _name + "\" undefined symbol"));
 
-   const variant_t& var_value = (*scope)[_name].first;
-   (void) var_value; // TODO
+    const variant_t& var_value = (*scope)[_name].first;
+    (void)var_value; // TODO
 
-   //TODO apply to string!
-   //if (var_value.is_vector())
-   //    return var_value[_var[0]->eval(ctx).to_int()];
+    // TODO apply to string!
+    // if (var_value.is_vector())
+    //    return var_value[_var[0]->eval(ctx).to_int()];
 
-   throw exception_t(
-      std::string("Cannot evaluate \"" + _name + "\""));
+    throw exception_t(std::string("Cannot evaluate \"" + _name + "\""));
 }
 
 
@@ -60,5 +58,3 @@ variant_t expr_subscrop_t::eval(rt_prog_ctx_t & ctx) const
 
 
 /* -------------------------------------------------------------------------- */
-
-

@@ -28,53 +28,47 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include "nu_expr_any.h"
 #include "nu_stmt.h"
 #include "nu_var_scope.h"
-#include "nu_expr_any.h"
 #include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_input_t : public stmt_t
-{
+class stmt_input_t : public stmt_t {
 public:
-   stmt_input_t() = delete;
-   stmt_input_t(stmt_input_t&) = delete;
-   stmt_input_t& operator=(stmt_input_t&) = delete;
+    stmt_input_t() = delete;
+    stmt_input_t(stmt_input_t&) = delete;
+    stmt_input_t& operator=(stmt_input_t&) = delete;
 
-   stmt_input_t(
-      prog_ctx_t & ctx,
-      const std::string& input_str,
-      const var_list_t& var)
-      :
-      stmt_t(ctx),
-      _input_str(input_str),
-      _vars(var)
-   {}
+    stmt_input_t(
+        prog_ctx_t& ctx, const std::string& input_str, const var_list_t& var)
+        : stmt_t(ctx)
+        , _input_str(input_str)
+        , _vars(var)
+    {
+    }
 
 
-   virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual void run(rt_prog_ctx_t& ctx) override;
 
 
 protected:
-   std::string _input_str;
-   var_list_t _vars;
+    std::string _input_str;
+    var_list_t _vars;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 
 /* -------------------------------------------------------------------------- */
 
 #endif
-

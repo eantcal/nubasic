@@ -23,15 +23,15 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_os_std.h"
-#include <stdlib.h>
 #include <ctime>
+#include <stdlib.h>
 
 #include <stdlib.h>
 
 
 /* -------------------------------------------------------------------------- */
 
-#if defined( __MINGW32__ )
+#if defined(__MINGW32__)
 // For unknown reason putenv is not declared (but it is implemented)
 extern "C" int putenv(const char*);
 #endif
@@ -39,15 +39,14 @@ extern "C" int putenv(const char*);
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
 int _os_get_time()
 {
-   time_t t = time(NULL);
-   return int(t);
+    time_t t = time(NULL);
+    return int(t);
 }
 
 
@@ -55,102 +54,74 @@ int _os_get_time()
 
 static inline tm* _get_local_tm()
 {
-   time_t t = time(NULL);
-   return localtime(&t);
+    time_t t = time(NULL);
+    return localtime(&t);
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_month()
-{
-   return _get_local_tm()->tm_mon + 1;
-}
+int _os_get_month() { return _get_local_tm()->tm_mon + 1; }
 
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_day()
-{
-   return _get_local_tm()->tm_mday;
-}
+int _os_get_day() { return _get_local_tm()->tm_mday; }
 
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_wday()
-{
-   return _get_local_tm()->tm_wday;
-}
+int _os_get_wday() { return _get_local_tm()->tm_wday; }
 
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_yday()
-{
-   return _get_local_tm()->tm_yday;
-}
+int _os_get_yday() { return _get_local_tm()->tm_yday; }
 
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_year()
-{
-   return _get_local_tm()->tm_year + 1900;
-}
+int _os_get_year() { return _get_local_tm()->tm_year + 1900; }
 
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_hour()
-{
-   return _get_local_tm()->tm_hour;
-}
+int _os_get_hour() { return _get_local_tm()->tm_hour; }
 
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_min()
-{
-   return _get_local_tm()->tm_min;
-}
+int _os_get_min() { return _get_local_tm()->tm_min; }
 
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_sec()
-{
-   return _get_local_tm()->tm_sec;
-}
+int _os_get_sec() { return _get_local_tm()->tm_sec; }
 
 
 /* -------------------------------------------------------------------------- */
 
 std::string _os_get_systime()
 {
-   std::string s = asctime(_get_local_tm());
+    std::string s = asctime(_get_local_tm());
 
-   //Remove \n or \r at the end of the string
-   while (!s.empty())
-   {
-      auto c = s.c_str()[s.size() - 1];
+    // Remove \n or \r at the end of the string
+    while (!s.empty()) {
+        auto c = s.c_str()[s.size() - 1];
 
-      if (c == '\n' || c == '\r')
-         s = s.substr(0, s.size() - 1);
-      else
-         break;
-   }
+        if (c == '\n' || c == '\r')
+            s = s.substr(0, s.size() - 1);
+        else
+            break;
+    }
 
-   return s;
+    return s;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_beep()
-{
-   putc(7, stdout);
-}
+void _os_beep() { putc(7, stdout); }
 
 
 /* -------------------------------------------------------------------------- */
@@ -165,16 +136,15 @@ void _os_beep()
 
 /* -------------------------------------------------------------------------- */
 
+#include <stdio.h>
 #include <time.h>
 #include <windows.h>
-#include <stdio.h>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
-   
+namespace nu {
+
 /* -------------------------------------------------------------------------- */
 
 const __int64 DELTA_EPOCH_IN_MICROSECS = 11644473600000000;
@@ -182,68 +152,61 @@ const __int64 DELTA_EPOCH_IN_MICROSECS = 11644473600000000;
 
 /* -------------------------------------------------------------------------- */
 
-struct timeval2
-{
-   __int32    tv_sec;         /* seconds */
-   __int32    tv_usec;        /* microseconds */
+struct timeval2 {
+    __int32 tv_sec; /* seconds */
+    __int32 tv_usec; /* microseconds */
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-static int gettimeofday(struct timeval2 *tv)
+static int gettimeofday(struct timeval2* tv)
 {
-   FILETIME ft = { 0 };
-   __int64 tmpres = 0;
-   int rez = 0;
+    FILETIME ft = { 0 };
+    __int64 tmpres = 0;
+    int rez = 0;
 
-   GetSystemTimeAsFileTime(&ft);
+    GetSystemTimeAsFileTime(&ft);
 
-   tmpres = ft.dwHighDateTime;
-   tmpres <<= 32;
-   tmpres |= ft.dwLowDateTime;
+    tmpres = ft.dwHighDateTime;
+    tmpres <<= 32;
+    tmpres |= ft.dwLowDateTime;
 
-   /*converting file time to unix epoch*/
-   tmpres /= 10;  /*convert into microseconds*/
-   tmpres -= DELTA_EPOCH_IN_MICROSECS;
-   tv->tv_sec = ( __int32 ) ( tmpres*0.000001 );
-   tv->tv_usec = ( tmpres % 1000000 );
+    /*converting file time to unix epoch*/
+    tmpres /= 10; /*convert into microseconds*/
+    tmpres -= DELTA_EPOCH_IN_MICROSECS;
+    tv->tv_sec = (__int32)(tmpres * 0.000001);
+    tv->tv_usec = (tmpres % 1000000);
 
-   return 0;
+    return 0;
 }
-   
+
 
 /* -------------------------------------------------------------------------- */
 
 void _os_randomize()
 {
-   struct timeval2 t1 = { 0 };
-   gettimeofday(&t1);
-   srand(t1.tv_usec * t1.tv_sec);
+    struct timeval2 t1 = { 0 };
+    gettimeofday(&t1);
+    srand(t1.tv_usec * t1.tv_sec);
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_delay(int s)
-{
-   ::Sleep(s * 1000);
-}
+void _os_delay(int s) { ::Sleep(s * 1000); }
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_mdelay(int s)
-{
-   ::Sleep(s);
-}
+void _os_mdelay(int s) { ::Sleep(s); }
 
 
 /* -------------------------------------------------------------------------- */
 
 bool _os_change_dir(const std::string& dir)
 {
-   return FALSE != SetCurrentDirectory(dir.c_str());
+    return FALSE != SetCurrentDirectory(dir.c_str());
 }
 
 
@@ -251,33 +214,33 @@ bool _os_change_dir(const std::string& dir)
 
 std::string _os_get_working_dir()
 {
-   char buf[MAX_PATH + 1] = { 0 };
-   ::GetCurrentDirectory(MAX_PATH, buf);
-   return buf;
+    char buf[MAX_PATH + 1] = { 0 };
+    ::GetCurrentDirectory(MAX_PATH, buf);
+    return buf;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-#if defined( __MINGW32__ )
+#if defined(__MINGW32__)
 
 
-int _os_setenv( const char* var, const char* val )
+int _os_setenv(const char* var, const char* val)
 {
-   std::string s = var;
-   s+="=";
-   s+=val;
-   return putenv(s.c_str());
+    std::string s = var;
+    s += "=";
+    s += val;
+    return putenv(s.c_str());
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-int _os_unsetenv( const char* var )
+int _os_unsetenv(const char* var)
 {
-   std::string s = var;
-   s+="=";
-   return putenv(s.c_str());
+    std::string s = var;
+    s += "=";
+    return putenv(s.c_str());
 }
 
 
@@ -288,30 +251,29 @@ int _os_unsetenv( const char* var )
 
 /* -------------------------------------------------------------------------- */
 
-int _os_erase_file( const std::string & filepath )
+int _os_erase_file(const std::string& filepath)
 {
-   return ::DeleteFile(filepath.c_str()) ? 0 : -1;
+    return ::DeleteFile(filepath.c_str()) ? 0 : -1;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-int _os_make_dir( const std::string & filepath )
+int _os_make_dir(const std::string& filepath)
 {
-   return ::CreateDirectory(filepath.c_str(), NULL) ? 0 : -1;
+    return ::CreateDirectory(filepath.c_str(), NULL) ? 0 : -1;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-int _os_erase_dir( const std::string & filepath )
+int _os_erase_dir(const std::string& filepath)
 {
-   return ::RemoveDirectory(filepath.c_str()) ? 0 : -1;
+    return ::RemoveDirectory(filepath.c_str()) ? 0 : -1;
 }
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 
@@ -322,92 +284,81 @@ int _os_erase_dir( const std::string & filepath )
 
 /* -------------------------------------------------------------------------- */
 
-#include <unistd.h>
-#include <sys/ioctl.h>
+#include <fcntl.h>
 #include <linux/kd.h>
 #include <linux/limits.h>
-#include <sys/types.h>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <fcntl.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
 void _os_randomize()
 {
-   struct timeval t1 = { 0 };
-   gettimeofday(&t1, NULL);
-   srand(t1.tv_usec * t1.tv_sec);
+    struct timeval t1 = { 0 };
+    gettimeofday(&t1, NULL);
+    srand(t1.tv_usec * t1.tv_sec);
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_delay(int s)
-{
-   sleep(s);
-}
+void _os_delay(int s) { sleep(s); }
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_mdelay(int s)
-{
-   usleep(s * 1000);
-}
+void _os_mdelay(int s) { usleep(s * 1000); }
 
 
 /* -------------------------------------------------------------------------- */
 
-bool _os_change_dir(const std::string& dir)
-{
-   return 0 == chdir(dir.c_str());
-}
+bool _os_change_dir(const std::string& dir) { return 0 == chdir(dir.c_str()); }
 
 
 /* -------------------------------------------------------------------------- */
 
 std::string _os_get_working_dir()
 {
-   char buf[PATH_MAX + 1] = { 0 };
+    char buf[PATH_MAX + 1] = { 0 };
 
-   if (getcwd(buf, PATH_MAX) != nullptr)
-   {
-      return buf;
-   }
+    if (getcwd(buf, PATH_MAX) != nullptr) {
+        return buf;
+    }
 
-   return "";
+    return "";
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-int _os_erase_file( const std::string & filepath )
+int _os_erase_file(const std::string& filepath)
 {
-   return ::unlink(filepath.c_str()) ? 0 : -1;
+    return ::unlink(filepath.c_str()) ? 0 : -1;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-int _os_erase_dir( const std::string & filepath )
+int _os_erase_dir(const std::string& filepath)
 {
-   return ::rmdir(filepath.c_str()) ? 0 : -1;
+    return ::rmdir(filepath.c_str()) ? 0 : -1;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-int _os_make_dir( const std::string & filepath )
+int _os_make_dir(const std::string& filepath)
 {
-   return ::mkdir( filepath.c_str(), 0777 /* & ~umask */ );
+    return ::mkdir(filepath.c_str(), 0777 /* & ~umask */);
 }
 
 
@@ -419,4 +370,3 @@ int _os_make_dir( const std::string & filepath )
 /* -------------------------------------------------------------------------- */
 
 #endif
-

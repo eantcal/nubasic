@@ -28,58 +28,53 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_stmt.h"
-#include "nu_variable.h"
-#include "nu_var_scope.h"
-#include "nu_token_list.h"
 #include "nu_expr_any.h"
+#include "nu_prog_ctx.h"
+#include "nu_stmt.h"
+#include "nu_token_list.h"
+#include "nu_var_scope.h"
+#include "nu_variable.h"
 
 #include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_next_t : public stmt_t
-{
+class stmt_next_t : public stmt_t {
 public:
-   stmt_next_t() = delete;
-   stmt_next_t(const stmt_next_t&) = delete;
-   stmt_next_t& operator=(const stmt_next_t&) = delete;
+    stmt_next_t() = delete;
+    stmt_next_t(const stmt_next_t&) = delete;
+    stmt_next_t& operator=(const stmt_next_t&) = delete;
 
-   stmt_next_t(prog_ctx_t & ctx, const std::string& variable)
-      :
-      stmt_t(ctx),
-      _variable(variable)
-   {
-      auto handle = ctx.for_loop_metadata.end_find(ctx.compiletime_pc);
+    stmt_next_t(prog_ctx_t& ctx, const std::string& variable)
+        : stmt_t(ctx)
+        , _variable(variable)
+    {
+        auto handle = ctx.for_loop_metadata.end_find(ctx.compiletime_pc);
 
-      if (!handle)
-      {
-         handle = ctx.for_loop_metadata.compile_end(ctx.compiletime_pc);
-      }
+        if (!handle) {
+            handle = ctx.for_loop_metadata.compile_end(ctx.compiletime_pc);
+        }
 
-      if (handle)
-      {
-         handle->pc_end_stmt = ctx.compiletime_pc;
-      }
-   }
+        if (handle) {
+            handle->pc_end_stmt = ctx.compiletime_pc;
+        }
+    }
 
-   virtual void run(rt_prog_ctx_t& ctx) override;
-   virtual stmt_cl_t get_cl() const NU_NOEXCEPT override;
+    virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual stmt_cl_t get_cl() const noexcept override;
 
 protected:
-   std::string _variable;
+    std::string _variable;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

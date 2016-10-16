@@ -28,35 +28,33 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_stmt.h"
 #include "nu_os_std.h"
+#include "nu_stmt.h"
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_beep_t : public stmt_t
-{
+class stmt_beep_t : public stmt_t {
 public:
-   stmt_beep_t() = delete;
-   stmt_beep_t(const stmt_beep_t&) = delete;
-   stmt_beep_t& operator=( const stmt_beep_t& ) = delete;
+    stmt_beep_t() = delete;
+    stmt_beep_t(const stmt_beep_t&) = delete;
+    stmt_beep_t& operator=(const stmt_beep_t&) = delete;
 
-   stmt_beep_t(prog_ctx_t& ctx)
-      : stmt_t(ctx)
-   {}
+    stmt_beep_t(prog_ctx_t& ctx)
+        : stmt_t(ctx)
+    {
+    }
 
-   virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual void run(rt_prog_ctx_t& ctx) override;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

@@ -34,38 +34,36 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class expr_unary_op_t : public expr_any_t
-{
+class expr_unary_op_t : public expr_any_t {
 public:
-   expr_unary_op_t(const std::string& op_name, expr_any_t::handle_t var);
+    expr_unary_op_t(const std::string& op_name, expr_any_t::handle_t var);
 
-   expr_unary_op_t() = delete;
-   expr_unary_op_t(const expr_unary_op_t&) = default;
-   expr_unary_op_t& operator=( const expr_unary_op_t& ) = default;
+    expr_unary_op_t() = delete;
+    expr_unary_op_t(const expr_unary_op_t&) = default;
+    expr_unary_op_t& operator=(const expr_unary_op_t&) = default;
 
-   variant_t eval(rt_prog_ctx_t & ctx) const override;
-   bool empty() const NU_NOEXCEPT override;
+    variant_t eval(rt_prog_ctx_t& ctx) const override;
+    bool empty() const noexcept override;
 
-   std::string name() const NU_NOEXCEPT override
-   {
-      return _var ? _var->name() : "";
-   }
+    std::string name() const noexcept override
+    {
+        return _var ? _var->name() : "";
+    }
 
-   func_args_t get_args() const NU_NOEXCEPT override
-   {
-      func_args_t dummy;
-      return dummy;
-   }
+    func_args_t get_args() const noexcept override
+    {
+        func_args_t dummy;
+        return dummy;
+    }
 
 protected:
-   std::string _op_name;
-   expr_any_t::handle_t _var;
+    std::string _op_name;
+    expr_any_t::handle_t _var;
 };
 
 

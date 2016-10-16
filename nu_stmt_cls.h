@@ -28,38 +28,36 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_stmt.h"
 #include "nu_os_console.h"
+#include "nu_stmt.h"
 
-#include <string>
 #include <stdlib.h>
+#include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_cls_t : public stmt_t
-{
+class stmt_cls_t : public stmt_t {
 public:
-   stmt_cls_t(prog_ctx_t & ctx) :
-      stmt_t(ctx)
-   {}
+    stmt_cls_t(prog_ctx_t& ctx)
+        : stmt_t(ctx)
+    {
+    }
 
-   stmt_cls_t() = delete;
-   stmt_cls_t(const stmt_cls_t&) = delete;
-   stmt_cls_t& operator=(const stmt_cls_t&) = delete;
+    stmt_cls_t() = delete;
+    stmt_cls_t(const stmt_cls_t&) = delete;
+    stmt_cls_t& operator=(const stmt_cls_t&) = delete;
 
-   virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual void run(rt_prog_ctx_t& ctx) override;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

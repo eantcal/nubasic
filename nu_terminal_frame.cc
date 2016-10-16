@@ -25,12 +25,12 @@
 #include "nu_basic_defs.h"
 
 #ifndef _WIN32
-#include <unistd.h>
-#include <string.h>
+#include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <string>
-#include <linux/limits.h>
+#include <unistd.h>
 #include <vector>
 #else
 #include "nu_about.h"
@@ -40,18 +40,17 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
 #ifdef _WIN32
 
-int create_terminal_frame(int argc, char * argv[])
+int create_terminal_frame(int argc, char* argv[])
 {
-   SetConsoleTitle(nu::about::progname);
-   return 0;
+    SetConsoleTitle(nu::about::progname);
+    return 0;
 }
 
 #else
@@ -59,45 +58,43 @@ int create_terminal_frame(int argc, char * argv[])
 
 /* -------------------------------------------------------------------------- */
 
-int create_terminal_frame(int argc, char * argv[])
+int create_terminal_frame(int argc, char* argv[])
 {
 #ifndef TINY_NUBASIC_VER
-   static char xterm_prog[] = NU_BASIC_XTERM_EXECBIN;
-   static char xterm_earg[] = NU_BASIC_XTERM_EXECOPT;
+    static char xterm_prog[] = NU_BASIC_XTERM_EXECBIN;
+    static char xterm_earg[] = NU_BASIC_XTERM_EXECOPT;
 
-   if (argc>1 && strcmp(argv[1], NU_BASIC_XTERM_NOFRAME_SWITCH) == 0)
-   {
-      return 0;
-   }
+    if (argc > 1 && strcmp(argv[1], NU_BASIC_XTERM_NOFRAME_SWITCH) == 0) {
+        return 0;
+    }
 
-   else if (argc>0 && (argc<2 || strcmp(argv[1], NU_BASIC_XTERM_FRAME_SWITCH)))
-   {
-      std::string progname = argv[0];
-      progname += " ";
-      progname += NU_BASIC_XTERM_FRAME_SWITCH;
+    else if (argc > 0
+        && (argc < 2 || strcmp(argv[1], NU_BASIC_XTERM_FRAME_SWITCH))) {
+        std::string progname = argv[0];
+        progname += " ";
+        progname += NU_BASIC_XTERM_FRAME_SWITCH;
 
-      int i = 1;
+        int i = 1;
 
-      while (--argc)
-      {
-         progname += " ";
-         progname += argv[i];
+        while (--argc) {
+            progname += " ";
+            progname += argv[i];
 
-         ++i;
-      }
+            ++i;
+        }
 
-      std::vector<char> prog_arg(progname.size());
-      strncpy(prog_arg.data(), progname.c_str(), progname.size());
-      prog_arg.push_back(0);
+        std::vector<char> prog_arg(progname.size());
+        strncpy(prog_arg.data(), progname.c_str(), progname.size());
+        prog_arg.push_back(0);
 
-      char * const execvp_args[] =
-      { xterm_prog, xterm_earg, prog_arg.data(), 0 };
+        char* const execvp_args[]
+            = { xterm_prog, xterm_earg, prog_arg.data(), 0 };
 
-      execvp(xterm_prog, execvp_args);
-   }
+        execvp(xterm_prog, execvp_args);
+    }
 
 #endif // ! TINY_NUBASIC_VER
-   return 0;
+    return 0;
 }
 
 
@@ -109,6 +106,3 @@ int create_terminal_frame(int argc, char * argv[])
 /* -------------------------------------------------------------------------- */
 
 } // namespace nu
-
-
-

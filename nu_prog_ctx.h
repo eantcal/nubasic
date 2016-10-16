@@ -28,152 +28,140 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_var_scope.h"
-#include "nu_proc_scope.h"
-#include "nu_symbol_map.h"
-#include "nu_label_tbl.h"
-#include "nu_prog_pointer.h"
-#include "nu_flag_map.h"
-#include "nu_instrblock_metadata.h"
-#include "nu_proc_prototype_tbl.h"
-#include "nu_for_loop_rtdata.h"
 #include "nu_file_dscrptr_tbl.h"
+#include "nu_flag_map.h"
+#include "nu_for_loop_rtdata.h"
+#include "nu_instrblock_metadata.h"
+#include "nu_label_tbl.h"
+#include "nu_proc_prototype_tbl.h"
+#include "nu_proc_scope.h"
+#include "nu_prog_pointer.h"
+#include "nu_symbol_map.h"
+#include "nu_var_scope.h"
 
-#include <memory>
-#include <deque>
-#include <sstream>
 #include <algorithm>
+#include <deque>
 #include <list>
+#include <memory>
 #include <set>
+#include <sstream>
 #include <stack>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class prog_ctx_t
-{
+class prog_ctx_t {
 public:
-   prog_ctx_t() = delete;
-   prog_ctx_t(const prog_ctx_t&) = delete;
-   prog_ctx_t& operator=( const prog_ctx_t& ) = delete;
+    prog_ctx_t() = delete;
+    prog_ctx_t(const prog_ctx_t&) = delete;
+    prog_ctx_t& operator=(const prog_ctx_t&) = delete;
 
-   virtual ~prog_ctx_t() {}
+    virtual ~prog_ctx_t() {}
 
-   prog_pointer_t::stmt_number_t make_next_stmt_id() NU_NOEXCEPT
-   {
-      // first valid id is 1
-      return ++_stmt_id_cnt;
-   }
+    prog_pointer_t::stmt_number_t make_next_stmt_id() noexcept
+    {
+        // first valid id is 1
+        return ++_stmt_id_cnt;
+    }
 
-   //Enable/disable debug tracing
-   bool tracing_on = false;
+    // Enable/disable debug tracing
+    bool tracing_on = false;
 
-   //Procedure prototypes
-   proc_prototype_tbl_t proc_prototypes;
-   std::set<std::string> function_tbl;
+    // Procedure prototypes
+    proc_prototype_tbl_t proc_prototypes;
+    std::set<std::string> function_tbl;
 
-   //Structure prototypes
-   struct_prototype_tbl_t struct_prototypes;
+    // Structure prototypes
+    struct_prototype_tbl_t struct_prototypes;
 
-   //Procedure variable space table
-   proc_scope_t proc_scope;
+    // Procedure variable space table
+    proc_scope_t proc_scope;
 
-   //Program counter updated at compile time
-   prog_pointer_t compiletime_pc;
+    // Program counter updated at compile time
+    prog_pointer_t compiletime_pc;
 
-   //Program label table
-   label_tbl_t prog_label;
+    // Program label table
+    label_tbl_t prog_label;
 
-   //FOR-Loop metadata (created compiling BASIC source code)
-   instrblock_metadata_t for_loop_metadata;
+    // FOR-Loop metadata (created compiling BASIC source code)
+    instrblock_metadata_t for_loop_metadata;
 
-   //WHILE-Loop metadata (created compiling BASIC source code)
-   instrblock_metadata_t while_metadata;
+    // WHILE-Loop metadata (created compiling BASIC source code)
+    instrblock_metadata_t while_metadata;
 
-   //DO-LOOP-WHILE metadata (created compiling BASIC source code)
-   instrblock_metadata_t do_loop_while_metadata;
+    // DO-LOOP-WHILE metadata (created compiling BASIC source code)
+    instrblock_metadata_t do_loop_while_metadata;
 
-   //IF-statement metadata (created compiling source code)
-   if_instrblock_metadata_t if_metadata;
+    // IF-statement metadata (created compiling source code)
+    if_instrblock_metadata_t if_metadata;
 
-   //Procedure metadata (created compiling BASIC source code)
-   instrblock_metadata_t procedure_metadata;
+    // Procedure metadata (created compiling BASIC source code)
+    instrblock_metadata_t procedure_metadata;
 
-   //Struct metadata (created compiling BASIC source code)
-   instrblock_metadata_t struct_metadata;
-   std::string compiling_struct_name;
+    // Struct metadata (created compiling BASIC source code)
+    instrblock_metadata_t struct_metadata;
+    std::string compiling_struct_name;
 
-   variant_t * get_struct_member_value(
-      const std::string& qualified_variable_name,
-      var_scope_t::handle_t& scope,
-      size_t index = 0);
+    variant_t* get_struct_member_value(
+        const std::string& qualified_variable_name,
+        var_scope_t::handle_t& scope, size_t index = 0);
 
-   variant_t resolve_struct_element(
-      const std::string& variable_name,
-      size_t variable_vect_index,
-      const std::string& element_name,
-      size_t element_vect_index,
-      std::string & err_msg);
-   
-   prog_ctx_t(FILE * stdout_ptr, FILE * stdin_ptr);
+    variant_t resolve_struct_element(const std::string& variable_name,
+        size_t variable_vect_index, const std::string& element_name,
+        size_t element_vect_index, std::string& err_msg);
 
-   void clear_metadata();
+    prog_ctx_t(FILE* stdout_ptr, FILE* stdin_ptr);
 
-   //Print-out traces of control-structures and procedure metadata
-   void trace_metadata(std::stringstream& ss);
+    void clear_metadata();
 
-   //Get stdout file pointer
-   FILE * get_stdout_ptr() const NU_NOEXCEPT
-   {
-      return _stdout_ptr;
-   }
+    // Print-out traces of control-structures and procedure metadata
+    void trace_metadata(std::stringstream& ss);
 
-   //Get stdin file pointer
-   FILE * get_stdin_ptr() const NU_NOEXCEPT
-   {
-      return _stdin_ptr;
-   }
+    // Get stdout file pointer
+    FILE* get_stdout_ptr() const noexcept { return _stdout_ptr; }
+
+    // Get stdin file pointer
+    FILE* get_stdin_ptr() const noexcept { return _stdin_ptr; }
 
 private:
-   prog_pointer_t::stmt_number_t _stmt_id_cnt = 0;
+    prog_pointer_t::stmt_number_t _stmt_id_cnt = 0;
 
-   // STD I/O file pointers
-   FILE * _stdout_ptr = stdout;
-   FILE * _stdin_ptr = stdin;
+    // STD I/O file pointers
+    FILE* _stdout_ptr = stdout;
+    FILE* _stdin_ptr = stdin;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-#define NU_TRACE_CTX_AUX(__CTX, _DBGINFO) do {\
-    std::stringstream ss; \
-    (__CTX).trace_rtdata(ss); \
-    if (_DBGINFO)\
-        fprintf((__CTX).get_stdout_ptr(), "\nNU_TRACE_CTX\n%s\n", __FUNCTION__); \
-    fprintf((__CTX).get_stdout_ptr(), "%s\n", ss.str().c_str()); \
-} while (0)
-
+#define NU_TRACE_CTX_AUX(__CTX, _DBGINFO)                                      \
+    do {                                                                       \
+        std::stringstream ss;                                                  \
+        (__CTX).trace_rtdata(ss);                                              \
+        if (_DBGINFO)                                                          \
+            fprintf((__CTX).get_stdout_ptr(), "\nNU_TRACE_CTX\n%s\n",          \
+                __FUNCTION__);                                                 \
+        fprintf((__CTX).get_stdout_ptr(), "%s\n", ss.str().c_str());           \
+    } while (0)
 
 
 /* -------------------------------------------------------------------------- */
 
-#define NU_TRACE_CTX(__CTX) do {\
-if ((__CTX).tracing_on)\
-{\
-    NU_TRACE_CTX_AUX(__CTX, false);\
-}\
-} while (0)
+#define NU_TRACE_CTX(__CTX)                                                    \
+    do {                                                                       \
+        if ((__CTX).tracing_on) {                                              \
+            NU_TRACE_CTX_AUX(__CTX, false);                                    \
+        }                                                                      \
+    } while (0)
 
 
 /* -------------------------------------------------------------------------- */

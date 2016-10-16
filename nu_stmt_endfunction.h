@@ -34,27 +34,24 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_endfunction_t : public stmt_endsub_t
-{
+class stmt_endfunction_t : public stmt_endsub_t {
 public:
-   stmt_endfunction_t() = delete;
-   stmt_endfunction_t(const stmt_endfunction_t&) = delete;
-   stmt_endfunction_t& operator=(const stmt_endfunction_t&) = delete;
+    stmt_endfunction_t() = delete;
+    stmt_endfunction_t(const stmt_endfunction_t&) = delete;
+    stmt_endfunction_t& operator=(const stmt_endfunction_t&) = delete;
 
-   stmt_endfunction_t(prog_ctx_t & ctx);
+    stmt_endfunction_t(prog_ctx_t& ctx);
 
-   virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual void run(rt_prog_ctx_t& ctx) override;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 /* -------------------------------------------------------------------------- */

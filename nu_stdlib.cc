@@ -23,45 +23,37 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_stdlib.h"
-#include "nu_rt_prog_ctx.h"
 #include "nu_error_codes.h"
+#include "nu_rt_prog_ctx.h"
 
-#include <string>
 #include <stdlib.h>
+#include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-int os_shell_t::exec(const std::string& cmd)
-{
-   return ::system(cmd.c_str());
-}
+int os_shell_t::exec(const std::string& cmd) { return ::system(cmd.c_str()); }
 
 
 /* -------------------------------------------------------------------------- */
 
 int os_shell_t::apply(rt_prog_ctx_t& ctx, args_t args)
 {
-   enum { CMD, NARGS };
-   (void)ctx;
+    enum { CMD, NARGS };
+    (void)ctx;
 
-   rt_error_code_t::get_instance().throw_if(
-      args.size() != NARGS ||
-      args[CMD].get_type() != variant_t::type_t::STRING,
-      ctx.runtime_pc.get_line(),
-      rt_error_code_t::E_INVALID_ARGS,
-      "SHELL"
-   );
+    rt_error_code_t::get_instance().throw_if(args.size() != NARGS
+            || args[CMD].get_type() != variant_t::type_t::STRING,
+        ctx.runtime_pc.get_line(), rt_error_code_t::E_INVALID_ARGS, "SHELL");
 
-   auto c = args[CMD].to_str();
+    auto c = args[CMD].to_str();
 
-   return exec(c);
+    return exec(c);
 }
 
 
@@ -69,20 +61,16 @@ int os_shell_t::apply(rt_prog_ctx_t& ctx, args_t args)
 
 int os_chdir_t::apply(rt_prog_ctx_t& ctx, args_t args)
 {
-   enum { CMD, NARGS };
-   (void)ctx;
+    enum { CMD, NARGS };
+    (void)ctx;
 
-   rt_error_code_t::get_instance().throw_if(
-      args.size() != NARGS ||
-      args[CMD].get_type() != variant_t::type_t::STRING,
-      ctx.runtime_pc.get_line(),
-      rt_error_code_t::E_INVALID_ARGS,
-      "CHDIR"
-   );
+    rt_error_code_t::get_instance().throw_if(args.size() != NARGS
+            || args[CMD].get_type() != variant_t::type_t::STRING,
+        ctx.runtime_pc.get_line(), rt_error_code_t::E_INVALID_ARGS, "CHDIR");
 
-   auto dir = args[CMD].to_str();
+    auto dir = args[CMD].to_str();
 
-   return _os_change_dir(dir) ? 0 : errno;
+    return _os_change_dir(dir) ? 0 : errno;
 }
 
 
@@ -90,25 +78,21 @@ int os_chdir_t::apply(rt_prog_ctx_t& ctx, args_t args)
 
 int os_fopen_t::apply(rt_prog_ctx_t& ctx, args_t args)
 {
-   enum { FILENAME, MODE, FILENUMBER, NARGS };
+    enum { FILENAME, MODE, FILENUMBER, NARGS };
 
-   rt_error_code_t::get_instance().throw_if(
-      args.size() != NARGS ||
-      args[FILENAME].get_type() != variant_t::type_t::STRING ||
-      args[MODE].get_type() != variant_t::type_t::STRING ||
-      !variable_t::is_integral(args[FILENUMBER].get_type()),
-      ctx.runtime_pc.get_line(),
-      rt_error_code_t::E_INVALID_ARGS,
-      "FOPEN"
-   );
+    rt_error_code_t::get_instance().throw_if(args.size() != NARGS
+            || args[FILENAME].get_type() != variant_t::type_t::STRING
+            || args[MODE].get_type() != variant_t::type_t::STRING
+            || !variable_t::is_integral(args[FILENUMBER].get_type()),
+        ctx.runtime_pc.get_line(), rt_error_code_t::E_INVALID_ARGS, "FOPEN");
 
-   auto filename   = args[FILENAME].to_str();
-   auto mode       = args[MODE].to_str();
-   auto filenumber = args[FILENUMBER].to_int();
+    auto filename = args[FILENAME].to_str();
+    auto mode = args[MODE].to_str();
+    auto filenumber = args[FILENUMBER].to_int();
 
-   bool res = ctx.file_tbl.open_fd(filename, mode, filenumber);
+    bool res = ctx.file_tbl.open_fd(filename, mode, filenumber);
 
-   return !res && !errno ? EBADF : errno;
+    return !res && !errno ? EBADF : errno;
 }
 
 
@@ -116,21 +100,17 @@ int os_fopen_t::apply(rt_prog_ctx_t& ctx, args_t args)
 
 int os_fflush_t::apply(rt_prog_ctx_t& ctx, args_t args)
 {
-   enum { FILENUMBER, NARGS };
+    enum { FILENUMBER, NARGS };
 
-   rt_error_code_t::get_instance().throw_if(
-      args.size() != NARGS ||
-      ! variable_t::is_integral( args[FILENUMBER].get_type() ),
-      ctx.runtime_pc.get_line(),
-      rt_error_code_t::E_INVALID_ARGS,
-      "FLUSH"
-   );
+    rt_error_code_t::get_instance().throw_if(args.size() != NARGS
+            || !variable_t::is_integral(args[FILENUMBER].get_type()),
+        ctx.runtime_pc.get_line(), rt_error_code_t::E_INVALID_ARGS, "FLUSH");
 
-   auto filenumber = args[FILENUMBER].to_int();
+    auto filenumber = args[FILENUMBER].to_int();
 
-   bool res = ctx.file_tbl.flush_fd(filenumber);
+    bool res = ctx.file_tbl.flush_fd(filenumber);
 
-   return !res && !errno ? EBADF : errno;
+    return !res && !errno ? EBADF : errno;
 }
 
 
@@ -138,25 +118,21 @@ int os_fflush_t::apply(rt_prog_ctx_t& ctx, args_t args)
 
 int os_fseek_t::apply(rt_prog_ctx_t& ctx, args_t args)
 {
-   enum { FILENUMBER, SEEKPTR, SEEKORIGIN, NARGS };
+    enum { FILENUMBER, SEEKPTR, SEEKORIGIN, NARGS };
 
-   rt_error_code_t::get_instance().throw_if(
-      args.size() != NARGS ||
-      ! variable_t::is_integral(args[SEEKPTR].get_type()) ||
-      ! variable_t::is_integral(args[SEEKORIGIN].get_type()) ||
-      ! variable_t::is_integral(args[FILENUMBER].get_type()),
-      ctx.runtime_pc.get_line(),
-      rt_error_code_t::E_INVALID_ARGS,
-      "SEEK"
-   );
+    rt_error_code_t::get_instance().throw_if(args.size() != NARGS
+            || !variable_t::is_integral(args[SEEKPTR].get_type())
+            || !variable_t::is_integral(args[SEEKORIGIN].get_type())
+            || !variable_t::is_integral(args[FILENUMBER].get_type()),
+        ctx.runtime_pc.get_line(), rt_error_code_t::E_INVALID_ARGS, "SEEK");
 
-   auto filenumber = args[FILENUMBER].to_int();
-   auto seekptr    = args[SEEKPTR].to_int();
-   auto seekorigin = args[SEEKORIGIN].to_int();
+    auto filenumber = args[FILENUMBER].to_int();
+    auto seekptr = args[SEEKPTR].to_int();
+    auto seekorigin = args[SEEKORIGIN].to_int();
 
-   bool res = ctx.file_tbl.seek_fd( seekptr, seekorigin, filenumber );
+    bool res = ctx.file_tbl.seek_fd(seekptr, seekorigin, filenumber);
 
-   return !res && !errno ? EBADF : errno;
+    return !res && !errno ? EBADF : errno;
 }
 
 

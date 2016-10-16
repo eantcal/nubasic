@@ -22,38 +22,34 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_rt_prog_ctx.h"
 #include "nu_stmt_else.h"
 #include "nu_error_codes.h"
+#include "nu_rt_prog_ctx.h"
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-stmt_elif_t::stmt_elif_t(
-   prog_ctx_t & ctx,
-   expr_any_t::handle_t condition)
-   :
-   stmt_t(ctx),
-   _condition(condition)
+stmt_elif_t::stmt_elif_t(prog_ctx_t& ctx, expr_any_t::handle_t condition)
+    : stmt_t(ctx)
+    , _condition(condition)
 {
-   syntax_error_if(ctx.compiletime_pc.get_stmt_pos() > 0,
-                   "'Elif' must be first statement of the code line");
+    syntax_error_if(ctx.compiletime_pc.get_stmt_pos() > 0,
+        "'Elif' must be first statement of the code line");
 
-   auto & ifctxs = ctx.if_metadata;
-   
-   syntax_error_if(ifctxs.pc_stack.empty(),
-                   "'Elif' no any if-statement matching");
+    auto& ifctxs = ctx.if_metadata;
 
-   auto if_pc = ifctxs.pc_stack.top();
+    syntax_error_if(
+        ifctxs.pc_stack.empty(), "'Elif' no any if-statement matching");
 
-   ifctxs.data[if_pc].else_list.push_back(ctx.compiletime_pc);
-   ifctxs.block_to_if_line_tbl[ctx.compiletime_pc] = if_pc;
+    auto if_pc = ifctxs.pc_stack.top();
+
+    ifctxs.data[if_pc].else_list.push_back(ctx.compiletime_pc);
+    ifctxs.block_to_if_line_tbl[ctx.compiletime_pc] = if_pc;
 }
 
 
@@ -61,57 +57,45 @@ stmt_elif_t::stmt_elif_t(
 
 void stmt_elif_t::run(rt_prog_ctx_t& ctx)
 {
-   auto & ifctxs = ctx.if_metadata;
-   auto ifstmt_pc = ifctxs.block_to_if_line_tbl[ctx.runtime_pc];
-   const auto & metadata_it = ifctxs.data.find(ifstmt_pc);
+    auto& ifctxs = ctx.if_metadata;
+    auto ifstmt_pc = ifctxs.block_to_if_line_tbl[ctx.runtime_pc];
+    const auto& metadata_it = ifctxs.data.find(ifstmt_pc);
 
-   rt_error_code_t::get_instance().throw_if(
-      metadata_it == ifctxs.data.end(),
-      ctx.runtime_pc.get_line(),
-      rt_error_code_t::E_INTERNAL,
-      "Elif");
+    rt_error_code_t::get_instance().throw_if(metadata_it == ifctxs.data.end(),
+        ctx.runtime_pc.get_line(), rt_error_code_t::E_INTERNAL, "Elif");
 
-   if (metadata_it->second.condition)
-      ctx.go_to(metadata_it->second.pc_endif_stmt);
+    if (metadata_it->second.condition)
+        ctx.go_to(metadata_it->second.pc_endif_stmt);
 
-   else
-   {
-      if (_condition && static_cast<bool>(_condition->eval(ctx)) == false)
-      {
-         metadata_it->second.condition = false;
+    else {
+        if (_condition && static_cast<bool>(_condition->eval(ctx)) == false) {
+            metadata_it->second.condition = false;
 
-         if (metadata_it->second.else_list.empty())
-         {
-            ctx.go_to(metadata_it->second.pc_endif_stmt);
-         }
-         else
-         {
-            auto it = metadata_it->second.else_list.cbegin();
+            if (metadata_it->second.else_list.empty()) {
+                ctx.go_to(metadata_it->second.pc_endif_stmt);
+            } else {
+                auto it = metadata_it->second.else_list.cbegin();
 
-            for (; it != metadata_it->second.else_list.cend(); ++it)
-            {
-               if (it->get_line() == ctx.runtime_pc.get_line())
-               {
-                  ++it;
+                for (; it != metadata_it->second.else_list.cend(); ++it) {
+                    if (it->get_line() == ctx.runtime_pc.get_line()) {
+                        ++it;
 
-                  ctx.go_to(it == metadata_it->second.else_list.cend() ? 
-                     metadata_it->second.pc_endif_stmt : 
-                     it->get_line());
+                        ctx.go_to(it == metadata_it->second.else_list.cend()
+                                ? metadata_it->second.pc_endif_stmt
+                                : it->get_line());
 
-                  break;
-               }
+                        break;
+                    }
+                }
+
+                if (it == metadata_it->second.else_list.cend())
+                    ctx.go_to(metadata_it->second.pc_endif_stmt);
             }
-
-            if (it == metadata_it->second.else_list.cend())
-               ctx.go_to(metadata_it->second.pc_endif_stmt);
-         }
-      }
-      else
-      {
-         metadata_it->second.condition = true;
-         ctx.go_to_next();
-      }
-   }
+        } else {
+            metadata_it->second.condition = true;
+            ctx.go_to_next();
+        }
+    }
 }
 
 
@@ -121,4 +105,3 @@ void stmt_elif_t::run(rt_prog_ctx_t& ctx)
 
 
 /* -------------------------------------------------------------------------- */
-

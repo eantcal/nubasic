@@ -22,10 +22,9 @@
 #ifndef __NU_STB_IMAGE_H__
 #define __NU_STB_IMAGE_H__
 
-namespace nu
-{
-unsigned char *image_load(char const *filename, int &x, int &y);
-void image_free( unsigned char * image );
+namespace nu {
+unsigned char* image_load(char const* filename, int& x, int& y);
+void image_free(unsigned char* image);
 }
 
 #endif // ! __NU_STB_IMAGE_H__

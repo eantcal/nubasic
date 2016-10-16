@@ -26,30 +26,29 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_expr_any.h"
-#include "nu_var_scope.h"
-#include "nu_global_function_tbl.h"
 #include "nu_expr_function.h"
+#include "nu_global_function_tbl.h"
+#include "nu_var_scope.h"
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-class expr_subscrop_t : public expr_function_t
-{
+class expr_subscrop_t : public expr_function_t {
 public:
-   expr_subscrop_t(const std::string& name, func_args_t var)
-      : expr_function_t(name, var)
-   {}
+    expr_subscrop_t(const std::string& name, func_args_t var)
+        : expr_function_t(name, var)
+    {
+    }
 
-   expr_subscrop_t() = delete;
-   expr_subscrop_t(const expr_subscrop_t&) = default;
-   expr_subscrop_t& operator=( const expr_subscrop_t& ) = default;
+    expr_subscrop_t() = delete;
+    expr_subscrop_t(const expr_subscrop_t&) = default;
+    expr_subscrop_t& operator=(const expr_subscrop_t&) = default;
 
-   variant_t eval(rt_prog_ctx_t & ctx) const override;
+    variant_t eval(rt_prog_ctx_t& ctx) const override;
 };
 
 

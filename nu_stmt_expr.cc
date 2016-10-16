@@ -22,35 +22,31 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_rt_prog_ctx.h"
 #include "nu_stmt_expr.h"
+#include "nu_rt_prog_ctx.h"
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-void stmt_expr_t::run(rt_prog_ctx_t & ctx)
+void stmt_expr_t::run(rt_prog_ctx_t& ctx)
 {
-   for (auto arg : _args)
-   {
-      if (arg.first != nullptr)
-         arg.first->eval(ctx);
-   }
+    for (auto arg : _args) {
+        if (arg.first != nullptr)
+            arg.first->eval(ctx);
+    }
 
 
-   ctx.go_to_next();
+    ctx.go_to_next();
 }
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 
 /* -------------------------------------------------------------------------- */
-

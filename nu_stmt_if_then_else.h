@@ -28,47 +28,41 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include "nu_expr_any.h"
 #include "nu_stmt.h"
 #include "nu_stmt_empty.h"
-#include "nu_expr_any.h"
 
-#include <string>
 #include <memory>
+#include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_if_then_else_t : public stmt_t
-{
+class stmt_if_then_else_t : public stmt_t {
 public:
-   stmt_if_then_else_t() = delete;
-   stmt_if_then_else_t(const stmt_if_then_else_t&) = delete;
-   stmt_if_then_else_t& operator=(const stmt_if_then_else_t&) = delete;
+    stmt_if_then_else_t() = delete;
+    stmt_if_then_else_t(const stmt_if_then_else_t&) = delete;
+    stmt_if_then_else_t& operator=(const stmt_if_then_else_t&) = delete;
 
-   stmt_if_then_else_t(
-      prog_ctx_t & ctx,
-      expr_any_t::handle_t condition,
-      handle_t then_stmt,
-      handle_t else_stmt = nullptr);
+    stmt_if_then_else_t(prog_ctx_t& ctx, expr_any_t::handle_t condition,
+        handle_t then_stmt, handle_t else_stmt = nullptr);
 
-   virtual void run(rt_prog_ctx_t& ctx) override;
-   virtual stmt_cl_t get_cl() const NU_NOEXCEPT override;
+    virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual stmt_cl_t get_cl() const noexcept override;
 
 protected:
-   expr_any_t::handle_t _condition;
-   handle_t _then_stmt;
-   handle_t _else_stmt;
+    expr_any_t::handle_t _condition;
+    handle_t _then_stmt;
+    handle_t _else_stmt;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

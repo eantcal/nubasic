@@ -28,83 +28,75 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_var_scope.h"
-#include "nu_proc_scope.h"
-#include "nu_symbol_map.h"
-#include "nu_label_tbl.h"
-#include "nu_prog_pointer.h"
 #include "nu_flag_map.h"
-#include "nu_instrblock_metadata.h"
-#include "nu_proc_prototype_tbl.h"
 #include "nu_for_loop_rtdata.h"
+#include "nu_instrblock_metadata.h"
+#include "nu_label_tbl.h"
+#include "nu_proc_prototype_tbl.h"
+#include "nu_proc_scope.h"
+#include "nu_prog_pointer.h"
+#include "nu_symbol_map.h"
+#include "nu_var_scope.h"
 
-#include <memory>
-#include <deque>
-#include <sstream>
 #include <algorithm>
+#include <deque>
 #include <list>
+#include <memory>
+#include <sstream>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-struct file_dscrptr_t
-{
-   friend struct file_dscrptr_tbl_t;
+struct file_dscrptr_t {
+    friend struct file_dscrptr_tbl_t;
 
-   using handle_t = std::shared_ptr < file_dscrptr_t > ;
+    using handle_t = std::shared_ptr<file_dscrptr_t>;
 
-   file_dscrptr_t() = delete;
-   FILE* data() const NU_NOEXCEPT;
+    file_dscrptr_t() = delete;
+    FILE* data() const noexcept;
 
-   ~file_dscrptr_t();
-   file_dscrptr_t(FILE * fptr) : _fptr(fptr) {}
+    ~file_dscrptr_t();
+    file_dscrptr_t(FILE* fptr)
+        : _fptr(fptr)
+    {
+    }
 
 protected:
-   FILE* _fptr = nullptr;
-   bool close() NU_NOEXCEPT;
+    FILE* _fptr = nullptr;
+    bool close() noexcept;
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-struct file_dscrptr_tbl_t
-{
-   bool open_fd(
-      const std::string& fname, // file path
-      const std::string& fmode, // see fopen modes
-      unsigned int fd);
+struct file_dscrptr_tbl_t {
+    bool open_fd(const std::string& fname, // file path
+        const std::string& fmode, // see fopen modes
+        unsigned int fd);
 
-   FILE* resolve_fd(unsigned int fd);
-   bool close_fd(unsigned int fd);
-   bool seek_fd(int seek_ptr, int seek_origin, unsigned int fd);
-   bool flush_fd(unsigned int fd);
-   void trace(std::stringstream & ss);
+    FILE* resolve_fd(unsigned int fd);
+    bool close_fd(unsigned int fd);
+    bool seek_fd(int seek_ptr, int seek_origin, unsigned int fd);
+    bool flush_fd(unsigned int fd);
+    void trace(std::stringstream& ss);
 
-   bool empty() const NU_NOEXCEPT
-   {
-      return _file_tbl.empty();
-   }
+    bool empty() const noexcept { return _file_tbl.empty(); }
 
-   void clear() NU_NOEXCEPT
-   {
-      _file_tbl.clear();
-   }
+    void clear() noexcept { _file_tbl.clear(); }
 
 
 protected:
-   //File Tbl: <Key:id, Value:file-ctx-handle>
-   std::map<int, file_dscrptr_t::handle_t> _file_tbl;
+    // File Tbl: <Key:id, Value:file-ctx-handle>
+    std::map<int, file_dscrptr_t::handle_t> _file_tbl;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

@@ -1,4 +1,4 @@
 #pragma once
-#include <Windows.h>
-#include <WinUser.h>
 #include "resource.h"
+#include <WinUser.h>
+#include <Windows.h>

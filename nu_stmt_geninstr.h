@@ -28,18 +28,17 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_stmt.h"
-#include "nu_expr_any.h"
 #include "nu_exception.h"
+#include "nu_expr_any.h"
+#include "nu_stmt.h"
 
-#include <string>
 #include <list>
+#include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
@@ -53,80 +52,73 @@ class rt_prog_ctx_t;
 //
 // int f(T args[ARGSNUM])
 //
-template< typename F, typename T, int ARGSNUM >
-class stmt_geninstr_t : public stmt_t
-{
+template <typename F, typename T, int ARGSNUM>
+class stmt_geninstr_t : public stmt_t {
 public:
-   using data_t = T;
+    using data_t = T;
 
-   stmt_geninstr_t(prog_ctx_t & ctx)
-      :
-      stmt_t(ctx)
-   { }
+    stmt_geninstr_t(prog_ctx_t& ctx)
+        : stmt_t(ctx)
+    {
+    }
 
-   stmt_geninstr_t(arg_list_t args, prog_ctx_t & ctx) :
-      stmt_t(ctx),
-      _args(args)
-   { }
+    stmt_geninstr_t(arg_list_t args, prog_ctx_t& ctx)
+        : stmt_t(ctx)
+        , _args(args)
+    {
+    }
 
 
 protected:
-   template <class DT>
-   void run_aux(rt_prog_ctx_t & ctx, std::true_type)
-   {
-      std::vector<data_t> f_args;
+    template <class DT> void run_aux(rt_prog_ctx_t& ctx, std::true_type)
+    {
+        std::vector<data_t> f_args;
 
-      for (auto arg : _args)
-      {
-         data_t val = data_t(arg.first->eval(ctx));
-         f_args.push_back(val);
-      }
+        for (auto arg : _args) {
+            data_t val = data_t(arg.first->eval(ctx));
+            f_args.push_back(val);
+        }
 
-      ctx.set_errno( F()(ctx, f_args) );
-   }
+        ctx.set_errno(F()(ctx, f_args));
+    }
 
 
-   template <class DT>
-   void run_aux(rt_prog_ctx_t & ctx, std::false_type)
-   {
-      std::vector<data_t> f_args;
+    template <class DT> void run_aux(rt_prog_ctx_t& ctx, std::false_type)
+    {
+        std::vector<data_t> f_args;
 
-      for (auto arg : _args)
-      {
-         f_args.push_back(arg.first->eval(ctx));
-      }
+        for (auto arg : _args) {
+            f_args.push_back(arg.first->eval(ctx));
+        }
 
-      ctx.set_errno(F()(ctx, f_args));
-   }
+        ctx.set_errno(F()(ctx, f_args));
+    }
 
 
 public:
-   void run(rt_prog_ctx_t & ctx)
-   {
-      //if number of arguments is negative
-      //do not check it
-      if (ARGSNUM >= 0)
-      {
-         syntax_error_if(
-            _args.size() < ARGSNUM,
-            "Instruction expects to be passed " +
-            nu::to_string(ARGSNUM) + " arguments");
-      }
+    void run(rt_prog_ctx_t& ctx)
+    {
+        // if number of arguments is negative
+        // do not check it
+        if (ARGSNUM >= 0) {
+            syntax_error_if(
+                _args.size() < ARGSNUM, "Instruction expects to be passed "
+                    + nu::to_string(ARGSNUM) + " arguments");
+        }
 
-      run_aux<T>(ctx, std::is_integral<T>());
+        run_aux<T>(ctx, std::is_integral<T>());
 
-      ctx.go_to_next();
-   }
+        ctx.go_to_next();
+    }
 
 protected:
-   arg_list_t _args;
-   stmt_geninstr_t(const stmt_geninstr_t&) = delete;
-   stmt_geninstr_t& operator=(const stmt_geninstr_t&) = delete;
+    arg_list_t _args;
+    stmt_geninstr_t(const stmt_geninstr_t&) = delete;
+    stmt_geninstr_t& operator=(const stmt_geninstr_t&) = delete;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

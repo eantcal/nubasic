@@ -22,25 +22,23 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_rt_prog_ctx.h"
 #include "nu_stmt_end.h"
+#include "nu_rt_prog_ctx.h"
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
 void stmt_end_t::run(rt_prog_ctx_t& ctx)
 {
-   ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
+    ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
 }
 
 
 /* -------------------------------------------------------------------------- */
 
 } // namespace nu
-

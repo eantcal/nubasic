@@ -28,37 +28,32 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_stmt.h"
 #include "nu_os_std.h"
+#include "nu_stmt.h"
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_randomize_t : public stmt_t
-{
+class stmt_randomize_t : public stmt_t {
 public:
-   stmt_randomize_t(prog_ctx_t & ctx) :
-      stmt_t(ctx)
-   {}
+    stmt_randomize_t(prog_ctx_t& ctx)
+        : stmt_t(ctx)
+    {
+    }
 
-   stmt_randomize_t() = delete;
-   stmt_randomize_t(const stmt_randomize_t&) = delete;
-   stmt_randomize_t& operator=(const stmt_randomize_t&) = delete;
+    stmt_randomize_t() = delete;
+    stmt_randomize_t(const stmt_randomize_t&) = delete;
+    stmt_randomize_t& operator=(const stmt_randomize_t&) = delete;
 
-   virtual void run(rt_prog_ctx_t& ctx) override
-   {
-      _os_randomize();
-   }
+    virtual void run(rt_prog_ctx_t& ctx) override { _os_randomize(); }
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

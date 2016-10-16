@@ -27,15 +27,14 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
 void label_tbl_t::get_err_msg(const std::string& key, std::string& err) const
 {
-   err = "'" + key + "' label not found";
+    err = "'" + key + "' label not found";
 }
 
 

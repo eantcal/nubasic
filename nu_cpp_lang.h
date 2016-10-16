@@ -22,10 +22,8 @@
 #ifndef __NU_CPP_LANG_H__
 #define __NU_CPP_LANG_H__
 
-#if (defined(_MSC_VER) && _MSC_VER<=1800)
-#define NU_NOEXCEPT throw()
-#else
-#define NU_NOEXCEPT noexcept
+#if (defined(_MSC_VER) && _MSC_VER <= 1800)
+#define noexcept throw()
 #endif
 
 #endif //__NU_CPP_LANG_H__

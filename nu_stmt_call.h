@@ -28,61 +28,53 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_stmt.h"
 #include "nu_expr_any.h"
-#include <string>
+#include "nu_prog_pointer.h"
+#include "nu_stmt.h"
 #include <list>
+#include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_call_t : public stmt_t
-{
+class stmt_call_t : public stmt_t {
 public:
-   stmt_call_t(const stmt_call_t&) = delete;
-   stmt_call_t& operator=( const stmt_call_t& ) = delete;
-   stmt_call_t() = delete;
+    stmt_call_t(const stmt_call_t&) = delete;
+    stmt_call_t& operator=(const stmt_call_t&) = delete;
+    stmt_call_t() = delete;
 
-   stmt_call_t(
-      const std::string& name,
-      prog_ctx_t & ctx,
-      bool fncall = false)
-      :
-      stmt_t(ctx),
-      _name(name),
-      _fncall(fncall)
-   {}
+    stmt_call_t(const std::string& name, prog_ctx_t& ctx, bool fncall = false)
+        : stmt_t(ctx)
+        , _name(name)
+        , _fncall(fncall)
+    {
+    }
 
-   stmt_call_t(
-      const arg_list_t& args,
-      const std::string& name,
-      prog_ctx_t & ctx,
-      bool fncall = false)
-      :
-      stmt_t(ctx),
-      _args(args),
-      _name(name),
-      _fncall(fncall)
-   {}
+    stmt_call_t(const arg_list_t& args, const std::string& name,
+        prog_ctx_t& ctx, bool fncall = false)
+        : stmt_t(ctx)
+        , _args(args)
+        , _name(name)
+        , _fncall(fncall)
+    {
+    }
 
-   virtual void run(rt_prog_ctx_t& ctx) override;
-   void run(rt_prog_ctx_t& ctx, const prog_pointer_t::line_number_t& line);
+    virtual void run(rt_prog_ctx_t& ctx) override;
+    void run(rt_prog_ctx_t& ctx, const prog_pointer_t::line_number_t& line);
 
 protected:
-   arg_list_t _args;
-   std::string _name;
-   bool _fncall = false;
+    arg_list_t _args;
+    std::string _name;
+    bool _fncall = false;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

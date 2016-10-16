@@ -28,41 +28,38 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_stmt.h"
-#include "nu_stmt_empty.h"
 #include "nu_expr_any.h"
 #include "nu_signal_handling.h"
+#include "nu_stmt.h"
+#include "nu_stmt_empty.h"
 
 #include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_do_t : public stmt_t
-{
+class stmt_do_t : public stmt_t {
 public:
-   stmt_do_t() = delete;
-   stmt_do_t(const stmt_do_t&) = delete;
-   stmt_do_t& operator=(const stmt_do_t&) = delete;
+    stmt_do_t() = delete;
+    stmt_do_t(const stmt_do_t&) = delete;
+    stmt_do_t& operator=(const stmt_do_t&) = delete;
 
-   // DO
-   //   [stmt(s)]
-   // LOOP WHILE <condition>
-   stmt_do_t(prog_ctx_t & ctx);
+    // DO
+    //   [stmt(s)]
+    // LOOP WHILE <condition>
+    stmt_do_t(prog_ctx_t& ctx);
 
-   virtual stmt_cl_t get_cl() const NU_NOEXCEPT override;
-   virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual stmt_cl_t get_cl() const noexcept override;
+    virtual void run(rt_prog_ctx_t& ctx) override;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

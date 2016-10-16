@@ -28,37 +28,34 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include "nu_expr_any.h"
 #include "nu_stmt.h"
 #include "nu_token_list.h"
-#include "nu_expr_any.h"
 
 #include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_endsub_t : public stmt_t
-{
+class stmt_endsub_t : public stmt_t {
 public:
-   stmt_endsub_t() = delete;
-   stmt_endsub_t(const stmt_endsub_t&) = delete;
-   stmt_endsub_t& operator=(const stmt_endsub_t&) = delete;
+    stmt_endsub_t() = delete;
+    stmt_endsub_t(const stmt_endsub_t&) = delete;
+    stmt_endsub_t& operator=(const stmt_endsub_t&) = delete;
 
-   stmt_endsub_t(prog_ctx_t & ctx);
+    stmt_endsub_t(prog_ctx_t& ctx);
 
-   virtual void run(rt_prog_ctx_t& ctx) override;
-   virtual stmt_cl_t get_cl() const NU_NOEXCEPT;
+    virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual stmt_cl_t get_cl() const noexcept;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

@@ -34,36 +34,34 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_return_t : public stmt_t
-{
+class stmt_return_t : public stmt_t {
 public:
-   stmt_return_t(prog_ctx_t & ctx)
-      : stmt_t(ctx)
-   {}
+    stmt_return_t(prog_ctx_t& ctx)
+        : stmt_t(ctx)
+    {
+    }
 
 
-   virtual void run(rt_prog_ctx_t& ctx) override
-   {
-      ctx.flag.set(rt_prog_ctx_t::FLG_RETURN_REQUEST, true);
-   }
+    virtual void run(rt_prog_ctx_t& ctx) override
+    {
+        ctx.flag.set(rt_prog_ctx_t::FLG_RETURN_REQUEST, true);
+    }
 
 
 protected:
-   prog_pointer_t::line_number_t _line_number = 0;
+    prog_pointer_t::line_number_t _line_number = 0;
 
-   stmt_return_t(const stmt_return_t&) = delete;
-   stmt_return_t& operator=(const stmt_return_t&) = delete;
+    stmt_return_t(const stmt_return_t&) = delete;
+    stmt_return_t& operator=(const stmt_return_t&) = delete;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

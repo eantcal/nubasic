@@ -28,41 +28,37 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include "nu_expr_any.h"
 #include "nu_stmt.h"
 #include "nu_token_list.h"
-#include "nu_expr_any.h"
 
 #include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_loop_while_t : public stmt_t
-{
+class stmt_loop_while_t : public stmt_t {
 public:
-   stmt_loop_while_t(prog_ctx_t & ctx,
-                     expr_any_t::handle_t condition);
+    stmt_loop_while_t(prog_ctx_t& ctx, expr_any_t::handle_t condition);
 
-   stmt_loop_while_t() = delete;
-   stmt_loop_while_t(const stmt_loop_while_t&) = delete;
-   stmt_loop_while_t& operator=(const stmt_loop_while_t&) = delete;
+    stmt_loop_while_t() = delete;
+    stmt_loop_while_t(const stmt_loop_while_t&) = delete;
+    stmt_loop_while_t& operator=(const stmt_loop_while_t&) = delete;
 
-   virtual void run(rt_prog_ctx_t& ctx) override;
-   virtual stmt_cl_t get_cl() const NU_NOEXCEPT override;
+    virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual stmt_cl_t get_cl() const noexcept override;
 
 protected:
-   expr_any_t::handle_t _condition;
+    expr_any_t::handle_t _condition;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

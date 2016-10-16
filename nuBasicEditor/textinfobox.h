@@ -34,17 +34,13 @@
 
 /* -------------------------------------------------------------------------- */
 
-class txtinfobox_t
-{
+class txtinfobox_t {
 private:
     HWND _ctrl_hwnd;
 
 public:
-    txtinfobox_t(
-        HWND hParentWnd, 
-        HINSTANCE hInst, 
-        const std::string& fontName = "Verdana",
-        const int fontSize = 14,
+    txtinfobox_t(HWND hParentWnd, HINSTANCE hInst,
+        const std::string& fontName = "Verdana", const int fontSize = 14,
         DWORD dwStyle = /*WS_BORDER |*/ ES_READONLY | ES_RIGHT | ES_MULTILINE);
 
     void update(const std::stringstream& os);

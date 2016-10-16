@@ -36,39 +36,38 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_goto_t : public stmt_t
-{
+class stmt_goto_t : public stmt_t {
 public:
-   stmt_goto_t() = delete;
-   stmt_goto_t(stmt_goto_t&) = delete;
-   stmt_goto_t& operator=(stmt_goto_t&) = delete;
+    stmt_goto_t() = delete;
+    stmt_goto_t(stmt_goto_t&) = delete;
+    stmt_goto_t& operator=(stmt_goto_t&) = delete;
 
-   stmt_goto_t(prog_ctx_t & ctx, prog_pointer_t::line_number_t ln) :
-      stmt_t(ctx),
-      _line_number(ln)
-   { }
+    stmt_goto_t(prog_ctx_t& ctx, prog_pointer_t::line_number_t ln)
+        : stmt_t(ctx)
+        , _line_number(ln)
+    {
+    }
 
-   stmt_goto_t(prog_ctx_t & ctx, const std::string& label) :
-      stmt_t(ctx),
-      _label(label)
-   { }
+    stmt_goto_t(prog_ctx_t& ctx, const std::string& label)
+        : stmt_t(ctx)
+        , _label(label)
+    {
+    }
 
-   virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual void run(rt_prog_ctx_t& ctx) override;
 
 protected:
-   prog_pointer_t::line_number_t _line_number = 0;
-   std::string _label;
+    prog_pointer_t::line_number_t _line_number = 0;
+    std::string _label;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

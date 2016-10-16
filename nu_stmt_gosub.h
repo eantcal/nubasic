@@ -28,46 +28,45 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_stmt.h"
 #include "nu_prog_pointer.h"
+#include "nu_stmt.h"
 #include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_gosub_t : public stmt_t
-{
+class stmt_gosub_t : public stmt_t {
 public:
-   stmt_gosub_t() = delete;
-   stmt_gosub_t(const stmt_gosub_t&) = delete;
-   stmt_gosub_t& operator=(const stmt_gosub_t&) = delete;
+    stmt_gosub_t() = delete;
+    stmt_gosub_t(const stmt_gosub_t&) = delete;
+    stmt_gosub_t& operator=(const stmt_gosub_t&) = delete;
 
-   stmt_gosub_t(prog_ctx_t & ctx, prog_pointer_t::line_number_t ln) :
-      stmt_t(ctx),
-      _line_number(ln)
-   { }
+    stmt_gosub_t(prog_ctx_t& ctx, prog_pointer_t::line_number_t ln)
+        : stmt_t(ctx)
+        , _line_number(ln)
+    {
+    }
 
-   stmt_gosub_t(prog_ctx_t & ctx, const std::string& label) :
-      stmt_t(ctx),
-      _label(label)
-   { }
+    stmt_gosub_t(prog_ctx_t& ctx, const std::string& label)
+        : stmt_t(ctx)
+        , _label(label)
+    {
+    }
 
-   virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual void run(rt_prog_ctx_t& ctx) override;
 
 protected:
-   prog_pointer_t::line_number_t _line_number = 0;
-   std::string _label;
+    prog_pointer_t::line_number_t _line_number = 0;
+    std::string _label;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

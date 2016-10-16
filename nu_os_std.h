@@ -30,21 +30,20 @@
 
 #include "nu_variant.h"
 
-#include <string>
-#include <math.h>
-#include <cstdlib>
 #include <algorithm>
-#include <cstring>
-#include <type_traits>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <math.h>
+#include <string>
+#include <type_traits>
 #include <vector>
 
 #include "nu_string_tool.h"
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
@@ -105,33 +104,32 @@ int _os_get_time();
 std::string _os_get_systime();
 
 //! Deletes a file
-int _os_erase_file(const std::string & filepath);
+int _os_erase_file(const std::string& filepath);
 
 //! Deletes a directory
-int _os_erase_dir(const std::string & filepath);
+int _os_erase_dir(const std::string& filepath);
 
 //! Makes a directory
-int _os_make_dir(const std::string & filepath);
+int _os_make_dir(const std::string& filepath);
 
-#if defined( __MINGW32__ )
-int _os_setenv( const char* var, const char* val );
-#elif defined (_MSC_VER)
-#define _os_setenv(_VAR,_VAL)  _putenv_s(_VAR,_VAL)
+#if defined(__MINGW32__)
+int _os_setenv(const char* var, const char* val);
+#elif defined(_MSC_VER)
+#define _os_setenv(_VAR, _VAL) _putenv_s(_VAR, _VAL)
 #else
-#define _os_setenv(_VAR,_VAL)  setenv(_VAR,_VAL,1)
+#define _os_setenv(_VAR, _VAL) setenv(_VAR, _VAL, 1)
 #endif
 
-#if defined( __MINGW32__ )
-int _os_unsetenv( const char* var );
-#elif defined (_MSC_VER)
-#define _os_unsetenv(_VAR)  _putenv_s(_VAR,"")
+#if defined(__MINGW32__)
+int _os_unsetenv(const char* var);
+#elif defined(_MSC_VER)
+#define _os_unsetenv(_VAR) _putenv_s(_VAR, "")
 #else
-#define _os_unsetenv(_VAR)  unsetenv(_VAR)
+#define _os_unsetenv(_VAR) unsetenv(_VAR)
 #endif
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

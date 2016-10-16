@@ -22,27 +22,25 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_rt_prog_ctx.h"
 #include "nu_stmt_close.h"
+#include "nu_rt_prog_ctx.h"
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
 void stmt_close_t::run(rt_prog_ctx_t& ctx)
 {
-   bool res = ctx.file_tbl.close_fd(_fd);
+    bool res = ctx.file_tbl.close_fd(_fd);
 
-   ctx.set_errno(!res && !errno ? EBADF : errno);
+    ctx.set_errno(!res && !errno ? EBADF : errno);
 }
 
 
 /* -------------------------------------------------------------------------- */
 
 } // namespace nu
-

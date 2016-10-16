@@ -28,49 +28,45 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_stmt.h"
 #include "nu_expr_any.h"
-#include <string>
+#include "nu_stmt.h"
 #include <list>
+#include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_expr_t : public stmt_t
-{
+class stmt_expr_t : public stmt_t {
 public:
-   stmt_expr_t(stmt_expr_t&) = delete;
-   stmt_expr_t& operator=(stmt_expr_t&) = delete;
+    stmt_expr_t(stmt_expr_t&) = delete;
+    stmt_expr_t& operator=(stmt_expr_t&) = delete;
 
-   stmt_expr_t(prog_ctx_t& ctx, const std::string& data = "")
-      :
-      stmt_t(ctx),
-      _data(data)
-   {}
+    stmt_expr_t(prog_ctx_t& ctx, const std::string& data = "")
+        : stmt_t(ctx)
+        , _data(data)
+    {
+    }
 
-   stmt_expr_t(const arg_list_t& args, prog_ctx_t& ctx)
-      :
-      stmt_t(ctx),
-      _args(args)
-   {}
+    stmt_expr_t(const arg_list_t& args, prog_ctx_t& ctx)
+        : stmt_t(ctx)
+        , _args(args)
+    {
+    }
 
-   virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual void run(rt_prog_ctx_t& ctx) override;
 
 protected:
-   arg_list_t _args;
-   std::string _data;
-
+    arg_list_t _args;
+    std::string _data;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 /* -------------------------------------------------------------------------- */

@@ -28,83 +28,77 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_variant.h"
 #include "nu_exception.h"
 #include "nu_expr_any.h"
-#include "nu_symbol_map.h"
 #include "nu_icstring.h"
 #include "nu_rt_prog_ctx.h"
+#include "nu_symbol_map.h"
+#include "nu_variant.h"
 
-#include <functional>
-#include <vector>
 #include <algorithm>
+#include <functional>
 #include <type_traits>
+#include <vector>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-using func_bin_t = std::function < variant_t(const variant_t&, const variant_t&) > ;
+using func_bin_t = std::function<variant_t(const variant_t&, const variant_t&)>;
 
-using func_t = std::function < variant_t(
-                  rt_prog_ctx_t &,
-                  const std::string&,
-                  const func_args_t &) > ;
+using func_t = std::function<variant_t(
+    rt_prog_ctx_t&, const std::string&, const func_args_t&)>;
 
-using binop_t = std::function < variant_t(const variant_t&, const variant_t&) > ;
+using binop_t = std::function<variant_t(const variant_t&, const variant_t&)>;
 
 
 /* -------------------------------------------------------------------------- */
 
-class global_function_tbl_t : public symbol_map_t < icstring_t, func_t >
-{
+class global_function_tbl_t : public symbol_map_t<icstring_t, func_t> {
 private:
-   global_function_tbl_t() = default;
-   global_function_tbl_t(const global_function_tbl_t&) = delete;
-   global_function_tbl_t& operator=( const global_function_tbl_t& ) = delete;
+    global_function_tbl_t() = default;
+    global_function_tbl_t(const global_function_tbl_t&) = delete;
+    global_function_tbl_t& operator=(const global_function_tbl_t&) = delete;
 
-   static global_function_tbl_t* _instance;
+    static global_function_tbl_t* _instance;
 
 protected:
-   virtual void get_err_msg(const std::string& key, std::string& err) const
-   {
-      err = "'" + key + "()' not defined";
-   }
+    virtual void get_err_msg(const std::string& key, std::string& err) const
+    {
+        err = "'" + key + "()' not defined";
+    }
 
 public:
-   static global_function_tbl_t& get_instance();
+    static global_function_tbl_t& get_instance();
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-class global_operator_tbl_t : public symbol_map_t < icstring_t, binop_t >
-{
+class global_operator_tbl_t : public symbol_map_t<icstring_t, binop_t> {
 private:
-   global_operator_tbl_t() = default;
-   global_operator_tbl_t(const global_operator_tbl_t&) = delete;
-   global_operator_tbl_t& operator=( const global_operator_tbl_t& ) = delete;
+    global_operator_tbl_t() = default;
+    global_operator_tbl_t(const global_operator_tbl_t&) = delete;
+    global_operator_tbl_t& operator=(const global_operator_tbl_t&) = delete;
 
-   static global_operator_tbl_t* _instance;
+    static global_operator_tbl_t* _instance;
 
 protected:
-   virtual void get_err_msg(const std::string& key, std::string& err) const
-   {
-      err = "'" + key + "()' not defined";
-   }
+    virtual void get_err_msg(const std::string& key, std::string& err) const
+    {
+        err = "'" + key + "()' not defined";
+    }
 
 public:
-   static global_operator_tbl_t& get_instance();
+    static global_operator_tbl_t& get_instance();
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 

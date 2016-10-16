@@ -29,40 +29,37 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_stmt.h"
-#include "nu_variable.h"
 #include "nu_var_scope.h"
+#include "nu_variable.h"
 
-#include <string>
 #include <algorithm>
+#include <string>
 
 
 /* -------------------------------------------------------------------------- */
 
-namespace nu
-{
+namespace nu {
 
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_struct_t : public stmt_t
-{
+class stmt_struct_t : public stmt_t {
 public:
-   stmt_struct_t() = delete;
-   stmt_struct_t(const stmt_struct_t&) = delete;
-   stmt_struct_t& operator=(const stmt_struct_t&) = delete;
+    stmt_struct_t() = delete;
+    stmt_struct_t(const stmt_struct_t&) = delete;
+    stmt_struct_t& operator=(const stmt_struct_t&) = delete;
 
-   stmt_struct_t(prog_ctx_t & ctx, const std::string& id);
+    stmt_struct_t(prog_ctx_t& ctx, const std::string& id);
 
-   virtual stmt_cl_t get_cl() const NU_NOEXCEPT override;
-   virtual void run(rt_prog_ctx_t& ctx) override;
+    virtual stmt_cl_t get_cl() const noexcept override;
+    virtual void run(rt_prog_ctx_t& ctx) override;
 
 protected:
-   std::string _id;
+    std::string _id;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 
