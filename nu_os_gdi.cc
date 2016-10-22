@@ -27,6 +27,22 @@
 
 /* -------------------------------------------------------------------------- */
 
+#ifdef _WIN32
+
+#ifndef __MINGW32__
+#pragma comment(lib, "Winmm.lib")
+#pragma comment(lib, "Gdiplus.lib")
+#include <windows.h>
+#include <objidl.h>
+#include <gdiplus.h>
+using namespace Gdiplus;
+#else
+#include <windows.h>
+#endif
+
+
+/* -------------------------------------------------------------------------- */
+
 #include "nu_os_gdi.h"
 #include "nu_exception.h"
 #include "nu_os_std.h"
@@ -35,22 +51,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifdef _WIN32
-
-#ifndef __MINGW32__
-#pragma comment(lib, "Winmm.lib")
-#pragma comment(lib, "Gdiplus.lib")
-
-#include <gdiplus.h>
-#include <objidl.h>
-using namespace Gdiplus;
-#endif
-
-
-/* -------------------------------------------------------------------------- */
-
 #include <stdio.h>
-#include <windows.h>
 
 
 /* -------------------------------------------------------------------------- */

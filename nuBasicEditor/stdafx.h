@@ -23,9 +23,9 @@
 
 #include "targetver.h"
 
-#include <WinUser.h>
 #include <windows.h>
 #include <windowsx.h>
+#include <WinUser.h>
 
 #include <Commctrl.h>
 #include <WinUser.h>

@@ -82,7 +82,7 @@ public:
     {
         assert(size_t(id) < sizeof(_data) * 8);
 
-        decltype(_data) idmask = 1 << id;
+        decltype(_data) idmask = 1ULL << id;
 
         if ((_mask & idmask) == 0)
             return;

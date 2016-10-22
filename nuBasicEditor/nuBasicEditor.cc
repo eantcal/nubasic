@@ -22,6 +22,9 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include "stdafx.h"
+
+
 #include "nu_about.h"
 #include "nu_builtin_help.h"
 #include "nu_builtin_help.h"
@@ -31,8 +34,6 @@
 
 #include "textinfobox.h"
 #include "toolbar.h"
-
-#include "stdafx.h"
 
 #include <regex>
 #include <set>
@@ -187,25 +188,25 @@ public:
     /**
     * Set main window handle
     */
-    void set_hwnd(HWND hWnd) NU_NOEXCEPT { _hwnd_main = hWnd; }
+    void set_hwnd(HWND hWnd) noexcept { _hwnd_main = hWnd; }
 
 
     /**
     * Get main window handle
     */
-    HWND get_main_hwnd() const NU_NOEXCEPT { return _hwnd_main; }
+    HWND get_main_hwnd() const noexcept { return _hwnd_main; }
 
 
     /**
     * Get editor window handle
     */
-    HWND get_editor_hwnd() const NU_NOEXCEPT { return _hwnd_editor; }
+    HWND get_editor_hwnd() const noexcept { return _hwnd_editor; }
 
 
     /**
      * Set editor window handle
      */
-    void set_editor_hwnd(HWND hwnd) NU_NOEXCEPT { _hwnd_editor = hwnd; }
+    void set_editor_hwnd(HWND hwnd) noexcept { _hwnd_editor = hwnd; }
 
 
     /**
@@ -278,25 +279,25 @@ public:
     /**
     * Set replace msg
     */
-    void set_find_replace_msg(UINT msg) NU_NOEXCEPT { _find_replace_msg = msg; }
+    void set_find_replace_msg(UINT msg) noexcept { _find_replace_msg = msg; }
 
 
     /**
     * Get replace msg
     */
-    UINT get_find_replace_msg() const NU_NOEXCEPT { return _find_replace_msg; }
+    UINT get_find_replace_msg() const noexcept { return _find_replace_msg; }
 
 
     /**
     * Get instance handle
     */
-    HINSTANCE get_instance_handle() const NU_NOEXCEPT { return _hInstance; }
+    HINSTANCE get_instance_handle() const noexcept { return _hInstance; }
 
 
     /**
     * Set instance handle
     */
-    void set_instance_handle(HINSTANCE hInst) NU_NOEXCEPT
+    void set_instance_handle(HINSTANCE hInst) noexcept
     {
         _hInstance = hInst;
     }
@@ -305,7 +306,7 @@ public:
     /**
     * Export a reference to the current dialog window handle
     */
-    HWND& current_dialog() NU_NOEXCEPT { return _current_dialog; }
+    HWND& current_dialog() noexcept { return _current_dialog; }
 
 
     /**
@@ -317,7 +318,7 @@ public:
     /**
     * Export a reference to the "Go to ..." line
     */
-    int& goto_line() NU_NOEXCEPT { return _goto_line; }
+    int& goto_line() noexcept { return _goto_line; }
 
 
     /**
@@ -409,7 +410,7 @@ public:
     /**
     * Get line count
     */
-    int get_line_count() const NU_NOEXCEPT
+    int get_line_count() const noexcept
     {
         return int((send_command(SCI_GETLINECOUNT, 0, 0)));
     }
@@ -418,7 +419,7 @@ public:
     /**
     * Toggle the display of the folding margin
     */
-    void set_folding_margin(bool enable) NU_NOEXCEPT
+    void set_folding_margin(bool enable) noexcept
     {
         send_command(SCI_SETMARGINWIDTHN, 2, enable ? DEF_MARGIN_WIDTH : 0);
     }
@@ -428,7 +429,7 @@ public:
     * Calculate the width for line numbers
     * \return number of pixels for the margin width of margin (0)
     */
-    int get_line_num_width() const NU_NOEXCEPT
+    int get_line_num_width() const noexcept
     {
         return int(LINENUM_WIDTH
             * send_command(SCI_TEXTWIDTH, STYLE_LINENUMBER, (LPARAM)("9")));
@@ -478,7 +479,7 @@ public:
     * Otherwise remove it
     * \param line where to add/remove bookmark - lines start at 1
     */
-    void toggle_bookmark(long line) NU_NOEXCEPT
+    void toggle_bookmark(long line) noexcept
     {
         // just one of following function will be effect !
         if (!add_bookmark(line))
@@ -490,7 +491,7 @@ public:
     * Add a bookmark at given line
     * \param line where to add bookmark - lines start at 1
     */
-    bool add_bookmark(long line) NU_NOEXCEPT
+    bool add_bookmark(long line) noexcept
     {
         if (!has_bookmark(line)) {
             const auto m = int(marker_t::BOOKMARK);
@@ -522,20 +523,20 @@ public:
     /**
     * Show execution point
     */
-    bool show_execution_point(int line) NU_NOEXCEPT;
+    bool show_execution_point(int line) noexcept;
 
 
     /**
     * Show error line
     */
-    bool show_error_line(int line) NU_NOEXCEPT;
+    bool show_error_line(int line) noexcept;
 
 
     /**
     * Remove a bookmark at given line
     * \param line where to delete bookmark - lines start at 1
     */
-    bool remove_bookmark(long line) NU_NOEXCEPT
+    bool remove_bookmark(long line) noexcept
     {
         if (has_bookmark(line)) {
             send_command(SCI_MARKERDELETE, line - 1, 0);
@@ -550,7 +551,7 @@ public:
     * Add a breakpoint at given line
     * \param line where to add breakpoint - lines start at 1
     */
-    bool add_breakpoint(long line) NU_NOEXCEPT
+    bool add_breakpoint(long line) noexcept
     {
         const auto m = int(marker_t::BREAKPOINT);
         send_command(SCI_MARKERDEFINE, m, SC_MARK_CIRCLE);
@@ -567,7 +568,7 @@ public:
     * Add a breakpoint at given line
     * \param line where to add breakpoint - lines start at 1
     */
-    bool toggle_breakpoint(long line) NU_NOEXCEPT
+    bool toggle_breakpoint(long line) noexcept
     {
         if (!remove_breakpoint(line))
             add_breakpoint(line);
@@ -580,7 +581,7 @@ public:
     * Remove a breakpoint at given line
     * \param line where to delete bookmark - lines start at 1
     */
-    bool remove_breakpoint(long line) NU_NOEXCEPT
+    bool remove_breakpoint(long line) noexcept
     {
         if (has_breakpoint(line)) {
             send_command(SCI_MARKERDELETE, line - 1, 1);
@@ -594,7 +595,7 @@ public:
     /**
     * Remove all bookmarks
     */
-    void remove_all_bookmarks() NU_NOEXCEPT
+    void remove_all_bookmarks() noexcept
     {
         send_command(SCI_MARKERDELETEALL, int(marker_t::BOOKMARK), 0);
     }
@@ -603,7 +604,7 @@ public:
     /**
     * Remove all breakpoints
     */
-    void remove_all_breakpoints() NU_NOEXCEPT
+    void remove_all_breakpoints() noexcept
     {
         send_command(SCI_MARKERDELETEALL, int(marker_t::BREAKPOINT), 0);
     }
@@ -612,7 +613,7 @@ public:
     /**
     * Reset all breakpoints
     */
-    void reset_all_breakpoints() NU_NOEXCEPT
+    void reset_all_breakpoints() noexcept
     {
         auto linecount = get_line_count();
 
@@ -629,7 +630,7 @@ public:
     * \param line where to add bookmark - lines start at 1
     * \return true if given line has a bookmark - otherwise false
     */
-    bool has_bookmark(long line) const NU_NOEXCEPT
+    bool has_bookmark(long line) const noexcept
     {
         const auto m = int(marker_t::BOOKMARK) + 1;
         return ((send_command(SCI_MARKERGET, line - 1, 0) & m) == m);
@@ -640,7 +641,7 @@ public:
     * \param line where to add breakpoint - lines start at 1
     * \return true if given line has a breakpoint - otherwise false
     */
-    bool has_breakpoint(long line) const NU_NOEXCEPT
+    bool has_breakpoint(long line) const noexcept
     {
         const auto m = int(marker_t::BREAKPOINT) + 1;
         return ((send_command(SCI_MARKERGET, line - 1, 0) & m) == m);
@@ -663,14 +664,14 @@ public:
     * Goto given character position
     * \param pos new character position
     */
-    void go_to_pos(long pos) NU_NOEXCEPT { send_command(SCI_GOTOPOS, pos, 0); }
+    void go_to_pos(long pos) noexcept { send_command(SCI_GOTOPOS, pos, 0); }
 
 
     /**
     * Get the current line number - this the with the caret in it
     * \return line number with the caret in it - starts with 1
     */
-    LRESULT get_current_line() const NU_NOEXCEPT;
+    LRESULT get_current_line() const noexcept;
 
 
     /**
@@ -678,34 +679,34 @@ public:
     * This return value my be affected by the TAB setting! Starts with 1
     * \return current column number
     */
-    LRESULT get_current_colum() const NU_NOEXCEPT;
+    LRESULT get_current_colum() const noexcept;
 
 
     /**
     * Return the current character position within the file.
     * \return current character position
     */
-    LRESULT get_current_position() const NU_NOEXCEPT;
+    LRESULT get_current_position() const noexcept;
 
 
     /**
     * Return the current style at the caret
     * \return the current style index
     */
-    LRESULT get_current_style() const NU_NOEXCEPT;
+    LRESULT get_current_style() const noexcept;
 
 
     /**
     * Return the current folding level at the caret line
     * \return the current folding level
     */
-    int get_fold_level() const NU_NOEXCEPT;
+    int get_fold_level() const noexcept;
 
 
     /**
     * Set the fontname
     */
-    void set_font(int style, const std::string& name) NU_NOEXCEPT
+    void set_font(int style, const std::string& name) noexcept
     {
         send_command(
             SCI_STYLESETFONT, style, reinterpret_cast<LPARAM>(name.c_str()));
@@ -715,7 +716,7 @@ public:
     /**
     * Set the font height in points
     */
-    void set_font_height(int style, int height) NU_NOEXCEPT
+    void set_font_height(int style, int height) noexcept
     {
         send_command(SCI_STYLESETSIZE, style, static_cast<LPARAM>(height));
     }
@@ -724,7 +725,7 @@ public:
     /**
     * Set the foreground color
     */
-    void set_fg(int style, COLORREF crForeground) NU_NOEXCEPT
+    void set_fg(int style, COLORREF crForeground) noexcept
     {
         send_command(
             SCI_STYLESETFORE, style, static_cast<LPARAM>(crForeground));
@@ -734,7 +735,7 @@ public:
     /**
     * Set the backgroundcolor
     */
-    void set_bg(int style, COLORREF crBackground) NU_NOEXCEPT
+    void set_bg(int style, COLORREF crBackground) noexcept
     {
         send_command(
             SCI_STYLESETBACK, style, static_cast<LPARAM>(crBackground));
@@ -744,7 +745,7 @@ public:
     /**
     * Set given style to bold
     */
-    void set_font_bold(int style, bool enable) NU_NOEXCEPT
+    void set_font_bold(int style, bool enable) noexcept
     {
         send_command(SCI_STYLESETBOLD, style, static_cast<LPARAM>(enable));
     }
@@ -753,7 +754,7 @@ public:
     /**
     * Set given style to italic
     */
-    void set_font_italic(int style, bool enable) NU_NOEXCEPT
+    void set_font_italic(int style, bool enable) noexcept
     {
         send_command(SCI_STYLESETITALIC, style, static_cast<LPARAM>(enable));
     }
@@ -762,7 +763,7 @@ public:
     /**
     * Set given style to underline
     */
-    void set_font_underline(int style, bool enable) NU_NOEXCEPT
+    void set_font_underline(int style, bool enable) noexcept
     {
         send_command(SCI_STYLESETUNDERLINE, style, static_cast<LPARAM>(enable));
     }
@@ -771,7 +772,7 @@ public:
     /**
     * Get true if overstrike is enabled
     */
-    bool get_overstrike() const NU_NOEXCEPT
+    bool get_overstrike() const noexcept
     {
         return send_command(SCI_GETOVERTYPE, 0, 0) != 0;
     }
@@ -780,7 +781,7 @@ public:
     /**
     * Set overstrike state
     */
-    void nu::editor_t::set_overstrike(bool enable) NU_NOEXCEPT
+    void nu::editor_t::set_overstrike(bool enable) noexcept
     {
         send_command(SCI_SETOVERTYPE, enable ? TRUE : FALSE, 0);
     }
@@ -823,7 +824,7 @@ public:
     * \return character position of selection begin
     *  otherwise -1 on error
     */
-    LRESULT get_selection_begin() const NU_NOEXCEPT
+    LRESULT get_selection_begin() const noexcept
     {
         return send_command(SCI_GETSELECTIONSTART, 0, 0);
     }
@@ -834,7 +835,7 @@ public:
     * \return character position of selection end
     *  otherwise -1 on error
     */
-    LRESULT get_selection_end() const NU_NOEXCEPT
+    LRESULT get_selection_end() const noexcept
     {
         return send_command(SCI_GETSELECTIONEND, 0, 0);
     }
@@ -892,7 +893,7 @@ public:
     /**
     * Invert search direction flg
     */
-    void invert_search_direction() NU_NOEXCEPT
+    void invert_search_direction() noexcept
     {
         _invert_search_direction = !_invert_search_direction;
     }
@@ -901,7 +902,7 @@ public:
     /**
     * Get search direction flg
     */
-    bool get_search_direction() const NU_NOEXCEPT
+    bool get_search_direction() const noexcept
     {
         return _invert_search_direction;
     }
@@ -910,13 +911,13 @@ public:
     /**
     * Rebuild code and check code syntax
     */
-    bool rebuild_code(bool show_msg_error) NU_NOEXCEPT;
+    bool rebuild_code(bool show_msg_error) noexcept;
 
 
     /**
     * Remove functions reference menu
     */
-    void remove_funcs_menu() NU_NOEXCEPT
+    void remove_funcs_menu() noexcept
     {
         HMENU hmenu = GetMenu(get_main_hwnd());
 
@@ -927,13 +928,13 @@ public:
     /**
     * Create functions reference menu
     */
-    void create_funcs_menu() NU_NOEXCEPT;
+    void create_funcs_menu() noexcept;
 
 
     /**
     * Resolve function line using id of "functions" menu
     */
-    int resolve_funclinenum_from_id(int id) const NU_NOEXCEPT
+    int resolve_funclinenum_from_id(int id) const noexcept
     {
         const auto i = _func_map.find(id);
 
@@ -1018,7 +1019,7 @@ public:
     /*
     * Return true if document has been modified but not saved
     */
-    bool is_dirty() const NU_NOEXCEPT { return _is_dirty; }
+    bool is_dirty() const noexcept { return _is_dirty; }
 
 protected:
     using func_map_t = std::map<int, int>;
@@ -1426,7 +1427,7 @@ bool nu::editor_t::build_basic_line(
 
 /* -------------------------------------------------------------------------- */
 
-LRESULT nu::editor_t::get_current_line() const NU_NOEXCEPT
+LRESULT nu::editor_t::get_current_line() const noexcept
 {
     return send_command(
                SCI_LINEFROMPOSITION, send_command(SCI_GETCURRENTPOS, 0, 0), 0)
@@ -1436,7 +1437,7 @@ LRESULT nu::editor_t::get_current_line() const NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-LRESULT nu::editor_t::get_current_colum() const NU_NOEXCEPT
+LRESULT nu::editor_t::get_current_colum() const noexcept
 {
     return send_command(SCI_GETCOLUMN, send_command(SCI_GETCURRENTPOS, 0, 0), 0)
         + 1;
@@ -1445,7 +1446,7 @@ LRESULT nu::editor_t::get_current_colum() const NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-LRESULT nu::editor_t::get_current_position() const NU_NOEXCEPT
+LRESULT nu::editor_t::get_current_position() const noexcept
 {
     return send_command(SCI_GETCURRENTPOS, 0, 0);
 }
@@ -1453,7 +1454,7 @@ LRESULT nu::editor_t::get_current_position() const NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-LRESULT nu::editor_t::get_current_style() const NU_NOEXCEPT
+LRESULT nu::editor_t::get_current_style() const noexcept
 {
     return send_command(SCI_GETSTYLEAT, get_current_position(), 0);
 }
@@ -1461,7 +1462,7 @@ LRESULT nu::editor_t::get_current_style() const NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-int nu::editor_t::get_fold_level() const NU_NOEXCEPT
+int nu::editor_t::get_fold_level() const noexcept
 {
     int level = (send_command(SCI_GETFOLDLEVEL, get_current_line(), 0))
         & SC_FOLDLEVELNUMBERMASK;
@@ -1678,7 +1679,7 @@ int nu::editor_t::replace_all(
 
 /* -------------------------------------------------------------------------- */
 
-void nu::editor_t::create_funcs_menu() NU_NOEXCEPT
+void nu::editor_t::create_funcs_menu() noexcept
 {
     const rt_prog_ctx_t& prog_ctx = g_editor.interpreter().get_ctx();
     const auto& prototypes = prog_ctx.proc_prototypes.data;
@@ -1838,7 +1839,7 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
 
 /* -------------------------------------------------------------------------- */
 
-bool nu::editor_t::show_execution_point(int line) NU_NOEXCEPT
+bool nu::editor_t::show_execution_point(int line) noexcept
 {
     remove_prog_cnt_marker();
 
@@ -1880,7 +1881,7 @@ bool nu::editor_t::show_execution_point(int line) NU_NOEXCEPT
 
 /* -------------------------------------------------------------------------- */
 
-bool nu::editor_t::show_error_line(int line) NU_NOEXCEPT
+bool nu::editor_t::show_error_line(int line) noexcept
 {
     remove_prog_cnt_marker();
 
@@ -2118,7 +2119,7 @@ static std::vector<std::string> split(const std::string& s, char delim = ' ')
 
 /* -------------------------------------------------------------------------- */
 
-bool nu::editor_t::rebuild_code(bool show_err_msg) NU_NOEXCEPT
+bool nu::editor_t::rebuild_code(bool show_err_msg) noexcept
 {
     remove_prog_cnt_marker();
 
