@@ -46,6 +46,7 @@ using namespace Gdiplus;
 #include "nu_os_gdi.h"
 #include "nu_exception.h"
 #include "nu_os_std.h"
+#include "nu_os_std.h"
 #include "nu_rt_prog_ctx.h"
 
 
@@ -517,6 +518,7 @@ int _os_get_window_dy() noexcept
 
 /* -------------------------------------------------------------------------- */
 
+#include "nu_os_gdi.h"
 #include "nu_playsnd.h"
 #include "nu_stb_image.h"
 #include <X11/Xlib.h>
