@@ -203,6 +203,7 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
 
             case nu::variable_t::type_t::UNDEFINED:
             case nu::variable_t::type_t::BYTEVECTOR:
+            case nu::variable_t::type_t::STRUCT:
                 break;
             }
         }
@@ -259,6 +260,11 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
             if (buf.size() > 0)
                 scope->define(name, var_value_t(buf, VAR_ACCESS_RW));
 
+            break;
+
+        case nu::variable_t::type_t::UNDEFINED:
+        case nu::variable_t::type_t::STRUCT:
+            rt_error_if(true, rt_error_code_t::E_TYPE_ILLEGAL, "Read");
             break;
 
         case variable_t::type_t::INTEGER:

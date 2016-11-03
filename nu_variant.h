@@ -106,20 +106,12 @@ public:
 
     variant_t(const struct_variant_t& value, size_t vect_size = 0)
         : variant_t(value.get(), type_t::STRUCT, vect_size)
-    {
-    }
+    {}
 
     using struct_data_t = std::map<std::string, variant_t::handle_t>;
 
-    static void copy_struct_data(struct_data_t& dst, const struct_data_t& src)
-    {
-        dst = src;
-        for (auto& e : dst) {
-            if (e.second)
-                e.second = std::make_shared<variant_t>(*e.second);
-        }
-    }
-
+    static void copy_struct_data(struct_data_t& dst, const struct_data_t& src);
+    
     variant_t(const std::string& name, const struct_data_t& value)
         : _type(type_t::STRUCT)
         , _struct_data_type_name(name)
@@ -167,11 +159,7 @@ public:
         _struct_data[vector_idx] = v._struct_data[0];
     }
 
-    const std::string& struct_type_name() const noexcept
-    {
-        return _struct_data_type_name;
-    }
-
+    const std::string& struct_type_name() const noexcept { return _struct_data_type_name;  }
     void describe_type(std::stringstream& ss) const noexcept;
 
     void resize(size_t size)
@@ -182,187 +170,68 @@ public:
     }
 
     bool is_vector() const noexcept { return _vector_type; }
-
     bool is_struct() const noexcept { return _type == type_t::STRUCT; }
 
     size_t vector_size() const noexcept { return _vect_size; }
 
     real_t to_real(size_t idx = 0) const { return real_t(to_double(idx)); }
-
-    double_t to_double(size_t idx = 0) const
-    {
-        rt_error_code_t::get_instance().throw_if(
-            _type == type_t::STRUCT, 0, rt_error_code_t::E_TYPE_ILLEGAL, "");
-
-        if (is_number())
-            return is_integral() ? double_t(_at_i(idx)) : _at_f(idx);
-
-        return nu::stod(_at_s(idx));
-    }
-
+    double_t to_double(size_t idx = 0) const;
     integer_t to_int(size_t idx = 0) const { return integer_t(to_long64(idx)); }
-
-    long64_t to_long64(size_t idx = 0) const
-    {
-        rt_error_code_t::get_instance().throw_if(
-            _type == type_t::STRUCT, 0, rt_error_code_t::E_TYPE_ILLEGAL, "");
-
-        if (is_number())
-            return is_integral() ? _at_i(idx) : long64_t(_at_f(idx));
-
-        return nu::stoll(_at_s(idx));
-    }
-
+    long64_t to_long64(size_t idx = 0) const;
     bool to_bool(size_t idx = 0) const { return to_long64(idx) != 0; }
 
     type_t get_type() const noexcept { return _type; }
 
-    bool is_number() const noexcept
-    {
-        return variable_t::is_number(get_type());
-    }
-
-    bool is_integral() const noexcept
-    {
-        return variable_t::is_integral(get_type());
-    }
-
+    bool is_number() const noexcept { return variable_t::is_number(get_type()); }
+    bool is_integral() const noexcept { return variable_t::is_integral(get_type()); }
     bool is_float() const noexcept { return variable_t::is_float(get_type()); }
 
     static const char* get_type_desc(const type_t& type) noexcept;
 
     explicit operator real_t() const { return to_real(); }
-
     explicit operator double_t() const { return to_double(); }
-
     explicit operator integer_t() const { return to_int(); }
-
     explicit operator unsigned int() const { return to_int(); }
-
     explicit operator long() const { return to_int(); }
-
     explicit operator unsigned long() const { return to_int(); }
-
-    const string_t& to_str(size_t idx = 0) const
-    {
-        rt_error_code_t::get_instance().throw_if(
-            _type == type_t::STRUCT, 0, rt_error_code_t::E_TYPE_ILLEGAL, "");
-
-        if (is_number()) {
-            _s_data.resize(idx + 1);
-
-            _s_data[idx] = is_integral() ? std::to_string(_at_i(idx))
-                                         : std::to_string(_at_f(idx));
-        }
-
-        return _at_s(idx);
-    }
-
     explicit operator string_t() const { return to_str(); }
-
     explicit operator bool() const { return to_int() != 0; }
 
-    void set_str(const string_t& value)
-    {
-        _set(value, _s_data, type_t::STRING);
-    }
+    const string_t& to_str(size_t idx = 0) const;
 
-    void set_str(const char* value)
-    {
-        _set<string_t>(value, _s_data, type_t::STRING);
-    }
-
-    void set_int(const integer_t& value)
-    {
-        _set(value, _i_data, type_t::INTEGER);
-    }
-
+    void set_str(const string_t& value) { _set(value, _s_data, type_t::STRING); }
+    void set_str(const char* value) { _set<string_t>(value, _s_data, type_t::STRING); }
+    void set_int(const integer_t& value)  { _set(value, _i_data, type_t::INTEGER); }
     void set_real(real_t value) { _set(value, _f_data, type_t::FLOAT); }
-
     void set_double(double_t value) { _set(value, _f_data, type_t::DOUBLE); }
-
-    void set_bvect(integer_t value)
-    {
-        _set(value, _i_data, type_t::BYTEVECTOR);
-    }
-
+    void set_bvect(integer_t value) { _set(value, _i_data, type_t::BYTEVECTOR); }
     void set_bool(bool_t value) { _set(value, _i_data, type_t::BOOLEAN); }
-
     void set_long64(long64_t value) { _set(value, _i_data, type_t::LONG64); }
+    void set_str(const string_t& value, size_t idx) { _set(value, _s_data, type_t::STRING, idx);  }
+    void set_str(const char* value, size_t idx) { _set<string_t>(value, _s_data, type_t::STRING, idx); }
+    void set_int(const integer_t& value, size_t idx) { _set(value, _i_data, type_t::INTEGER, idx); }
+    void set_real(real_t value, size_t idx) { _set(value, _f_data, type_t::FLOAT, idx);  }
+    void set_double(double_t value, size_t idx) { _set(value, _f_data, type_t::DOUBLE); }
+    void set_bvect(integer_t value, size_t idx) { _set(value, _i_data, type_t::BYTEVECTOR, idx); }
+    void set_bool(bool_t value, size_t idx) { _set(value, _i_data, type_t::BOOLEAN, idx); }
+    void set_long64(long64_t value, size_t idx) { _set(value, _i_data, type_t::LONG64, idx); }
 
-    void set_str(const string_t& value, size_t idx)
-    {
-        _set(value, _s_data, type_t::STRING, idx);
-    }
-
-    void set_str(const char* value, size_t idx)
-    {
-        _set<string_t>(value, _s_data, type_t::STRING, idx);
-    }
-
-    void set_int(const integer_t& value, size_t idx)
-    {
-        _set(value, _i_data, type_t::INTEGER, idx);
-    }
-
-    void set_real(real_t value, size_t idx)
-    {
-        _set(value, _f_data, type_t::FLOAT, idx);
-    }
-
-    void set_double(double_t value, size_t idx)
-    {
-        _set(value, _f_data, type_t::DOUBLE);
-    }
-
-    void set_bvect(integer_t value, size_t idx)
-    {
-        _set(value, _i_data, type_t::BYTEVECTOR, idx);
-    }
-
-    void set_bool(bool_t value, size_t idx)
-    {
-        _set(value, _i_data, type_t::BOOLEAN, idx);
-    }
-
-    void set_long64(long64_t value, size_t idx)
-    {
-        _set(value, _i_data, type_t::LONG64, idx);
-    }
-
-    variant_t operator[](size_t idx) const
-    {
-        if (is_struct())
-            return variant_t(struct_type_name(), _struct_data[idx]);
-        else
-            return is_number() ? (is_integral() ? variant_t(_at_i(idx))
-                                                : variant_t(_at_f(idx)))
-                               : variant_t(_at_s(idx));
-    }
-
-    void set_bvect(const std::vector<byte_t>& value);
-
-
+    variant_t operator[](size_t idx) const;
     friend variant_t operator+(const variant_t& a, const variant_t& b);
     friend variant_t operator-(const variant_t& a, const variant_t& b);
     friend variant_t operator*(const variant_t& a, const variant_t& b);
     friend variant_t operator/(const variant_t& a, const variant_t& b);
-
-
     friend variant_t operator<=(const variant_t& a, const variant_t& b);
     friend variant_t operator>=(const variant_t& a, const variant_t& b);
     friend variant_t operator==(const variant_t& a, const variant_t& b);
     friend variant_t operator!=(const variant_t& a, const variant_t& b);
     friend variant_t operator<(const variant_t& a, const variant_t& b);
     friend variant_t operator>(const variant_t& a, const variant_t& b);
-
     variant_t int_div(const variant_t& b) const;
     variant_t int_mod(const variant_t& b) const;
     variant_t power(const variant_t& b) const;
-
     variant_t increment();
     variant_t decrement();
-
     variant_t& operator+=(const variant_t& b);
     variant_t& operator-=(const variant_t& b);
 

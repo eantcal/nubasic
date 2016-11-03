@@ -42,6 +42,7 @@ variant_t eval_expr(rt_prog_ctx_t& ctx, std::string data);
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 #endif // __NU_EVAL_EXPR_H__

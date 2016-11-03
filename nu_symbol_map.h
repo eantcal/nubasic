@@ -39,80 +39,57 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-template <typename String, typename Symb> class symbol_map_t {
+template <typename Key, typename Symb> class symbol_map_t {
 public:
-    using key_t = String;
+    using key_t = Key;
     using symbol_t = Symb;
 
     symbol_map_t() = default;
     symbol_map_t(const symbol_map_t&) = default;
     symbol_map_t& operator=(const symbol_map_t&) = delete;
-
     virtual ~symbol_map_t() {}
-
-
     symbol_map_t(symbol_map_t&& obj) { _symbols = std::move(obj); }
 
-
-    symbol_map_t& operator=(symbol_map_t&& obj)
-    {
-        if (this != &obj)
+    symbol_map_t& operator=(symbol_map_t&& obj) {
+        if (this != &obj) {
             _symbols = std::move(obj);
+        }
 
         return *this;
     }
 
-
-    virtual bool define(const std::string& name, const Symb& value)
-    {
-        auto i = map().insert(std::make_pair(name, Symb()));
-        (*(i.first)).second = value;
+    virtual bool define(const std::string& name, const Symb& value) {
+        auto i = map().insert(std::make_pair(name, value));
         return i.second;
     }
 
-
     virtual void erase(const std::string& name) { map().erase(name); }
 
-
-    bool is_defined(const std::string& name) const noexcept
-    {
+    bool is_defined(const std::string& name) const noexcept  {
         return _symbols.find(name) != _symbols.end();
     }
 
-
     Symb& operator[](const std::string& name) { return _symbols[name]; }
 
-
-    const Symb& operator[](const std::string& name) const
-    {
+    const Symb& operator[](const std::string& name) const {
         auto i = map().find(name);
 
         if (i == map().end()) {
             std::string err;
-
             get_err_msg(name, err);
-
             throw exception_t(err);
         }
 
         return i->second;
     }
 
-
     bool empty() const noexcept { return _symbols.empty(); }
-
-
     size_t size() const noexcept { return _symbols.size(); }
-
-
-    const std::map<String, Symb>& map() const noexcept { return _symbols; }
-
-
+    const std::map<Key, Symb>& map() const noexcept { return _symbols; }
     virtual void clear() { _symbols.clear(); }
 
-
     friend std::stringstream& operator<<(
-        std::stringstream& ss, symbol_map_t<String, Symb>& obj)
+        std::stringstream& ss, symbol_map_t<Key, Symb>& obj)
     {
         for (const auto& e : obj.map())
             ss << "\t" << e.first.str() << ": " << e.second << std::endl;
@@ -120,17 +97,14 @@ public:
         return ss;
     }
 
-
 protected:
-    std::map<String, Symb>& map() noexcept { return _symbols; }
-
-
+    std::map<Key, Symb>& map() noexcept { return _symbols; }
+    
     virtual void get_err_msg(
         const std::string& key, std::string& err) const = 0;
 
-
 private:
-    std::map<String, Symb> _symbols;
+    std::map<Key, Symb> _symbols;
 };
 
 

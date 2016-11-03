@@ -42,9 +42,9 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 variant_t::variant_t(const char* s_value, type_t t, size_t vect_size)
-    : _type(t)
-    , _vector_type(vect_size > 0)
-    , _vect_size(vect_size)
+    : _type(t),
+      _vect_size(vect_size),
+      _vector_type(vect_size > 0)
 {
     if (vect_size < 1)
         vect_size = 1;
@@ -93,8 +93,8 @@ variant_t::variant_t(const char* value, size_t vect_size)
 
 variant_t::variant_t(const real_t& value, size_t vect_size)
     : _type(type_t::FLOAT)
-    , _vector_type(vect_size >= 1)
     , _vect_size(vect_size)
+    , _vector_type(vect_size >= 1)
 {
     if (vect_size < 1)
         vect_size = 1;
@@ -107,8 +107,8 @@ variant_t::variant_t(const real_t& value, size_t vect_size)
 
 variant_t::variant_t(const double_t& value, size_t vect_size)
     : _type(type_t::DOUBLE)
-    , _vector_type(vect_size >= 1)
     , _vect_size(vect_size)
+    , _vector_type(vect_size >= 1)
 {
     if (vect_size < 1)
         vect_size = 1;
@@ -838,8 +838,8 @@ bool variant_t::is_real(const std::string& value)
 
 variant_t::variant_t(variant_t&& v)
     : _type(std::move(v._type))
-    , _vector_type(std::move(v._vector_type))
     , _vect_size(std::move(v._vect_size))
+    , _vector_type(std::move(v._vector_type))
     , _s_data(std::move(v._s_data))
     , _i_data(std::move(v._i_data))
     , _f_data(std::move(v._f_data))
@@ -851,8 +851,8 @@ variant_t::variant_t(variant_t&& v)
 
 variant_t::variant_t(const variant_t& v)
     : _type(v._type)
-    , _vector_type(v._vector_type)
     , _vect_size(v._vect_size)
+    , _vector_type(v._vector_type)
     , _s_data(v._s_data)
     , _i_data(v._i_data)
     , _f_data(v._f_data)
@@ -1005,6 +1005,76 @@ void variant_t::describe_type(std::stringstream& ss) const noexcept
     }
 }
 
+
+/* -------------------------------------------------------------------------- */
+
+double_t variant_t::to_double(size_t idx) const
+{
+    rt_error_code_t::get_instance().throw_if(
+        _type == type_t::STRUCT, 0, rt_error_code_t::E_TYPE_ILLEGAL, "");
+
+    if (is_number())
+        return is_integral() ? double_t(_at_i(idx)) : _at_f(idx);
+
+    return nu::stod(_at_s(idx));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+long64_t variant_t::to_long64(size_t idx) const
+{
+    rt_error_code_t::get_instance().throw_if(
+        _type == type_t::STRUCT, 0, rt_error_code_t::E_TYPE_ILLEGAL, "");
+
+    if (is_number())
+        return is_integral() ? _at_i(idx) : long64_t(_at_f(idx));
+
+    return nu::stoll(_at_s(idx));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+const string_t& variant_t::to_str(size_t idx) const
+{
+    rt_error_code_t::get_instance().throw_if(
+        _type == type_t::STRUCT, 0, rt_error_code_t::E_TYPE_ILLEGAL, "");
+
+    if (is_number()) {
+        _s_data.resize(idx + 1);
+
+        _s_data[idx] = is_integral() ? std::to_string(_at_i(idx))
+            : std::to_string(_at_f(idx));
+    }
+
+    return _at_s(idx);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+variant_t variant_t::operator[](size_t idx) const
+{
+    if (is_struct())
+        return variant_t(struct_type_name(), _struct_data[idx]);
+    else
+        return is_number() ? (is_integral() ? variant_t(_at_i(idx))
+            : variant_t(_at_f(idx)))
+        : variant_t(_at_s(idx));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void variant_t::copy_struct_data(struct_data_t& dst, const struct_data_t& src)
+{
+    dst = src;
+    for (auto& e : dst) {
+        if (e.second)
+            e.second = std::make_shared<variant_t>(*e.second);
+    }
+}
 
 /* -------------------------------------------------------------------------- */
 

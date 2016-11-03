@@ -131,7 +131,9 @@ void syntax_error_if(bool cond, const std::string& msg);
 void syntax_error_if(bool cond, const std::string& expr, size_t pos,
     const std::string& msg = "");
 
+
 /* -------------------------------------------------------------------------- */
+
 }
 
 

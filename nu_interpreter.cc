@@ -37,6 +37,7 @@
 #include <memory>
 #include <string.h>
 #include <string>
+#include <sstream>
 
 
 /* -------------------------------------------------------------------------- */
@@ -444,6 +445,28 @@ std::string interpreter_t::read_line(FILE* f)
 
 /* -------------------------------------------------------------------------- */
 
+std::string interpreter_t::read_line(std::stringstream & ss)
+{
+    std::string line;
+
+    while (!ss.bad() && !ss.eof()) {
+        char c(0);
+        
+        ss >> std::noskipws >> c;
+
+        if (int(c >= 32) && int(c <= 127))
+            line.push_back(c);
+
+        if (c == '\n')
+            break;
+    }
+
+    return line;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 bool interpreter_t::load(FILE* f)
 {
     std::string first_line = read_line(f);
@@ -504,7 +527,39 @@ bool interpreter_t::load(FILE* f)
 
 /* -------------------------------------------------------------------------- */
 
-bool interpreter_t::list(runnable_t::line_num_t from, runnable_t::line_num_t to,
+bool interpreter_t::append(std::stringstream & is, int & n_of_lines)
+{
+    while (!is.eof() && !is.bad()) {
+        std::string line = read_line(is);
+
+        if (line.empty() && is.eof())
+            break;
+
+        if (line.empty() && is.bad()) {
+            return false;
+        }
+
+        if ((!line.empty()) && !update_program(line, ++n_of_lines)) {
+            return false;
+        }
+        else if (line.empty()) {
+            ++n_of_lines;
+        }
+
+#ifdef _DEBUG
+        printf("%5i %s\n", n_of_lines, line.c_str());
+#endif
+    }
+
+    return true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool interpreter_t::list(
+    runnable_t::line_num_t from, 
+    runnable_t::line_num_t to,
     const std::string grep_filter)
 {
 
@@ -1201,6 +1256,82 @@ bool interpreter_t::run_next(runnable_t::line_num_t line)
     program_t prog(_prog_line, _prog_ctx, false);
 
     return prog.run_next(line);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool interpreter_t::has_runnable_stmt(int line) const noexcept
+{
+    if (line < 0 || _prog_line.empty())
+        return false;
+
+    prog_line_t::const_iterator it = _prog_line.find(line);
+
+    if (it == _prog_line.end())
+        return false;
+
+    return (it->second.first->get_cl() != stmt_t::stmt_cl_t::EMPTY);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool interpreter_t::get_global_var(const std::string& name, nu::variant_t& var)
+{
+    auto& ctx = get_rt_ctx();
+    auto scope = ctx.proc_scope.get_global();
+
+    if (!scope || !scope->is_defined(name)) {
+        return false;
+    }
+
+    var = (*scope)[name].first;
+
+    return true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool interpreter_t::set_global_var(const std::string& name, const nu::variant_t& value)
+{
+    auto scope = get_rt_ctx().proc_scope.get_global();
+
+    if (!scope) {
+        return false;
+    }
+     
+    scope->define(name, nu::var_value_t(value, VAR_ACCESS_RW));
+    
+    return true;
+}
+
+
+
+/* -------------------------------------------------------------------------- */
+
+prog_pointer_t::line_number_t interpreter_t::get_cur_line_n() const noexcept
+{
+    auto line = _prog_ctx.runtime_pc.get_line();
+
+    if (line < 1)
+        line = _prog_ctx.compiletime_pc.get_line();
+
+    return line;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+prog_pointer_t::line_number_t interpreter_t::get_last_line_n() const noexcept
+{
+    auto line = _prog_ctx.runtime_pc.get_last_line();
+
+    if (line < 1)
+        line = _prog_ctx.compiletime_pc.get_last_line();
+
+    return line;
 }
 
 
