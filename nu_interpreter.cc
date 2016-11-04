@@ -162,7 +162,7 @@ void interpreter_t::rebuild(runnable_t::line_num_t to_num)
 
     // Re-build program
     for (const auto& sl : _source_line) {
-        if (to_num <= 0 || sl.first < to_num)
+        if (to_num <= 0 || sl.first <= to_num)
             update_program(sl.second, sl.first);
     }
 }

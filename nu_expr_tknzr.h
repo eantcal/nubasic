@@ -71,7 +71,8 @@ public:
         const char subexp_esymb, // End sub-expression symbol
         const std::string& string_bsymb, // Begin string marker
         const std::string& string_esymb, // End string marker
-        const char string_escape // Escape string symbol
+        const char string_escape, // Escape string symbol
+        const std::set<std::string>& line_comment
         );
 
 
@@ -86,12 +87,6 @@ public:
 
     using typed_token_id_t = std::pair<std::string, tkncl_t>;
     using typed_token_set_t = std::set<typed_token_id_t>;
-
-    void setup_comment_line_set(
-        const typed_token_set_t& comment_line_set) noexcept
-    {
-        _comment_line_set = comment_line_set;
-    }
 
     //! Remove comment lines and comments at end of token list
     static void strip_comment_line(
@@ -124,7 +119,7 @@ protected:
     lxa_word_t _word_op;
     lxa_str_t _strtk;
 
-    typed_token_set_t _comment_line_set;
+    std::set<std::string> _line_comment;
 };
 
 

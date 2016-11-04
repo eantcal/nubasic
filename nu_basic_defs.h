@@ -65,6 +65,8 @@
 #define NU_BASIC_END_STRING "\""
 #define NU_BASIC_ESCAPE_CHAR '\\'
 
+#define NU_BASIC_LINE_COMMENT { "'" }
+
 
 /* -------------------------------------------------------------------------- */
 

@@ -41,11 +41,14 @@ expr_tknzr_t::expr_tknzr_t(const std::string& data, size_t pos,
     const std::string& operators, const std::set<std::string>& str_op,
     const char subexp_bsymb, // call/subexpr operators
     const char subexp_esymb, const std::string& string_bsymb,
-    const std::string& string_esymb, const char string_escape)
+    const std::string& string_esymb, const char string_escape,
+    const std::set<std::string>& line_comment
+)
     : base_tknzr_t(data)
     , _pos(pos)
     , _str_op(str_op)
     , _strtk(string_bsymb, string_esymb, string_escape)
+    , _line_comment(line_comment)
 {
     _subexp_begin_symb.push_back(subexp_bsymb);
     _subexp_end_symb.push_back(subexp_esymb);
@@ -62,10 +65,20 @@ expr_tknzr_t::expr_tknzr_t(const std::string& data, size_t pos,
     for (auto e : str_op)
         _word_op.register_pattern(e);
 
+    if (!_line_comment.empty()) {
+        for (const auto & comment_word : line_comment) {
+            if (comment_word.size()==1) { 
+                _op.register_pattern(comment_word[0]);
+            }
+            else {
+                _word_op.register_pattern(comment_word);
+            }
+        }
+    }
+
     _op.register_pattern(subexp_bsymb);
     _op.register_pattern(subexp_esymb);
 
-    _comment_line_set.insert(std::make_pair("'", tkncl_t::OPERATOR));
 }
 
 
@@ -82,36 +95,9 @@ void expr_tknzr_t::get_tknlst(token_list_t& tl, bool strip_comment)
         tl.data().push_back(next());
     } while (!eol());
 
-    if (strip_comment) {
-        strip_comment_line(tl, _comment_line_set);
-    }
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-void expr_tknzr_t::strip_comment_line(
-    token_list_t& tl, const typed_token_set_t& comment_id_set)
-{
-    bool comment_found = false;
-    token_list_t ntl;
-
-    for (auto i = tl.data().begin(); i != tl.data().end(); ++i) {
-        for (const auto& id : comment_id_set) {
-            if (i->type() == id.second && i->identifier() == id.first) {
-                comment_found = true;
-                break;
-            }
-        }
-
-        if (comment_found)
-            break;
-
-        ntl += *i;
-    }
-
-    if (comment_found)
-        tl = ntl;
+    //if (strip_comment) {
+    //    strip_comment_line(tl, _comment_line_set);
+    //}
 }
 
 
@@ -208,6 +194,22 @@ token_t expr_tknzr_t::_next()
                                                           : tkncl_t::IDENTIFIER;
     };
 
+    auto extract_comment = [&](token_t & token, std::string& comment) {
+
+        while (!eol()) {
+            auto symbol = get_symbol();
+
+            if (_newl.accept(symbol))
+                break;
+
+            comment += get_symbol();
+            seek_next();
+        }
+
+        token.set_identifier(comment, token_t::case_t::NOCHANGE);
+        token.set_type(tkncl_t::LINE_COMMENT);
+    };
+
     _strtk.reset();
     _word_op.reset();
 
@@ -269,8 +271,20 @@ token_t expr_tknzr_t::_next()
 
                         token.set_identifier(
                             _word_op.data(), token_t::case_t::LOWER);
+
+						// If we detect line comment prefix
+                        // include left part of line into the comment
+                        if (_line_comment.find(_word_op.data()) != _line_comment.end()) {
+                            std::string comment = _word_op.data();
+                            extract_comment(token, comment);
+                            return token;
+                        }
+
+                        token.set_identifier(_word_op.data(), token_t::case_t::LOWER);
                         token.set_type(tkncl_t::OPERATOR);
                         return token;
+
+
                     } else {
                         _word_op.reset();
                         set_cptr(set_point);
@@ -294,9 +308,18 @@ token_t expr_tknzr_t::_next()
             return token;
         }
 
+        bool is_operator = _op.accept(symbol);
 
-        if (_blank.accept(symbol) || _newl.accept(symbol)
-            || _op.accept(symbol)) {
+        if (is_operator) {
+            char ssymb[2] = { symbol };
+            if (_line_comment.find(ssymb) != _line_comment.end()) {
+                std::string comment;
+                extract_comment(token, comment);
+                return token;
+            }
+        }
+        
+        if (_blank.accept(symbol) || _newl.accept(symbol) || is_operator) {
             if (other.empty()) {
                 std::string s_symbol;
                 s_symbol.push_back(symbol);
