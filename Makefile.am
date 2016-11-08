@@ -12,6 +12,8 @@ nubasic_SOURCES = config.h \
    nu_string_tool.h \
    nu_error_codes.h \
    nu_error_codes.cc \
+   nu_hxxx_api.cc \
+   nu_hxxx_api.h \
    nu_eval_expr.cc \
    nu_eval_expr.h \
    nu_exception.h \

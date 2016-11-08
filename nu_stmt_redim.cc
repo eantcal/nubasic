@@ -47,13 +47,13 @@ void stmt_redim_t::run(rt_prog_ctx_t& ctx)
         const std::string& name = v.first;
 
         rt_error_if(vsize <= 0, rt_error_code_t::E_INV_VECT_SIZE,
-            "REDIM '" + name + "'");
+            "ReDim '" + name + "'");
 
         var_scope_t::handle_t scope
             = ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
         rt_error_if(!scope->is_defined(name), rt_error_code_t::E_VAR_UNDEF,
-            "REDIM '" + name + "'");
+            "ReDim '" + name + "'");
 
         auto vtype = v.second.first;
         std::string init_val = "0";
@@ -75,6 +75,8 @@ void stmt_redim_t::run(rt_prog_ctx_t& ctx)
                           VAR_ACCESS_RW));
             break;
 
+        case variable_t::type_t::UNDEFINED:
+        case variable_t::type_t::ANY:
         default:
             rt_error_if(
                 true, rt_error_code_t::E_INV_IDENTIF, "ReDim '" + name + "'");

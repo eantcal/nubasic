@@ -22,14 +22,14 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __NU_VARIABLE_H__
-#define __NU_VARIABLE_H__
+#ifndef __NU_HXXX_API_H__
+#define __NU_HXXX_API_H__
 
-#include "nu_cpp_lang.h"
-#include "nu_reserved_keywords.h"
 
-#include <set>
-#include <string>
+/* -------------------------------------------------------------------------- */
+
+#include "nu_interpreter.h"
+#include "nu_global_function_tbl.h"
 
 
 /* -------------------------------------------------------------------------- */
@@ -39,53 +39,15 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-struct variable_t {
-    enum class type_t {
-        UNDEFINED,
-        INTEGER,
-        FLOAT,
-        DOUBLE,
-        STRING,
-        BYTEVECTOR,
-        BOOLEAN,
-        LONG64,
-        STRUCT,
-        ANY
-    };
-
-
-    static type_t type_by_name(const std::string& name);
-    static bool is_valid_name(std::string name, bool ignore_builtin);
-    static type_t type_by_typename(std::string name);
-    static std::string typename_by_type(type_t type);
-
-
-    static inline bool is_number(type_t t) noexcept
-    {
-        return t == type_t::LONG64 || t == type_t::INTEGER || t == type_t::FLOAT
-            || t == type_t::DOUBLE || t == type_t::BOOLEAN;
-    }
-
-
-    static inline bool is_float(type_t t) noexcept
-    {
-        return t == type_t::FLOAT || t == type_t::DOUBLE;
-    }
-
-
-    static inline bool is_integral(type_t t) noexcept
-    {
-        return t == type_t::LONG64 || t == type_t::INTEGER
-            || t == type_t::BOOLEAN;
-    }
-};
+variant_t hash_set(rt_prog_ctx_t& ctx, const std::string& fname, const func_args_t& args);
+variant_t hash_get(rt_prog_ctx_t& ctx, const std::string& fname, const func_args_t& args);
+variant_t hash_del(rt_prog_ctx_t& ctx, const std::string& fname, const func_args_t& args);
+variant_t hash_chk(rt_prog_ctx_t& ctx, const std::string& fname, const func_args_t& args);
+variant_t hash_cnt(rt_prog_ctx_t& ctx, const std::string& fname, const func_args_t& args);
 
 
 /* -------------------------------------------------------------------------- */
 
-} // namespace nu
+}
 
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __NU_VARIABLE_H__
+#endif // !__NU_HASH_MODULE_H__

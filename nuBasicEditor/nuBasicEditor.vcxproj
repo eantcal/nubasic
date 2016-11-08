@@ -234,6 +234,7 @@
     <ClInclude Include="..\nu_error_codes.h" />
     <ClInclude Include="..\nu_eval_expr.h" />
     <ClInclude Include="..\nu_exception.h" />
+    <ClInclude Include="..\nu_hxxx_api.h" />
     <ClInclude Include="..\nu_expr_any.h" />
     <ClInclude Include="..\nu_expr_bin.h" />
     <ClInclude Include="..\nu_expr_empty.h" />
@@ -339,6 +340,7 @@
   <ItemGroup>
     <ClCompile Include="..\nu_builtin_help.cc" />
     <ClCompile Include="..\nu_error_codes.cc" />
+    <ClCompile Include="..\nu_hxxx_api.cc" />
     <ClCompile Include="..\nu_eval_expr.cc" />
     <ClCompile Include="..\nu_expr_function.cc" />
     <ClCompile Include="..\nu_expr_parser.cc" />

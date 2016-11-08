@@ -72,8 +72,15 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
 
     variable_t::type_t vart = var->get_type();
 
-    if (vart == variable_t::type_t::UNDEFINED)
+    if (vart == variable_t::type_t::ANY) {
+        *var = val;
+        ctx.go_to_next();
+        return;
+    }
+
+    if (vart == variable_t::type_t::UNDEFINED) {
         vart = variable_t::type_by_name(_variable);
+    }
 
     bool is_vector = var->is_vector();
 

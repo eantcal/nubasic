@@ -23,6 +23,7 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_global_function_tbl.h"
+#include "nu_hxxx_api.h"
 #include "nu_about.h"
 #include "nu_basic_defs.h"
 #include "nu_eval_expr.h"
@@ -1480,11 +1481,21 @@ fmap["sin"] = functor<float, _sin>;
 
 
         fmap["rgb"] = functor_int_int_int_int<_rgb>;
+
+        // Register hash table APIs
+        fmap["hset"] = nu::hash_set;
+        fmap["hdel"] = nu::hash_del;
+        fmap["hget"] = nu::hash_get;
+        fmap["hchk"] = nu::hash_chk;
+        fmap["hcnt"] = nu::hash_cnt;
     }
+
 
     return *_instance;
 }
 
+
+/* -------------------------------------------------------------------------- */
 
 global_operator_tbl_t& global_operator_tbl_t::get_instance()
 {

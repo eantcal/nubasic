@@ -28,6 +28,7 @@
 
 #include <iomanip>
 
+
 /* -------------------------------------------------------------------------- */
 
 namespace nu {
@@ -121,6 +122,9 @@ void rt_prog_ctx_t::clear_rtdata()
 
     // Clear function return-value table
     function_retval_tbl.clear();
+
+    // Clear hash tables
+    hash_tbls.clear();
 }
 
 
@@ -169,6 +173,22 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
     if (!gvar->empty()) {
         ss << "Variables [<GLOBAL>]:" << std::endl;
         ss << *gvar;
+    }
+
+    if (!hash_tbls.empty()) {
+        ss << "Hash Tables:" << std::endl;
+        for (const auto & tbl : hash_tbls) {
+            ss << "hash['" << tbl.first << "'](" << tbl.second.size() << ") = " << std::endl;
+            if (!tbl.second.empty()) {
+                auto it = tbl.second.begin();
+                for (size_t i = 0; it != tbl.second.end() && i < 10; ++i, ++it) {
+                    ss << "\t" << it->first << ":" << it->second << std::endl;
+                }
+                if (tbl.second.size()>10) {
+                    ss << "\t" << "..." << std::endl;
+                }
+            }
+        }
     }
 
     if (!function_retval_tbl.empty()) {

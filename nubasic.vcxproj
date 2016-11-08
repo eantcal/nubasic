@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug64|Win32">
@@ -331,6 +331,7 @@
     <ClCompile Include="nu_global_function_tbl.cc" />
     <ClCompile Include="nu_file_dscrptr_tbl.cc" />
     <ClCompile Include="nu_for_loop_rtdata.cc" />
+    <ClCompile Include="nu_hxxx_api.cc" />
     <ClCompile Include="nu_icstring.cc" />
     <ClCompile Include="nu_instrblock_metadata.cc" />
     <ClCompile Include="nu_interpreter.cc" />
@@ -423,6 +424,7 @@
     <ClInclude Include="nu_file_dscrptr_tbl.h" />
     <ClInclude Include="nu_for_loop_rtdata.h" />
     <ClInclude Include="nu_generic_functor.h" />
+    <ClInclude Include="nu_hxxx_api.h" />
     <ClInclude Include="nu_icstring.h" />
     <ClInclude Include="nu_instrblock_metadata.h" />
     <ClInclude Include="nu_interpreter.h" />

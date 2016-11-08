@@ -62,6 +62,9 @@ variable_t::type_t variable_t::type_by_typename(std::string name)
     if (name == "boolean")
         return type_t::BOOLEAN;
 
+    if (name == "any")
+        return type_t::ANY;
+
     return type_t::UNDEFINED;
 }
 
@@ -94,6 +97,9 @@ std::string variable_t::typename_by_type(variable_t::type_t type)
 
     case type_t::STRUCT:
         return "struct";
+
+    case type_t::ANY:
+        return "any";
 
     case type_t::UNDEFINED:
         break;

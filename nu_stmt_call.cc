@@ -126,6 +126,7 @@ void stmt_call_t::run(
         case variable_t::type_t::LONG64:
         case variable_t::type_t::BOOLEAN:
         case variable_t::type_t::BYTEVECTOR:
+        case variable_t::type_t::ANY:
             init_val = "0";
             sub_xscope->define(_name,
                 var_value_t(variant_t(init_val, vtype_code, 0), VAR_ACCESS_RW));
@@ -179,47 +180,53 @@ void stmt_call_t::run(
                 rt_error_code_t::E_TYPE_MISMATCH,
                 _name + ": '" + variable_name + "' array ");
 
-            switch (val.get_type()) {
-            case variant_t::type_t::INTEGER:
-            case variant_t::type_t::LONG64:
-            case variant_t::type_t::FLOAT:
-            case variant_t::type_t::DOUBLE:
-            case variant_t::type_t::BOOLEAN:
-                rt_error_if(!variable_t::is_number(var_type),
-                    rt_error_code_t::E_TYPE_MISMATCH,
-                    _name + ": Parameter '" + variable_name + "'");
-                break;
+            if (var_type != variant_t::type_t::ANY) {
+                switch (val.get_type()) {
+                case variant_t::type_t::INTEGER:
+                case variant_t::type_t::LONG64:
+                case variant_t::type_t::FLOAT:
+                case variant_t::type_t::DOUBLE:
+                case variant_t::type_t::BOOLEAN:
+                    rt_error_if(!variable_t::is_number(var_type),
+                        rt_error_code_t::E_TYPE_MISMATCH,
+                        _name + ": Parameter '" + variable_name + "'");
+                    break;
 
-            case variant_t::type_t::BYTEVECTOR:
-                rt_error_if(var_type != variable_t::type_t::BYTEVECTOR,
-                    rt_error_code_t::E_TYPE_MISMATCH,
-                    _name + ", Parameter '" + variable_name + "'");
-                break;
-
-            case variable_t::type_t::STRUCT:
-            case variable_t::type_t::UNDEFINED: {
-                auto& sprototypes = ctx.struct_prototypes.data;
-                auto it = sprototypes.find(variable_type);
-
-                rt_error_if(it == sprototypes.end(),
-                    rt_error_code_t::E_STRUCT_UNDEF, "'" + variable_type + "'");
-
-                break;
-            }
-
-            case variant_t::type_t::STRING:
-            default:
-                if (val.get_type() == variant_t::type_t::UNDEFINED) {
-                    rt_error_if(true, rt_error_code_t::E_TYPE_ILLEGAL,
-                        _name + ", Parameter '" + variable_name + "'");
-                } else {
-                    rt_error_if(var_type != variable_t::type_t::STRING,
+                case variant_t::type_t::BYTEVECTOR:
+                    rt_error_if(var_type != variable_t::type_t::BYTEVECTOR,
                         rt_error_code_t::E_TYPE_MISMATCH,
                         _name + ", Parameter '" + variable_name + "'");
+                    break;
+
+                case variable_t::type_t::STRUCT:
+                case variable_t::type_t::UNDEFINED: {
+                    auto& sprototypes = ctx.struct_prototypes.data;
+                    auto it = sprototypes.find(variable_type);
+
+                    rt_error_if(it == sprototypes.end(),
+                        rt_error_code_t::E_STRUCT_UNDEF, "'" + variable_type + "'");
+
+                    break;
                 }
 
-                break;
-            } // switch
+                case variant_t::type_t::ANY:
+                    break;
+
+                case variant_t::type_t::STRING:
+                default:
+                    if (val.get_type() == variant_t::type_t::UNDEFINED) {
+                        rt_error_if(true, rt_error_code_t::E_TYPE_ILLEGAL,
+                            _name + ", Parameter '" + variable_name + "'");
+                    }
+                    else {
+                        rt_error_if(var_type != variable_t::type_t::STRING,
+                            rt_error_code_t::E_TYPE_MISMATCH,
+                            _name + ", Parameter '" + variable_name + "'");
+                    }
+
+                    break;
+                } // switch
+            }
 
             sub_xscope->define(variable_name, var_value_t(val, VAR_ACCESS_RW));
 

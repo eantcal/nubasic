@@ -1681,7 +1681,7 @@ int nu::editor_t::replace_all(
 
 void nu::editor_t::create_funcs_menu() noexcept
 {
-    const rt_prog_ctx_t& prog_ctx = g_editor.interpreter().get_ctx();
+    const rt_prog_ctx_t& prog_ctx = g_editor.interpreter().get_rt_ctx();
     const auto& prototypes = prog_ctx.proc_prototypes.data;
 
     std::string list;
@@ -2031,7 +2031,7 @@ bool nu::editor_t::evaluate_expression(const std::string& expression)
     expr += "\" ";
 
     if (exec_interpreter_cmd(expr, false)) {
-        auto result = interpreter().get_ctx().exported_result.to_str();
+        auto result = interpreter().get_rt_ctx().exported_result.to_str();
 
         std::string annotation = "\r\n";
         annotation += expression + " -> " + result + "\r\n";
