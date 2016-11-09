@@ -152,6 +152,23 @@ static help_content_t _help_content[] = {
         "The expression can include existing variables.",
         "Eval(expr$)" },
 
+    { lang_item_t::FUNCTION, "hset", "Insert a pair key/value into a hash table",
+        "hset(hash as String, key as String, value as Any)" },
+
+    { lang_item_t::FUNCTION, "hget", "Returns a pair key/value from a hash table",
+        "hget(hash as String, key as String) as Any" },
+
+    { lang_item_t::FUNCTION, "hchk", "Returns true if hash/key exist",
+        "hchk(hash as String, key as String) as Boolean" },
+
+    { lang_item_t::FUNCTION, "hcnt", "Returns count of pairs hash/key of a hash table",
+        "hcnt(hash as String) as Integer" },
+
+    { lang_item_t::FUNCTION, "hdel", 
+        "Erases the key/value pair from a hash table "
+        "or a whole table in case the key is not specified",
+        "hdel(hash as String [, key as String])" },
+
     { lang_item_t::FUNCTION, NU_BASIC_OP_INC, "Increment unary operator",
         "++variable" },
 
@@ -314,7 +331,10 @@ static help_content_t _help_content[] = {
         "Returns the absolute value of the expression x", "Abs(x)" },
 
     { lang_item_t::FUNCTION, "errno", "Returns error code of last operation",
-        "Errno()" },
+        "Errno() as Integer" },
+
+    { lang_item_t::FUNCTION, "getapppath", "Returns nuBASIC path",
+        "GetAppPath() as String" },
 
     { lang_item_t::FUNCTION, "getenv", "Gets an environment variable",
         "GetEnv[$](var$)" },

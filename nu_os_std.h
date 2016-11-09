@@ -128,8 +128,14 @@ int _os_unsetenv(const char* var);
 #define _os_unsetenv(_VAR) unsetenv(_VAR)
 #endif
 
+/* -------------------------------------------------------------------------- */
+
+// Returns application path
+std::string _os_get_app_path();
+
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

@@ -1352,6 +1352,16 @@ fmap["sin"] = functor<float, _sin>;
 
         fmap["getplatid"] = functor_plat_id;
 
+        auto functor_get_app_path = [](
+            rt_prog_ctx_t& ctx, const std::string& name,
+            const nu::func_args_t& args) 
+        {
+            check_arg_num(args, 0, name);
+            return _os_get_app_path();
+        };
+
+        fmap["getapppath"] = functor_get_app_path;
+
         auto functor_ver = [](rt_prog_ctx_t& ctx, const std::string& name,
             const nu::func_args_t& args) {
             check_arg_num(args, 0, name);
