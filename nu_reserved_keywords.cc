@@ -41,7 +41,8 @@ const std::set<std::string> reserved_keywords_t::list = { "any", "and", "as", "b
     "rect", "return", "shell", "sleep", "step", "textout", "then", "write",
     "while", "wend", "plotimage", "randomize", "rem", "loop", "abs", "acos",
     "asc", "asin", "atan", "bnot", "chr", "cos", "cosh", "eval", "eof", "errno",
-    "getmousebtn", "getmousex", "getmousey", "exp", "ferror", "ftell", "fsize",
+    "getapppath", "getmousebtn", "getmousex", "getmousey", "exp", "ferror", 
+    "ftell", "fsize", "hset", "hget","hcnt","hchk","hdel",
     "hex", "getsheight", "getswidth", "getplatid", "getwindowx", "getwindowy",
     "getwindowdx", "getenv", "setenv", "unsetenv", "mkdir", "rmdir", "erase",
     "true", "false", "getwindowdy", "inkey", "input", "instr", "instrcs", "rgb",
@@ -52,7 +53,7 @@ const std::set<std::string> reserved_keywords_t::list = { "any", "and", "as", "b
     "sysday", "syshour", "sysmin", "syssec", "sysyday", "syswday", "sysyear",
     "sysmonth", "boolean", "integer", "double", "float", "string", "type",
     "elseif", "setpixel", "getpixel", "struct", "integer", "double", "float",
-    "boolean", "string", "long64", "hset", "hget","hcnt","hchk","hdel" };
+    "boolean", "string", "long64", "quit" };
 
 
 /* -------------------------------------------------------------------------- */

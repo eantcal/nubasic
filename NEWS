@@ -10,7 +10,8 @@ https://www.microsoft.com/en-us/download/details.aspx?id=48145
 TODO, 2017
 * Released nuBASIC 1.47
 - Add format function for floating point representation (StrP, StrP$)
-- Add Hash-table support 
+- Add Hash-table support: HSet(), HGet(), HCnt(), HChk(), HDel()
+- Add Any type: type deduction
 - Add GetAppPath() API
 - Add Quit() API
 - Improvements and bug-fixes
