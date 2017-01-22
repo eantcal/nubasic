@@ -1726,7 +1726,7 @@ void nu::editor_t::show_splash()
         return;
 
     const int wdx = 400;
-    const int wdy = 170 + GetSystemMetrics(SM_CYCAPTION);
+    const int wdy = 160 + GetSystemMetrics(SM_CYCAPTION);
 
     RECT r = { 0 };
     GetClientRect(GetDesktopWindow(), &r);

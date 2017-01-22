@@ -1,6 +1,6 @@
 nuBASICEditor
 
-(c) Antonino Calderone <acaldmail@gmail.com> - 2014-2016
+(c) Antonino Calderone <acaldmail@gmail.com> - 2014-2017
 http://www.nubasic.eu
 
 nuBasicEditor is an syntax highlighting editor based on Scintilla 
@@ -9,5 +9,3 @@ nuBasicEditor is an syntax highlighting editor based on Scintilla
 SUPPORTED PLATFORMS
 -------------------
 Windows 
-
-

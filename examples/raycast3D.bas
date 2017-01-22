@@ -408,7 +408,7 @@ Sub Draw3DView( offsetx%, offsety%, dy%, ray%, fact% )
    Next i%
 
    DrawMap2D offsetx%, offsety%+dy%
-   Textout offsetx% + 100, offsety%+dy%+20, "nuBASIC - Ray " + version$, &hffffff
+   Textout offsetx% + 100, offsety%+dy%+20, "nuBASIC - Raycast 3D " + version$, &hffffff
    Textout offsetx% + 100, offsety%+dy%+50, "MOVE    /\\  'a'     \\/  'z'", &hffffff
    Textout offsetx% + 100, offsety%+dy%+80, "ROTATE    ACW 'n'   CW 'm'", &hffffff
 End Sub
