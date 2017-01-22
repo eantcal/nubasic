@@ -385,7 +385,8 @@ std::string _os_get_app_path()
 {
     char exepath[1024] = { 0 };
 
-    ::readlink("/proc/self/exe", exepath, sizeof(exepath) - 1);
+    auto ret = ::readlink("/proc/self/exe", exepath, sizeof(exepath) - 1);
+    (void) ret;
     return std::string(exepath);
 }
 

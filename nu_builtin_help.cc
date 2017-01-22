@@ -999,9 +999,13 @@ static help_content_t _help_content[] = {
     { lang_item_t::INSTRUCTION, "plotimage", "Loads and draws a bitmap from "
                                              "file on the screen starting at "
                                              "coords x,y\n",
-        "PlotImage bitmap$, x, y" }
+        "PlotImage bitmap$, x, y" },
 
 #endif // ...TINY_NUBASIC_VER
+
+    { lang_item_t::FUNCTION, "quit",
+        "Quit nuBASIC interpreter\n",
+        "Quit errorcode" }
 
 };
 

@@ -201,6 +201,17 @@ variant_t functor_RT_T1_T2_T3_T4(rt_prog_ctx_t& ctx, const std::string& name,
 
 // int F()(float)
 template <class F>
+variant_t functor_int_int(
+    rt_prog_ctx_t& ctx, const std::string& name, const nu::func_args_t& args)
+{
+    return functor_RT_T<F, int, int>(
+        ctx, name, args, variant_t::type_t::INTEGER);
+}
+
+/* -------------------------------------------------------------------------- */
+
+// int F()(float)
+template <class F>
 variant_t functor_int_float(
     rt_prog_ctx_t& ctx, const std::string& name, const nu::func_args_t& args)
 {
@@ -1498,6 +1509,16 @@ fmap["sin"] = functor<float, _sin>;
         fmap["hget"] = nu::hash_get;
         fmap["hchk"] = nu::hash_chk;
         fmap["hcnt"] = nu::hash_cnt;
+
+        struct _exit_program {
+            int operator()(int retcode) noexcept
+            {
+                exit(retcode);
+                return 0;
+            }
+        };
+
+        fmap["quit"] = functor_int_int<_exit_program>;
     }
 
 

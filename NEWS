@@ -1,15 +1,18 @@
 nuBASIC NEWS -- history of user-visible changes.
 http://www.nubasic.eu/
-Author - Antonino Calderone - acaldmail@gmail.com - (c) 2014, 2015, 2016
+Author - Antonino Calderone - antonino.calderone@gmail.com - (c) 2014-2017
 
 Please send nuBASIC / nuBasicEditor bug reports to <acaldmail@gmail.com>.
 
 Win32/64 built with VS2015 needs "Visual C++ Redistributable Packages for Visual Studio 2015"
 https://www.microsoft.com/en-us/download/details.aspx?id=48145
 
-TODO, 2016
+TODO, 2017
 * Released nuBASIC 1.47
 - Add format function for floating point representation (StrP, StrP$)
+- Add Hash-table support 
+- Add GetAppPath() API
+- Add Quit() API
 - Improvements and bug-fixes
 
 
