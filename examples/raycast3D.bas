@@ -1,6 +1,7 @@
 #!/usr/local/bin/nubasic
 ' -----------------------------------------------------------------------------
-'  ray.bas sample is part of nuBASIC - (c) 2014 - acaldmail@gmail.com
+'  raycast3d.bas sample is part of nuBASIC
+'  (c) 2014-2017 - antonino.calderone@gmail.com
 ' -----------------------------------------------------------------------------
 '
 '  This file is part of nuBASIC
