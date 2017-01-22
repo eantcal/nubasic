@@ -1,6 +1,6 @@
 #!/usr/local/bin/nubasic
 ' -----------------------------------------------------------------------------
-'  nuTris3D.bas for nuBASIC is a clone of a famous game :)
+'  nuTetris3D.bas for nuBASIC is a clone of a famous game :)
 ' -----------------------------------------------------------------------------
 '
 '  This file is part of nuBASIC
@@ -135,7 +135,7 @@ Sub SetupGame()
    DrawScoreBoard scbx%, scby%, atom_size%
    
    
-   TextOut 30, 40, "Welcome to nuTris 3D " + version$, &hffffff
+   TextOut 30, 40, "Welcome to nuTetris 3D " + version$, &hffffff
    
    TextOut 30, 70, "    To play press: ", &hffffff
    
@@ -488,7 +488,7 @@ Sub DrawScoreBoard( offsetx%, offsety%, width% )
    
    FillRect offsetx%, y%, x%, y% + 100, color%(0)
    Rect offsetx%, y%, x%, y% + 100, color%(2)
-   TextOut offsetx% + 15, y% + 20,  "nuTris 3D " + version$, color%(9) 
+   TextOut offsetx% + 15, y% + 20,  "nuTetris 3D " + version$, color%(9) 
    TextOut offsetx% + 15, y% + 50,  "Score : " + str$( score% * 10 ), color%(3)
    level% = score% Div 50
    If level% > 9 Then level% = 9

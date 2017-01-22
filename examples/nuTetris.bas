@@ -1,6 +1,6 @@
 #!/usr/local/bin/nubasic
 ' -----------------------------------------------------------------------------
-'  nuTris.bas for nuBASIC is a clone of a famous game :)
+'  nuTetris.bas for nuBASIC is a clone of a famous game :)
 ' -----------------------------------------------------------------------------
 '
 '  This file is part of nuBASIC

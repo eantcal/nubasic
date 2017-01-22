@@ -1,6 +1,6 @@
 #!/usr/local/bin/nubasic
 ' -----------------------------------------------------------------------------
-'  minehunter.bas for nuBASIC is a clone of a famous game :)
+'  minesHunter.bas for nuBASIC is a clone of a famous game :)
 ' -----------------------------------------------------------------------------
 '
 '  This file is part of nuBASIC
