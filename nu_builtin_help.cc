@@ -155,7 +155,7 @@ static help_content_t _help_content[] = {
     { lang_item_t::FUNCTION, "hset", "Insert a pair key/value into a hash table",
         "hset(hash as String, key as String, value as Any)" },
 
-    { lang_item_t::FUNCTION, "hget", "Returns a pair key/value from a hash table",
+    { lang_item_t::FUNCTION, "hget", "Returns a value from a hash table for a given key",
         "hget(hash as String, key as String) as Any" },
 
     { lang_item_t::FUNCTION, "hchk", "Returns true if hash/key exist",

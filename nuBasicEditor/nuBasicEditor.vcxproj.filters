@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source file">
+    <Filter Include="File di origine">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Header file">
+    <Filter Include="File di intestazione">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource file">
+    <Filter Include="File di risorse">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
@@ -19,616 +19,610 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="targetver.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="nuBasicEditor.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\config.h">
-      <Filter>Header file</Filter>
-    </ClInclude>
-    <ClInclude Include="..\nu_hxxx_api.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_about.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_base_tknzr.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_basic_defs.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_builtin_help.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_error_codes.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_eval_expr.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_exception.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_expr_any.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_expr_bin.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_expr_empty.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_expr_function.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_expr_literal.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_expr_parser.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_expr_subscrop.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_expr_syntax_tree.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_expr_tknzr.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_expr_unary_op.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_expr_var.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_file_dscrptr_tbl.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_flag_map.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_for_loop_rtdata.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_generic_functor.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_global_function_tbl.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_icstring.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_instrblock_metadata.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_interpreter.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_label_tbl.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_lxa.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_os_console.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_os_gdi.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_os_std.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_playsnd.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_proc_prototype_tbl.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_proc_scope.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_program.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_prog_ctx.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_prog_pointer.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_rt_prog_ctx.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_runnable.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_signal_handling.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stb_image.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stdlib.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stdtype.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_beep.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_block.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_call.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_close.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_cls.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_delay.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_dim.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_do.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_else.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_empty.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_end.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_endfunction.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_endif.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_endsub.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_exit_do.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_exit_for.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_exit_sub.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_exit_while.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_expr.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_for_to_step.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_function.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_geninstr.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_gosub.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_goto.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_if_then_else.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_input.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_input_file.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_let.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_locate.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_loop_while.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_next.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_on_goto.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_open.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_parser.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_print.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_randomize.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_read.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_redim.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_return.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_sub.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_wend.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_while.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_string_tool.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_symbol_map.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_terminal.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_terminal_frame.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_token.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_tokenizer.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_token_list.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_variable.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_variant.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_var_scope.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\stb_image.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="toolbar.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="textinfobox.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_reserved_keywords.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_struct.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_endstruct.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_struct_element.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
     <ClInclude Include="..\nu_stmt_const.h">
-      <Filter>Header file</Filter>
+      <Filter>File di intestazione</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
-      <Filter>Source file</Filter>
-    </ClCompile>
-    <ClCompile Include="..\nu_hxxx_api.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_builtin_help.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_error_codes.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_eval_expr.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_expr_function.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_expr_parser.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_expr_subscrop.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_expr_syntax_tree.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_expr_tknzr.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_expr_unary_op.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_file_dscrptr_tbl.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_for_loop_rtdata.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_global_function_tbl.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_icstring.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_instrblock_metadata.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_interpreter.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_label_tbl.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_lxa.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_os_console.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_os_gdi.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_os_std.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_playsnd.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_proc_scope.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_program.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_prog_ctx.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_rt_prog_ctx.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_signal_handling.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stb_image.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stdlib.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_beep.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_block.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_call.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_close.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_cls.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_delay.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_dim.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_do.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_else.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_empty.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_end.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_endfunction.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_endif.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_endsub.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_exit_do.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_exit_for.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_exit_sub.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_exit_while.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_expr.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_for_to_step.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_function.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_gosub.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_goto.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_if_then_else.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_input.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_input_file.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_let.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_locate.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_loop_while.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_next.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_on_goto.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_open.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_parser.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_print.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_read.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_redim.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_sub.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_wend.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_while.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_string_tool.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_terminal.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_terminal_frame.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_token.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_token_list.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_variable.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_variant.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_var_scope.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="toolbar.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="nuBasicEditor.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="textinfobox.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_reserved_keywords.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_struct.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_endstruct.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_struct_element.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_expr_var.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_stmt_const.cc">
-      <Filter>Source file</Filter>
+      <Filter>File di origine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
-      <Filter>Resource file</Filter>
+      <Filter>File di risorse</Filter>
     </Image>
     <Image Include="nuBasic.ico">
-      <Filter>Resource file</Filter>
+      <Filter>File di risorse</Filter>
     </Image>
     <Image Include="nubasic.bmp">
-      <Filter>Resource file</Filter>
+      <Filter>File di risorse</Filter>
     </Image>
     <Image Include="toolbar.bmp">
-      <Filter>Resource file</Filter>
+      <Filter>File di risorse</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nuBasicEditor.rc">
-      <Filter>Resource file</Filter>
+      <Filter>File di risorse</Filter>
     </ResourceCompile>
   </ItemGroup>
 </Project>
