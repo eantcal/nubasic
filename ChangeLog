@@ -1,6 +1,11 @@
 nuBASIC ChangeLog
 Please send nuBASIC bug reports to <acaldmail@gmail.com>.
 
+2017-05-14
+- Update scintilla to 3.74
+- Add IDE Editor text zoom in/out (F3/CTRL+F3)
+
+
 2017-01-22
 - Add format function for floating point representation (StrP, StrP$)
 - Add Hash-table support: HSet(), HGet(), HCnt(), HChk(), HDel()

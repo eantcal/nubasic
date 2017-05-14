@@ -106,6 +106,10 @@ BEGIN
         MENUITEM "&Paste\tCtrl+V",              IDM_EDIT_PASTE
         MENUITEM "&Delete\tDel",                IDM_EDIT_DELETE
         MENUITEM "Select A&ll\tCtrl+A",         IDM_EDIT_SELECTALL
+        MENUITEM SEPARATOR
+        MENUITEM "&Zoom in\tF3",                IDM_ZOOM_IN
+        MENUITEM "Z&oom out\tCtrl+F3",          IDM_ZOOM_OUT
+
     END
     
     POPUP "Se&ttings"
@@ -196,9 +200,10 @@ BEGIN
     "N",            IDM_FILE_NEW,           VIRTKEY, CONTROL, NOINVERT
     "O",            IDM_FILE_OPEN,          VIRTKEY, CONTROL, NOINVERT
     "S",            IDM_FILE_SAVE,          VIRTKEY, CONTROL, NOINVERT
-    VK_F2,          IDD_GOTOLINE,           VIRTKEY, NOINVERT
     VK_F12,         IDC_AUTOCOMPLETE,       VIRTKEY, NOINVERT
-    VK_F11,         IDM_DEBUG_EVALSEL, VIRTKEY, NOINVERT
+    VK_F11,         IDM_DEBUG_EVALSEL,      VIRTKEY, NOINVERT
+    VK_F3,          IDM_ZOOM_IN,            VIRTKEY, NOINVERT
+    VK_F3,          IDM_ZOOM_OUT,           VIRTKEY, CONTROL, NOINVERT
 END
 
 
