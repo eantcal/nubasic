@@ -457,6 +457,15 @@ public:
 
 
     /**
+    * Zoom in/out
+    */
+    void zoom_in(bool in = true)
+    {
+        send_command(in ? SCI_ZOOMIN : SCI_ZOOMOUT, 0, 0);
+    }
+
+
+    /**
     * Initilize the editor
     */
     void init_editor(const std::string& fontname, int height);
@@ -1504,7 +1513,7 @@ bool nu::editor_t::search_forward(LPSTR szText)
 
     long pos = (long)get_current_position();
 
-    TextToFind tf = { 0 };
+    Sci_TextToFind tf = { 0 };
 
     tf.lpstrText = szText;
     tf.chrg.cpMin = pos + 1;
@@ -1537,7 +1546,7 @@ bool nu::editor_t::search_backward(LPSTR szText)
     long pos = (long)get_current_position();
     long lMinSel = (long)get_selection_begin();
 
-    TextToFind tf = { 0 };
+    Sci_TextToFind tf = { 0 };
 
     tf.lpstrText = szText;
 
@@ -2873,6 +2882,16 @@ void nu::editor_t::exec_command(int id)
 
         break;
     }
+
+    case IDM_ZOOM_IN:
+        g_editor.zoom_in();
+        break;
+
+    case IDM_ZOOM_OUT:
+        g_editor.zoom_in(false);
+        break;
+
+    
 
     case IDM_ABOUT_ABOUT:
         g_editor.show_splash();
