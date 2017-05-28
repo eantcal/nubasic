@@ -1,0 +1,448 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release64|Win32">
+      <Configuration>Release64</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release64|x64">
+      <Configuration>Release64</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6C20A7C2-25F3-45AA-91E9-60D9DAB0486A}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>nuBasicEditor</RootNamespace>
+    <ProjectName>NuBasicIDE</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release64|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release64|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release64|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release64|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release64|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release64|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_NUBASIC_IDE_; _CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\..\;..\..\ide\scintilla\include;..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Comctl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\scintilla\include; ..; </AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Comctl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_NUBASIC_IDE_; _CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\..\;..\..\ide\scintilla\include;..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>Comctl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories> $(BOOST_ROOT);..\scintilla\include; ..;</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>Comctl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release64|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_NUBASIC_IDE_; _CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\scintilla\include; ..</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release64|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>..\..\;..\..\ide\scintilla\include;..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>Comctl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="README" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\config.h" />
+    <ClInclude Include="..\..\include\nu_about.h" />
+    <ClInclude Include="..\..\include\nu_base_tknzr.h" />
+    <ClInclude Include="..\..\include\nu_basic_defs.h" />
+    <ClInclude Include="..\..\include\nu_builtin_help.h" />
+    <ClInclude Include="..\..\include\nu_error_codes.h" />
+    <ClInclude Include="..\..\include\nu_eval_expr.h" />
+    <ClInclude Include="..\..\include\nu_exception.h" />
+    <ClInclude Include="..\..\include\nu_hxxx_api.h" />
+    <ClInclude Include="..\..\include\nu_expr_any.h" />
+    <ClInclude Include="..\..\include\nu_expr_bin.h" />
+    <ClInclude Include="..\..\include\nu_expr_empty.h" />
+    <ClInclude Include="..\..\include\nu_expr_function.h" />
+    <ClInclude Include="..\..\include\nu_expr_literal.h" />
+    <ClInclude Include="..\..\include\nu_expr_parser.h" />
+    <ClInclude Include="..\..\include\nu_expr_subscrop.h" />
+    <ClInclude Include="..\..\include\nu_expr_syntax_tree.h" />
+    <ClInclude Include="..\..\include\nu_expr_tknzr.h" />
+    <ClInclude Include="..\..\include\nu_expr_unary_op.h" />
+    <ClInclude Include="..\..\include\nu_expr_var.h" />
+    <ClInclude Include="..\..\include\nu_file_dscrptr_tbl.h" />
+    <ClInclude Include="..\..\include\nu_flag_map.h" />
+    <ClInclude Include="..\..\include\nu_for_loop_rtdata.h" />
+    <ClInclude Include="..\..\include\nu_generic_functor.h" />
+    <ClInclude Include="..\..\include\nu_global_function_tbl.h" />
+    <ClInclude Include="..\..\include\nu_icstring.h" />
+    <ClInclude Include="..\..\include\nu_instrblock_metadata.h" />
+    <ClInclude Include="..\..\include\nu_interpreter.h" />
+    <ClInclude Include="..\..\include\nu_label_tbl.h" />
+    <ClInclude Include="..\..\include\nu_lxa.h" />
+    <ClInclude Include="..\..\include\nu_os_console.h" />
+    <ClInclude Include="..\..\include\nu_os_gdi.h" />
+    <ClInclude Include="..\..\include\nu_os_std.h" />
+    <ClInclude Include="..\..\include\nu_playsnd.h" />
+    <ClInclude Include="..\..\include\nu_proc_prototype_tbl.h" />
+    <ClInclude Include="..\..\include\nu_proc_scope.h" />
+    <ClInclude Include="..\..\include\nu_program.h" />
+    <ClInclude Include="..\..\include\nu_prog_ctx.h" />
+    <ClInclude Include="..\..\include\nu_prog_pointer.h" />
+    <ClInclude Include="..\..\include\nu_reserved_keywords.h" />
+    <ClInclude Include="..\..\include\nu_rt_prog_ctx.h" />
+    <ClInclude Include="..\..\include\nu_runnable.h" />
+    <ClInclude Include="..\..\include\nu_signal_handling.h" />
+    <ClInclude Include="..\..\include\nu_stb_image.h" />
+    <ClInclude Include="..\..\include\nu_stdlib.h" />
+    <ClInclude Include="..\..\include\nu_stdtype.h" />
+    <ClInclude Include="..\..\include\nu_stmt.h" />
+    <ClInclude Include="..\..\include\nu_stmt_beep.h" />
+    <ClInclude Include="..\..\include\nu_stmt_block.h" />
+    <ClInclude Include="..\..\include\nu_stmt_call.h" />
+    <ClInclude Include="..\..\include\nu_stmt_close.h" />
+    <ClInclude Include="..\..\include\nu_stmt_cls.h" />
+    <ClInclude Include="..\..\include\nu_stmt_const.h" />
+    <ClInclude Include="..\..\include\nu_stmt_delay.h" />
+    <ClInclude Include="..\..\include\nu_stmt_dim.h" />
+    <ClInclude Include="..\..\include\nu_stmt_do.h" />
+    <ClInclude Include="..\..\include\nu_stmt_else.h" />
+    <ClInclude Include="..\..\include\nu_stmt_empty.h" />
+    <ClInclude Include="..\..\include\nu_stmt_end.h" />
+    <ClInclude Include="..\..\include\nu_stmt_endfunction.h" />
+    <ClInclude Include="..\..\include\nu_stmt_endif.h" />
+    <ClInclude Include="..\..\include\nu_stmt_endstruct.h" />
+    <ClInclude Include="..\..\include\nu_stmt_endsub.h" />
+    <ClInclude Include="..\..\include\nu_stmt_exit_do.h" />
+    <ClInclude Include="..\..\include\nu_stmt_exit_for.h" />
+    <ClInclude Include="..\..\include\nu_stmt_exit_sub.h" />
+    <ClInclude Include="..\..\include\nu_stmt_exit_while.h" />
+    <ClInclude Include="..\..\include\nu_stmt_expr.h" />
+    <ClInclude Include="..\..\include\nu_stmt_for_to_step.h" />
+    <ClInclude Include="..\..\include\nu_stmt_function.h" />
+    <ClInclude Include="..\..\include\nu_stmt_geninstr.h" />
+    <ClInclude Include="..\..\include\nu_stmt_gosub.h" />
+    <ClInclude Include="..\..\include\nu_stmt_goto.h" />
+    <ClInclude Include="..\..\include\nu_stmt_if_then_else.h" />
+    <ClInclude Include="..\..\include\nu_stmt_input.h" />
+    <ClInclude Include="..\..\include\nu_stmt_input_file.h" />
+    <ClInclude Include="..\..\include\nu_stmt_let.h" />
+    <ClInclude Include="..\..\include\nu_stmt_locate.h" />
+    <ClInclude Include="..\..\include\nu_stmt_loop_while.h" />
+    <ClInclude Include="..\..\include\nu_stmt_next.h" />
+    <ClInclude Include="..\..\include\nu_stmt_on_goto.h" />
+    <ClInclude Include="..\..\include\nu_stmt_open.h" />
+    <ClInclude Include="..\..\include\nu_stmt_parser.h" />
+    <ClInclude Include="..\..\include\nu_stmt_print.h" />
+    <ClInclude Include="..\..\include\nu_stmt_randomize.h" />
+    <ClInclude Include="..\..\include\nu_stmt_read.h" />
+    <ClInclude Include="..\..\include\nu_stmt_redim.h" />
+    <ClInclude Include="..\..\include\nu_stmt_return.h" />
+    <ClInclude Include="..\..\include\nu_stmt_struct.h" />
+    <ClInclude Include="..\..\include\nu_stmt_struct_element.h" />
+    <ClInclude Include="..\..\include\nu_stmt_sub.h" />
+    <ClInclude Include="..\..\include\nu_stmt_wend.h" />
+    <ClInclude Include="..\..\include\nu_stmt_while.h" />
+    <ClInclude Include="..\..\include\nu_string_tool.h" />
+    <ClInclude Include="..\..\include\nu_symbol_map.h" />
+    <ClInclude Include="..\..\include\nu_terminal.h" />
+    <ClInclude Include="..\..\include\nu_terminal_frame.h" />
+    <ClInclude Include="..\..\include\nu_token.h" />
+    <ClInclude Include="..\..\include\nu_tokenizer.h" />
+    <ClInclude Include="..\..\include\nu_token_list.h" />
+    <ClInclude Include="..\..\include\nu_variable.h" />
+    <ClInclude Include="..\..\include\nu_variant.h" />
+    <ClInclude Include="..\..\include\nu_var_scope.h" />
+    <ClInclude Include="..\..\include\stb_image.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="nuBasicEditor.h" />
+    <ClInclude Include="textinfobox.h" />
+    <ClInclude Include="toolbar.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\lib\nu_builtin_help.cc" />
+    <ClCompile Include="..\..\lib\nu_error_codes.cc" />
+    <ClCompile Include="..\..\lib\nu_hxxx_api.cc" />
+    <ClCompile Include="..\..\lib\nu_eval_expr.cc" />
+    <ClCompile Include="..\..\lib\nu_expr_function.cc" />
+    <ClCompile Include="..\..\lib\nu_expr_parser.cc" />
+    <ClCompile Include="..\..\lib\nu_expr_subscrop.cc" />
+    <ClCompile Include="..\..\lib\nu_expr_syntax_tree.cc" />
+    <ClCompile Include="..\..\lib\nu_expr_tknzr.cc" />
+    <ClCompile Include="..\..\lib\nu_expr_unary_op.cc" />
+    <ClCompile Include="..\..\lib\nu_expr_var.cc" />
+    <ClCompile Include="..\..\lib\nu_file_dscrptr_tbl.cc" />
+    <ClCompile Include="..\..\lib\nu_for_loop_rtdata.cc" />
+    <ClCompile Include="..\..\lib\nu_global_function_tbl.cc" />
+    <ClCompile Include="..\..\lib\nu_icstring.cc" />
+    <ClCompile Include="..\..\lib\nu_instrblock_metadata.cc" />
+    <ClCompile Include="..\..\lib\nu_interpreter.cc" />
+    <ClCompile Include="..\..\lib\nu_label_tbl.cc" />
+    <ClCompile Include="..\..\lib\nu_lxa.cc" />
+    <ClCompile Include="..\..\lib\nu_os_console.cc" />
+    <ClCompile Include="..\..\lib\nu_os_gdi.cc" />
+    <ClCompile Include="..\..\lib\nu_os_std.cc" />
+    <ClCompile Include="..\..\lib\nu_playsnd.cc" />
+    <ClCompile Include="..\..\lib\nu_proc_scope.cc" />
+    <ClCompile Include="..\..\lib\nu_program.cc" />
+    <ClCompile Include="..\..\lib\nu_prog_ctx.cc" />
+    <ClCompile Include="..\..\lib\nu_reserved_keywords.cc" />
+    <ClCompile Include="..\..\lib\nu_rt_prog_ctx.cc" />
+    <ClCompile Include="..\..\lib\nu_signal_handling.cc" />
+    <ClCompile Include="..\..\lib\nu_stb_image.cc" />
+    <ClCompile Include="..\..\lib\nu_stdlib.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_beep.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_block.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_call.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_close.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_cls.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_const.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_delay.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_dim.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_do.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_else.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_empty.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_end.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_endfunction.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_endif.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_endstruct.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_endsub.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_exit_do.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_exit_for.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_exit_sub.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_exit_while.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_expr.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_for_to_step.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_function.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_gosub.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_goto.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_if_then_else.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_input.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_input_file.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_let.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_locate.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_loop_while.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_next.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_on_goto.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_open.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_parser.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_print.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_read.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_redim.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_struct.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_struct_element.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_sub.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_wend.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_while.cc" />
+    <ClCompile Include="..\..\lib\nu_string_tool.cc" />
+    <ClCompile Include="..\..\lib\nu_terminal.cc" />
+    <ClCompile Include="..\..\lib\nu_terminal_frame.cc" />
+    <ClCompile Include="..\..\lib\nu_token.cc" />
+    <ClCompile Include="..\..\lib\nu_token_list.cc" />
+    <ClCompile Include="..\..\lib\nu_variable.cc" />
+    <ClCompile Include="..\..\lib\nu_variant.cc" />
+    <ClCompile Include="..\..\lib\nu_var_scope.cc" />
+    <ClCompile Include="nuBasicEditor.cc" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release64|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release64|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="textinfobox.cc" />
+    <ClCompile Include="toolbar.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="nubasic.bmp" />
+    <Image Include="nuBasic.ico" />
+    <Image Include="small.ico" />
+    <Image Include="toolbar.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="nuBasicEditor.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -86,7 +86,11 @@
 /* -------------------------------------------------------------------------- */
 
 // Xterm config
+#ifdef GNOME_TERMINAL
+#define NU_BASIC_XTERM_EXECBIN "gnome-terminal"
+#else
 #define NU_BASIC_XTERM_EXECBIN "xterm"
+#endif
 #define NU_BASIC_XTERM_EXECOPT "-e"
 #define NU_BASIC_HELP "-h"
 #define NU_BASIC_XTERM_FRAME_SWITCH "-x"
