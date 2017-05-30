@@ -1,10 +1,13 @@
 nuBASIC ChangeLog
-Please send nuBASIC bug reports to <acaldmail@gmail.com>.
+Please send nuBASIC bug reports to <antonino.calderone@gmail.com>.
+
+2017-05-30
+- Change license into MIT
+- Add GTK version of nuBASIC editor
 
 2017-05-14
 - Update scintilla to 3.74
-- Add IDE Editor text zoom in/out (F3/CTRL+F3)
-
+- Add text zoom in/out (F3/CTRL+F3) to IDE (Windows)
 
 2017-01-22
 - Add format function for floating point representation (StrP, StrP$)
@@ -21,12 +24,12 @@ Please send nuBASIC bug reports to <acaldmail@gmail.com>.
 
 2015-12-16
 - Changed icons layout and commands order of the toolbar
-- Bug-fix: IDE did not execute old-style programs if first line is special comment "!#"
-- Bug-fix: IDE did not clean "Go to procedures" submenu before build new programs
+- Bug-fix: IDE (Windows) did not execute old-style programs if first line is special comment "!#"
+- Bug-fix: IDE (Windows) did not clean "Go to procedures" submenu before build new programs
 
 
 2015-12-15
-- User can now open a file dropping it into nuBASIC IDE Window
+- User can now open a file dropping it into nuBASIC IDE Window (for Windows)
 - Added GetPixel function
 - Changed behaviour of DbgWindow in running mode
 - Improvements and bug-fixes
@@ -42,7 +45,7 @@ Please send nuBASIC bug reports to <acaldmail@gmail.com>.
 
 
 2015-11-30
-- Added Info Message Window to IDE
+- Added Info Message Window to IDE (Windows)
 - Added context help (pressing F1); 
   from now on-line help is mapped on Ctrl+F1
 - Improvements and bug-fixes
@@ -67,8 +70,8 @@ Please send nuBASIC bug reports to <acaldmail@gmail.com>.
 
   Struct AStructType
      element as String
-	 element2 as Integer
-	 element3(4) as Double
+     element2 as Integer
+     element3(4) as Double
   End Struct
 
   Dim a as AStructType
@@ -105,7 +108,7 @@ Please send nuBASIC bug reports to <acaldmail@gmail.com>.
 * Performance enhancements and Bug fixes
 
 2015-04-17
-* Fixed a bug into 64bit version of IDE: 
+* Fixed a bug into 64bit version of IDE for Windows: 
   cast to long of LPARAM argument of SendMessage to scintilla 
   could truncate 64bit pointers
 
