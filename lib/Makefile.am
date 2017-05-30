@@ -1,6 +1,6 @@
 lib_LIBRARIES = libnubasic.a
 
-libnubasic_a_SOURCES = ../config.h \
+libnubasic_a_SOURCES = $(top_srcdir)/config.h \
    nu_global_function_tbl.cc \
    nu_error_codes.cc \
    nu_hxxx_api.cc \

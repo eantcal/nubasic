@@ -1,24 +1,10 @@
-/*
- *  This file is part of nuBASIC
- *
- *  nuBASIC is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  nuBASIC is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with nuBASIC; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  US
- *
- *  Author: Antonino Calderone <acaldmail@gmail.com>
- *
- */
-
+//  
+// This file is part of nuBASIC
+// Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+// All rights reserved.  
+// Licensed under the MIT License. 
+// See COPYING file in the project root for full license information.
+//
 
 /* -------------------------------------------------------------------------- */
 
@@ -50,92 +36,96 @@ namespace nu {
 
 namespace editor {
 
-    /* --------------------------------------------------------------------------
-     */
+/* -------------------------------------------------------------------------- */
 
-    const char application_name[] = EDITOR_RESOURCE_NAME;
-    const char class_name[] = EDITOR_RESOURCE_NAME "Window";
+const char application_name[] = EDITOR_RESOURCE_NAME;
+const char class_name[] = EDITOR_RESOURCE_NAME "Window";
 
-    const COLORREF black = RGB(0, 0, 0);
-    const COLORREF white = RGB(0xff, 0xff, 0xff);
-    const COLORREF red = RGB(0xff, 0, 0);
-    const COLORREF yellow = RGB(0xff, 0xff, 0xe0);
-    const COLORREF offWhite = RGB(0xff, 0xfb, 0xF0);
-    const COLORREF darkGreen = RGB(0, 0x80, 0);
-    const COLORREF darkBlue = RGB(0, 0, 0x80);
-
-
-    /* --------------------------------------------------------------------------
-     */
-
-    const int toolbar_n_of_bmps = 11;
-    const int toolbar_btn_state = TBSTATE_ENABLED;
-    const int toolbar_btn_style = BTNS_BUTTON | TBSTATE_ELLIPSES;
+const COLORREF black = RGB(0, 0, 0);
+const COLORREF white = RGB(0xff, 0xff, 0xff);
+const COLORREF red = RGB(0xff, 0, 0);
+const COLORREF yellow = RGB(0xff, 0xff, 0xe0);
+const COLORREF offWhite = RGB(0xff, 0xfb, 0xF0);
+const COLORREF darkGreen = RGB(0, 0x80, 0);
+const COLORREF darkBlue = RGB(0, 0, 0x80);
 
 
-    TBBUTTON toolbar_buttons[]
-        = { { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+/* -------------------------------------------------------------------------- */
 
-            { 0, IDM_FILE_NEW, toolbar_btn_state, toolbar_btn_style, { 0 },
-                NULL, (INT_PTR) "New" },
-            { 1, IDM_FILE_OPEN, toolbar_btn_state, toolbar_btn_style, { 0 },
-                NULL, (INT_PTR) "Open" },
-            { 2, IDM_FILE_SAVE, toolbar_btn_state, toolbar_btn_style, { 0 },
-                NULL, (INT_PTR) "Save" },
-
-            { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
-
-            { 3, IDM_DEBUG_START, toolbar_btn_state, toolbar_btn_style, { 0 },
-                NULL, (INT_PTR) "Run" },
-            { 4, IDM_DEBUG_STEP, toolbar_btn_state, toolbar_btn_style, { 0 },
-                NULL, (INT_PTR) "Step" },
-            { 5, IDM_DEBUG_CONT, toolbar_btn_state, toolbar_btn_style, { 0 },
-                NULL, (INT_PTR) "Continue" },
-            { 6, IDM_DEBUG_TOGGLEBRK, toolbar_btn_state, toolbar_btn_style,
-                { 0 }, NULL, (INT_PTR) "Breakpoint" },
-            { 7, IDM_INTERPRETER_BUILD, toolbar_btn_state, toolbar_btn_style,
-                { 0 }, NULL, (INT_PTR) "Build" },
-            { 8, IDM_DEBUG_EVALSEL, toolbar_btn_state, toolbar_btn_style, { 0 },
-                NULL, (INT_PTR) "Evaluate" },
-
-            { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
-
-            { 9, IDM_SEARCH_FIND, toolbar_btn_state, toolbar_btn_style, { 0 },
-                NULL, (INT_PTR) "Find" },
-
-            { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
-
-            { 10, IDM_DEBUG_TOPMOST, toolbar_btn_state, toolbar_btn_style,
-                { 0 }, NULL, (INT_PTR) "Dbg Top" },
-            { 11, IDM_DEBUG_NOTOPMOST, toolbar_btn_state, toolbar_btn_style,
-                { 0 }, NULL, (INT_PTR) "Dbg No-Top" }
-
-          };
-
-    const int toolbar_n_of_buttons = sizeof(toolbar_buttons) / sizeof(TBBUTTON);
+const int toolbar_n_of_bmps = 11;
+const int toolbar_btn_state = TBSTATE_ENABLED;
+const int toolbar_btn_style = BTNS_BUTTON | TBSTATE_ELLIPSES;
 
 
-    /* --------------------------------------------------------------------------
-     */
+TBBUTTON toolbar_buttons[]
+= { { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-    struct autocompl_t {
-        std::string data;
+    { 0, IDM_FILE_NEW, toolbar_btn_state, toolbar_btn_style, { 0 },
+	NULL, (INT_PTR) "New" },
+    { 1, IDM_FILE_OPEN, toolbar_btn_state, toolbar_btn_style, { 0 },
+	NULL, (INT_PTR) "Open" },
+    { 2, IDM_FILE_SAVE, toolbar_btn_state, toolbar_btn_style, { 0 },
+	NULL, (INT_PTR) "Save" },
 
-        autocompl_t()
-        {
-            for (auto& token : nu::reserved_keywords_t::list) {
-                data += token;
-                data += " ";
-            }
-        }
-    };
+    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+
+    { 3, IDM_DEBUG_START, toolbar_btn_state, toolbar_btn_style, { 0 },
+	NULL, (INT_PTR) "Run" },
+    { 4, IDM_DEBUG_STEP, toolbar_btn_state, toolbar_btn_style, { 0 },
+	NULL, (INT_PTR) "Step" },
+    { 5, IDM_DEBUG_CONT, toolbar_btn_state, toolbar_btn_style, { 0 },
+	NULL, (INT_PTR) "Continue" },
+    { 6, IDM_DEBUG_TOGGLEBRK, toolbar_btn_state, toolbar_btn_style,
+	{ 0 }, NULL, (INT_PTR) "Breakpoint" },
+    { 7, IDM_INTERPRETER_BUILD, toolbar_btn_state, toolbar_btn_style,
+	{ 0 }, NULL, (INT_PTR) "Build" },
+    { 8, IDM_DEBUG_EVALSEL, toolbar_btn_state, toolbar_btn_style, { 0 },
+	NULL, (INT_PTR) "Evaluate" },
+
+    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+
+    { 9, IDM_SEARCH_FIND, toolbar_btn_state, toolbar_btn_style, { 0 },
+	NULL, (INT_PTR) "Find" },
+
+    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+
+    { 10, IDM_DEBUG_TOPMOST, toolbar_btn_state, toolbar_btn_style,
+	{ 0 }, NULL, (INT_PTR) "Dbg Top" },
+    { 11, IDM_DEBUG_NOTOPMOST, toolbar_btn_state, toolbar_btn_style,
+	{ 0 }, NULL, (INT_PTR) "Dbg No-Top" }
+
+  };
+
+const int toolbar_n_of_buttons = sizeof(toolbar_buttons) / sizeof(TBBUTTON);
 
 
-    static autocompl_t autocomplete_list;
+/* -------------------------------------------------------------------------- */
 
 
-    /* --------------------------------------------------------------------------
-     */
+struct autocompl_t {
+
+/* -------------------------------------------------------------------------- */
+
+std::string data;
+
+autocompl_t()
+{
+    for (auto& token : nu::reserved_keywords_t::list) {
+	data += token;
+	data += " ";
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+};
+
+
+static autocompl_t autocomplete_list;
+
+
+/* -------------------------------------------------------------------------- */
 
 } // namespace editor
 
@@ -3542,6 +3532,7 @@ LRESULT CALLBACK HSplitterWndProc(
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 
