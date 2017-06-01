@@ -16,7 +16,7 @@ endif
 
 SUBDIRS=lib
 if COMPILE_GTKIDE
-SUBDIRS+=ide/gtk 
+SUBDIRS+=miptknzr/lib mipjson/lib ide/gtk
 endif
 
 EXTRA_DIST=examples ide/win
