@@ -51,6 +51,7 @@
 #include <sstream>
 #include <fstream>
 #include <unordered_map>
+#include <thread>
 
 
 /* -------------------------------------------------------------------------- */
@@ -145,6 +146,14 @@ struct app_t {
         LINESELECTION = 4,
     };
 
+    enum class dbg_flg_t {
+        NORMAL_EXECUTION,
+        CONTINUE_EXECUTION = 1,
+        SINGLE_STEP_EXECUTION = 2
+    };
+
+
+
     static const int black = RGB(0, 0, 0);
     static const int white = RGB(0xff, 0xff, 0xff);
     static const int red = RGB(0xff, 0, 0);
@@ -193,6 +202,7 @@ struct app_t {
     }
 
 
+    /* -------------------------------------------------------------------------- */
 
     void configure_editor() {
         auto & ed = editor();
@@ -539,15 +549,13 @@ struct app_t {
         toolbar.add_stock_item(GTK_STOCK_NEW, "New", window, [] { get_instance().set_new_document(true); }, 0);
         toolbar.add_stock_item(GTK_STOCK_OPEN, "Open", window, toolbar_openfile, 1);
         toolbar.add_stock_item(GTK_STOCK_SAVE, "Save", window, [] { get_instance().save_document(); }, 2);
-#if 1 // not yet
-        toolbar.add_stock_item(GTK_STOCK_MEDIA_PLAY, "Run", window, dummy, 3);
-        toolbar.add_stock_item(GTK_STOCK_GOTO_LAST, "Step", window, dummy, 4);
-        toolbar.add_stock_item(GTK_STOCK_GO_FORWARD, "Continue", window, dummy, 5);
+        toolbar.add_stock_item(GTK_STOCK_MEDIA_PLAY, "Run", window, [] { get_instance().start_debugging(); }, 3);
+        toolbar.add_stock_item(GTK_STOCK_GOTO_LAST, "Step", window, [] { get_instance().singlestep_debugging(); }, 4);
+        toolbar.add_stock_item(GTK_STOCK_GO_FORWARD, "Continue", window, [] { get_instance().continue_debugging(); }, 5);
         toolbar.add_stock_item(GTK_STOCK_MEDIA_RECORD, "Breakpoint", window, dummy, 6);
         toolbar.add_stock_item(GTK_STOCK_EXECUTE, "Build", window, [] { get_instance().rebuild_code(true); } , 7);
         toolbar.add_stock_item(GTK_STOCK_JUSTIFY_FILL, "Evaluate", window, dummy, 8);
         toolbar.add_stock_item(GTK_STOCK_FIND, "Find", window, dummy, 9);
-#endif
     }
 
 
@@ -996,6 +1004,13 @@ struct app_t {
 
     /* ---------------------------------------------------------------------- */
 
+    const nu::editor_t& editor() const noexcept {
+        assert(_editor_ptr);
+        return *_editor_ptr;
+    }
+
+    /* ---------------------------------------------------------------------- */
+
     nu::editor_t& editor() noexcept {
         assert(_editor_ptr);
         return *_editor_ptr;
@@ -1113,8 +1128,7 @@ struct app_t {
 
     /* ---------------------------------------------------------------------- */
 
-    void remove_prog_cnt_marker()
-    {
+    void remove_prog_cnt_marker() {
         auto & ed = editor();
 
         ed.cmd(SCI_MARKERDELETEALL, int(marker_t::PROGCOUNTER), 0);
@@ -1126,8 +1140,86 @@ struct app_t {
 
     /* ---------------------------------------------------------------------- */
 
-    bool show_error_line(int line) noexcept
-    {
+    bool has_bookmark(long line) const noexcept {
+        const auto m = int(marker_t::BOOKMARK) + 1;
+        return ((editor().cmd(SCI_MARKERGET, line - 1, 0) & m) == m);
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    bool has_breakpoint(long line) const noexcept {
+        const auto m = int(marker_t::BREAKPOINT) + 1;
+        return ((editor().cmd(SCI_MARKERGET, line - 1, 0) & m) == m);
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    void remove_all_breakpoints() noexcept {
+        editor().cmd(SCI_MARKERDELETEALL, int(marker_t::BREAKPOINT), 0);
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    void reset_all_breakpoints() noexcept {
+        auto linecount = editor().get_line_count();
+
+        interpreter().exec_command("clrbrk");
+
+        for (int i = 0; i < linecount; ++i)
+            if (has_breakpoint(i + 1))
+                interpreter().exec_command("break " + std::to_string(i + 1));
+    }
+
+    /* -------------------------------------------------------------------------- */
+
+    bool show_execution_point(int line) noexcept {
+        remove_prog_cnt_marker();
+
+        if (line < 1)
+            line = 1;
+
+        auto & ed = editor();
+
+        auto endpos = ed.cmd(SCI_GETLINEENDPOSITION, line - 1, 0) + 1;
+
+        while (!interpreter().has_runnable_stmt(line) && line < endpos)
+            ++line;
+
+        if (ed.cmd(SCI_POSITIONFROMLINE, line - 1, 0) >= 0) {
+            const auto l = int(marker_t::LINESELECTION);
+
+            ed.cmd(SCI_MARKERDEFINE, l, SC_MARK_BACKGROUND);
+            ed.cmd(SCI_MARKERSETBACK, l, RGB(0, 255, 0));
+            ed.cmd(SCI_MARKERADD, line - 1, l);
+
+
+            const auto m = int(marker_t::PROGCOUNTER);
+
+            ed.cmd(SCI_MARKERDEFINE, m, SC_MARK_ARROW);
+            ed.cmd(SCI_MARKERSETFORE, m, RGB(0, 0, 0));
+            ed.cmd(SCI_MARKERSETBACK, m, RGB(0, 0, 255));
+
+            ed.cmd(SCI_MARKERADD, line - 1, m);
+
+            ed.go_to_line(line);
+
+            ed.update_ui();
+
+        } else {
+            ed.cmd(SCI_MARKERDELETE, line - 1, int(marker_t::LINESELECTION));
+            ed.cmd(SCI_MARKERDELETE, line - 1, int(marker_t::PROGCOUNTER));
+        }
+
+        return true;
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    bool show_error_line(int line) noexcept {
         remove_prog_cnt_marker();
         auto & ed = editor();
 
@@ -1154,8 +1246,113 @@ struct app_t {
 
     /* -------------------------------------------------------------------------- */
 
-    bool rebuild_code(bool show_err_msg) noexcept
+    bool exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
     {
+        auto async_fn = [&]() {
+
+            try {
+                interpreter().exec_command(cmd);
+                // RunningDlgWndProc_terminate = true;
+                return true;
+            } catch (nu::runtime_error_t& e) {
+                char buf[2048] = { 0 };
+                int line = e.get_line_num();
+                line = line <= 0 ? interpreter().get_cur_line_n() : line;
+
+                snprintf(buf, sizeof(buf) - 1, "Runtime Error #%i at %i %s\n",
+                        e.get_error_code(), line, e.what());
+
+                // add_info(buf, CFM_BOLD | CFM_ITALIC);
+                nu::msgbox(mainwin(), buf, "Runtime Error");
+
+            } catch (std::exception& e) {
+                char buf[2048] = { 0 };
+
+                if (interpreter().get_cur_line_n() > 0)
+                    snprintf(buf, sizeof(buf) - 1, "At line %i: %s\n",
+                            interpreter().get_cur_line_n(), e.what());
+                else
+                    snprintf(buf, sizeof(buf) - 1, "%s\n", e.what());
+
+                nu::msgbox(mainwin(), buf, "Runtime Error");
+                //g_editor.add_info(buf, CFM_BOLD | CFM_ITALIC);
+            }
+
+            // RunningDlgWndProc_terminate = true;
+            return false;
+        };
+
+        if (bg_mode) {
+            std::thread t(async_fn);
+
+            //add_info("Run Program\n", CFM_ITALIC);
+
+            //show_running_dialog(); // TODO
+
+            interpreter().set_step_mode(true);
+
+            t.join();
+
+            interpreter().set_step_mode(false);
+
+            // add_info("Stop Program\n", CFM_ITALIC);
+
+            return true;
+        }
+
+        return async_fn();
+    }
+
+
+    /* -------------------------------------------------------------------------- */
+
+    void start_debugging(dbg_flg_t flg = dbg_flg_t::NORMAL_EXECUTION) {
+
+        if (_need_build && !rebuild_code(true))
+            return;
+
+        reset_all_breakpoints();
+        remove_prog_cnt_marker();
+
+        // alloc_console(); // TODO
+
+        interpreter().register_break_event();
+
+        switch (flg) {
+            case dbg_flg_t::NORMAL_EXECUTION:
+                exec_interpreter_cmd("run", /* true */ false);
+                break;
+            case dbg_flg_t::CONTINUE_EXECUTION:
+                exec_interpreter_cmd("cont", /* true */ false);
+                break;
+            case dbg_flg_t::SINGLE_STEP_EXECUTION:
+                exec_interpreter_cmd("ston", false);
+                exec_interpreter_cmd("cont", false);
+                exec_interpreter_cmd("stoff", false);
+                break;
+        }
+
+        show_execution_point(interpreter().get_cur_line_n());
+    }
+
+
+    /* -------------------------------------------------------------------------- */
+
+    void continue_debugging() {
+        start_debugging(dbg_flg_t::CONTINUE_EXECUTION);
+    }
+
+
+    /* -------------------------------------------------------------------------- */
+
+    void singlestep_debugging() {
+        start_debugging(dbg_flg_t::SINGLE_STEP_EXECUTION);
+    }
+
+
+    /* -------------------------------------------------------------------------- */
+
+    bool rebuild_code(bool show_err_msg) noexcept {
         remove_prog_cnt_marker();
 
         auto & ed = editor();
