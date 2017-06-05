@@ -87,7 +87,7 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 bin_PROGRAMS = nubasic$(EXEEXT)
-@COMPILE_GTKIDE_TRUE@am__append_1 = ide/gtk 
+@COMPILE_GTKIDE_TRUE@am__append_1 = miptknzr/lib mipjson/lib ide/gtk
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -192,7 +192,7 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 CSCOPE = cscope
-DIST_SUBDIRS = lib ide/gtk
+DIST_SUBDIRS = lib miptknzr/lib mipjson/lib ide/gtk
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/config.h.in AUTHORS \
 	COPYING ChangeLog INSTALL NEWS README THANKS compile depcomp \
 	install-sh missing

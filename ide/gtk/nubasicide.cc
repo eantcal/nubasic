@@ -24,6 +24,13 @@
 #include "nu_dialog_font.h"
 #include "nu_dialog_about.h"
 #include "nu_dialog_inputbox.h"
+#include "nu_terminal_frame.h"
+#include "nu_about.h"
+#include "nu_builtin_help.h"
+#include "nu_builtin_help.h"
+#include "nu_exception.h"
+#include "nu_interpreter.h"
+#include "nu_reserved_keywords.h"
 
 #include "mip_json_parser.h"
 
@@ -131,6 +138,12 @@ struct cfg_t {
 /* -------------------------------------------------------------------------- */
 
 struct app_t {
+    enum class marker_t {
+        BOOKMARK = 0,
+        BREAKPOINT = 1,
+        PROGCOUNTER = 2,
+        LINESELECTION = 4,
+    };
 
     static const int black = RGB(0, 0, 0);
     static const int white = RGB(0xff, 0xff, 0xff);
@@ -153,6 +166,22 @@ struct app_t {
         return ret;
     }
 
+
+    /* -------------------------------------------------------------------------- */
+
+    static std::vector<std::string> split(const std::string& s, char delim = ' ') {
+        std::vector<std::string> elems;
+        std::stringstream ss(s);
+        std::string item;
+
+        while (std::getline(ss, item, delim))
+            elems.push_back(item);
+
+        return elems;
+    }
+
+
+    /* -------------------------------------------------------------------------- */
 
     void set_default_icon() {
         GdkPixbuf *pixbuf =
@@ -510,12 +539,12 @@ struct app_t {
         toolbar.add_stock_item(GTK_STOCK_NEW, "New", window, [] { get_instance().set_new_document(true); }, 0);
         toolbar.add_stock_item(GTK_STOCK_OPEN, "Open", window, toolbar_openfile, 1);
         toolbar.add_stock_item(GTK_STOCK_SAVE, "Save", window, [] { get_instance().save_document(); }, 2);
-#if 0 // not yet
+#if 1 // not yet
         toolbar.add_stock_item(GTK_STOCK_MEDIA_PLAY, "Run", window, dummy, 3);
         toolbar.add_stock_item(GTK_STOCK_GOTO_LAST, "Step", window, dummy, 4);
         toolbar.add_stock_item(GTK_STOCK_GO_FORWARD, "Continue", window, dummy, 5);
         toolbar.add_stock_item(GTK_STOCK_MEDIA_RECORD, "Breakpoint", window, dummy, 6);
-        toolbar.add_stock_item(GTK_STOCK_EXECUTE, "Build", window, dummy, 7);
+        toolbar.add_stock_item(GTK_STOCK_EXECUTE, "Build", window, [] { get_instance().rebuild_code(true); } , 7);
         toolbar.add_stock_item(GTK_STOCK_JUSTIFY_FILL, "Evaluate", window, dummy, 8);
         toolbar.add_stock_item(GTK_STOCK_FIND, "Find", window, dummy, 9);
 #endif
@@ -944,6 +973,9 @@ struct app_t {
         static nu::statusbar_t status_bar(vbox);
         _statusbar_ptr = &status_bar;
 
+        static nu::statusbar_t error_bar(vbox);
+        _errorbar_ptr = &error_bar;
+
         vbox.on_delete_event(exit_main_window);
 
         configure_editor();
@@ -955,7 +987,10 @@ struct app_t {
 
         set_default_icon();
 
+        mainwin().show();
+        errorbar().hide();
 
+        gtk_widget_queue_draw (mainwin().get_internal_obj());
     }
 
 
@@ -980,6 +1015,14 @@ struct app_t {
     nu::statusbar_t& statusbar() noexcept {
         assert(_statusbar_ptr);
         return * _statusbar_ptr;
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    nu::statusbar_t& errorbar() noexcept {
+        assert(_errorbar_ptr);
+        return * _errorbar_ptr;
     }
 
 
@@ -1068,10 +1111,251 @@ struct app_t {
     }
 
 
+    /* ---------------------------------------------------------------------- */
+
+    void remove_prog_cnt_marker()
+    {
+        auto & ed = editor();
+
+        ed.cmd(SCI_MARKERDELETEALL, int(marker_t::PROGCOUNTER), 0);
+        ed.cmd(SCI_MARKERDELETEALL, int(marker_t::LINESELECTION), 0);
+        ed.cmd(SCI_LINESCROLLDOWN, 0, 0);
+        ed.cmd(SCI_LINESCROLLUP, 0, 0);
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    bool show_error_line(int line) noexcept
+    {
+        remove_prog_cnt_marker();
+        auto & ed = editor();
+
+        if (line < 1)
+            line = 1;
+
+        if (ed.cmd(SCI_POSITIONFROMLINE, line - 1, 0) >= 0) {
+            const auto l = int(marker_t::LINESELECTION);
+
+            ed.cmd(SCI_MARKERDEFINE, l, SC_MARK_BACKGROUND);
+            ed.cmd(SCI_MARKERSETBACK, l, RGB(255, 0, 0));
+            ed.cmd(SCI_MARKERADD, line - 1, l);
+
+            ed.go_to_line(line);
+
+            ed.update_ui();
+        } else {
+            ed.cmd(SCI_MARKERDELETE, line - 1, int(marker_t::LINESELECTION));
+        }
+
+        return true;
+    }
+
+
+    /* -------------------------------------------------------------------------- */
+
+    bool rebuild_code(bool show_err_msg) noexcept
+    {
+        remove_prog_cnt_marker();
+
+        auto & ed = editor();
+
+        auto doc_size = ed.cmd(SCI_GETLENGTH);
+
+        if (doc_size <= 0)
+            return true;
+
+#if 0
+        RECT rcClient; // Client area of parent window.
+        GetClientRect(_h_splitter, &rcClient);
+
+        int cyVScroll = GetSystemMetrics(SM_CYVSCROLL);
+
+        HWND hwndPB
+            = CreateWindowEx(0, PROGRESS_CLASS, (LPTSTR)NULL, WS_CHILD | WS_VISIBLE,
+                    rcClient.left, rcClient.bottom - cyVScroll, rcClient.right,
+                    cyVScroll, _h_splitter, (HMENU)0, get_instance_handle(), NULL);
+#endif
+
+
+        int cb = int(doc_size / 10);
+
+#if 0
+        // Set the range and increment of the progress bar.
+        SendMessage(hwndPB, PBM_SETRANGE, 0, MAKELPARAM(0, cb));
+        SendMessage(hwndPB, PBM_SETSTEP, (WPARAM)1, 0);
+#endif
+
+        std::vector<char> data(doc_size + 1);
+        ed.get_text_range(0, int(doc_size), data.data());
+
+        decltype(doc_size) i = 0;
+        std::string line;
+        int line_num = 1;
+        interpreter().clear_all();
+        bool old_style_prog = false;
+
+        // remove_funcs_menu(); // TODO
+
+        bool first_is_special_comment = false;
+
+        while (i < doc_size) {
+            // if ((i % 10) == 0)
+                //SendMessage(hwndPB, PBM_STEPIT, 0, 0);
+
+            char ch = data[i];
+
+            if (ch >= ' ')
+                line += ch;
+
+            if (i >= (doc_size - 1) || ch == '\n'
+                    || (ch == '\r' && i < doc_size && data[i + 1] == '\n')) {
+                if (ch == '\r')
+                    ++i;
+
+                if (line_num == 1 && line.size() > 2 && line.substr(0, 2) == "#!") {
+                    first_is_special_comment = true;
+                } else if (line_num == 1
+                        || (line_num == 2 && first_is_special_comment)) {
+                    try {
+                        auto tokens = split(line);
+                        if (!tokens.empty()) {
+                            auto lnum = std::stoi(tokens[0]);
+                            old_style_prog = lnum >= 1;
+                        }
+                    } catch (...) {
+                    }
+                }
+
+                auto res = build_basic_line(
+                        line, old_style_prog ? 0 : line_num, show_err_msg);
+
+                mainwin().set_title(line.c_str());
+
+                if (!res) {
+                    // DestroyWindow(hwndPB);
+                    return false;
+                }
+
+                line.clear();
+                ++line_num;
+            }
+
+            ++i;
+        }
+
+        // Ensure that lines are mapped 1:1 with editing lines
+        if (old_style_prog)
+            interpreter().exec_command("renum 1");
+
+        set_title();
+        // create_funcs_menu(); // TODO
+        // DestroyWindow(hwndPB);
+
+        _need_build = false;
+
+        nu::msgbox(mainwin(), "Build succeeded.", "Build");
+        errorbar().set_text("");
+        errorbar().hide();
+
+        return true;
+    }
+
+
+
+
+    /* -------------------------------------------------------------------------- */
+
+    bool build_basic_line(
+        const std::string& line, int line_num, bool dump_err_msg)
+    {
+        try {
+            // Ignore first line if it begins with #!
+            if (line_num == 1 && line.size() > 2 && line[0] == '#'
+                    && line[1] == '!')
+                return true;
+
+            if (!interpreter().update_program(line, line_num)) {
+                std::string msg = "Syntax Error at line ";
+                msg += line_num ? std::to_string(line_num) : "\r\n";
+                msg += line_num ? "" : line;
+
+                show_error_line(line_num);
+
+                if (dump_err_msg) {
+                    // g_editor.add_info("\n" + msg + "\n", CFM_BOLD | CFM_ITALIC);
+                    errorbar().show();
+                    errorbar().set_text(msg.c_str(), GTK_MESSAGE_INFO);
+                    nu::msgbox(mainwin(), msg.c_str(), "Syntax Error");
+                }
+
+                return false;
+            }
+        }
+        // Print out Runtime Error Messages
+        catch (nu::runtime_error_t& e) {
+            if (!dump_err_msg)
+                return false;
+
+            int line = e.get_line_num();
+            line = line <= 0 ? interpreter().get_cur_line_n() : line;
+
+            char lbuf[2048] = { 0 };
+
+            snprintf(lbuf, sizeof(lbuf) - 1, "Error #%i at %i %s\n",
+                    e.get_error_code(), line, e.what());
+
+            show_error_line(line);
+            // g_editor.add_info(lbuf, CFM_BOLD | CFM_ITALIC);
+
+            errorbar().set_text(lbuf, GTK_MESSAGE_INFO);
+            errorbar().show();
+            nu::msgbox(mainwin(), lbuf, "Syntax Error");
+
+            return false;
+        }
+        // Print out Syntax Error Messages
+        catch (std::exception& e) {
+            if (!dump_err_msg)
+                return false;
+
+            char lbuf[2048] = { 0 };
+
+            const auto line = interpreter().get_cur_line_n();
+
+            if (line > 0) {
+                snprintf(
+                        lbuf, sizeof(lbuf) - 1, "At line %i: %s\n", line, e.what());
+
+                show_error_line(line);
+            } else {
+                snprintf(lbuf, sizeof(lbuf) - 1, "%s\n", e.what());
+            }
+
+            //g_editor.add_info(lbuf, CFM_BOLD | CFM_ITALIC);
+
+            errorbar().set_text(lbuf, GTK_MESSAGE_INFO);
+            errorbar().show();
+            nu::msgbox(mainwin(), lbuf, "Error");
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    nu::interpreter_t& interpreter() noexcept { 
+        return _interpreter; 
+    }
+
 private:
+    nu::interpreter_t _interpreter;
+
     nu::editor_t * _editor_ptr = nullptr;
     nu::window_t * _mainwin_ptr = nullptr;
     nu::statusbar_t * _statusbar_ptr = nullptr;
+    nu::statusbar_t * _errorbar_ptr = nullptr;
 
     std::string _working_file;
     std::string _working_path;
@@ -1096,6 +1380,8 @@ app_t * app_t::_this = nullptr;
 /* -------------------------------------------------------------------------- */
 
 int main(int argc, char *argv[]) {
+
+    nu::create_terminal_frame(argc, argv);
 
     app_t app(argc, argv);
     app.run();

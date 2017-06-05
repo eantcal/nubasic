@@ -62,8 +62,8 @@ AM_CONDITIONAL([COMPILE_GTKIDE], [test "x$want_gtkide" = "xyes" ])
 if test x"$want_gtkide" == x"yes" ; then
     PKG_CHECK_MODULES([NUBASICIDE], [
         glib-2.0
-        gtk+-2.0
         gmodule-2.0
+        gtk+-2.0
     ])
 fi
 

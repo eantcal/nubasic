@@ -52,6 +52,10 @@ public:
         gtk_window_maximize(GTK_WINDOW(_window));
     }
 
+    void show() const noexcept {
+        gtk_widget_show(_window);
+    }
+
     void add_accel_group(const accelgroup_t& ag) const noexcept {
         gtk_window_add_accel_group(GTK_WINDOW(_window), ag.get_internal_obj());
     }

@@ -5223,21 +5223,21 @@ if test -n "$NUBASICIDE_CFLAGS"; then
     if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"
         glib-2.0
-        gtk+-2.0
         gmodule-2.0
+        gtk+-2.0
     \""; } >&5
   ($PKG_CONFIG --exists --print-errors "
         glib-2.0
-        gtk+-2.0
         gmodule-2.0
+        gtk+-2.0
     ") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_NUBASICIDE_CFLAGS=`$PKG_CONFIG --cflags "
         glib-2.0
-        gtk+-2.0
         gmodule-2.0
+        gtk+-2.0
     " 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
@@ -5252,21 +5252,21 @@ if test -n "$NUBASICIDE_LIBS"; then
     if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"
         glib-2.0
-        gtk+-2.0
         gmodule-2.0
+        gtk+-2.0
     \""; } >&5
   ($PKG_CONFIG --exists --print-errors "
         glib-2.0
-        gtk+-2.0
         gmodule-2.0
+        gtk+-2.0
     ") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_NUBASICIDE_LIBS=`$PKG_CONFIG --libs "
         glib-2.0
-        gtk+-2.0
         gmodule-2.0
+        gtk+-2.0
     " 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
@@ -5290,14 +5290,14 @@ fi
         if test $_pkg_short_errors_supported = yes; then
 	        NUBASICIDE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "
         glib-2.0
-        gtk+-2.0
         gmodule-2.0
+        gtk+-2.0
     " 2>&1`
         else
 	        NUBASICIDE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "
         glib-2.0
-        gtk+-2.0
         gmodule-2.0
+        gtk+-2.0
     " 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
@@ -5305,8 +5305,8 @@ fi
 
 	as_fn_error $? "Package requirements (
         glib-2.0
-        gtk+-2.0
         gmodule-2.0
+        gtk+-2.0
     ) were not met:
 
 $NUBASICIDE_PKG_ERRORS
@@ -5925,7 +5925,7 @@ else
 fi
 
 if test -z "$GTKIDE_TRUE"; then :
-  ac_config_files="$ac_config_files ide/gtk/Makefile"
+  ac_config_files="$ac_config_files miptknzr/lib/Makefile mipjson/lib/Makefile ide/gtk/Makefile"
 
 fi
 
@@ -6686,6 +6686,8 @@ do
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
+    "miptknzr/lib/Makefile") CONFIG_FILES="$CONFIG_FILES miptknzr/lib/Makefile" ;;
+    "mipjson/lib/Makefile") CONFIG_FILES="$CONFIG_FILES mipjson/lib/Makefile" ;;
     "ide/gtk/Makefile") CONFIG_FILES="$CONFIG_FILES ide/gtk/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

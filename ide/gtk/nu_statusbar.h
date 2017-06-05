@@ -32,20 +32,28 @@ public:
         return _statusbar;
     }
 
-    statusbar_t( vbox_t& vbox, GtkWidget * statusbar = gtk_statusbar_new() )
-    :
-        _statusbar(statusbar)
+    statusbar_t( vbox_t& vbox, GtkWidget * statusbar = gtk_info_bar_new () )
+    : 
+    _statusbar(statusbar)
     {
-        gtk_box_pack_start (GTK_BOX (vbox.get_internal_obj()), _statusbar, FALSE, TRUE, 0);
-        gtk_widget_show (_statusbar);
+      gtk_box_pack_start (GTK_BOX (vbox.get_internal_obj()), statusbar, FALSE, FALSE, 0);
+      _label = gtk_label_new ("");
 
-        _label = gtk_label_new("");
-        gtk_box_pack_start(GTK_BOX(_statusbar), _label, FALSE, TRUE, 0);
-
+      gtk_box_pack_start (GTK_BOX (
+        gtk_info_bar_get_content_area (GTK_INFO_BAR (_statusbar))), _label, FALSE, FALSE, 0);
     }
 
-    void set_text( const char* text ) const noexcept {
+    void set_text( const char* text, GtkMessageType msgtype = GTK_MESSAGE_OTHER) const noexcept {
+        gtk_info_bar_set_message_type (GTK_INFO_BAR (_statusbar), msgtype);
         gtk_label_set_text(GTK_LABEL(_label), text);
+    }
+
+    void hide() {
+        gtk_widget_hide(_statusbar);
+    }
+
+    void show() {
+        gtk_widget_show(_statusbar);
     }
 
 private:
