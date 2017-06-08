@@ -1,6 +1,7 @@
 bin_PROGRAMS = nubasicide
 
 nubasicide_SOURCES = config.h \
+   ideres.cc \
    nubasicide.cc 
 
 AM_CXXFLAGS = \

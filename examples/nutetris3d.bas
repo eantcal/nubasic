@@ -892,7 +892,6 @@ Sub FirstHorzIntersection(valpha%, M1, cell_x_pos%, cell_y_pos%)
 End Sub
 
 
-
 ' -----------------------------------------------------------------------------
 Sub FirstVertIntersection(valpha%, M, cell_x_pos%, cell_y_pos%) 
 ' -----------------------------------------------------------------------------
@@ -1050,7 +1049,7 @@ Sub Draw3DView( offsetx%, offsety%, dy%, ray%, fact% )
       M = Tan(alpha)
 
       If M<>0 Then
-        M1 = 1/M
+         M1 = 1/M
       End If
 
       cell_x_pos% = camera_x% Div cell_dx%

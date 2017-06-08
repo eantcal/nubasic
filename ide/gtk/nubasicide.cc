@@ -52,6 +52,7 @@
 #include <fstream>
 #include <unordered_map>
 #include <thread>
+#include <functional>
 
 
 /* -------------------------------------------------------------------------- */
@@ -139,6 +140,10 @@ struct cfg_t {
 /* -------------------------------------------------------------------------- */
 
 struct app_t {
+    enum {
+        ERR_MSG_BUF_SIZE = 2048
+    };
+
     enum class marker_t {
         BOOKMARK = 0,
         BREAKPOINT = 1,
@@ -161,6 +166,35 @@ struct app_t {
     static const int offWhite = RGB(0xff, 0xfb, 0xF0);
     static const int darkGreen = RGB(0, 0x80, 0);
     static const int darkBlue = RGB(0, 0, 0x80);
+
+
+    /* -------------------------------------------------------------------------- */
+
+    static void update_gui() {
+        while (gtk_events_pending ())
+            gtk_main_iteration ();
+    }
+
+
+    /* -------------------------------------------------------------------------- */
+
+    static void run_gui_task_after( 
+        size_t secs, 
+        std::function<void(void)> f )
+    {
+
+        std::thread t([secs, f]() {
+            sleep(secs);
+            gdk_threads_enter();
+            f();
+            gdk_threads_leave();
+        });
+
+        t.detach();
+    }
+
+
+    /* -------------------------------------------------------------------------- */
 
     static int dialog_goto (nu::window_t & parent) {
         int ret = -1;
@@ -225,13 +259,13 @@ struct app_t {
         ed.cmd(SCI_SETUSETABS, 0, 0L);
         ed.cmd(SCI_SETLEXER, SCLEX_VB);
 
-        //static std::string keywords;
-        //for (const auto& keyword : nu::reserved_keywords_t::list) {
-        //    keywords += keyword;
-        //    keywords += " ";
-        //}
+        static std::string keywords;
+        for (const auto& keyword : nu::reserved_keywords_t::list) {
+            keywords += keyword;
+            keywords += " ";
+        }
 
-        //editor.cmd(SCI_SETKEYWORDS, 0, keywords.c_str());
+        ed.cmd(SCI_SETKEYWORDS, 0, keywords.c_str());
 
         // Get font name and size
         auto font = cfg(IDE_SETTINGS_DEF_FONTNAME);
@@ -395,6 +429,7 @@ struct app_t {
         editor().cmd(SCI_EMPTYUNDOBUFFER);
         editor().cmd(SCI_SETSAVEPOINT);
         editor().cmd(SCI_GOTOPOS, 0);
+
     }
 
 
@@ -509,8 +544,10 @@ struct app_t {
     /* -------------------------------------------------------------------------- */
 
     void set_new_document(bool clear_title)  {
-        editor().cmd(SCI_CLEARALL);
-        editor().cmd(SCI_EMPTYUNDOBUFFER);
+        auto & ed = editor();
+
+        ed.cmd(SCI_CLEARALL);
+        ed.cmd(SCI_EMPTYUNDOBUFFER);
 
         if (clear_title) {
             _full_path_str.clear();
@@ -519,10 +556,13 @@ struct app_t {
 
         _is_dirty = false;
         _need_build = true;
-        editor().cmd(SCI_SETSAVEPOINT);
+        ed.cmd(SCI_SETSAVEPOINT);
 
-        editor().remove_all_bookmarks();
-        editor().remove_all_breakpoints();
+        ed.remove_all_bookmarks();
+        ed.remove_all_breakpoints();
+
+        errorbar().set_text("");
+        errorbar().hide();
     }
 
     /* -------------------------------------------------------------------------- */
@@ -539,6 +579,9 @@ struct app_t {
         nu::dialog_about_t about("program name","version","author","license","description");
     }
 
+
+    /* -------------------------------------------------------------------------- */
+
     static void make_toolbar(const nu::window_t& window, const nu::vbox_t& vbox) {
         nu::toolbar_t toolbar;
 
@@ -554,7 +597,7 @@ struct app_t {
         toolbar.add_stock_item(GTK_STOCK_GO_FORWARD, "Continue", window, [] { get_instance().continue_debugging(); }, 5);
         toolbar.add_stock_item(GTK_STOCK_MEDIA_RECORD, "Breakpoint", window, dummy, 6);
         toolbar.add_stock_item(GTK_STOCK_EXECUTE, "Build", window, [] { get_instance().rebuild_code(true); } , 7);
-        toolbar.add_stock_item(GTK_STOCK_JUSTIFY_FILL, "Evaluate", window, dummy, 8);
+        toolbar.add_stock_item(GTK_STOCK_JUSTIFY_FILL, "Evaluate", window, [] { get_instance().eval_sel(); }, 8);
         toolbar.add_stock_item(GTK_STOCK_FIND, "Find", window, dummy, 9);
     }
 
@@ -847,6 +890,54 @@ struct app_t {
 
     /* ---------------------------------------------------------------------- */
 
+    static void make_debug_menu(
+        nu::window_t & window,
+        nu::menubar_t & menubar,
+        nu::accelgroup_t& accelgroup)
+    {
+        nu::menu_t menu("Debug", menubar, accelgroup);
+
+        menu.add_stock_item(window, "Build program",
+            [] { get_instance().rebuild_code(true); } );
+
+        menu.add_separator();
+
+        menu.add_stock_item(window, "Start Debugging",
+            []{ get_instance().start_debugging(); } );
+
+        menu.add_stock_item(window, "Continue Debugging",
+            []{ get_instance().continue_debugging(); } );
+
+        menu.add_stock_item(window, "Step",
+            []{ get_instance().singlestep_debugging(); } );
+
+        menu.add_stock_item(window, "Evaluate Selection",
+            []{ get_instance().eval_sel(); } );
+
+        menu.add_separator();
+
+        menu.add_stock_item(window, "Start Without Debugging",
+            []{ get_instance().run_without_debug(); } );
+
+        menu.add_separator();
+
+        menu.add_stock_item(window, "Toggle Breackpoint",
+            []{ /* TODO */ } );
+
+        menu.add_stock_item(window, "Delete all Breackpoints",
+            []{ /* TODO */ } );
+
+        menu.add_separator();
+
+        menu.add_stock_item(window, "Go to Program Counter",
+            []{ /* TODO */ } );
+
+
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
     static void make_settings_menu(
         nu::window_t & window,
         nu::menubar_t & menubar,
@@ -948,6 +1039,9 @@ struct app_t {
     app_t(int argc, char* argv[]) {
         _this = this;
 
+        gdk_threads_init();
+        gdk_threads_enter();
+
         gtk_init(&argc, &argv);
 
         static nu::window_t mainwindow(GTK_WINDOW_TOPLEVEL);
@@ -972,6 +1066,7 @@ struct app_t {
         make_file_menu(mainwindow, menubar, accelgroup);
         make_edit_menu(mainwindow, menubar, accelgroup);
         make_settings_menu(mainwindow, menubar, accelgroup);
+        make_debug_menu(mainwindow, menubar, accelgroup);
         make_search_menu(mainwindow, menubar, accelgroup);
 
         make_toolbar(mainwindow, vbox);
@@ -1173,7 +1268,8 @@ struct app_t {
                 interpreter().exec_command("break " + std::to_string(i + 1));
     }
 
-    /* -------------------------------------------------------------------------- */
+
+    /* ---------------------------------------------------------------------- */
 
     bool show_execution_point(int line) noexcept {
         remove_prog_cnt_marker();
@@ -1244,67 +1340,97 @@ struct app_t {
     }
 
 
-    /* -------------------------------------------------------------------------- */
+    /* ---------------------------------------------------------------------- */
 
-    bool exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
-    {
-        auto async_fn = [&]() {
+    bool evaluate_expression(const std::string& expression) {
+        auto & ed = editor();
 
-            try {
-                interpreter().exec_command(cmd);
-                // RunningDlgWndProc_terminate = true;
-                return true;
-            } catch (nu::runtime_error_t& e) {
-                char buf[2048] = { 0 };
-                int line = e.get_line_num();
-                line = line <= 0 ? interpreter().get_cur_line_n() : line;
+        if (expression.empty()) {
+            ed.cmd(SCI_ANNOTATIONCLEARALL);
+            return true;
+        }
 
-                snprintf(buf, sizeof(buf) - 1, "Runtime Error #%i at %i %s\n",
-                        e.get_error_code(), line, e.what());
+        std::string expr = "__eval_export \"";
+        expr += expression;
+        expr += "\" ";
 
-                // add_info(buf, CFM_BOLD | CFM_ITALIC);
-                nu::msgbox(mainwin(), buf, "Runtime Error");
+        if (exec_interpreter_cmd(expr)) {
+            auto result = interpreter().get_rt_ctx().exported_result.to_str();
 
-            } catch (std::exception& e) {
-                char buf[2048] = { 0 };
+            std::string annotation = "\r\n";
+            annotation += expression + " -> " + result + "\r\n";
 
-                if (interpreter().get_cur_line_n() > 0)
-                    snprintf(buf, sizeof(buf) - 1, "At line %i: %s\n",
-                            interpreter().get_cur_line_n(), e.what());
-                else
-                    snprintf(buf, sizeof(buf) - 1, "%s\n", e.what());
-
-                nu::msgbox(mainwin(), buf, "Runtime Error");
-                //g_editor.add_info(buf, CFM_BOLD | CFM_ITALIC);
-            }
-
-            // RunningDlgWndProc_terminate = true;
-            return false;
-        };
-
-        if (bg_mode) {
-            std::thread t(async_fn);
-
-            //add_info("Run Program\n", CFM_ITALIC);
-
-            //show_running_dialog(); // TODO
-
-            interpreter().set_step_mode(true);
-
-            t.join();
-
-            interpreter().set_step_mode(false);
-
-            // add_info("Stop Program\n", CFM_ITALIC);
+            ed.cmd(SCI_ANNOTATIONCLEARALL);
+            ed.cmd(SCI_ANNOTATIONSETVISIBLE, ANNOTATION_BOXED);
+            ed.cmd(SCI_ANNOTATIONSETSTYLE, ed.get_current_line() - 1, SCE_B_DOCLINE);
+            ed.cmd(SCI_ANNOTATIONSETTEXT, ed.get_current_line() - 1, annotation.c_str());
 
             return true;
         }
 
-        return async_fn();
+        return false;
     }
 
 
-    /* -------------------------------------------------------------------------- */
+    /* ---------------------------------------------------------------------- */
+
+    void eval_sel() {
+
+        std::string sel = editor().get_selection();
+        std::string qsel;
+
+        for (size_t i = 0; i < sel.length(); ++i) {
+            if (sel[i] == '\\') {
+                qsel += "\\\\";
+            } else if (sel[i] == '"') {
+                qsel += '\\';
+                qsel += '"';
+            } else if (sel[i] >= 20)
+                qsel += sel[i];
+        }
+
+        evaluate_expression(qsel);
+    }
+
+
+
+    /* ---------------------------------------------------------------------- */
+
+    bool exec_interpreter_cmd(const std::string& cmd) {
+        try {
+            interpreter().exec_command(cmd);
+            return true;
+        } catch (nu::runtime_error_t& e) {
+            char buf[ERR_MSG_BUF_SIZE] = { 0 };
+            int line = e.get_line_num();
+            line = line <= 0 ? interpreter().get_cur_line_n() : line;
+
+            snprintf(buf, sizeof(buf) - 1, "Runtime Error #%i at %i %s\n",
+                    e.get_error_code(), line, e.what());
+
+            errorbar().set_text(buf, GTK_MESSAGE_INFO);
+            errorbar().show();
+            nu::msgbox(mainwin(), buf, "Runtime Error");
+
+        } catch (std::exception& e) {
+            char buf[ERR_MSG_BUF_SIZE] = { 0 };
+
+            if (interpreter().get_cur_line_n() > 0)
+                snprintf(buf, sizeof(buf) - 1, "At line %i: %s\n",
+                        interpreter().get_cur_line_n(), e.what());
+            else
+                snprintf(buf, sizeof(buf) - 1, "%s\n", e.what());
+
+            errorbar().set_text(buf, GTK_MESSAGE_INFO);
+            errorbar().show();
+            nu::msgbox(mainwin(), buf, "Runtime Error");
+        }
+
+        return false;
+    }
+
+
+    /* ---------------------------------------------------------------------- */
 
     void start_debugging(dbg_flg_t flg = dbg_flg_t::NORMAL_EXECUTION) {
 
@@ -1313,22 +1439,23 @@ struct app_t {
 
         reset_all_breakpoints();
         remove_prog_cnt_marker();
+        editor().cmd(SCI_ANNOTATIONCLEARALL);
 
-        // alloc_console(); // TODO
+        update_gui();
 
         interpreter().register_break_event();
 
         switch (flg) {
             case dbg_flg_t::NORMAL_EXECUTION:
-                exec_interpreter_cmd("run", /* true */ false);
+                exec_interpreter_cmd("run");
                 break;
             case dbg_flg_t::CONTINUE_EXECUTION:
-                exec_interpreter_cmd("cont", /* true */ false);
+                exec_interpreter_cmd("cont");
                 break;
             case dbg_flg_t::SINGLE_STEP_EXECUTION:
-                exec_interpreter_cmd("ston", false);
-                exec_interpreter_cmd("cont", false);
-                exec_interpreter_cmd("stoff", false);
+                exec_interpreter_cmd("ston");
+                exec_interpreter_cmd("cont");
+                exec_interpreter_cmd("stoff");
                 break;
         }
 
@@ -1336,21 +1463,21 @@ struct app_t {
     }
 
 
-    /* -------------------------------------------------------------------------- */
+    /* ---------------------------------------------------------------------- */
 
     void continue_debugging() {
         start_debugging(dbg_flg_t::CONTINUE_EXECUTION);
     }
 
 
-    /* -------------------------------------------------------------------------- */
+    /* ---------------------------------------------------------------------- */
 
     void singlestep_debugging() {
         start_debugging(dbg_flg_t::SINGLE_STEP_EXECUTION);
     }
 
 
-    /* -------------------------------------------------------------------------- */
+    /* ---------------------------------------------------------------------- */
 
     bool rebuild_code(bool show_err_msg) noexcept {
         remove_prog_cnt_marker();
@@ -1361,27 +1488,6 @@ struct app_t {
 
         if (doc_size <= 0)
             return true;
-
-#if 0
-        RECT rcClient; // Client area of parent window.
-        GetClientRect(_h_splitter, &rcClient);
-
-        int cyVScroll = GetSystemMetrics(SM_CYVSCROLL);
-
-        HWND hwndPB
-            = CreateWindowEx(0, PROGRESS_CLASS, (LPTSTR)NULL, WS_CHILD | WS_VISIBLE,
-                    rcClient.left, rcClient.bottom - cyVScroll, rcClient.right,
-                    cyVScroll, _h_splitter, (HMENU)0, get_instance_handle(), NULL);
-#endif
-
-
-        int cb = int(doc_size / 10);
-
-#if 0
-        // Set the range and increment of the progress bar.
-        SendMessage(hwndPB, PBM_SETRANGE, 0, MAKELPARAM(0, cb));
-        SendMessage(hwndPB, PBM_SETSTEP, (WPARAM)1, 0);
-#endif
 
         std::vector<char> data(doc_size + 1);
         ed.get_text_range(0, int(doc_size), data.data());
@@ -1396,10 +1502,10 @@ struct app_t {
 
         bool first_is_special_comment = false;
 
-        while (i < doc_size) {
-            // if ((i % 10) == 0)
-                //SendMessage(hwndPB, PBM_STEPIT, 0, 0);
+        errorbar().set_text("Building...", GTK_MESSAGE_QUESTION );
+        errorbar().show();
 
+        while (i < doc_size) {
             char ch = data[i];
 
             if (ch >= ' ')
@@ -1430,9 +1536,14 @@ struct app_t {
                 mainwin().set_title(line.c_str());
 
                 if (!res) {
-                    // DestroyWindow(hwndPB);
                     return false;
                 }
+
+                int percent = int(double(i)/double(doc_size) * 100);
+
+                std::string s_line_num = "Completed " + std::to_string(percent) + " %";
+                errorbar().set_text(s_line_num.c_str(), GTK_MESSAGE_QUESTION );
+                update_gui();
 
                 line.clear();
                 ++line_num;
@@ -1447,21 +1558,60 @@ struct app_t {
 
         set_title();
         // create_funcs_menu(); // TODO
-        // DestroyWindow(hwndPB);
 
         _need_build = false;
 
-        nu::msgbox(mainwin(), "Build succeeded.", "Build");
-        errorbar().set_text("");
-        errorbar().hide();
+        errorbar().set_text("Build succeeded", GTK_MESSAGE_OTHER);
+        errorbar().show();
+
+        // wait 2 seconds and then hide error bar
+        run_gui_task_after( 2, []() { get_instance().errorbar().hide(); });
+        update_gui();
 
         return true;
     }
 
 
+    /* ---------------------------------------------------------------------- */
+
+    void exec_process(const std::string& cmdline) const noexcept {
+        auto exe = cmdline;
+
+        std::thread t([&] {
+            if ( 0 != ::system(exe.c_str()) ) {
+
+                gdk_threads_enter();
+                nu::msgbox(get_instance().mainwin(), 
+                    "Error loading nuBasic", "Run Interpreter");
+
+                gdk_threads_leave();
+            }
+        });
+
+        t.detach();
+    }
 
 
-    /* -------------------------------------------------------------------------- */
+    /* ---------------------------------------------------------------------- */
+
+    void run_without_debug() {
+        if (!_full_path_str.empty()) {
+            save_if_unsure();
+            std::string nubasic_exe = "nubasic -e \"" + _full_path_str + "\"";
+            exec_process(nubasic_exe);
+        } else {
+            auto decision = nu::msgbox(
+                mainwin(), "Source file not specified, proceed anyway ?", 
+                "Run Interpreter", GTK_BUTTONS_YES_NO);
+
+            if (decision == GTK_RESPONSE_YES) {
+                exec_process("nubasic");
+            }
+        }
+    }
+
+
+    /* ---------------------------------------------------------------------- */
 
     bool build_basic_line(
         const std::string& line, int line_num, bool dump_err_msg)
@@ -1480,7 +1630,6 @@ struct app_t {
                 show_error_line(line_num);
 
                 if (dump_err_msg) {
-                    // g_editor.add_info("\n" + msg + "\n", CFM_BOLD | CFM_ITALIC);
                     errorbar().show();
                     errorbar().set_text(msg.c_str(), GTK_MESSAGE_INFO);
                     nu::msgbox(mainwin(), msg.c_str(), "Syntax Error");
@@ -1489,7 +1638,6 @@ struct app_t {
                 return false;
             }
         }
-        // Print out Runtime Error Messages
         catch (nu::runtime_error_t& e) {
             if (!dump_err_msg)
                 return false;
@@ -1497,39 +1645,34 @@ struct app_t {
             int line = e.get_line_num();
             line = line <= 0 ? interpreter().get_cur_line_n() : line;
 
-            char lbuf[2048] = { 0 };
+            char lbuf[ERR_MSG_BUF_SIZE] = { 0 };
 
             snprintf(lbuf, sizeof(lbuf) - 1, "Error #%i at %i %s\n",
                     e.get_error_code(), line, e.what());
 
             show_error_line(line);
-            // g_editor.add_info(lbuf, CFM_BOLD | CFM_ITALIC);
-
             errorbar().set_text(lbuf, GTK_MESSAGE_INFO);
             errorbar().show();
             nu::msgbox(mainwin(), lbuf, "Syntax Error");
 
             return false;
         }
-        // Print out Syntax Error Messages
         catch (std::exception& e) {
             if (!dump_err_msg)
                 return false;
 
-            char lbuf[2048] = { 0 };
+            char lbuf[ERR_MSG_BUF_SIZE] = { 0 };
 
             const auto line = interpreter().get_cur_line_n();
 
             if (line > 0) {
                 snprintf(
-                        lbuf, sizeof(lbuf) - 1, "At line %i: %s\n", line, e.what());
+                   lbuf, sizeof(lbuf) - 1, "At line %i: %s\n", line, e.what());
 
                 show_error_line(line);
             } else {
                 snprintf(lbuf, sizeof(lbuf) - 1, "%s\n", e.what());
             }
-
-            //g_editor.add_info(lbuf, CFM_BOLD | CFM_ITALIC);
 
             errorbar().set_text(lbuf, GTK_MESSAGE_INFO);
             errorbar().show();
@@ -1541,6 +1684,9 @@ struct app_t {
         return true;
     }
 
+    ~app_t() {
+        gdk_threads_leave();
+    }
 
     nu::interpreter_t& interpreter() noexcept { 
         return _interpreter; 

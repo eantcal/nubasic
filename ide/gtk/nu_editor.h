@@ -21,6 +21,14 @@
 #include "ScintillaWidget.h"
 
 
+/* -------------------------------------------------------------------------- */
+
+#include <string>
+#include <vector>
+
+
+/* -------------------------------------------------------------------------- */
+
 #define RGB(r,g,b) \
     ((unsigned int)(((unsigned char)(r)|\
     ((unsigned short)((unsigned char)(g))<<8))|\
@@ -266,6 +274,24 @@ public:
 
     int get_selection_end() const noexcept {
         return int(cmd(SCI_GETSELECTIONEND, 0, 0));
+    }
+
+
+    std::string get_selection() {
+        long sel_len = long((get_selection_end() - get_selection_begin()) + 1);
+
+        if (sel_len > 0) {
+            std::vector<char> buf(sel_len + 1);
+            buf[0] = '\0';
+            cmd(SCI_GETSELTEXT, 0, buf.data());
+
+            std::string str;
+            std::copy(buf.begin(), buf.end(), std::back_inserter(str));
+
+            return str;
+        }
+
+        return std::string();
     }
 
     int get_current_line() const noexcept {
