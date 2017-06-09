@@ -253,6 +253,7 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
         }
 
         check_break_event();
+        _yield_host_os();
 
         if (_ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST])
             break;

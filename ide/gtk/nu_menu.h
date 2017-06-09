@@ -85,11 +85,15 @@ public:
                 (gpointer ) window.get_internal_obj());
     }
 
-    void add_separator()
+    void add_separator() noexcept
     {
         gtk_menu_shell_append(
                 GTK_MENU_SHELL(_menu),
                 gtk_separator_menu_item_new());
+    }
+
+    void set_sensitive( const bool& on ) const noexcept {
+        gtk_widget_set_sensitive( _menu, on );
     }
 
 private:

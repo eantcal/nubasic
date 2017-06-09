@@ -63,17 +63,9 @@ public:
     virtual ~program_t() {}
 
     bool run(line_num_t start_from) override;
-
-
     bool cont(line_num_t start_from, stmt_num_t stmtid) override;
-
-
     bool get_dbg_info(line_num_t line, dbginfo_t& dbg);
-
-
     bool set_dbg_info(line_num_t line, const dbginfo_t& dbg);
-
-
     bool run_next(line_num_t start_from);
 
 
@@ -85,13 +77,18 @@ public:
         prog_line_iterator_t& prog_ptr);
 
 
+    using yield_cbk_t = void(*)(void *);
+
+    void set_yield_cbk( yield_cbk_t cbk, void * cbk_data = nullptr ) noexcept {
+        _yield_cbk = cbk;
+        _yield_data = cbk_data;
+    }
+
 protected:
     bool _run(line_num_t start_from, int stmt_id, bool next);
 
-
     void goto_end_block(prog_line_iterator_t& prog_ptr, stmt_t::stmt_cl_t begin,
         stmt_t::stmt_cl_t end, bool& flg);
-
 
     rt_prog_ctx_t& get_rt_ctx() noexcept;
 
@@ -100,6 +97,14 @@ private:
     rt_prog_ctx_t& _ctx;
     bool _function_call = false;
 
+    yield_cbk_t _yield_cbk = nullptr;
+    void * _yield_data = nullptr;
+
+    void _yield_host_os() noexcept {
+       if (_yield_cbk) {
+           _yield_cbk(_yield_data);
+       }
+    }
 
     struct checkpoint_data_t {
         flag_map_t flag;
@@ -112,6 +117,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

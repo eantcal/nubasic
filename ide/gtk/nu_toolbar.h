@@ -56,6 +56,11 @@ public:
                 (gpointer) window.get_internal_obj());
     }
 
+    void add_separator(int button_id) {
+        auto sep = gtk_separator_tool_item_new ();
+        gtk_toolbar_insert(GTK_TOOLBAR(_toolbar), GTK_TOOL_ITEM(sep), button_id);
+    }
+
     void set_show_arrow( bool on = true ) const noexcept {
         gtk_toolbar_set_show_arrow(GTK_TOOLBAR(_toolbar), on ? TRUE : FALSE);
     }

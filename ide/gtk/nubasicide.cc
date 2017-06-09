@@ -141,7 +141,8 @@ struct cfg_t {
 
 struct app_t {
     enum {
-        ERR_MSG_BUF_SIZE = 2048
+        ERR_MSG_BUF_SIZE = 2048,
+        INTERPRETER_YELDS_BOUND = 5
     };
 
     enum class marker_t {
@@ -170,7 +171,7 @@ struct app_t {
 
     /* -------------------------------------------------------------------------- */
 
-    static void update_gui() {
+    static void process_gui_events() {
         while (gtk_events_pending ())
             gtk_main_iteration ();
     }
@@ -589,16 +590,31 @@ struct app_t {
         toolbar.set_style(GTK_TOOLBAR_ICONS);
         vbox.pack_start(toolbar);
 
-        toolbar.add_stock_item(GTK_STOCK_NEW, "New", window, [] { get_instance().set_new_document(true); }, 0);
-        toolbar.add_stock_item(GTK_STOCK_OPEN, "Open", window, toolbar_openfile, 1);
-        toolbar.add_stock_item(GTK_STOCK_SAVE, "Save", window, [] { get_instance().save_document(); }, 2);
-        toolbar.add_stock_item(GTK_STOCK_MEDIA_PLAY, "Run", window, [] { get_instance().start_debugging(); }, 3);
-        toolbar.add_stock_item(GTK_STOCK_GOTO_LAST, "Step", window, [] { get_instance().singlestep_debugging(); }, 4);
-        toolbar.add_stock_item(GTK_STOCK_GO_FORWARD, "Continue", window, [] { get_instance().continue_debugging(); }, 5);
-        toolbar.add_stock_item(GTK_STOCK_MEDIA_RECORD, "Breakpoint", window, dummy, 6);
-        toolbar.add_stock_item(GTK_STOCK_EXECUTE, "Build", window, [] { get_instance().rebuild_code(true); } , 7);
-        toolbar.add_stock_item(GTK_STOCK_JUSTIFY_FILL, "Evaluate", window, [] { get_instance().eval_sel(); }, 8);
-        toolbar.add_stock_item(GTK_STOCK_FIND, "Find", window, dummy, 9);
+        auto id = 0;
+
+        toolbar.add_stock_item(GTK_STOCK_NEW, "New", window, [] { get_instance().set_new_document(true); }, id++);
+        toolbar.add_stock_item(GTK_STOCK_OPEN, "Open", window, toolbar_openfile, id++);
+        toolbar.add_stock_item(GTK_STOCK_SAVE, "Save", window, [] { get_instance().save_document(); }, id++);
+
+        toolbar.add_separator( id ++ );
+        toolbar.add_stock_item(GTK_STOCK_EXECUTE, "Build", window, [] { get_instance().rebuild_code(true); } , id++);
+
+        toolbar.add_separator( id ++ );
+
+        toolbar.add_stock_item(GTK_STOCK_MEDIA_RECORD, "Breakpoint", window, [] { get_instance().toggle_breakpoint(); }, id++);
+
+        toolbar.add_separator( id ++ );
+
+        toolbar.add_stock_item(GTK_STOCK_MEDIA_PLAY, "Run", window, [] { get_instance().start_debugging(); }, id++);
+        toolbar.add_stock_item(GTK_STOCK_MEDIA_PAUSE, "Stop", window, [] { get_instance().stop_debugging(); }, id++);
+        toolbar.add_stock_item(GTK_STOCK_GOTO_LAST, "Step", window, [] { get_instance().singlestep_debugging(); }, id++);
+        toolbar.add_stock_item(GTK_STOCK_GO_FORWARD, "Continue", window, [] { get_instance().continue_debugging(); }, id++);
+
+        toolbar.add_separator( id ++ );
+        toolbar.add_stock_item(GTK_STOCK_JUSTIFY_FILL, "Evaluate", window, [] { get_instance().eval_sel(); }, id++);
+
+        toolbar.add_separator( id ++ );
+        toolbar.add_stock_item(GTK_STOCK_FIND, "Find", window, dummy, id++);
     }
 
 
@@ -890,12 +906,12 @@ struct app_t {
 
     /* ---------------------------------------------------------------------- */
 
-    static void make_debug_menu(
+    static nu::menu_t* make_debug_menu(
         nu::window_t & window,
         nu::menubar_t & menubar,
         nu::accelgroup_t& accelgroup)
     {
-        nu::menu_t menu("Debug", menubar, accelgroup);
+        static nu::menu_t menu("Debug", menubar, accelgroup);
 
         menu.add_stock_item(window, "Build program",
             [] { get_instance().rebuild_code(true); } );
@@ -922,17 +938,19 @@ struct app_t {
         menu.add_separator();
 
         menu.add_stock_item(window, "Toggle Breackpoint",
-            []{ /* TODO */ } );
+            []{ get_instance().toggle_breakpoint(); } );
 
         menu.add_stock_item(window, "Delete all Breackpoints",
-            []{ /* TODO */ } );
+            []{ get_instance().remove_all_breakpoints(); } );
 
         menu.add_separator();
 
         menu.add_stock_item(window, "Go to Program Counter",
-            []{ /* TODO */ } );
+            []{ get_instance().show_execution_point(
+                    get_instance().interpreter().get_cur_line_n()); });
 
 
+        return &menu;
     }
 
 
@@ -1036,64 +1054,8 @@ struct app_t {
 
     /* ---------------------------------------------------------------------- */
 
-    app_t(int argc, char* argv[]) {
-        _this = this;
-
-        gdk_threads_init();
-        gdk_threads_enter();
-
-        gtk_init(&argc, &argv);
-
-        static nu::window_t mainwindow(GTK_WINDOW_TOPLEVEL);
-        _mainwin_ptr = &mainwindow;
-
-        load_configuration();
-
-        mainwindow.set_title("nuBASIC");
-        mainwindow.maximize();
-        mainwindow.on_destroy(destroy_window);
-        mainwindow.on_destroy(delete_event_window);
-
-        nu::vbox_t vbox;
-        mainwindow.add_container(vbox);
-
-        nu::menubar_t menubar;
-        vbox.pack_start(menubar);
-
-        nu::accelgroup_t accelgroup;
-        mainwindow.add_accel_group(accelgroup);
-
-        make_file_menu(mainwindow, menubar, accelgroup);
-        make_edit_menu(mainwindow, menubar, accelgroup);
-        make_settings_menu(mainwindow, menubar, accelgroup);
-        make_debug_menu(mainwindow, menubar, accelgroup);
-        make_search_menu(mainwindow, menubar, accelgroup);
-
-        make_toolbar(mainwindow, vbox);
-
-        make_editor(vbox);
-
-        static nu::statusbar_t status_bar(vbox);
-        _statusbar_ptr = &status_bar;
-
-        static nu::statusbar_t error_bar(vbox);
-        _errorbar_ptr = &error_bar;
-
-        vbox.on_delete_event(exit_main_window);
-
-        configure_editor();
-
-        nu::widget_t<nu::window_t>(mainwindow).show_all();
-        nu::widget_t<nu::editor_t>(editor()).grab_focus();
-
-        editor().set_notify_cbk(on_scintilla_notification);
-
-        set_default_icon();
-
-        mainwin().show();
-        errorbar().hide();
-
-        gtk_widget_queue_draw (mainwin().get_internal_obj());
+    void stop_debugging() noexcept {
+        interpreter().set_step_mode(true); 
     }
 
 
@@ -1103,6 +1065,23 @@ struct app_t {
         assert(_editor_ptr);
         return *_editor_ptr;
     }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    const nu::menubar_t& menubar() const noexcept {
+        assert(_menubar_ptr);
+        return *_menubar_ptr;
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    const nu::menu_t& menu_debug() const noexcept {
+        assert(_menu_debug_ptr);
+        return *_menu_debug_ptr;
+    }
+
 
     /* ---------------------------------------------------------------------- */
 
@@ -1251,6 +1230,48 @@ struct app_t {
 
     /* ---------------------------------------------------------------------- */
 
+    bool add_breakpoint(long line) noexcept {
+    
+        const auto m = int(marker_t::BREAKPOINT);
+        auto & ed = editor();
+
+        ed.cmd(SCI_MARKERDEFINE, m, SC_MARK_CIRCLE);
+        ed.cmd(SCI_MARKERSETFORE, m, RGB(255, 255, 255));
+        ed.cmd(SCI_MARKERSETBACK, m, RGB(255, 0, 0));
+
+        ed.cmd(SCI_MARKERADD, line - 1, m);
+
+        return true;
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    bool toggle_breakpoint(long line = -1) noexcept {
+        if (line<0) 
+            line = editor().get_current_line();          
+
+        if (!remove_breakpoint(line))
+            add_breakpoint(line);
+
+        return true;
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    bool remove_breakpoint(long line) noexcept {
+        if (has_breakpoint(line)) {
+            editor().cmd(SCI_MARKERDELETE, line - 1, 1);
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
     void remove_all_breakpoints() noexcept {
         editor().cmd(SCI_MARKERDELETEALL, int(marker_t::BREAKPOINT), 0);
     }
@@ -1375,6 +1396,8 @@ struct app_t {
     /* ---------------------------------------------------------------------- */
 
     void eval_sel() {
+        if (is_prog_running())
+            return;
 
         std::string sel = editor().get_selection();
         std::string qsel;
@@ -1434,14 +1457,20 @@ struct app_t {
 
     void start_debugging(dbg_flg_t flg = dbg_flg_t::NORMAL_EXECUTION) {
 
+        if (is_prog_running())
+            return;
+
         if (_need_build && !rebuild_code(true))
             return;
+        
+        set_prog_running(true);
 
         reset_all_breakpoints();
         remove_prog_cnt_marker();
         editor().cmd(SCI_ANNOTATIONCLEARALL);
 
-        update_gui();
+        menu_debug().set_sensitive( false );
+        process_gui_events();
 
         interpreter().register_break_event();
 
@@ -1459,7 +1488,11 @@ struct app_t {
                 break;
         }
 
+        menu_debug().set_sensitive( true );
         show_execution_point(interpreter().get_cur_line_n());
+
+        set_prog_running(false);
+        interpreter().set_step_mode(false); 
     }
 
 
@@ -1480,6 +1513,9 @@ struct app_t {
     /* ---------------------------------------------------------------------- */
 
     bool rebuild_code(bool show_err_msg) noexcept {
+        if (is_prog_running())
+            return false;
+
         remove_prog_cnt_marker();
 
         auto & ed = editor();
@@ -1543,7 +1579,7 @@ struct app_t {
 
                 std::string s_line_num = "Completed " + std::to_string(percent) + " %";
                 errorbar().set_text(s_line_num.c_str(), GTK_MESSAGE_QUESTION );
-                update_gui();
+                process_gui_events();
 
                 line.clear();
                 ++line_num;
@@ -1566,7 +1602,7 @@ struct app_t {
 
         // wait 2 seconds and then hide error bar
         run_gui_task_after( 2, []() { get_instance().errorbar().hide(); });
-        update_gui();
+        process_gui_events();
 
         return true;
     }
@@ -1684,12 +1720,114 @@ struct app_t {
         return true;
     }
 
-    ~app_t() {
-        gdk_threads_leave();
+
+    /* ---------------------------------------------------------------------- */
+
+    void set_prog_running(bool on) noexcept {
+        _prog_running = on;
     }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    bool is_prog_running() const noexcept {
+
+        if (_prog_running) {
+            nu::msgbox(
+                get_instance().mainwin(), 
+                "Program running. Stop it first", 
+                "Warning");
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /* ---------------------------------------------------------------------- */
 
     nu::interpreter_t& interpreter() noexcept { 
         return _interpreter; 
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    app_t(int argc, char* argv[]) {
+        _this = this;
+
+        gdk_threads_init();
+        gdk_threads_enter();
+
+        gtk_init(&argc, &argv);
+
+        static nu::window_t mainwindow(GTK_WINDOW_TOPLEVEL);
+        _mainwin_ptr = &mainwindow;
+
+        load_configuration();
+
+        mainwindow.set_title("nuBASIC");
+        mainwindow.maximize();
+        mainwindow.on_destroy(destroy_window);
+        mainwindow.on_destroy(delete_event_window);
+
+        nu::vbox_t vbox;
+        mainwindow.add_container(vbox);
+
+        static nu::menubar_t mb;
+        _menubar_ptr = &mb;
+
+        vbox.pack_start(mb);
+
+        nu::accelgroup_t accelgroup;
+        mainwindow.add_accel_group(accelgroup);
+
+        make_file_menu(mainwindow, mb, accelgroup);
+        make_edit_menu(mainwindow, mb, accelgroup);
+        make_settings_menu(mainwindow, mb, accelgroup);
+        _menu_debug_ptr = make_debug_menu(mainwindow, mb, accelgroup);
+        make_search_menu(mainwindow, mb, accelgroup);
+
+        make_toolbar(mainwindow, vbox);
+
+        make_editor(vbox);
+
+        static nu::statusbar_t status_bar(vbox);
+        _statusbar_ptr = &status_bar;
+
+        static nu::statusbar_t error_bar(vbox);
+        _errorbar_ptr = &error_bar;
+
+        vbox.on_delete_event(exit_main_window);
+
+        configure_editor();
+
+        nu::widget_t<nu::window_t>(mainwindow).show_all();
+        nu::widget_t<nu::editor_t>(editor()).grab_focus();
+
+        editor().set_notify_cbk(on_scintilla_notification);
+
+        set_default_icon();
+
+        mainwin().show();
+        errorbar().hide();
+
+        gtk_widget_queue_draw (mainwin().get_internal_obj());
+
+        // the interpreter periodically will process gtk events in order to
+        // avoid this one freezes
+        _interpreter.set_yield_cbk( [](void*) { 
+            if (((unsigned long)time(NULL)) % INTERPRETER_YELDS_BOUND == 0) {
+               process_gui_events();
+            }
+        } );
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    ~app_t() {
+        gdk_threads_leave();
     }
 
 private:
@@ -1699,6 +1837,9 @@ private:
     nu::window_t * _mainwin_ptr = nullptr;
     nu::statusbar_t * _statusbar_ptr = nullptr;
     nu::statusbar_t * _errorbar_ptr = nullptr;
+    nu::menubar_t * _menubar_ptr = nullptr;
+
+    nu::menu_t * _menu_debug_ptr = nullptr;
 
     std::string _working_file;
     std::string _working_path;
@@ -1707,6 +1848,8 @@ private:
 
     bool _is_dirty = false;
     bool _need_build = false;
+
+    bool _prog_running = false;
 
     std::unordered_map<std::string, std::string> _cfg;
 

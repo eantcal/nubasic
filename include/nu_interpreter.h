@@ -180,8 +180,20 @@ public:
     FILE* get_stdout_ptr() const noexcept { return _stdout_ptr; }
     FILE* get_stdin_ptr() const noexcept { return _stdin_ptr; }
 
+    void set_yield_cbk( program_t::yield_cbk_t cbk, void * cbk_data = nullptr ) noexcept {
+        _yield_cbk = cbk;
+        _yield_data = cbk_data;
+
+        if (_prog) {
+            _prog->set_yield_cbk(cbk, cbk_data);
+        }
+    }
+
 protected:
-    runnable_t* _prog = nullptr;
+    program_t* _prog = nullptr;
+
+    program_t::yield_cbk_t _yield_cbk = nullptr;
+    void * _yield_data = nullptr;
 
 private:
     breakpoint_tbl_t _breakpoints;

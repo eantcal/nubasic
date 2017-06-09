@@ -1210,6 +1210,10 @@ bool interpreter_t::run(runnable_t::line_num_t line)
 
     program_t prog(_prog_line, _prog_ctx, false);
 
+    if (_yield_cbk) {
+        prog.set_yield_cbk(_yield_cbk, _yield_data);
+    }
+
     return prog.run(line);
 }
 
@@ -1226,6 +1230,10 @@ bool interpreter_t::cont(
 
     program_t prog(_prog_line, _prog_ctx, false);
 
+    if (_yield_cbk) {
+        prog.set_yield_cbk(_yield_cbk, _yield_data);
+    }
+
     return prog.cont(line, stmtid);
 }
 
@@ -1240,6 +1248,10 @@ bool interpreter_t::run_next(runnable_t::line_num_t line)
     } _guard;
 
     program_t prog(_prog_line, _prog_ctx, false);
+
+    if (_yield_cbk) {
+        prog.set_yield_cbk(_yield_cbk, _yield_data);
+    }
 
     return prog.run_next(line);
 }

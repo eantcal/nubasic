@@ -30,10 +30,14 @@ public:
         return _menubar;
     }
 
-    menubar_t(GtkWidget* menubar = gtk_menu_bar_new()) :
+    menubar_t(GtkWidget* menubar = gtk_menu_bar_new()) noexcept :
         _menubar(menubar)
     {
         assert(_menubar);
+    }
+
+    void set_sensitive( const bool& on ) const noexcept {
+        gtk_widget_set_sensitive( _menubar, on );
     }
 
 private:
