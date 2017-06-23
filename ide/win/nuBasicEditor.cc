@@ -880,7 +880,6 @@ public:
 
     /**
     * Set up search flags to scintilla
-    * \return flags
     */
     void set_search_flags(int flags)
     {

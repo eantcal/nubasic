@@ -256,6 +256,10 @@ public:
         cmd(SCI_GOTOLINE, line - 1, 0);
     }
 
+    void go_to_pos(long pos) const noexcept { 
+        cmd(SCI_GOTOPOS, pos, 0); 
+    }
+
     int get_search_flags() const noexcept {
         return int(cmd(SCI_GETSEARCHFLAGS, 0, 0));
     }

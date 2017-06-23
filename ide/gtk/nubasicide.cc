@@ -24,6 +24,7 @@
 #include "nu_dialog_font.h"
 #include "nu_dialog_about.h"
 #include "nu_dialog_inputbox.h"
+#include "nu_dialog_search.h"
 #include "nu_terminal_frame.h"
 #include "nu_about.h"
 #include "nu_builtin_help.h"
@@ -139,7 +140,7 @@ struct cfg_t {
 
 /* -------------------------------------------------------------------------- */
 
-struct app_t {
+struct app_t : public nu::dialog_search_t::observer_t {
     enum {
         ERR_MSG_BUF_SIZE = 2048,
         INTERPRETER_YELDS_BOUND = 5
@@ -167,6 +168,61 @@ struct app_t {
     static const int offWhite = RGB(0xff, 0xfb, 0xF0);
     static const int darkGreen = RGB(0, 0x80, 0);
     static const int darkBlue = RGB(0, 0, 0x80);
+
+
+    /* -------------------------------------------------------------------------- */
+
+    void notify_find_start( nu::dialog_search_t & ctx ) noexcept override {
+        _find_str = ctx.get_text();
+
+        auto dlg_flgs = ctx.get_flags();
+
+        int flgs = get_search_flags();
+
+        if (dlg_flgs & nu::dialog_search_t::MATCHCASE) {
+            flgs |= SCFIND_MATCHCASE;
+        }
+        else {
+            flgs &= ~SCFIND_MATCHCASE;
+        }
+
+        if (dlg_flgs & nu::dialog_search_t::WHOLEWORD) {
+            flgs |= SCFIND_WHOLEWORD;
+        }
+        else {
+            flgs &= ~SCFIND_WHOLEWORD;
+        }
+
+        set_search_flags(flgs);
+
+        bool search_result = ctx.is_forward() ? 
+            search_forward(_find_str) :
+            search_backward(_find_str);
+
+        if (!search_result) {
+            std::string msg = "'";
+            msg += _find_str;
+            msg += "' not found\n";
+
+            nu::msgbox(mainwin(), msg.c_str(), "Search...");
+        }
+    }
+
+
+    /* -------------------------------------------------------------------------- */
+
+    int get_search_flags() const {
+        return int(editor().cmd(SCI_GETSEARCHFLAGS, 0, 0));
+    }
+
+
+    /* -------------------------------------------------------------------------- */
+
+    void set_search_flags(int flags) {
+        _search_flags = flags;
+        editor().cmd(SCI_SETSEARCHFLAGS, _search_flags, 0);
+    }
+
 
 
     /* -------------------------------------------------------------------------- */
@@ -995,6 +1051,68 @@ struct app_t {
     }
 
 
+
+    /* ---------------------------------------------------------------------- */
+
+    bool search_forward(const std::string& text) {
+        auto & ed = editor();
+    
+        long pos = (long)ed.get_current_position();
+
+        Sci_TextToFind tf = { 0 };
+        tf.lpstrText = text.c_str();
+        tf.chrg.cpMin = pos + 1;
+        tf.chrg.cpMax = long(ed.cmd(SCI_GETLENGTH, 0, 0));
+
+        pos = long(ed.cmd(SCI_FINDTEXT, _search_flags, &tf));
+
+        if (pos >= 0) {
+            ed.go_to_pos(pos);
+
+            ed.cmd(SCI_SETSEL, tf.chrgText.cpMin, tf.chrgText.cpMax);
+            ed.cmd(SCI_FINDTEXT, _search_flags, &tf);
+
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    bool search_backward(const std::string& text) {
+        auto & ed = editor();
+
+        long pos = (long)ed.get_current_position();
+        // long lMinSel = (long)ed.get_selection_begin();
+
+        Sci_TextToFind tf = { 0 };
+        tf.lpstrText = text.c_str();
+
+        // if (lMinSel >= 0)
+        //     tf.chrg.cpMin = lMinSel - 1;
+        // else
+            tf.chrg.cpMin = pos - 1;
+
+        tf.chrg.cpMax = 0;
+
+        pos = (long)ed.cmd(SCI_FINDTEXT, _search_flags, &tf);
+
+        if (pos >= 0) {
+            ed.go_to_pos(pos);
+
+            ed.cmd(SCI_SETSEL, tf.chrgText.cpMin, tf.chrgText.cpMax);
+            ed.cmd(SCI_FINDTEXT, _search_flags, &tf);
+
+            return true;
+        }
+
+        return false;
+    }
+
+
+
     /* ---------------------------------------------------------------------- */
 
     static void make_search_menu(
@@ -1018,7 +1136,16 @@ struct app_t {
         menu.add_stock_item(
             window, GTK_STOCK_FIND,
             [](){
-                // TODO
+                auto & dlg = nu::dialog_search_t::get_instance();
+                
+                get_instance()._find_str = 
+                    get_instance().editor().get_selection();
+
+                
+                // nu::msgbox(nullptr, get_instance()._find_str.c_str(), "xxx");
+
+                dlg.set_text(get_instance()._find_str.c_str());
+                dlg.run(get_instance().mainwin());
             });
 
         menu.add_stock_item(
@@ -1752,7 +1879,7 @@ struct app_t {
 
 
     /* ---------------------------------------------------------------------- */
-
+    
     app_t(int argc, char* argv[]) {
         _this = this;
 
@@ -1821,6 +1948,8 @@ struct app_t {
                process_gui_events();
             }
         } );
+
+        nu::dialog_search_t::get_instance().register_observer( this );
     }
 
 
@@ -1853,6 +1982,10 @@ private:
 
     std::unordered_map<std::string, std::string> _cfg;
 
+    // Search and Replace
+    std::string _find_str;
+    std::string _replace_str;
+    int _search_flags = 0;
 
     static app_t * _this;
 };
