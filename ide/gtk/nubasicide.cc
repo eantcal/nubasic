@@ -172,8 +172,19 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
     /* -------------------------------------------------------------------------- */
 
-    void notify_find_start( nu::dialog_search_t & ctx ) noexcept override {
+    enum class find_op_t { FIND, REPLACE, REPLACE_ALL };
+
+    void find_or_replace( nu::dialog_search_t & ctx, find_op_t op ) noexcept {
+
         _find_str = ctx.get_text();
+
+        if ( op == find_op_t::REPLACE ) {
+            _replace_str = ctx.get_replace_text();
+            replace_searching_text( _replace_str.c_str() );
+        } 
+        else if (op == find_op_t::REPLACE_ALL ) {
+            // TODO
+        }
 
         auto dlg_flgs = ctx.get_flags();
 
@@ -204,8 +215,112 @@ struct app_t : public nu::dialog_search_t::observer_t {
             msg += _find_str;
             msg += "' not found\n";
 
-            nu::msgbox(mainwin(), msg.c_str(), "Search...");
+            nu::msgbox(mainwin(), msg.c_str(), "Searching text...");
         }
+
+    }
+
+
+    /* -------------------------------------------------------------------------- */
+
+    int replace_all( const char* szFind, const char* szReplace, bool bUseSelection) {
+        int nCount = 0;
+
+        auto & ed = editor();
+
+        // different branches for replace in selection or total file
+        if (bUseSelection) {
+
+            // Get starting selection range
+            long length = 0;
+            long begin = long(ed.get_selection_begin());
+            long end = long(ed.get_selection_end());
+
+            // Set target to selection
+            ed.cmd(SCI_SETTARGETSTART, begin);
+            ed.cmd(SCI_SETTARGETEND, end);
+
+            // Try to find text in target for the first time
+            long pos = long(
+                ed.cmd(SCI_SEARCHINTARGET, strlen(szFind), szFind));
+
+            // loop over selection until end of selection
+            // reached - moving the target start each time
+            while (pos < end && pos >= 0) {
+                const auto szlen = strlen(szReplace);
+
+                length = _search_flags & SCFIND_REGEXP
+                    ? (long)ed.cmd( SCI_REPLACETARGETRE, szlen, szReplace)
+                    : (long)ed.cmd( SCI_REPLACETARGET, szlen, szReplace);
+
+                // the end of the selection was changed - recalc the end
+                end = long(ed.get_selection_end());
+
+                // move start of target behind last change and end of target to new
+                // end of selection
+                ed.cmd(SCI_SETTARGETSTART, pos + length);
+                ed.cmd(SCI_SETTARGETEND, end);
+
+                // find again - if nothing found loop exits
+                pos = long(ed.cmd( SCI_SEARCHINTARGET, strlen(szFind), szFind));
+                nCount++;
+            }
+        } else {
+            // start with first and last char in buffer
+            long length = 0;
+            long begin = 0;
+            long end = long(ed.cmd(SCI_GETTEXTLENGTH, 0, 0));
+            //    set target to selection
+            ed.cmd(SCI_SETTARGETSTART, begin, 0);
+            ed.cmd(SCI_SETTARGETEND, end, 0);
+
+            // try to find text in target for the first time
+            long pos = long(
+                    ed.cmd(SCI_SEARCHINTARGET, strlen(szFind), szFind));
+
+            // loop over selection until end of selection reached - moving the
+            // target start each time
+            while (pos < end && pos >= 0) {
+                const auto szlen = strlen(szReplace);
+
+                // check for regular expression flag
+                length = _search_flags & SCFIND_REGEXP
+                    ? (long)ed.cmd( SCI_REPLACETARGETRE, szlen, szReplace)
+                    : (long)ed.cmd( SCI_REPLACETARGET, szlen, szReplace);
+
+                // the end of the selection was changed - recalc the end
+                end = long(ed.cmd(SCI_GETTEXTLENGTH, 0, 0));
+
+                // move start of target behind last change and end of target to new
+                // end of buffer
+                ed.cmd(SCI_SETTARGETSTART, pos + length);
+                ed.cmd(SCI_SETTARGETEND, end);
+
+                // find again - if nothing found loop exits
+                pos = long(ed.cmd( SCI_SEARCHINTARGET, strlen(szFind), szFind));
+                nCount++;
+            }
+        }
+
+        return nCount;
+    }
+
+    /* -------------------------------------------------------------------------- */
+
+    void notify_find_result( nu::dialog_search_t & ctx ) noexcept override {
+        find_or_replace( ctx, find_op_t::FIND );
+    }
+
+    /* -------------------------------------------------------------------------- */
+
+    void notify_replace_result( nu::dialog_search_t & ctx ) noexcept override {
+        find_or_replace( ctx, find_op_t::REPLACE );
+    }
+
+    /* -------------------------------------------------------------------------- */
+
+    void notify_replace_all_result( nu::dialog_search_t & ctx ) noexcept override {
+        find_or_replace( ctx, find_op_t::REPLACE_ALL );
     }
 
 
@@ -670,7 +785,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
         toolbar.add_stock_item(GTK_STOCK_JUSTIFY_FILL, "Evaluate", window, [] { get_instance().eval_sel(); }, id++);
 
         toolbar.add_separator( id ++ );
-        toolbar.add_stock_item(GTK_STOCK_FIND, "Find", window, dummy, id++);
+        toolbar.add_stock_item(GTK_STOCK_FIND, "Find", window, run_find_dlg, id++);
     }
 
 
@@ -1112,6 +1227,45 @@ struct app_t : public nu::dialog_search_t::observer_t {
     }
 
 
+    
+    /* ---------------------------------------------------------------------- */
+
+    void replace_searching_text(const std::string& text) {
+        auto & ed = editor();
+
+        ed.cmd(SCI_TARGETFROMSELECTION, 0, 0);
+        ed.cmd(SCI_REPLACETARGET, text.size(), text.c_str());
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    static void run_find_dlg() {
+        auto & dlg = nu::dialog_search_t::get_instance();
+
+        get_instance()._find_str = 
+            get_instance().editor().get_selection();
+
+        dlg.set_text(get_instance()._find_str.c_str());
+        dlg.run(get_instance().mainwin());
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    static void run_replace_dlg() {
+        auto & dlg = nu::dialog_search_t::get_instance();
+
+        get_instance()._find_str = 
+            get_instance().editor().get_selection();
+
+        dlg.set_text(get_instance()._find_str.c_str());
+        dlg.set_replace_text(get_instance()._replace_str.c_str());
+
+        dlg.set_replace_mode( true );
+        dlg.run(get_instance().mainwin());
+    }
+
 
     /* ---------------------------------------------------------------------- */
 
@@ -1133,26 +1287,8 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
         menu.add_separator();
 
-        menu.add_stock_item(
-            window, GTK_STOCK_FIND,
-            [](){
-                auto & dlg = nu::dialog_search_t::get_instance();
-                
-                get_instance()._find_str = 
-                    get_instance().editor().get_selection();
-
-                
-                // nu::msgbox(nullptr, get_instance()._find_str.c_str(), "xxx");
-
-                dlg.set_text(get_instance()._find_str.c_str());
-                dlg.run(get_instance().mainwin());
-            });
-
-        menu.add_stock_item(
-            window, GTK_STOCK_FIND_AND_REPLACE,
-            [](){
-                // TODO
-            });
+        menu.add_stock_item( window, GTK_STOCK_FIND, run_find_dlg);
+        menu.add_stock_item( window, GTK_STOCK_FIND_AND_REPLACE, run_replace_dlg);
 
         menu.add_separator();
 
