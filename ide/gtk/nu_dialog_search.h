@@ -41,7 +41,7 @@ public:
     void run(const window_t& parent) noexcept {
         if (!_window) {
             const char* title = _replace_controls ?
-                "Find" : "Replace";
+                "Replace" : "Find";
 
             _window = gtk_dialog_new_with_buttons(title,
                     GTK_WINDOW (parent.get_internal_obj()),

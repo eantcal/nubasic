@@ -172,21 +172,42 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
     /* -------------------------------------------------------------------------- */
 
-    enum class find_op_t { FIND, REPLACE, REPLACE_ALL };
+    void replace_all( nu::dialog_search_t & ctx ) noexcept {
 
-    void find_or_replace( nu::dialog_search_t & ctx, find_op_t op ) noexcept {
-
+        set_search_flags( ctx );
+        _replace_str = ctx.get_replace_text();
         _find_str = ctx.get_text();
 
-        if ( op == find_op_t::REPLACE ) {
-            _replace_str = ctx.get_replace_text();
-            replace_searching_text( _replace_str.c_str() );
-        } 
-        else if (op == find_op_t::REPLACE_ALL ) {
-            // TODO
+        auto n = _replace_all(
+           _find_str.c_str(), _replace_str.c_str(), false);
+
+        if (n>0) {
+            std::string msg = "Replaced " + std::to_string(n) + " occurrences of ";
+            msg += _find_str;
+            msg += " with "; 
+            msg += _replace_str + "\n";
+
+            nu::msgbox(mainwin(), msg.c_str(), "Replacing text...");
+
+            std::cerr << msg << std::endl;
+        }
+        else {
+            std::string msg = "";
+            msg += _find_str;
+            msg += " not found\n";
+
+            nu::msgbox(mainwin(), msg.c_str(), "Replacing text...");
+
+            std::cerr << msg << std::endl;
         }
 
-        auto dlg_flgs = ctx.get_flags();
+    }
+
+
+    /* -------------------------------------------------------------------------- */
+
+    void set_search_flags( nu::dialog_search_t & ctx )  {
+         auto dlg_flgs = ctx.get_flags();
 
         int flgs = get_search_flags();
 
@@ -204,7 +225,23 @@ struct app_t : public nu::dialog_search_t::observer_t {
             flgs &= ~SCFIND_WHOLEWORD;
         }
 
-        set_search_flags(flgs);
+        _set_search_flags(flgs);
+    }
+
+
+    /* -------------------------------------------------------------------------- */
+
+    enum class find_op_t { FIND, REPLACE };
+    void find_or_replace( nu::dialog_search_t & ctx, find_op_t op ) noexcept {
+
+        _find_str = ctx.get_text();
+
+        if ( op == find_op_t::REPLACE ) {
+            _replace_str = ctx.get_replace_text();
+            replace_searching_text( _replace_str.c_str() );
+        } 
+
+        set_search_flags(ctx);
 
         bool search_result = ctx.is_forward() ? 
             search_forward(_find_str) :
@@ -223,7 +260,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
     /* -------------------------------------------------------------------------- */
 
-    int replace_all( const char* szFind, const char* szReplace, bool bUseSelection) {
+    int _replace_all( const char* szFind, const char* szReplace, bool bUseSelection) {
         int nCount = 0;
 
         auto & ed = editor();
@@ -265,7 +302,8 @@ struct app_t : public nu::dialog_search_t::observer_t {
                 pos = long(ed.cmd( SCI_SEARCHINTARGET, strlen(szFind), szFind));
                 nCount++;
             }
-        } else {
+        } 
+        else {
             // start with first and last char in buffer
             long length = 0;
             long begin = 0;
@@ -276,7 +314,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
             // try to find text in target for the first time
             long pos = long(
-                    ed.cmd(SCI_SEARCHINTARGET, strlen(szFind), szFind));
+                ed.cmd(SCI_SEARCHINTARGET, strlen(szFind), szFind));
 
             // loop over selection until end of selection reached - moving the
             // target start each time
@@ -320,7 +358,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
     /* -------------------------------------------------------------------------- */
 
     void notify_replace_all_result( nu::dialog_search_t & ctx ) noexcept override {
-        find_or_replace( ctx, find_op_t::REPLACE_ALL );
+        replace_all( ctx );
     }
 
 
@@ -333,7 +371,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
     /* -------------------------------------------------------------------------- */
 
-    void set_search_flags(int flags) {
+    void _set_search_flags(int flags) {
         _search_flags = flags;
         editor().cmd(SCI_SETSEARCHFLAGS, _search_flags, 0);
     }
@@ -782,10 +820,19 @@ struct app_t : public nu::dialog_search_t::observer_t {
         toolbar.add_stock_item(GTK_STOCK_GO_FORWARD, "Continue", window, [] { get_instance().continue_debugging(); }, id++);
 
         toolbar.add_separator( id ++ );
-        toolbar.add_stock_item(GTK_STOCK_JUSTIFY_FILL, "Evaluate", window, [] { get_instance().eval_sel(); }, id++);
+        toolbar.add_stock_item(GTK_STOCK_INDEX, "Evaluate", window, [] { get_instance().eval_sel(); }, id++);
 
         toolbar.add_separator( id ++ );
         toolbar.add_stock_item(GTK_STOCK_FIND, "Find", window, run_find_dlg, id++);
+        toolbar.add_stock_item(GTK_STOCK_FIND_AND_REPLACE, "Replace", window, run_replace_dlg, id++);
+
+        toolbar.add_separator( id ++ );
+        toolbar.add_stock_item(GTK_STOCK_ZOOM_IN, "Zoom in", window, 
+            []{get_instance().editor().cmd(SCI_ZOOMIN);}, id++);
+
+        toolbar.add_stock_item(GTK_STOCK_ZOOM_OUT, "Zoom out", window,
+             []{get_instance().editor().cmd(SCI_ZOOMOUT);}, id++);
+
     }
 
 
@@ -1050,28 +1097,36 @@ struct app_t : public nu::dialog_search_t::observer_t {
     {
         nu::menu_t menu("Edit", menubar, accelgroup);
         menu.add_stock_item(window, GTK_STOCK_UNDO,
-            [](){get_instance().editor().cmd(SCI_UNDO);});
+            []{get_instance().editor().cmd(SCI_UNDO);});
 
         menu.add_stock_item(window, GTK_STOCK_REDO,
-            [](){get_instance().editor().cmd(SCI_REDO);});
+            []{get_instance().editor().cmd(SCI_REDO);});
 
         menu.add_separator();
         menu.add_stock_item(window, GTK_STOCK_CUT,
-            [](){get_instance().editor().cmd(SCI_CUT);});
+            []{get_instance().editor().cmd(SCI_CUT);});
 
         menu.add_stock_item(window, GTK_STOCK_COPY,
-            [](){get_instance().editor().cmd(SCI_COPY);});
+            []{get_instance().editor().cmd(SCI_COPY);});
 
         menu.add_stock_item(window, GTK_STOCK_PASTE,
-            [](){get_instance().editor().cmd(SCI_PASTE);});
+            []{get_instance().editor().cmd(SCI_PASTE);});
 
         menu.add_stock_item(window, GTK_STOCK_DELETE,
-            [](){get_instance().editor().cmd(SCI_DELETEBACK);});
+            []{get_instance().editor().cmd(SCI_DELETEBACK);});
 
         menu.add_separator();
 
         menu.add_stock_item(window, GTK_STOCK_SELECT_ALL,
-            [](){get_instance().editor().cmd(SCI_SELECTALL);});
+            []{get_instance().editor().cmd(SCI_SELECTALL);});
+
+        menu.add_separator();
+
+        menu.add_stock_item(window, GTK_STOCK_ZOOM_IN,
+            []{get_instance().editor().cmd(SCI_ZOOMIN);});
+
+        menu.add_stock_item(window, GTK_STOCK_ZOOM_OUT,
+            []{get_instance().editor().cmd(SCI_ZOOMOUT);});
     }
 
 
