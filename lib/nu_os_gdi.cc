@@ -494,6 +494,20 @@ int _os_get_window_dy() noexcept
 
 
 /* -------------------------------------------------------------------------- */
+
+int _os_set_topmost() noexcept
+{
+    return SetWindowPos(
+        GetConsoleWindow(), 
+        HWND_TOPMOST, 
+        0, 0, 0, 0, 
+        SWP_NOMOVE | SWP_NOSIZE
+    ) ? 0 : -1;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 }
 
 
@@ -663,40 +677,38 @@ protected:
 
 
 public:
-    int get_window_width() const noexcept { return _win_width; }
+    int get_window_width() const noexcept { 
+        return _win_width; 
+    }
+
+    int get_window_height() const noexcept { 
+        return _win_height; 
+    }
 
 
-    int get_window_height() const noexcept { return _win_height; }
-
-
-    int get_window_x() const noexcept
-    {
+    int get_window_x() const noexcept {
         getXYcoords();
         return _win_x;
     }
 
 
-    int get_window_y() const noexcept
-    {
+    int get_window_y() const noexcept {
         getXYcoords();
         return _win_y;
     }
 
 
-    int move_win(int x, int y) noexcept
-    {
+    int move_win(int x, int y) noexcept {
         return XMoveWindow(_display, _xterm_win, x, y);
     }
 
 
-    int resize_win(int dx, int dy) noexcept
-    {
+    int resize_win(int dx, int dy) noexcept {
         return XResizeWindow(_display, _xterm_win, dx, dy);
     }
 
 
-    void textout(int x, int y, const std::string& text)
-    {
+    void textout(int x, int y, const std::string& text) {
         Font font = XLoadFont(_display, "fixed");
         XTextItem txt;
         txt.chars = const_cast<char*>(text.c_str());
@@ -708,8 +720,7 @@ public:
     }
 
 
-    void rect(int x1, int y1, int x2, int y2)
-    {
+    void rect(int x1, int y1, int x2, int y2) {
         int x = std::min(x1, x2);
         int y = std::min(y1, y2);
         XDrawRectangle(_display, _xterm_win, _gc, x, y, abs(abs(x2) - abs(x1)),
@@ -717,8 +728,7 @@ public:
     }
 
 
-    void fillrect(int x1, int y1, int x2, int y2)
-    {
+    void fillrect(int x1, int y1, int x2, int y2) {
         int x = std::min(x1, x2);
         int y = std::min(y1, y2);
         XFillRectangle(_display, _xterm_win, _gc, x, y,
@@ -726,17 +736,22 @@ public:
     }
 
 
-    void line(int x1, int y1, int x2, int y2)
-    {
+    void line(int x1, int y1, int x2, int y2) {
         XDrawLine(_display, _xterm_win, _gc, x1, y1, x2, y2);
     }
 
 
-    void setpixel(int x, int y) { XDrawPoint(_display, _xterm_win, _gc, x, y); }
+    void setpixel(int x, int y) { 
+        XDrawPoint(_display, _xterm_win, _gc, x, y); 
+    }
 
 
-    int getpixel(int x, int y)
-    {
+    void set_topmost() {
+        XMapRaised( _display, _xterm_win );
+    }
+
+
+    int getpixel(int x, int y) {
         XColor color;
 
         XImage* image;
@@ -755,8 +770,7 @@ public:
     }
 
 
-    void ellipse(int x1, int y1, int x2, int y2)
-    {
+    void ellipse(int x1, int y1, int x2, int y2) {
         int x = std::min(x1, x2);
         int y = std::min(y1, y2);
         XDrawArc(_display, _xterm_win, _gc, x, y, abs(abs(x2) - abs(x1)),
@@ -764,8 +778,7 @@ public:
     }
 
 
-    void fillellipse(int x1, int y1, int x2, int y2)
-    {
+    void fillellipse(int x1, int y1, int x2, int y2) {
         int x = std::min(x1, x2);
         int y = std::min(y1, y2);
         XFillArc(_display, _xterm_win, _gc, x, y, abs(abs(x2) - abs(x1)),
@@ -773,8 +786,7 @@ public:
     }
 
 
-    bool plotimage(const std::string& filepath, int x, int y)
-    {
+    bool plotimage(const std::string& filepath, int x, int y) {
         const char* filename = filepath.c_str();
 
         int w = 0;
@@ -810,8 +822,7 @@ public:
     }
 
 
-    ~gdi_ctx_t()
-    {
+    ~gdi_ctx_t() {
         if (_display) {
             XFlush(_display);
             XFreeColors(_display, _cmap, &_xcolor.pixel, 1, 0);
@@ -1228,6 +1239,18 @@ int _os_get_window_dy() noexcept
 
 
 /* -------------------------------------------------------------------------- */
+
+int _os_set_topmost() noexcept
+{
+    gdi_ctx_t gdi_ctx(0, gdi_ctx_t::NO_BRUSH, 0, 1);
+    gdi_ctx.set_topmost();
+
+    return 0;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 }
 
 

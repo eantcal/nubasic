@@ -109,6 +109,8 @@ int _os_get_window_y() noexcept;
 int _os_get_window_dx() noexcept;
 int _os_get_window_dy() noexcept;
 
+int _os_set_topmost() noexcept;
+
 
 /* -------------------------------------------------------------------------- */
 }

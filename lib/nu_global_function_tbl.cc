@@ -1325,6 +1325,15 @@ fmap["sin"] = functor<float, _sin>;
         };
 
         fmap["getmousebtn"] = functor_getmousebtn;
+
+        auto functor_set_topmost = [](rt_prog_ctx_t& ctx,
+            const std::string& name, const nu::func_args_t& args) {
+            check_arg_num(args, 0, name);
+            return nu::variant_t(_os_set_topmost());
+        };
+
+        fmap["settopmost"] = functor_set_topmost;
+
 #endif // TINY_NUBASIC_VER
 
 

@@ -75,6 +75,8 @@
 
 struct cfg_t {
 
+    using cfg_data_t = std::unordered_map<std::string, std::string>;
+
     std::string homedir() {
         struct passwd *pw = getpwuid(getuid());
         return pw->pw_dir ? pw->pw_dir : "";
@@ -94,16 +96,38 @@ struct cfg_t {
         return true;
     }
 
-    cfg_t() {
-        //std::string cfg_dir = homedir();
-        //cfg_dir+="/";
-        //cfg_dir+=IDE_CFG_DIR;
-        //_mkdir(cfg_dir.c_str());
-    }
+    cfg_t() = default;
 
 
-    bool save(const char* cfgdir) {
-        return _mkdir(cfgdir);
+    bool save(
+        const char* cfgdir, 
+        const char* filename,
+        const cfg_data_t & cfg_data)
+    {
+        if (cfg_data.empty()) {
+            return false;
+        }
+
+        auto handle = mip::json_obj_t::make_object();
+
+        assert(handle);
+
+        for (const auto & cfg_item : cfg_data) {
+            handle->add_member(cfg_item.first, cfg_item.second.c_str());
+        }
+
+        _mkdir(cfgdir);
+        
+        std::ofstream os(filename, std::ofstream::out | std::ofstream::binary);
+
+        if (!os.is_open() || os.bad()) {
+            std::_cerr << "Cannot create '" << filename << "'" << std::endl;
+            return false;
+        }
+
+        os << *handle;
+
+        return true;
     }
 
     bool load(
@@ -116,7 +140,7 @@ struct cfg_t {
         std::ifstream is(filename, std::ifstream::in | std::ifstream::binary);
 
         if (!is.is_open() || is.bad()) {
-            std::_cerr << "Cannot open " << filename << std::endl;
+            std::_cerr << "Cannot open '" << filename << "'" << std::endl;
             return false;
         }
 
@@ -158,8 +182,6 @@ struct app_t : public nu::dialog_search_t::observer_t {
         CONTINUE_EXECUTION = 1,
         SINGLE_STEP_EXECUTION = 2
     };
-
-
 
     static const int black = RGB(0, 0, 0);
     static const int white = RGB(0xff, 0xff, 0xff);
@@ -628,7 +650,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
             msg += _full_path_str + "\".";
 
-            nu::msgbox(mainwin(), msg.c_str(), "TODO");
+            nu::msgbox(mainwin(), msg.c_str(), "Error");
 
             _full_path_str = old_file_name;
              set_title();
@@ -663,13 +685,13 @@ struct app_t : public nu::dialog_search_t::observer_t {
         statusbar().set_text(txt.c_str());
     }
 
+
     /* -------------------------------------------------------------------------- */
 
-    void save_document_as()
-    {
+    void save_document_as() {
         nu::dialog_savefile_t dlg(mainwin(), "Save File");
 
-        auto response = dlg.run("", get_instance().get_working_file());
+        auto response = dlg.run("", _full_path_str.c_str());
 
         if (response == GTK_RESPONSE_ACCEPT) {
             const char *filename = dlg.filename();
@@ -685,8 +707,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
     /* -------------------------------------------------------------------------- */
 
-    void save_file(const char* filename)
-    {
+    void save_file(const char* filename) {
         FILE* fp = fopen(filename, "w");
 
         if (fp) {
@@ -711,8 +732,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
     /* -------------------------------------------------------------------------- */
 
-    void save_document()
-    {
+    void save_document() {
         if (_full_path_str.empty())
             _full_path_str = "noname.bas";
 
@@ -722,8 +742,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
     /* -------------------------------------------------------------------------- */
 
-    int save_if_unsure()
-    {
+    int save_if_unsure() {
         if (_is_dirty) {
             bool save_as_dialog = false;
 
@@ -784,14 +803,6 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
     /* -------------------------------------------------------------------------- */
 
-    static void dummy(GtkToolItem *toolitem, GtkWindow *parentWindow) {
-        //nu::msgbox(parentWindow, "save", "save");
-        nu::dialog_about_t about("program name","version","author","license","description");
-    }
-
-
-    /* -------------------------------------------------------------------------- */
-
     static void make_toolbar(const nu::window_t& window, const nu::vbox_t& vbox) {
         nu::toolbar_t toolbar;
 
@@ -801,26 +812,40 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
         auto id = 0;
 
-        toolbar.add_stock_item(GTK_STOCK_NEW, "New", window, [] { get_instance().set_new_document(true); }, id++);
+        toolbar.add_stock_item(GTK_STOCK_NEW, "New", window, 
+            [] { get_instance().set_new_document(true); }, id++);
+
         toolbar.add_stock_item(GTK_STOCK_OPEN, "Open", window, toolbar_openfile, id++);
-        toolbar.add_stock_item(GTK_STOCK_SAVE, "Save", window, [] { get_instance().save_document(); }, id++);
+
+        toolbar.add_stock_item(GTK_STOCK_SAVE, "Save", window, 
+            [] { get_instance().save_document(); }, id++);
 
         toolbar.add_separator( id ++ );
-        toolbar.add_stock_item(GTK_STOCK_EXECUTE, "Build", window, [] { get_instance().rebuild_code(true); } , id++);
+        toolbar.add_stock_item(GTK_STOCK_EXECUTE, "Build", window, 
+            [] { get_instance().rebuild_code(true); } , id++);
 
         toolbar.add_separator( id ++ );
 
-        toolbar.add_stock_item(GTK_STOCK_MEDIA_RECORD, "Breakpoint", window, [] { get_instance().toggle_breakpoint(); }, id++);
+        toolbar.add_stock_item(GTK_STOCK_MEDIA_RECORD, "Breakpoint", window, 
+            [] { get_instance().toggle_breakpoint(); }, id++);
 
         toolbar.add_separator( id ++ );
 
-        toolbar.add_stock_item(GTK_STOCK_MEDIA_PLAY, "Run", window, [] { get_instance().start_debugging(); }, id++);
-        toolbar.add_stock_item(GTK_STOCK_MEDIA_PAUSE, "Stop", window, [] { get_instance().stop_debugging(); }, id++);
-        toolbar.add_stock_item(GTK_STOCK_GOTO_LAST, "Step", window, [] { get_instance().singlestep_debugging(); }, id++);
-        toolbar.add_stock_item(GTK_STOCK_GO_FORWARD, "Continue", window, [] { get_instance().continue_debugging(); }, id++);
+        toolbar.add_stock_item(GTK_STOCK_MEDIA_PLAY, "Run", window, 
+            [] { get_instance().start_debugging(); }, id++);
+
+        toolbar.add_stock_item(GTK_STOCK_MEDIA_PAUSE, "Stop", window, 
+            [] { get_instance().stop_debugging(); }, id++);
+
+        toolbar.add_stock_item(GTK_STOCK_GOTO_LAST, "Step", window, 
+            [] { get_instance().singlestep_debugging(); }, id++);
+
+        toolbar.add_stock_item(GTK_STOCK_GO_FORWARD, "Continue", window, 
+            [] { get_instance().continue_debugging(); }, id++);
 
         toolbar.add_separator( id ++ );
-        toolbar.add_stock_item(GTK_STOCK_INDEX, "Evaluate", window, [] { get_instance().eval_sel(); }, id++);
+        toolbar.add_stock_item(GTK_STOCK_INDEX, "Evaluate", window, 
+            [] { get_instance().eval_sel(); }, id++);
 
         toolbar.add_separator( id ++ );
         toolbar.add_stock_item(GTK_STOCK_FIND, "Find", window, run_find_dlg, id++);
@@ -882,12 +907,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
             const char *filename = dlg.filename();
 
             if (filename) {
-
-                // TODO
-                get_instance().set_working_file(filename);
                 get_instance().open_document_file(filename);
-
-                // TODO path
             }
         }
     }
@@ -1032,7 +1052,15 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
     /* ---------------------------------------------------------------------- */
 
-    void load_configuration() noexcept {
+    void set_default_configuration() {
+       set_cfg(IDE_SETTINGS_DEF_FONTNAME, IDE_DEF_FONT);
+       set_cfg(IDE_SETTINGS_DEF_FONTSIZE, std::to_string(IDE_DEF_FONT_SIZE));
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    bool load_configuration() noexcept {
         // Read configuration
         cfg_t cfg;
 
@@ -1056,6 +1084,25 @@ struct app_t : public nu::dialog_search_t::observer_t {
                }
            }
         }
+
+        return ! _cfg.empty();
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    void save_configuration() noexcept {
+        // Save configuration
+        cfg_t cfg;
+
+        std::string cfgdir = cfg.homedir();
+        cfgdir += "/";
+        cfgdir += IDE_CFG_DIR;
+
+        std::string cfgfile = cfgdir + "/";
+        cfgfile += IDE_CFG_FILE;
+
+        cfg.save(cfgdir.c_str(), cfgfile.c_str(), _cfg);
     }
 
 
@@ -1140,7 +1187,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
         static nu::menu_t menu("Debug", menubar, accelgroup);
 
         menu.add_stock_item(window, "Build program",
-            [] { get_instance().rebuild_code(true); } );
+            []{ get_instance().rebuild_code(true); } );
 
         menu.add_separator();
 
@@ -1180,6 +1227,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
     }
 
 
+
     /* ---------------------------------------------------------------------- */
 
     static void make_settings_menu(
@@ -1203,9 +1251,9 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
         menu.add_item(
             window,
-            "Save", //TODO
+            "Save", 
             [](){
-                get_instance().load_configuration();
+                get_instance().save_configuration();
                 get_instance().configure_editor();
             },false);
 
@@ -1215,11 +1263,10 @@ struct app_t : public nu::dialog_search_t::observer_t {
             window,
             "Reset default",
             [](){
-                get_instance().load_configuration(); // TODO
+                get_instance().set_default_configuration();
                 get_instance().configure_editor();
             }, false);
     }
-
 
 
     /* ---------------------------------------------------------------------- */
@@ -1280,7 +1327,6 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
         return false;
     }
-
 
     
     /* ---------------------------------------------------------------------- */
@@ -1442,34 +1488,6 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
     /* ---------------------------------------------------------------------- */
 
-    const char* get_working_path() const noexcept {
-        return _working_path.c_str();
-    }
-
-
-    /* ---------------------------------------------------------------------- */
-
-    const char* get_working_file() const noexcept {
-        return _working_file.c_str();
-    }
-
-
-    /* ---------------------------------------------------------------------- */
-
-    void set_working_path(const char* working_path) noexcept {
-        _working_path = working_path;
-    }
-
-
-    /* ---------------------------------------------------------------------- */
-
-    void set_working_file(const char* working_file) noexcept {
-        _working_file = working_file;
-    }
-
-
-    /* ---------------------------------------------------------------------- */
-
     static app_t& get_instance() noexcept {
         assert(_this);
         return *_this;
@@ -1602,9 +1620,11 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
         interpreter().exec_command("clrbrk");
 
-        for (int i = 0; i < linecount; ++i)
-            if (has_breakpoint(i + 1))
+        for (int i = 0; i < linecount; ++i) {
+            if (has_breakpoint(i + 1)) {
                 interpreter().exec_command("break " + std::to_string(i + 1));
+            }
+        }
     }
 
 
@@ -1613,15 +1633,17 @@ struct app_t : public nu::dialog_search_t::observer_t {
     bool show_execution_point(int line) noexcept {
         remove_prog_cnt_marker();
 
-        if (line < 1)
+        if (line < 1) {
             line = 1;
+        }
 
         auto & ed = editor();
 
         auto endpos = ed.cmd(SCI_GETLINEENDPOSITION, line - 1, 0) + 1;
 
-        while (!interpreter().has_runnable_stmt(line) && line < endpos)
+        while (!interpreter().has_runnable_stmt(line) && line < endpos) {
             ++line;
+        }
 
         if (ed.cmd(SCI_POSITIONFROMLINE, line - 1, 0) >= 0) {
             const auto l = int(marker_t::LINESELECTION);
@@ -1643,7 +1665,8 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
             ed.update_ui();
 
-        } else {
+        } 
+        else {
             ed.cmd(SCI_MARKERDELETE, line - 1, int(marker_t::LINESELECTION));
             ed.cmd(SCI_MARKERDELETE, line - 1, int(marker_t::PROGCOUNTER));
         }
@@ -1658,8 +1681,9 @@ struct app_t : public nu::dialog_search_t::observer_t {
         remove_prog_cnt_marker();
         auto & ed = editor();
 
-        if (line < 1)
+        if (line < 1) {
             line = 1;
+        }
 
         if (ed.cmd(SCI_POSITIONFROMLINE, line - 1, 0) >= 0) {
             const auto l = int(marker_t::LINESELECTION);
@@ -1671,7 +1695,8 @@ struct app_t : public nu::dialog_search_t::observer_t {
             ed.go_to_line(line);
 
             ed.update_ui();
-        } else {
+        } 
+        else {
             ed.cmd(SCI_MARKERDELETE, line - 1, int(marker_t::LINESELECTION));
         }
 
@@ -1734,7 +1759,6 @@ struct app_t : public nu::dialog_search_t::observer_t {
     }
 
 
-
     /* ---------------------------------------------------------------------- */
 
     bool exec_interpreter_cmd(const std::string& cmd) {
@@ -1794,12 +1818,18 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
         switch (flg) {
             case dbg_flg_t::NORMAL_EXECUTION:
+                exec_interpreter_cmd("sleep 1");
+                exec_interpreter_cmd("settopmost");
                 exec_interpreter_cmd("run");
                 break;
             case dbg_flg_t::CONTINUE_EXECUTION:
+                exec_interpreter_cmd("sleep 1");
+                exec_interpreter_cmd("settopmost");
                 exec_interpreter_cmd("cont");
                 break;
             case dbg_flg_t::SINGLE_STEP_EXECUTION:
+                exec_interpreter_cmd("sleep 1");
+                exec_interpreter_cmd("settopmost");
                 exec_interpreter_cmd("ston");
                 exec_interpreter_cmd("cont");
                 exec_interpreter_cmd("stoff");
@@ -1907,8 +1937,9 @@ struct app_t : public nu::dialog_search_t::observer_t {
         }
 
         // Ensure that lines are mapped 1:1 with editing lines
-        if (old_style_prog)
+        if (old_style_prog) {
             interpreter().exec_command("renum 1");
+        }
 
         set_title();
         // create_funcs_menu(); // TODO
@@ -2055,6 +2086,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
                 get_instance().mainwin(), 
                 "Program running. Stop it first", 
                 "Warning");
+
             return true;
         }
 
@@ -2072,6 +2104,27 @@ struct app_t : public nu::dialog_search_t::observer_t {
     /* ---------------------------------------------------------------------- */
     
     app_t(int argc, char* argv[]) {
+        std::string load_at_startup;
+
+        if (argc >= 2) {
+            int i = 1;
+
+            while (argc-- > 1) {
+                std::string param = argv[i];
+
+                if (argc > 1 && param.size() == 2 && param.c_str()[0] == '-') {
+                    switch (param.c_str()[1]) {
+                        case NU_BASIC_LOAD_MACRO:
+                            load_at_startup = std::string(argv[++i]);
+                            --argc;
+                            break;
+                    }
+                }
+
+                ++i;
+            }
+        }
+
         _this = this;
 
         gdk_threads_init();
@@ -2082,7 +2135,10 @@ struct app_t : public nu::dialog_search_t::observer_t {
         static nu::window_t mainwindow(GTK_WINDOW_TOPLEVEL);
         _mainwin_ptr = &mainwindow;
 
-        load_configuration();
+        if (! load_configuration()) {
+            set_default_configuration();
+            save_configuration();
+        }
 
         mainwindow.set_title("nuBASIC");
         mainwindow.maximize();
@@ -2135,12 +2191,16 @@ struct app_t : public nu::dialog_search_t::observer_t {
         // the interpreter periodically will process gtk events in order to
         // avoid this one freezes
         _interpreter.set_yield_cbk( [](void*) { 
-            if (((unsigned long)time(NULL)) % INTERPRETER_YELDS_BOUND == 0) {
-               process_gui_events();
-            }
+             if (((unsigned long)time(NULL)) % INTERPRETER_YELDS_BOUND == 0) {
+                process_gui_events();
+             }
         } );
 
         nu::dialog_search_t::get_instance().register_observer( this );
+
+        if (! load_at_startup.empty()) {
+            open_document_file( load_at_startup.c_str() );
+        }
     }
 
 
@@ -2161,9 +2221,6 @@ private:
 
     nu::menu_t * _menu_debug_ptr = nullptr;
 
-    std::string _working_file;
-    std::string _working_path;
-
     std::string _full_path_str;
 
     bool _is_dirty = false;
@@ -2171,7 +2228,7 @@ private:
 
     bool _prog_running = false;
 
-    std::unordered_map<std::string, std::string> _cfg;
+    cfg_t::cfg_data_t _cfg;
 
     // Search and Replace
     std::string _find_str;
@@ -2187,13 +2244,28 @@ private:
 app_t * app_t::_this = nullptr;
 
 
+#include <signal.h>
+
+static void sig_handler(int sig) {
+    switch (sig) {
+    case SIGHUP:
+        fprintf(stderr, "Press CTRL+C to stop execution\n");
+        break;
+    default:
+        fprintf(stderr, "wasn't expecting that!\n");
+        abort();
+    }
+}
+
+
 /* -------------------------------------------------------------------------- */
 
 int main(int argc, char *argv[]) {
 
     nu::create_terminal_frame(argc, argv);
-
     app_t app(argc, argv);
+
+    sigset(SIGHUP, sig_handler); // it prevents application can be closed closing xterm window
     app.run();
 
     return (0);
