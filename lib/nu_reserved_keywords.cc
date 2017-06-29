@@ -39,7 +39,7 @@ const std::set<std::string> reserved_keywords_t::list = { "any", "and", "as", "b
     "sysday", "syshour", "sysmin", "syssec", "sysyday", "syswday", "sysyear",
     "sysmonth", "boolean", "integer", "double", "float", "string", "type",
     "elseif", "setpixel", "getpixel", "struct", "integer", "double", "float",
-    "boolean", "string", "long64", "quit" };
+    "boolean", "string", "long64", "quit", "settopmost" };
 
 
 /* -------------------------------------------------------------------------- */

@@ -898,6 +898,9 @@ static help_content_t _help_content[] = {
     { lang_item_t::FUNCTION, "getwindowdx",
         "Gets width in pixel of nuBASIC working window", "GetWindowDx()" },
 
+    { lang_item_t::FUNCTION, "settopmost",
+        "Change nuBASIC window ioto topmost window", "SetTopMost()" },
+
     { lang_item_t::FUNCTION, "msgbox",
         "Displays a modal dialog box containing given title and message\n"
         "Returns zero or positive value if function succeeded, -1 otherwise\n",

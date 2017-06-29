@@ -28,7 +28,6 @@
 #include "nu_terminal_frame.h"
 #include "nu_about.h"
 #include "nu_builtin_help.h"
-#include "nu_builtin_help.h"
 #include "nu_exception.h"
 #include "nu_interpreter.h"
 #include "nu_reserved_keywords.h"
@@ -852,6 +851,15 @@ struct app_t : public nu::dialog_search_t::observer_t {
         toolbar.add_stock_item(GTK_STOCK_FIND_AND_REPLACE, "Replace", window, run_replace_dlg, id++);
 
         toolbar.add_separator( id ++ );
+
+        toolbar.add_stock_item(GTK_STOCK_DIALOG_INFO, "Describe", window, 
+            [] { get_instance().show_ctx_help(); }, id++);
+      
+        toolbar.add_stock_item(GTK_STOCK_DIALOG_QUESTION, "Help-online", window, 
+            [] { get_instance().show_online_help(); }, id++);
+      
+        toolbar.add_separator( id ++ );
+
         toolbar.add_stock_item(GTK_STOCK_ZOOM_IN, "Zoom in", window, 
             []{get_instance().editor().cmd(SCI_ZOOMIN);}, id++);
 
@@ -1413,6 +1421,43 @@ struct app_t : public nu::dialog_search_t::observer_t {
         menu.add_item(
             window, "Remove all markers",
             [](){ get_instance().editor().remove_all_bookmarks(); }, false);
+    }
+
+
+    /* ---------------------------------------------------------------------- */
+
+    static void make_help_menu(
+        nu::window_t & window,
+        nu::menubar_t & menubar,
+        nu::accelgroup_t& accelgroup)
+    {
+        nu::menu_t menu("Help", menubar, accelgroup);
+
+        menu.add_item(
+            window, "Describe selected keyword",
+            [](){
+                get_instance().show_ctx_help();        
+            }, false);
+
+        menu.add_separator();
+                
+        menu.add_stock_item( 
+            window, 
+            GTK_STOCK_HELP, []{ get_instance().show_online_help(); }
+        );
+
+        menu.add_separator();
+
+        menu.add_item(
+            window, "About",
+            [](){
+            nu::dialog_about_t dlg(
+                    nu::about::progname,
+                    nu::about::version, 
+                    nu::about::author,
+                    nu::about::license,
+                    nu::about::description);
+            }, false);
     }
 
 
@@ -2101,6 +2146,63 @@ struct app_t : public nu::dialog_search_t::observer_t {
     }
 
 
+    /* -------------------------------------------------------------------------- */
+
+    void show_ctx_help() {
+        auto & ed = editor();
+        std::string sel = ed.get_selection();
+        
+        if (sel.empty() || sel[0] == '\0') {
+            ed.cmd(SCI_ANNOTATIONCLEARALL);
+            return;
+        }
+
+        if (sel.size() <= 32) {
+            auto help_text = nu::builtin_help_t::get_instance().help(sel);
+
+            if (!help_text.empty()) {
+                ed.cmd(SCI_ANNOTATIONCLEARALL);
+                ed.cmd(SCI_ANNOTATIONSETVISIBLE, ANNOTATION_BOXED);
+                ed.cmd(SCI_ANNOTATIONSETSTYLE, ed.get_current_line() - 1, SCE_B_PREPROCESSOR);
+                ed.cmd(SCI_ANNOTATIONSETTEXT, ed.get_current_line() - 1, help_text.c_str());
+            }
+        }
+    }
+
+
+    /* -------------------------------------------------------------------------- */
+
+    void show_online_help() {
+        auto & ed = editor();
+
+        std::string selection = ed.get_selection();
+
+        std::string online_help_url = nu::about::homepage;
+
+        // Selection can contain string with '\0' chars ... empty() method
+        // returns false, but we have to consider selection empty as well
+        if (strlen(selection.c_str()) > 0) {
+            online_help_url += "/system/app/pages/search?scope=search-site&q=";
+            online_help_url += selection.c_str();
+        }
+
+        std::replace(online_help_url.begin(), online_help_url.end(), ' ', '+');
+        std::replace(online_help_url.begin(), online_help_url.end(), '\t', '+');
+        std::replace(online_help_url.begin(), online_help_url.end(), '\n', '+');
+        std::replace(online_help_url.begin(), online_help_url.end(), '\r', '+');
+
+        online_help_url = "xdg-open \"" + online_help_url + "\"";
+
+	std::cerr << online_help_url << std::endl;
+
+        if (0 != system(online_help_url.c_str())) {
+            const char* msg = "Error loading Interet Browser";
+
+            nu::msgbox(mainwin(), msg, "Error");
+        }
+    }
+
+
     /* ---------------------------------------------------------------------- */
     
     app_t(int argc, char* argv[]) {
@@ -2161,6 +2263,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
         make_settings_menu(mainwindow, mb, accelgroup);
         _menu_debug_ptr = make_debug_menu(mainwindow, mb, accelgroup);
         make_search_menu(mainwindow, mb, accelgroup);
+        make_help_menu(mainwindow, mb, accelgroup);
 
         make_toolbar(mainwindow, vbox);
 
