@@ -4,9 +4,9 @@ nuBASIC - http://www.nubasic.eu - https://sourceforge.net/projects/nubasic/
 -------------------------------------------------------------------------------
 
 nuBASIC is an implementation of an interpreter of the BASIC programming 
-language distributed under GPLv2 License.
+language distributed under MIT License.
 It has been designed mainly for educational purposes both for C++ developers 
-that can deal with a non-trivial example of C++11 programming and for nuBASIC's
+that can deal with a non-trivial example of modern C++ programming and for nuBASIC's
 users, that may get hooked on programming.
 
 nuBASIC is suitable for simple games, educational or small business programs.
@@ -14,13 +14,13 @@ nuBASIC is suitable for simple games, educational or small business programs.
 -------------------------------------------------------------------------------
 Features
 -------------------------------------------------------------------------------
-- Free and Open Source (distributed under GPLv2 License)
+- Free and Open Source (distributed under MIT License)
 - Easy to use and simple enough for 8-year-old-child to understand
 - Fully-developed procedural programming language
 - Multiplatform. Runs on 32-bit and 64-bit Linux/Windows x86/amd64
 - Built-in help
 - Documented (English and Italian Guides)
-- Syntax Highlighting Editor and Debugger (IDE) for Windows
+- Syntax Highlighting Editor and Debugger (IDE) for Windows and Linux
 - Examples include Tetris, Mine Hunter, Breakout, Calculator, TicTacToe
 - Tiny version is suitable for embedded systems
 
