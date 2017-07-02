@@ -39,7 +39,7 @@ namespace about {
     static const char* const copyright = "2014-2017";
     static const char* const description
         = "nuBASIC is a programming language from the BASIC family.\n"
-          "nuBASIC is developed in C++ and distributed under GPLv2 License."
+          "nuBASIC is developed in C++ and distributed under MIT License."
 #ifdef TINY_NUBASIC_VER
           "\nThis version of nuBASIC does not include \n"
           "any graphics, sound, mouse or windows manager support."

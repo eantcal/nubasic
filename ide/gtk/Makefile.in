@@ -99,7 +99,7 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_nubasicide_OBJECTS = ideres.$(OBJEXT) nubasicide.$(OBJEXT)
+am_nubasicide_OBJECTS = nubasicide.$(OBJEXT) ideres.$(OBJEXT)
 nubasicide_OBJECTS = $(am_nubasicide_OBJECTS)
 am__DEPENDENCIES_1 =
 nubasicide_DEPENDENCIES = $(top_builddir)/lib/libnubasic.a \
@@ -279,8 +279,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 nubasicide_SOURCES = config.h \
-   ideres.cc \
-   nubasicide.cc 
+   nubasicide.cc \
+   ideres.cc 
 
 AM_CXXFLAGS = \
    $(INTI_CFLAGS) \

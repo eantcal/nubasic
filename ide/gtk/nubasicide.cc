@@ -2243,6 +2243,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
         }
 
         mainwindow.set_title("nuBASIC");
+        set_default_icon();
         mainwindow.maximize();
         mainwindow.on_destroy(destroy_window);
         mainwindow.on_destroy(delete_event_window);
@@ -2284,7 +2285,6 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
         editor().set_notify_cbk(on_scintilla_notification);
 
-        set_default_icon();
 
         mainwin().show();
         errorbar().hide();
