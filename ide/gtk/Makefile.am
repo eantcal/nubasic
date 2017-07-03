@@ -1,6 +1,6 @@
 bin_PROGRAMS = nubasicide
 
-nubasicide_SOURCES = config.h \
+nubasicide_SOURCES = \
    nubasicide.cc \
    ideres.cc 
 

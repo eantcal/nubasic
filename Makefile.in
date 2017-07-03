@@ -346,7 +346,7 @@ nubasic_SOURCES = config.h main.cc
 @COMPILE_TINYVER_FALSE@nubasic_LDADD = -lpthread $(INTI_LIBS) lib/libnubasic.a
 @COMPILE_TINYVER_TRUE@nubasic_LDADD = $(INTI_LIBS) lib/libnubasic.a
 SUBDIRS = lib $(am__append_1)
-EXTRA_DIST = examples ide/win
+EXTRA_DIST = examples ide/win include miptknzr/include mipjson/include ide/gtk/*.h ide/scintilla nubasic.sln nubasic.vcxproj
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

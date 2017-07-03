@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([nubasic], [1.48], [acaldmail@gmail.com])
+AC_INIT([nubasic], [1.48], [antonino.calderone@gmail.com])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([main.cc])
 AC_CONFIG_HEADERS([config.h])

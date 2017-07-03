@@ -2,10 +2,18 @@ nuBASIC NEWS -- history of user-visible changes.
 http://www.nubasic.eu/
 Author - Antonino Calderone - antonino.calderone@gmail.com - (c) 2014-2017
 
-Please send nuBASIC / nuBasicEditor bug reports to <acaldmail@gmail.com>.
+Please send nuBASIC and nuBasic IDE bug reports to <antonino.calderone@gmail.com>.
 
-Win32/64 built with VS2015 needs "Visual C++ Redistributable Packages for Visual Studio 2015"
-https://www.microsoft.com/en-us/download/details.aspx?id=48145
+Win32/64 built with VS2017 needs "Visual C++ Redistributable Packages for Visual Studio 2017"
+
+Jul 3, 2017
+* Released nuBASIC 1.48 / nuBASIC GTK+ IDE 1.48 for Linux
+- Port IDE to Linux/GTK+
+- Change license to MIT
+- Add editor zoom in-out commands
+- Add SetTopmost API
+- Update stb_image to 2.15 
+- Update scintilla to 3.74
 
 
 Jan 22, 2017

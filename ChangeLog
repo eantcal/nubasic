@@ -1,9 +1,13 @@
 nuBASIC ChangeLog
 Please send nuBASIC bug reports to <antonino.calderone@gmail.com>.
 
-2017-05-30
+2017-07-3
 - Change license into MIT
-- Add GTK version of nuBASIC editor
+- Add GTK+2 version of nuBASIC IDE
+- Add SetTopmost API
+- Add Zoom in/out to IDE
+- Add scripts for creating Debian/RPM packages
+- Update documentation
 
 2017-05-14
 - Update scintilla to 3.74

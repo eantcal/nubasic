@@ -165,18 +165,6 @@ AM_V_CXXLD = $(am__v_CXXLD_$(V))
 am__v_CXXLD_ = $(am__v_CXXLD_$(AM_DEFAULT_VERBOSITY))
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-AM_V_CC = $(am__v_CC_$(V))
-am__v_CC_ = $(am__v_CC_$(AM_DEFAULT_VERBOSITY))
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 = 
-CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-AM_V_CCLD = $(am__v_CCLD_$(V))
-am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 = 
 SOURCES = $(libmiptknzr_a_SOURCES)
 DIST_SOURCES = $(libmiptknzr_a_SOURCES)
 am__can_run_installinfo = \
@@ -205,13 +193,13 @@ ETAGS = etags
 CTAGS = ctags
 am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/depcomp
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-ACLOCAL = ${SHELL} /home/antonino/nubasic/missing aclocal-1.15
+ACLOCAL = ${SHELL} /home/antonino/Projects/nubasic-solution/nubasic/missing aclocal-1.15
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 1
 AR = ar
-AUTOCONF = ${SHELL} /home/antonino/nubasic/missing autoconf
-AUTOHEADER = ${SHELL} /home/antonino/nubasic/missing autoheader
-AUTOMAKE = ${SHELL} /home/antonino/nubasic/missing automake-1.15
+AUTOCONF = ${SHELL} /home/antonino/Projects/nubasic-solution/nubasic/missing autoconf
+AUTOHEADER = ${SHELL} /home/antonino/Projects/nubasic-solution/nubasic/missing autoheader
+AUTOMAKE = ${SHELL} /home/antonino/Projects/nubasic-solution/nubasic/missing automake-1.15
 AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
@@ -239,13 +227,13 @@ LDFLAGS =
 LIBOBJS = 
 LIBS = -lX11 
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /home/antonino/nubasic/missing makeinfo
+MAKEINFO = ${SHELL} /home/antonino/Projects/nubasic-solution/nubasic/missing makeinfo
 MKDIR_P = /bin/mkdir -p
 NUBASICIDE_CFLAGS = -pthread -I/usr/include/gtk-2.0 -I/usr/lib/x86_64-linux-gnu/gtk-2.0/include -I/usr/include/gio-unix-2.0/ -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/libpng16 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/libpng16 -I/usr/include/pango-1.0 -I/usr/include/harfbuzz -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/freetype2
 NUBASICIDE_LIBS = -Wl,--export-dynamic -lgmodule-2.0 -pthread -lgtk-x11-2.0 -lgdk-x11-2.0 -lpangocairo-1.0 -latk-1.0 -lcairo -lgdk_pixbuf-2.0 -lgio-2.0 -lpangoft2-1.0 -lpango-1.0 -lgobject-2.0 -lglib-2.0 -lfontconfig -lfreetype
 OBJEXT = o
 PACKAGE = nubasic
-PACKAGE_BUGREPORT = acaldmail@gmail.com
+PACKAGE_BUGREPORT = antonino.calderone@gmail.com
 PACKAGE_NAME = nubasic
 PACKAGE_STRING = nubasic 1.48
 PACKAGE_TARNAME = nubasic
@@ -263,10 +251,10 @@ VERSION = 1.48
 XMKMF = 
 XMSG_CHECK = yes
 XTERM_CHECK = yes
-abs_builddir = /home/antonino/nubasic/miptknzr/lib
-abs_srcdir = /home/antonino/nubasic/miptknzr/lib
-abs_top_builddir = /home/antonino/nubasic
-abs_top_srcdir = /home/antonino/nubasic
+abs_builddir = /home/antonino/Projects/nubasic-solution/nubasic/miptknzr/lib
+abs_srcdir = /home/antonino/Projects/nubasic-solution/nubasic/miptknzr/lib
+abs_top_builddir = /home/antonino/Projects/nubasic-solution/nubasic
+abs_top_srcdir = /home/antonino/Projects/nubasic-solution/nubasic
 ac_ct_CC = gcc
 ac_ct_CXX = g++
 am__include = include
@@ -286,7 +274,7 @@ host_alias =
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/antonino/nubasic/install-sh
+install_sh = ${SHELL} /home/antonino/Projects/nubasic-solution/nubasic/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -309,17 +297,10 @@ top_builddir = ../..
 top_srcdir = ../..
 lib_LIBRARIES = libmiptknzr.a
 libmiptknzr_a_SOURCES = \
-   mip_base_esc_cnvrtr.h \
-   mip_base_tknzr_bldr.h \
-   mip_base_tknzr.h \
    mip_esc_cnvrtr.cc \
-   mip_esc_cnvrtr.h \
    mip_tknzr_bldr.cc \
-   mip_tknzr_bldr.h \
    mip_tknzr.cc \
-   mip_tknzr.h \
-   mip_token.cc \
-   mip_token.h
+   mip_token.cc
 
 AM_CXXFLAGS = $(INTI_CFLAGS) \
    -std=c++11 \

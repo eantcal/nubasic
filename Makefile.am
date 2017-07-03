@@ -19,4 +19,4 @@ if COMPILE_GTKIDE
 SUBDIRS+=miptknzr/lib mipjson/lib ide/gtk
 endif
 
-EXTRA_DIST=examples ide/win
+EXTRA_DIST=examples ide/win include miptknzr/include mipjson/include ide/gtk/*.h ide/scintilla nubasic.sln nubasic.vcxproj
