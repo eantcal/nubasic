@@ -39,7 +39,7 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
     rt_error_if(!variable_t::is_number(size_expr.get_type()),
         rt_error_code_t::E_INVALID_ARGS, "Read");
 
-    size_t size = _args.begin()->first->eval(ctx).to_int();
+    auto size = _args.begin()->first->eval(ctx).to_int();
 
     rt_error_if(size < 0, rt_error_code_t::E_TYPE_ILLEGAL,
         "Read (size=" + to_string(size) + ")");

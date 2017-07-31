@@ -128,7 +128,7 @@ void proc_scope_t::exit_scope() noexcept
 
     decltype(_rec_tbl.begin()) i;
 
-    if (pos >= 0) {
+    if (int(pos) >= 0) {
         auto endpos = name.find(']');
         std::string svalue = name.substr(pos + 1, endpos - pos - 1);
         value = nu::stoi(svalue);
