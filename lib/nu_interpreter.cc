@@ -392,12 +392,12 @@ bool interpreter_t::save(const std::string& filepath)
             break;
         }
 
-        if (0 > fwrite(line.second.c_str(), line.second.size(), 1, f)) {
+        if (0 > int(fwrite(line.second.c_str(), line.second.size(), 1, f))) {
             ret = false;
             break;
         }
 
-        if (0 > fwrite("\n", 1, 1, f)) {
+        if (0 > int(fwrite("\n", 1, 1, f))) {
             ret = false;
             break;
         }

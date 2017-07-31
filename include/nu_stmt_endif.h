@@ -37,7 +37,7 @@ public:
     stmt_endif_t(prog_ctx_t& ctx);
 
     virtual void run(rt_prog_ctx_t& ctx) override;
-    virtual stmt_cl_t get_cl() const noexcept;
+    virtual stmt_cl_t get_cl() const noexcept override;
 };
 
 

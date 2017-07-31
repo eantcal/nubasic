@@ -70,7 +70,7 @@ public:
 
 
     bool run(
-        const std::string& name, const std::vector<expr_any_t::handle_t>& args);
+        const std::string& name, const std::vector<expr_any_t::handle_t>& args) override;
 
 
     bool run_statement(stmt_t::handle_t stmt_handle, size_t stmt_id,
