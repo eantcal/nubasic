@@ -36,7 +36,8 @@ struct variable_t {
         BOOLEAN,
         LONG64,
         STRUCT,
-        ANY
+        ANY,
+        OBJECT
     };
 
 

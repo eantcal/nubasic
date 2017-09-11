@@ -14,16 +14,9 @@
 /* -------------------------------------------------------------------------- */
 
 #ifdef _WIN32
-
-#ifndef __MINGW32__
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Gdiplus.lib")
-#include <windows.h>
-#include <objidl.h>
-#include <gdiplus.h>
 using namespace Gdiplus;
-#else
-#include <windows.h>
 #endif
 
 
@@ -34,6 +27,7 @@ using namespace Gdiplus;
 #include "nu_os_std.h"
 #include "nu_os_std.h"
 #include "nu_rt_prog_ctx.h"
+#include "nu_stdtype.h"
 
 
 /* -------------------------------------------------------------------------- */
@@ -43,9 +37,9 @@ using namespace Gdiplus;
 
 /* -------------------------------------------------------------------------- */
 
+#ifdef _WIN32
 namespace nu {
 
-#ifndef __MINGW32__
 static struct gdi_plus_t {
     GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR gdiplusToken;
@@ -58,8 +52,6 @@ static struct gdi_plus_t {
 
     ~gdi_plus_t() { GdiplusShutdown(gdiplusToken); }
 } _gdi_plus_instance;
-
-#endif
 
 
 /* -------------------------------------------------------------------------- */
@@ -308,35 +300,12 @@ int os_plotimage_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
 
     HDC hdc = gdi_ctx.get_hdc();
 
-#ifndef __MINGW32__
     Graphics graphics(hdc);
-    WCHAR dst[1024] = { 0 };
-    mbstowcs(dst, filename.c_str(), sizeof(dst) / sizeof(WCHAR));
-    Image image(dst);
+    WCHAR wsfname[2048] = { 0 };
+    mbstowcs(wsfname, filename.c_str(), sizeof(wsfname) / sizeof(WCHAR));
+    Image image(wsfname);
     const auto status = graphics.DrawImage(&image, x, y);
     return status != Status::Ok ? 0 : GetLastError();
-#else
-    HANDLE image = ::LoadImage(
-        NULL, filename.c_str(), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-
-    if (!image) {
-        return GetLastError();
-    }
-
-    HDC hdcMem = ::CreateCompatibleDC(hdc);
-    auto hbmOld = ::SelectObject(hdcMem, (HGDIOBJ)image);
-
-    BITMAP bm = { 0 };
-    ::GetObject(image, sizeof(bm), &bm);
-
-    auto ret
-        = ::BitBlt(hdc, x, y, bm.bmWidth, bm.bmHeight, hdcMem, 0, 0, SRCCOPY);
-
-    ::SelectObject(hdcMem, hbmOld);
-    ::DeleteDC(hdcMem);
-
-    return ret != 0 ? 0 : GetLastError();
-#endif
 }
 
 

@@ -51,6 +51,9 @@ variable_t::type_t variable_t::type_by_typename(std::string name)
     if (name == "any")
         return type_t::ANY;
 
+    if (name == "object")
+        return type_t::OBJECT;
+
     return type_t::UNDEFINED;
 }
 
@@ -86,6 +89,9 @@ std::string variable_t::typename_by_type(variable_t::type_t type)
 
     case type_t::ANY:
         return "any";
+
+    case type_t::OBJECT:
+        return "object";
 
     case type_t::UNDEFINED:
         break;

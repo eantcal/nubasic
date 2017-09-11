@@ -35,7 +35,56 @@
 
 namespace nu {
 
-//------------------------------------------------------------------------------
+
+/* -------------------------------------------------------------------------- */
+
+//! Preserves terminal ios attributes
+struct termios_reset_t {
+private:
+    struct termios _oldt;
+
+public:
+    termios_reset_t() noexcept { 
+        tcgetattr(STDIN_FILENO, &_oldt); 
+    }
+
+    ~termios_reset_t() noexcept {
+        tcsetattr(STDIN_FILENO, TCSANOW, &_oldt);
+    }
+};
+
+
+/* -------------------------------------------------------------------------- */
+
+//! Set terminal in raw mode
+struct termios_makeraw_t : public termios_reset_t {
+public:
+    termios_makeraw_t() noexcept {
+        struct termios new_termios;
+
+        tcgetattr(0, &new_termios);
+
+        cfmakeraw(&new_termios);
+        tcsetattr(0, TCSANOW, &new_termios);
+    }
+};
+
+
+/* -------------------------------------------------------------------------- */
+
+//! Disable terminal echo
+struct termios_disable_echo_t : public termios_reset_t {
+public:
+    termios_disable_echo_t() noexcept {
+        struct termios newt;
+        tcgetattr(STDIN_FILENO, &newt);
+        newt.c_lflag &= ~(ICANON | ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    }
+};
+
+
+/* -------------------------------------------------------------------------- */
 
 /*! \brief This class provides a simple terminal input mechanism
  * based on Unix General Terminal Interface (termios)
@@ -120,7 +169,7 @@ public:
 };
 
 
-//------------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
 
 
 /* \brief This class specializes a standard stl vector of strings
@@ -135,18 +184,18 @@ public:
     {
     }
 
-    inline int cursor() const noexcept { return _cursor; }
+    int cursor() const noexcept { 
+        return _cursor; 
+    }
 
-    inline void move_cursor_next()
-    {
+    void move_cursor_next() {
         ++_cursor;
 
         if (_cursor >= int(size()))
             _cursor = 0;
     }
 
-    inline void move_cursor_prev()
-    {
+    void move_cursor_prev() {
         if (empty())
             return;
 
@@ -157,32 +206,42 @@ public:
             _cursor = size() - 1;
     }
 
-    inline void reset_cursor() { _cursor = 0; }
+    void reset_cursor() { 
+        _cursor = 0; 
+    }
 
-    inline void clear_history() { clear(); }
+    void clear_history() { 
+        clear(); 
+    }
 
-    inline void add_item(const std::string& line)
-    {
+    void add_item(const std::string& line) {
         push_back(line);
         assert(!empty());
         _cursor = size();
     }
 
-    inline std::string get_cur_item() const { return (*this)[_cursor]; }
+    std::string get_cur_item() const { 
+        return (*this)[_cursor]; 
+    }
 
-    inline svec_t get_history() const { return *this; }
+    svec_t get_history() const { 
+        return *this; 
+    }
 
-    inline bool is_empty() const { return empty(); }
+    bool is_empty() const { 
+        return empty(); 
+    }
 
-    inline bool count() const { return size(); }
+    bool count() const { 
+        return size(); 
+    }
 
 private:
     int _cursor;
 };
 
 
-//------------------------------------------------------------------------------
-
+/* -------------------------------------------------------------------------- */
 
 /*! \brief Terminal implementation
  */
@@ -285,37 +344,39 @@ public:
         std::string& line, bool return_on_len_max = false) noexcept;
 
     /* \brief Add a new code to the end-of-line code list */
-    virtual void register_eol_ch(int vch_code) noexcept
-    {
+    virtual void register_eol_ch(int vch_code) noexcept {
         _eol_code.insert(vch_code);
     }
 
     /* \brief Remove an existing code from the end-of-line code list */
-    virtual void unregister_eol_ch(int vch_code) noexcept
-    {
+    virtual void unregister_eol_ch(int vch_code) noexcept {
         _eol_code.erase(vch_code);
     }
 
     /* \brief Get Terminal flags */
-    virtual flag_mask_t get_flags() const noexcept { return _flag; }
+    virtual flag_mask_t get_flags() const noexcept { 
+        return _flag; 
+    }
 
     /* \brief Replace Terminal flags */
-    virtual void set_flags(flag_mask_t flg = NONE) noexcept { _flag = flg; }
+    virtual void set_flags(flag_mask_t flg = NONE) noexcept { 
+        _flag = flg; 
+    }
 
     /* \brief Replace Terminal flags */
-    virtual void set_insert_enabled(bool insert_enabled) noexcept
-    {
+    virtual void set_insert_enabled(bool insert_enabled) noexcept {
         _insert_enabled = insert_enabled;
     }
 
     /* \brief Set max length of editing line */
-    virtual void set_max_line_length(int max_len = 0 /* unlimted */) noexcept
-    {
+    virtual void set_max_line_length(int max_len = 0 /* unlimted */) noexcept {
         _max_line_length = max_len;
     }
 
     /* \brief Get max length of editing line (0 means unlimited) */
-    virtual int get_max_line_length() noexcept { return _max_line_length; }
+    virtual int get_max_line_length() noexcept { 
+        return _max_line_length; 
+    }
 };
 
 

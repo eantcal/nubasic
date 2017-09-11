@@ -79,6 +79,7 @@ void stmt_dim_t::run(rt_prog_ctx_t& ctx)
             break;
 
         case variable_t::type_t::STRUCT:
+        case variable_t::type_t::OBJECT:
         case variable_t::type_t::UNDEFINED: {
             auto& sprototypes = ctx.struct_prototypes.data;
             auto it = sprototypes.find(vtype);

@@ -60,6 +60,7 @@ protected:
     {
         switch (vart) {
         case variable_t::type_t::ANY:
+        case variable_t::type_t::OBJECT:
             var = val;
             break;
 

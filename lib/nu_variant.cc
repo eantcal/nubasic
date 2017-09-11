@@ -187,6 +187,9 @@ const char* variant_t::get_type_desc(const type_t& type) noexcept
     case type_t::ANY:
         return "any";
 
+    case type_t::OBJECT:
+        return "object";
+
     case type_t::UNDEFINED:
         break;
 

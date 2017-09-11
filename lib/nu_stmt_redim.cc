@@ -63,6 +63,7 @@ void stmt_redim_t::run(rt_prog_ctx_t& ctx)
 
         case variable_t::type_t::UNDEFINED:
         case variable_t::type_t::ANY:
+        case variable_t::type_t::OBJECT:
         default:
             rt_error_if(
                 true, rt_error_code_t::E_INV_IDENTIF, "ReDim '" + name + "'");

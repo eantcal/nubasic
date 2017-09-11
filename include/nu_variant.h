@@ -52,6 +52,14 @@ struct any_variant_t {
 };
 
 
+//! Structure type
+struct obj_variant_t {
+    obj_variant_t(object_t::handle_t handle) : _handle(handle) {}
+
+    object_t::handle_t _handle;
+};
+
+
 /* -------------------------------------------------------------------------- */
 
 /**
@@ -100,6 +108,9 @@ public:
     static bool is_real(const std::string& value);
 
     explicit variant_t(const any_variant_t&) : _type(type_t::ANY) 
+    {}
+
+    explicit variant_t(const obj_variant_t&) : _type(type_t::OBJECT)
     {}
 
     variant_t(const struct_variant_t& value, size_t vect_size = 0)

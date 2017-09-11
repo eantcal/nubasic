@@ -100,11 +100,12 @@ void stmt_call_t::run(
         auto vtype_code
             = variable_t::type_by_typename(function_prototype.ret_type);
 
-        std::string init_val;
-
         switch (vtype_code) {
         case variable_t::type_t::STRING:
-            init_val = "";
+        case variable_t::type_t::OBJECT:
+            sub_xscope->define(_name,
+                var_value_t(variant_t("", vtype_code, 0), VAR_ACCESS_RW));
+            break;
 
         case variable_t::type_t::FLOAT:
         case variable_t::type_t::DOUBLE:
@@ -113,9 +114,8 @@ void stmt_call_t::run(
         case variable_t::type_t::BOOLEAN:
         case variable_t::type_t::BYTEVECTOR:
         case variable_t::type_t::ANY:
-            init_val = "0";
             sub_xscope->define(_name,
-                var_value_t(variant_t(init_val, vtype_code, 0), VAR_ACCESS_RW));
+                var_value_t(variant_t("0", vtype_code, 0), VAR_ACCESS_RW));
             break;
 
         case variable_t::type_t::STRUCT:
@@ -196,6 +196,7 @@ void stmt_call_t::run(
                 }
 
                 case variant_t::type_t::ANY:
+                case variant_t::type_t::OBJECT: // TODO
                     break;
 
                 case variant_t::type_t::STRING:

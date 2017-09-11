@@ -18,6 +18,13 @@
 #include <vector>
 
 
+#ifdef _WIN32
+#include <windows.h>
+#include <objidl.h>
+#include <gdiplus.h>
+#endif
+
+
 /* -------------------------------------------------------------------------- */
 
 namespace nu {
@@ -32,6 +39,25 @@ using gdi_iargs_t = std::vector<gdi_iarg_t>;
 
 using gdi_varg_t = variant_t;
 using gdi_vargs_t = std::vector<gdi_varg_t>;
+
+
+/* -------------------------------------------------------------------------- */
+
+#if 0
+struct image_t : public object_t {
+    Gdiplus::Image * _image = nullptr;
+
+    image_t(const std::string& filename) {
+        WCHAR wsfname[2048] = { 0 };
+        mbstowcs(wsfname, filename.c_str(), sizeof(wsfname) / sizeof(WCHAR));
+        _image = new Gdiplus::Image(wsfname);
+    }
+
+    virtual ~image_t() { 
+        delete _image;
+    }
+};
+#endif
 
 
 /* -------------------------------------------------------------------------- */
@@ -113,6 +139,7 @@ int _os_set_topmost() noexcept;
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

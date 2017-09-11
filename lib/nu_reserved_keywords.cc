@@ -23,7 +23,7 @@ const std::set<std::string> reserved_keywords_t::list = { "any", "and", "as", "b
     "close", "cls", "const", "delay", "dim", "do", "ellipse", "else", "elif",
     "exit", "end", "fillellipse", "fillrect", "fopen", "for", "function",
     "gosub", "goto", "if", "input", "let", "line", "playsound", "locate",
-    "mdelay", "movewindow", "next", "on", "open", "print", "read", "redim",
+    "mdelay", "movewindow", "next", "object", "on", "open", "print", "read", "redim",
     "rect", "return", "shell", "sleep", "step", "textout", "then", "write",
     "while", "wend", "plotimage", "randomize", "rem", "loop", "abs", "acos",
     "asc", "asin", "atan", "bnot", "chr", "cos", "cosh", "eval", "eof", "errno",

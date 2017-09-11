@@ -58,7 +58,7 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
 
     variable_t::type_t vart = var->get_type();
 
-    if (vart == variable_t::type_t::ANY) {
+    if (vart == variable_t::type_t::ANY || vart == variable_t::type_t::OBJECT) {
         *var = val;
         ctx.go_to_next();
         return;

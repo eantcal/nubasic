@@ -6,6 +6,7 @@
 // See COPYING file in the project root for full license information.
 //
 
+
 /* -------------------------------------------------------------------------- */
 
 #if !defined(__MINGW32__) && !defined(_WIN32)
@@ -16,55 +17,6 @@
 /* -------------------------------------------------------------------------- */
 
 namespace nu {
-
-
-/* -------------------------------------------------------------------------- */
-
-//! Preserves terminal ios attributes
-struct termios_reset_t {
-private:
-    struct termios _oldt;
-
-public:
-    inline termios_reset_t() noexcept { tcgetattr(STDIN_FILENO, &_oldt); }
-
-    inline ~termios_reset_t() noexcept
-    {
-        tcsetattr(STDIN_FILENO, TCSANOW, &_oldt);
-    }
-};
-
-
-/* -------------------------------------------------------------------------- */
-
-//! Set terminal in raw mode
-struct termios_makeraw_t : public termios_reset_t {
-public:
-    inline termios_makeraw_t() noexcept
-    {
-        struct termios new_termios;
-
-        tcgetattr(0, &new_termios);
-
-        cfmakeraw(&new_termios);
-        tcsetattr(0, TCSANOW, &new_termios);
-    }
-};
-
-
-/* -------------------------------------------------------------------------- */
-
-//! Disable terminal echo
-struct termios_disable_echo_t : public termios_reset_t {
-public:
-    inline termios_disable_echo_t() noexcept
-    {
-        struct termios newt;
-        tcgetattr(STDIN_FILENO, &newt);
-        newt.c_lflag &= ~(ICANON | ECHO);
-        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    }
-};
 
 
 /* -------------------------------------------------------------------------- */
@@ -87,17 +39,25 @@ terminal_t::~terminal_t() {}
 
 /* -------------------------------------------------------------------------- */
 
-int terminal_t::getch() const noexcept { return _term_input.getch(); }
+int terminal_t::getch() const noexcept 
+{ 
+    return _term_input.getch(); 
+}
 
 
 /* -------------------------------------------------------------------------- */
 
-int terminal_t::keybhit() const noexcept { return _term_input.keybhit(); }
+int terminal_t::keybhit() const noexcept 
+{ 
+    return _term_input.keybhit(); 
+}
 
 
 /* -------------------------------------------------------------------------- */
 
-char terminal_t::getrawch() const noexcept { return _term_input.getrawch(); }
+char terminal_t::getrawch() const noexcept { 
+    return _term_input.getrawch(); 
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -207,7 +167,10 @@ void terminal_t::edit_backspace() noexcept
 
 /* -------------------------------------------------------------------------- */
 
-void terminal_t::edit_ctrl_h() noexcept { edit_backspace(); }
+void terminal_t::edit_ctrl_h() noexcept 
+{ 
+    edit_backspace(); 
+}
 
 
 /* -------------------------------------------------------------------------- */
