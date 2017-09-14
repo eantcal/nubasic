@@ -55,3 +55,4 @@ The program aplay is generally part of most basic Linux distributions.
 ## Installers
 You can download installers here: https://sourceforge.net/projects/nubasic/files/latest/download
 
+![nubasic on android](https://sites.google.com/site/nubasiclanguageinterpreter/home/screenshot/nubasicide_on_android.png?attredirects=0)
