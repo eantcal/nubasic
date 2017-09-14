@@ -705,8 +705,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _len_str {
-            int operator()(const std::string x) noexcept
-            {
+            int operator()(const std::string x) noexcept {
                 return int(x.size());
             }
         };
@@ -716,15 +715,16 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _input_str {
-            std::string operator()(int n) noexcept { return _os_input_str(n); }
+            std::string operator()(int n) noexcept { 
+                return _os_input_str(n); 
+            }
         };
 
         fmap["input$"] = functor_string_int<_input_str>;
 
 
         struct _asc_str {
-            int operator()(const std::string x) noexcept
-            {
+            int operator()(const std::string x) noexcept {
                 return (x.empty() ? 0 : x.c_str()[0]) & 0xff;
             }
         };
@@ -1154,14 +1154,25 @@ fmap["sin"] = functor<float, _sin>;
             int ch = _os_kbhit();
             std::string s;
 
-            if (ch)
+            if (ch) {
                 s.push_back(ch);
+            }
 
             return variant_t(s, variant_t::type_t::STRING);
         };
 
         fmap["inkey$"] = functor_inkeys;
         fmap["inkey"] = functor_inkeys;
+
+
+        auto functor_getvkey = [](rt_prog_ctx_t& ctx, const std::string& name,
+            const nu::func_args_t& args) {
+            check_arg_num(args, 0, name);
+
+            return variant_t(_os_get_vkey());
+        };
+
+        fmap["getvkey"] = functor_getvkey;
 
 
         auto functor_pwd = [](rt_prog_ctx_t& ctx, const std::string& name,

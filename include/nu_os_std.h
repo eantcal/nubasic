@@ -122,7 +122,32 @@ std::string _os_get_app_path();
 
 /* -------------------------------------------------------------------------- */
 
-}
+enum {
+    vk_BackSpace = 1,
+    vk_Tab,
+    vk_Return,
+    vk_Escape,
+    vk_Space,
+    vk_PageUp,
+    vk_PageDown,
+    vk_End,
+    vk_Home,
+    vk_Left,
+    vk_Up,
+    vk_Right,
+    vk_Down,
+    vk_Insert,
+    vk_Delete
+};
+
+//! Reads the key pressed from input and returns 
+//! it as an int (special keys are mapped as vk_xxxx), or EOF in case of error.
+int _os_get_vkey();
+
+
+/* -------------------------------------------------------------------------- */
+
+} // nu
 
 
 /* -------------------------------------------------------------------------- */

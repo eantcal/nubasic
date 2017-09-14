@@ -29,7 +29,7 @@ const std::set<std::string> reserved_keywords_t::list = { "any", "and", "as", "b
     "asc", "asin", "atan", "bnot", "chr", "cos", "cosh", "eval", "eof", "errno",
     "getapppath", "getmousebtn", "getmousex", "getmousey", "exp", "ferror", 
     "ftell", "fsize", "hset", "hget","hcnt","hchk","hdel",
-    "hex", "getsheight", "getswidth", "getplatid", "getwindowx", "getwindowy",
+    "hex", "getsheight", "getswidth", "getplatid", "getwindowx", "getwindowy", "getvkey",
     "getwindowdx", "getenv", "setenv", "unsetenv", "mkdir", "rmdir", "erase",
     "true", "false", "getwindowdy", "inkey", "input", "instr", "instrcs", "rgb",
     "int", "lcase", "left", "len", "log", "log10", "max", "mid", "mid", "min",

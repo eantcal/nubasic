@@ -48,6 +48,9 @@ playerColor% = c%(1)
 left_key$  = "n" : Rem move player left
 right_key$ = "m" : Rem move player right
 quit_key$  = "q" : Rem exit game
+
+vkey_right% = 12
+vkey_left%  = 10
 ' -----------------------------------------------------------------------------
 
 MoveWindow GetWindowX(),GetWindowY(), 700, 600
@@ -57,8 +60,8 @@ Cls
 Print "Welcome to nuBreakout3..."
 Print
 Print "To play press"
-Print "  '"; left_key$; "' to move left, "
-Print "  '"; right_key$; "' to move right And "
+Print "  '"; left_key$; "' or LEFT ARROW to move left, "
+Print "  '"; right_key$; "' or RIGHT ARROW to move right And "
 Print "  '"; quit_key$ ; "' to quit" 
 
 Delay 3
@@ -171,7 +174,23 @@ While 1
 
          If y%>h% Then ProcessPlayerCollisions lines%, columns%
          
-         akey$=InKey$()
+         vkey% = 0
+         do 
+            k% = GetVkey()
+            if k%>0 then vkey% = k%
+         loop while k%>0
+         
+         if vkey%<=0 then 
+            akey$= ""
+         elif vkey%=vkey_left% then 
+            akey$ = "n"
+         elseif vkey%=vkey_right% then 
+            akey$ = "m"
+         else
+            akey$ = chr(vkey%)
+         end if
+ 
+         ' akey$=InKey$()
          If Len(akey$)>0 Then MovePlayer akey$
          
       End While
