@@ -176,8 +176,25 @@ Sub MovePieces()
    For y% = 0 to 19
    
       For t% = 0 to 3
-         k$ = inkey$()
-         
+         key% = 0
+         k$ = ""
+         do 
+            tempk% = GetVKey()
+            if tempk%>0 then key%=tempk%
+         loop while tempk%>0
+
+         if key%<30 then
+            if key%=10 then k$="4"
+            if key%=11 then k$="8"
+            if key%=12 then k$="6"
+            if key%=13 then k$="2"
+            if key%<=0 then k$=""
+         else
+            k$ = chr(key%)
+         end if
+
+         'k$ = inkey$()
+                  
          If k$="8" Then 
             rr% = r% + 1
             If rr% > 3 Then rr% = 0
