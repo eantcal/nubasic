@@ -358,8 +358,10 @@ int _os_erase_dir(const std::string& filepath)
 /* -------------------------------------------------------------------------- */
 
 #include <fcntl.h>
+#ifdef __linux__
 #include <linux/kd.h>
 #include <linux/limits.h>
+#endif
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/time.h>
