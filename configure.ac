@@ -16,6 +16,38 @@ AC_PROG_RANLIB
 AC_PROG_CXX
 AC_PROG_CC
 
+# AC_CANONICAL_HOST is needed to access the 'host_os' variable    
+AC_CANONICAL_HOST
+
+build_linux=no
+build_windows=no
+build_mac=no
+
+# Detect the target system
+case "${host_os}" in
+    linux*)
+        build_linux=yes
+        ;;
+    cygwin*|mingw*)
+        build_windows=yes
+        ;;
+    darwin*)
+        build_mac=yes
+        ;;
+    *)
+        AC_MSG_ERROR(["OS $host_os is not supported"])
+        ;;
+esac
+
+# Pass the conditionals to automake
+AM_CONDITIONAL([LINUX], [test "$build_linux" = "yes"])
+AM_CONDITIONAL([WINDOWS], [test "$build_windows" = "yes"])
+AM_CONDITIONAL([OSX], [test "$build_mac" = "yes"])
+
+if test "x${build_mac}" = "xyes" ; then
+  want_tinyver="yes"
+  want_gtkide="no"
+fi
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h stdio_ext.h stdlib.h string.h sys/ioctl.h termios.h unistd.h])
@@ -31,7 +63,6 @@ AC_CHECK_FUNCS([floor pow select strcasecmp strerror])
 # ---------------------------------------------------------------------------- #
 # Check if compiling gtk ide
 # ---------------------------------------------------------------------------- #
-
 AC_MSG_CHECKING([whether compiling gtkide])
 AC_ARG_ENABLE(
    [gtkide],
@@ -60,11 +91,10 @@ AM_CONDITIONAL([COMPILE_GTKIDE], [test "x$want_gtkide" = "xyes" ])
 
 # If Tiny version, skip external dependency check
 if test x"$want_gtkide" == x"yes" ; then
-    PKG_CHECK_MODULES([NUBASICIDE], [
-        glib-2.0
-        gmodule-2.0
-        gtk+-2.0
-    ])
+   PKG_CHECK_MODULES([NUBASICIDE], [
+     glib-2.0
+     gmodule-2.0
+     gtk+-2.0])
 fi
 
 
