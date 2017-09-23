@@ -16,7 +16,6 @@
 #ifdef _WIN32
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Gdiplus.lib")
-using namespace Gdiplus;
 #endif
 
 
@@ -38,6 +37,8 @@ using namespace Gdiplus;
 /* -------------------------------------------------------------------------- */
 
 #ifdef _WIN32
+using namespace Gdiplus;
+
 namespace nu {
 
 static struct gdi_plus_t {

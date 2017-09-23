@@ -151,8 +151,10 @@ void _os_beep()
 
 #include <stdio.h>
 #include <time.h>
-#include <windows.h>
+#include <conio.h>
 
+#include <windows.h>
+#include <processenv.h>
 
 /* -------------------------------------------------------------------------- */
 
@@ -164,7 +166,7 @@ namespace nu {
 
 int _os_get_vkey() 
 {
-    if (! kbhit() {
+    if (! _kbhit()) {
         return -1;
     }
 
