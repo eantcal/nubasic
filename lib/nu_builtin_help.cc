@@ -326,6 +326,9 @@ static help_content_t _help_content[] = {
     { lang_item_t::FUNCTION, "getenv", "Gets an environment variable",
         "GetEnv[$](var$)" },
 
+    { lang_item_t::FUNCTION, "getvkey", "Returns the next character from the standard input",
+        "GetVKey()" },
+
     { lang_item_t::FUNCTION, "setenv",
         "Sets an environment variable to a given value", "SetEnv(var$, val$)" },
 
