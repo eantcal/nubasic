@@ -13,6 +13,7 @@
 
 /* -------------------------------------------------------------------------- */
 
+
 #include "nu_os_gdi.h"
 #include "nu_exception.h"
 #include "nu_os_std.h"
@@ -34,6 +35,8 @@ using namespace Gdiplus;
 /* -------------------------------------------------------------------------- */
 
 #ifdef _WIN32
+using namespace Gdiplus;
+
 namespace nu {
 
 static struct gdi_plus_t {

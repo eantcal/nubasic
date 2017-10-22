@@ -19,7 +19,7 @@ It allows you to write both classic BASIC programs (which use line numbers and G
 - Easy to use and simple enough for 8-year-old-child to understand
 - Fully-developed procedural programming language
 - IDE for Windows and Linux (GTK+2)
-- Multiplatform. Runs on 32-bit and 64-bit Linux/Windows x86/amd64
+- Multiplatform. Runs on 32-bit and 64-bit Linux/Windows/MacOS
 - Built-in help
 - Documented (English and Italian Guides)
 - Examples include Tetris, Mine Hunter, Breakout, Calculator, TicTacToe
