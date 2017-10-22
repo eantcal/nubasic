@@ -125,7 +125,7 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
     case nu::variable_t::type_t::STRING:
     case nu::variable_t::type_t::BOOLEAN:
     case nu::variable_t::type_t::BYTEVECTOR:
-        size = ::fread(buf.data(), 1, size, s_in);
+        size = static_cast<nu::integer_t> ( ::fread(buf.data(), 1, size, s_in) );
         ret = size >= 0;
 
         if (vtype == nu::variable_t::type_t::STRING

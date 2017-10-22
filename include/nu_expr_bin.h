@@ -43,16 +43,16 @@ public:
     expr_bin_t& operator=(const expr_bin_t&) = default;
 
     //! Returns f(var1, var2) appling ctor given arguments
-    virtual variant_t eval(rt_prog_ctx_t& ctx) const
-    {
+    variant_t eval(rt_prog_ctx_t& ctx) const override {
         return _func(_var1->eval(ctx), _var2->eval(ctx));
     }
 
     //! Returns false for a binary expression
-    virtual bool empty() const noexcept override { return false; }
+    bool empty() const noexcept override { 
+		return false; 
+	}
 
-    std::string name() const noexcept override
-    {
+    std::string name() const noexcept override {
         std::string ret;
 
         if (_var1) {
@@ -67,8 +67,7 @@ public:
         return ret;
     }
 
-    func_args_t get_args() const noexcept override
-    {
+    func_args_t get_args() const noexcept override {
         func_args_t ret;
 
         if (_var1)
@@ -140,6 +139,10 @@ public:
         return res;
     }
 };
+
+
+/* -------------------------------------------------------------------------- */
+
 }
 
 

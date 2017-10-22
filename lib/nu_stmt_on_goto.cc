@@ -35,7 +35,7 @@ void stmt_on_goto_t::run(rt_prog_ctx_t& ctx)
     size_t idx = static_cast<size_t>(lbl_idx.to_int());
 
     rt_error_code_t::get_instance().throw_if(
-        idx < 0 || idx >= _label_list.size(), ctx.runtime_pc.get_line(),
+        int(idx) < 0 || idx >= _label_list.size(), ctx.runtime_pc.get_line(),
         rt_error_code_t::E_VAL_OUT_OF_RANGE,
         "On " + nu::to_string(idx) + " Goto ...");
 

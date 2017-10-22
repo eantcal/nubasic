@@ -133,6 +133,8 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
                 break;
 
             case nu::variable_t::type_t::STRUCT:
+			case nu::variable_t::type_t::OBJECT:
+			case nu::variable_t::type_t::ANY:
                 rt_error_code_t::get_instance().throw_if(true,
                     ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_ILLEGAL,
                     "'" + name + "'");
@@ -213,6 +215,8 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
                 break;
 
             case nu::variable_t::type_t::STRUCT:
+			case nu::variable_t::type_t::OBJECT:
+			case nu::variable_t::type_t::ANY:
                 rt_error_code_t::get_instance().throw_if(true,
                     ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_ILLEGAL,
                     "'" + name + "'");

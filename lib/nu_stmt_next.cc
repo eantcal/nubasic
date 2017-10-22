@@ -53,7 +53,7 @@ void stmt_next_t::run(rt_prog_ctx_t& ctx)
         // Extranct variable name from qualified counter name
         auto pos = counter_name.find("::");
 
-        _variable = pos >= 0 && counter_name.size() > 2
+        _variable = int(pos) >= 0 && counter_name.size() > 2
             ? counter_name.substr(pos, counter_name.size() - 2)
             : _variable = counter_name;
     }

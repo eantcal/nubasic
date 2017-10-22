@@ -13,15 +13,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifdef _WIN32
-#pragma comment(lib, "Winmm.lib")
-#pragma comment(lib, "Gdiplus.lib")
-using namespace Gdiplus;
-#endif
-
-
-/* -------------------------------------------------------------------------- */
-
 #include "nu_os_gdi.h"
 #include "nu_exception.h"
 #include "nu_os_std.h"
@@ -29,6 +20,11 @@ using namespace Gdiplus;
 #include "nu_rt_prog_ctx.h"
 #include "nu_stdtype.h"
 
+#ifdef _WIN32
+#pragma comment(lib, "Winmm.lib")
+#pragma comment(lib, "Gdiplus.lib")
+using namespace Gdiplus;
+#endif
 
 /* -------------------------------------------------------------------------- */
 
