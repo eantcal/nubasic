@@ -26,7 +26,7 @@ It allows you to write both classic BASIC programs (which use line numbers and G
 - Tiny version is suitable for embedded systems
 
 ## IDE
-nuBASIC IDE (Integrated Development Environment, for Windows and Linux/GTK) includes a syntax highlighting editor and debugger. 
+nuBASIC IDE (Integrated Development Environment, for Windows and Linux/GTK+2) includes a syntax highlighting editor and debugger. 
 
 IDE provides comprehensive facilities to programmers for software development, like the syntax highlighting, which is the ability to recognize keywords and display them in different colors.
 Debugger lets you place breakpoints in your source code, add field watches, step through your code, run into procedures, take snapshots and monitor execution as it occurs.
