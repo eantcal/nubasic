@@ -20,8 +20,9 @@ namespace nu {
 
 icstring_t& icstring_t::operator=(icstring_t&& s) noexcept
 {
-    if (this != &s)
+    if (this != &s) {
         _data = std::move(s._data);
+    }
 
     return *this;
 }
@@ -46,11 +47,13 @@ size_t icstring_t::find(std::string searching_s)
 
 bool icstring_t::operator<(const icstring_t& s) const noexcept
 {
-    if (s._data.empty())
+    if (s._data.empty()) {
         return false;
+    }
 
-    if (_data.empty())
+    if (_data.empty()) {
         return true;
+    }
 
     return strcasecmp(_data.c_str(), s._data.c_str()) < 0;
 }

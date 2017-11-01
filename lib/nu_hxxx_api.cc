@@ -25,9 +25,10 @@ variant_t hash_set(
 {
     const auto n_of_p = args.size();
 
-    if (n_of_p != 3 && n_of_p !=2)
+    if (n_of_p != 3 && n_of_p != 2) {
         throw exception_t(
             std::string("Syntax error: expected 2 or 3 parameters: hash, key[, value=false]"));
+    }
 
     const auto& hash_name = args[0]->eval(ctx);
     const auto& hash_key = args[1]->eval(ctx);
@@ -52,9 +53,10 @@ variant_t hash_get(
     const std::string& fname,
     const func_args_t& args)
 {
-    if (args.size() != 2)
+    if (args.size() != 2) {
         throw exception_t(
             std::string("Syntax error: expected 2 parameters: hash, key"));
+    }
 
     const auto& hash_name = args[0]->eval(ctx);
     const auto& hash_key = args[1]->eval(ctx);
@@ -84,9 +86,10 @@ variant_t hash_chk(
 {
     const auto n_of_p = args.size();
 
-    if (n_of_p > 2 || n_of_p<1)
+    if (n_of_p > 2 || n_of_p < 1) {
         throw exception_t(
             std::string("Syntax error: expected 1 or 2 parameters: hash[, key]"));
+    }
 
     const auto& hash_name = args[0]->eval(ctx);
     
@@ -121,9 +124,10 @@ variant_t hash_cnt(
 {
     const auto n_of_p = args.size();
 
-    if (n_of_p!=1)
+    if (n_of_p != 1) {
         throw exception_t(
             std::string("Syntax error: expected parameter: hash"));
+    }
 
     const auto& hash_name = args[0]->eval(ctx);
 
@@ -148,9 +152,10 @@ variant_t hash_del(
 {
     const auto n_of_p = args.size();
     
-    if (args.size() != 1 && args.size() != 2)
+    if (args.size() != 1 && args.size() != 2) {
         throw exception_t(
             std::string("Syntax error: expected 1 or 2 parameters: hash[, key]"));
+    }
 
     const auto& hash_name = args[0]->eval(ctx);
 

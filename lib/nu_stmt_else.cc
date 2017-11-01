@@ -50,16 +50,17 @@ void stmt_elif_t::run(rt_prog_ctx_t& ctx)
     rt_error_code_t::get_instance().throw_if(metadata_it == ifctxs.data.end(),
         ctx.runtime_pc.get_line(), rt_error_code_t::E_INTERNAL, "Elif");
 
-    if (metadata_it->second.condition)
+    if (metadata_it->second.condition) {
         ctx.go_to(metadata_it->second.pc_endif_stmt);
-
+    }
     else {
         if (_condition && static_cast<bool>(_condition->eval(ctx)) == false) {
             metadata_it->second.condition = false;
 
             if (metadata_it->second.else_list.empty()) {
                 ctx.go_to(metadata_it->second.pc_endif_stmt);
-            } else {
+            } 
+            else {
                 auto it = metadata_it->second.else_list.cbegin();
 
                 for (; it != metadata_it->second.else_list.cend(); ++it) {
@@ -77,7 +78,8 @@ void stmt_elif_t::run(rt_prog_ctx_t& ctx)
                 if (it == metadata_it->second.else_list.cend())
                     ctx.go_to(metadata_it->second.pc_endif_stmt);
             }
-        } else {
+        } 
+        else {
             metadata_it->second.condition = true;
             ctx.go_to_next();
         }

@@ -37,15 +37,20 @@ variant_t::variant_t(const char* s_value, type_t t, size_t vect_size)
 
     if (is_struct()) {
         _struct_data_type_name = s_value;
-    } else if (is_number()) {
-        if (s_value[0] == '\0')
+    } 
+    else if (is_number()) {
+        if (s_value[0] == '\0') {
             s_value = "0";
+        }
 
-        if (is_integral())
+        if (is_integral()) {
             _i_data.resize(vect_size, std::stoll(s_value));
-        else
+        }
+        else {
             _f_data.resize(vect_size, std::stod(s_value));
-    } else {
+        }
+    } 
+    else {
         _s_data.resize(vect_size, s_value);
     }
 }
@@ -82,8 +87,9 @@ variant_t::variant_t(const real_t& value, size_t vect_size)
     , _vect_size(vect_size)
     , _vector_type(vect_size >= 1)
 {
-    if (vect_size < 1)
+    if (vect_size < 1) {
         vect_size = 1;
+    }
 
     _f_data.resize(vect_size, value);
 }

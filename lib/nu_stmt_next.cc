@@ -30,28 +30,31 @@ stmt_next_t::stmt_cl_t stmt_next_t::get_cl() const noexcept
 
 void stmt_next_t::run(rt_prog_ctx_t& ctx)
 {
-    if (ctx.for_loop_tbl.empty())
+    if (ctx.for_loop_tbl.empty()) {
         rt_error_code_t::get_instance().throw_if(true,
             ctx.runtime_pc.get_line(), rt_error_code_t::E_NEXT_WITHOUT_FOR, "");
+    }
 
     // If counter was not specified... (NEXT <without-counter>)
     std::string counter_name = _variable;
 
     if (_variable.empty()) {
-        if (ctx.for_loop_tbl.size() > 1)
+        if (ctx.for_loop_tbl.size() > 1) {
             rt_error_code_t::get_instance().throw_if(true,
                 ctx.runtime_pc.get_line(),
                 rt_error_code_t::E_IMPL_CNT_NOT_ALLOWED, "Next");
+        }
 
         counter_name = ctx.for_loop_tbl.begin()->first;
 
-        if (counter_name.empty())
+        if (counter_name.empty()) {
             rt_error_code_t::get_instance().throw_if(true,
                 ctx.runtime_pc.get_line(),
                 rt_error_code_t::E_IMPL_CNT_NOT_ALLOWED, "Next");
+        }
 
         // Extranct variable name from qualified counter name
-        auto pos = counter_name.find("::");
+        const auto pos = counter_name.find("::");
 
         _variable = int(pos) >= 0 && counter_name.size() > 2
             ? counter_name.substr(pos, counter_name.size() - 2)
@@ -61,8 +64,9 @@ void stmt_next_t::run(rt_prog_ctx_t& ctx)
     auto scope_id = ctx.proc_scope.get_scope_id();
     auto scope_type = ctx.proc_scope.get_type(_variable);
 
-    if (scope_type != proc_scope_t::type_t::GLOBAL && !scope_id.empty())
+    if (scope_type != proc_scope_t::type_t::GLOBAL && !scope_id.empty()) {
         counter_name = scope_id + "::" + _variable;
+    }
 
     var_scope_t::handle_t scope = ctx.proc_scope.get(scope_type);
 
@@ -72,26 +76,29 @@ void stmt_next_t::run(rt_prog_ctx_t& ctx)
     forctx.pc_next_stmt = ctx.runtime_pc;
     counter += forctx.step;
 
-    bool condition
+    const bool condition
         = bool(forctx.step.to_double() > 0 ? counter <= forctx.end_counter
                                            : counter >= forctx.end_counter);
 
     auto handle = ctx.for_loop_metadata.end_find(ctx.runtime_pc);
 
-    if (!handle)
+    if (!handle) {
         rt_error_code_t::get_instance().throw_if(true,
             ctx.runtime_pc.get_line(), rt_error_code_t::E_NEXT_WITHOUT_FOR, "");
+    }
 
     bool exit_for_loop = handle->flag[instrblock_t::EXIT];
 
-    if (exit_for_loop)
+    if (exit_for_loop) {
         handle->flag.set(instrblock_t::EXIT, false);
+    }
 
     // Loop condition check
     if (!exit_for_loop && condition) {
         // Modify counter and go to FOR-TO-STEP-line
         ctx.go_to(forctx.pc_for_stmt);
-    } else {
+    } 
+    else {
         exit_for_loop = true;
     }
 

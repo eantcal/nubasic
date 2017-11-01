@@ -39,7 +39,7 @@ public:
         ctx.for_loop_metadata.compile_exit_point(ctx.compiletime_pc);
     }
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    void run(rt_prog_ctx_t& ctx) override;
 };
 
 

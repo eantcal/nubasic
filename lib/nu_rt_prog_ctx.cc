@@ -59,8 +59,9 @@ void rt_prog_ctx_t::go_to_next() noexcept
 void rt_prog_ctx_t::set_return_line(
     const rt_prog_ctx_t::return_point_t& rp) noexcept
 {
-    if (rp.first > 0)
+    if (rp.first > 0) {
         return_stack.push_front(rp);
+    }
 }
 
 
@@ -68,8 +69,9 @@ void rt_prog_ctx_t::set_return_line(
 
 rt_prog_ctx_t::return_point_t rt_prog_ctx_t::get_return_line() noexcept
 {
-    if (return_stack.empty())
+    if (return_stack.empty()) {
         return std::make_pair(0, 0);
+    }
 
     auto resume_line = return_stack.front();
     return_stack.pop_front();
@@ -126,7 +128,6 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
         ss << std::setw(5) << runtime_pc.get_line() << " ";
         ss << " " << li->second << std::endl;
     }
-
     else {
         ss << "Current line : " << runtime_pc.get_line() << std::endl;
     }
@@ -163,13 +164,17 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
 
     if (!hash_tbls.empty()) {
         ss << "Hash Tables:" << std::endl;
+
         for (const auto & tbl : hash_tbls) {
             ss << "hash['" << tbl.first << "'](" << tbl.second.size() << ") = " << std::endl;
+
             if (!tbl.second.empty()) {
                 auto it = tbl.second.begin();
+
                 for (size_t i = 0; it != tbl.second.end() && i < 10; ++i, ++it) {
                     ss << "\t" << it->first << ":" << it->second << std::endl;
                 }
+
                 if (tbl.second.size()>10) {
                     ss << "\t" << "..." << std::endl;
                 }
@@ -183,21 +188,25 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
         for (const auto& tbl : function_retval_tbl) {
             ss << "\t" << tbl.first << ": ";
 
-            for (const auto& rv : tbl.second)
+            for (const auto& rv : tbl.second) {
                 ss << "[" << rv.to_str() << "] ";
+            }
         }
 
         ss << std::endl;
     }
 
-    if (!return_stack.empty())
+    if (!return_stack.empty()) {
         return_stack.trace(ss);
+    }
 
-    if (!for_loop_tbl.empty())
+    if (!for_loop_tbl.empty()) {
         for_loop_tbl.trace(ss);
+    }
 
-    if (!file_tbl.empty())
+    if (!file_tbl.empty()) {
         file_tbl.trace(ss);
+    }
 }
 
 
@@ -207,8 +216,9 @@ void return_stack_t::trace(std::stringstream& ss)
 {
     ss << "RETURN stack: ";
 
-    for (auto e : *this)
+    for (auto e : *this) {
         ss << e.first << " (stmt_id=" << e.second << ") ";
+    }
 
     ss << std::endl;
 }

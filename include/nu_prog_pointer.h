@@ -42,44 +42,42 @@ public:
     prog_pointer_t& operator=(const prog_pointer_t&) = default;
 
 
-    void go_to(line_number_t line, stmt_number_t stmt = 0) noexcept
-    {
+    void go_to(line_number_t line, stmt_number_t stmt = 0) noexcept {
         set(line, stmt);
     }
 
-
-    void set(line_number_t line, stmt_number_t stmt) noexcept
-    {
+    void set(line_number_t line, stmt_number_t stmt) noexcept {
         _last_line = _line;
         _line = line;
         _line_stmt = stmt;
     }
 
+    void set_stmt_pos(stmt_number_t stmt) { 
+        _line_stmt = stmt; 
+    }
 
-    void set_stmt_pos(stmt_number_t stmt) { _line_stmt = stmt; }
+    line_number_t get_line() const noexcept { 
+        return _line; 
+    }
 
+    line_number_t get_last_line() const noexcept { 
+        return _last_line; 
+    }
 
-    line_number_t get_line() const noexcept { return _line; }
+    int get_stmt_pos() const noexcept { 
+        return _line_stmt; 
+    }
 
+    void reset() noexcept { 
+        set(0, 0); 
+    }
 
-    line_number_t get_last_line() const noexcept { return _last_line; }
-
-
-    int get_stmt_pos() const noexcept { return _line_stmt; }
-
-
-    void reset() noexcept { set(0, 0); }
-
-
-    bool operator<(const prog_pointer_t& pp) const noexcept
-    {
+    bool operator<(const prog_pointer_t& pp) const noexcept {
         return _line > pp._line
             || (_line == pp._line && _line_stmt > pp._line_stmt);
     }
 
-
-    std::string to_string() const noexcept
-    {
+    std::string to_string() const noexcept {
         return std::to_string(_line) + ":" + std::to_string(_line_stmt);
     }
 
@@ -94,12 +92,14 @@ private:
 
 struct return_stack_t
     : public std::deque<std::pair<prog_pointer_t::line_number_t,
-          prog_pointer_t::stmt_number_t>> {
+          prog_pointer_t::stmt_number_t>> 
+{
     void trace(std::stringstream& ss);
 };
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

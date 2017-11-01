@@ -48,7 +48,7 @@ public:
     stmt_const_t(const stmt_const_t&) = delete;
     stmt_const_t& operator=(const stmt_const_t&) = delete;
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    void run(rt_prog_ctx_t& ctx) override;
 
 protected:
     std::string _var;

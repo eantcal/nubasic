@@ -35,7 +35,6 @@ protected:
 public:
     static void remove_blank(nu::token_list_t& tl);
 
-
     static void extract_next_token(token_list_t& tl, token_t& token,
         std::function<bool(const token_list_t& tl, const token_t& token)> check
         = [](const token_list_t& tl, const token_t& token) {
@@ -159,7 +158,8 @@ protected:
         stmt_t::handle_t handle(std::make_shared<T>(std::forward<E>(xprms)...));
 
         while (!tl.empty() && (tl.begin()->type() != tkncl_t::OPERATOR
-                                  && tl.begin()->identifier() != end_token)) {
+                                  && tl.begin()->identifier() != end_token)) 
+        {
             token = *tl.begin();
 
             syntax_error_if(token.type() != tkncl_t::IDENTIFIER,
@@ -200,8 +200,8 @@ protected:
                     ep.compile(etl, token.position()),
                     std::forward<E>(xprms)...);
             }
-
             else {
+
                 T* ptr = dynamic_cast<T*>(handle.get());
                 assert(ptr);
 
@@ -213,8 +213,9 @@ protected:
                     std::forward<E>(xprms)...);
             }
 
-            if (tl.empty())
+            if (tl.empty()) {
                 break;
+            }
 
             token = *tl.begin();
 
@@ -386,13 +387,13 @@ protected:
             while (!tl.empty()) {
                 const token_t token(*tl.begin());
 
-                if (token.type() == tkncl_t::SUBEXP_BEGIN)
+                if (token.type() == tkncl_t::SUBEXP_BEGIN) {
                     ++parenthesis_level;
-
-                if (token.type() == tkncl_t::SUBEXP_END)
+                }
+                else if (token.type() == tkncl_t::SUBEXP_END) {
                     --parenthesis_level;
-
-                if (token.type() == tkncl_t::OPERATOR) {
+                }
+                else if (token.type() == tkncl_t::OPERATOR) {
                     if (token.identifier() == ":") {
                         if (!etl.empty())
                             args.push_back(
@@ -414,9 +415,10 @@ protected:
 
                         remove_blank(tl);
 
-                        if (tl.empty())
+                        if (tl.empty()) {
                             return stmt_t::handle_t(std::make_shared<T>(
                                 args, std::forward<E>(xargs)...));
+                        }
 
                         break;
                     }
@@ -447,7 +449,6 @@ protected:
     expr_any_t::handle_t parse_sub_expr(prog_ctx_t& ctx, token_t token,
         token_list_t& tl, token_list_t& vect_etl);
 
-
 public:
     stmt_parser_t() = default;
     stmt_parser_t(const stmt_parser_t&) = default;
@@ -459,6 +460,7 @@ public:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

@@ -202,7 +202,7 @@ AR = ar
 AUTOCONF = ${SHELL} /home/antonino/work/nubasic/missing autoconf
 AUTOHEADER = ${SHELL} /home/antonino/work/nubasic/missing autoheader
 AUTOMAKE = ${SHELL} /home/antonino/work/nubasic/missing automake-1.15
-AWK = mawk
+AWK = gawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2

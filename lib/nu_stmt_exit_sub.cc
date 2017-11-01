@@ -30,11 +30,11 @@ stmt_exit_sub_t::stmt_exit_sub_t(prog_ctx_t& ctx)
 
 void stmt_exit_sub_t::run(rt_prog_ctx_t& ctx)
 {
-    auto rt_error_if = [&](
-        bool cond, rt_error_code_t::value_t err, const std::string& desc) {
-        rt_error_code_t::get_instance().throw_if(
-            cond, ctx.runtime_pc.get_line(), err, desc);
-    };
+    auto rt_error_if = 
+        [&](bool cond, rt_error_code_t::value_t err, const std::string& desc) {
+            rt_error_code_t::get_instance().throw_if(
+                cond, ctx.runtime_pc.get_line(), err, desc);
+        };
 
     auto handle = ctx.procedure_metadata.exit_find(ctx.runtime_pc);
 

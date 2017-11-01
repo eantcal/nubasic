@@ -38,8 +38,8 @@ public:
     stmt_if_then_else_t(prog_ctx_t& ctx, expr_any_t::handle_t condition,
         handle_t then_stmt, handle_t else_stmt = nullptr);
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
-    virtual stmt_cl_t get_cl() const noexcept override;
+    void run(rt_prog_ctx_t& ctx) override;
+    stmt_cl_t get_cl() const noexcept override;
 
 protected:
     expr_any_t::handle_t _condition;
@@ -49,6 +49,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

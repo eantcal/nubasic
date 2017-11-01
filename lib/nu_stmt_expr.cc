@@ -26,7 +26,6 @@ void stmt_expr_t::run(rt_prog_ctx_t& ctx)
             arg.first->eval(ctx);
     }
 
-
     ctx.go_to_next();
 }
 

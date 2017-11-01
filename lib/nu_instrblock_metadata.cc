@@ -25,8 +25,9 @@ void instrblock_t::trace(std::stringstream& ss, bool include_else)
     ss << "  begin pc: " << pc_begin_stmt.get_line();
     ss << "  end pc: " << pc_end_stmt.get_line();
 
-    if (include_else)
+    if (include_else) {
         ss << "  else pc: " << pc_else_stmt.get_line();
+    }
 }
 
 
@@ -81,14 +82,16 @@ void instrblock_metadata_t::compile_begin(
 instrblock_t::handle_t instrblock_metadata_t::compile_end(
     const prog_pointer_t& pc)
 {
-    if (build_stack.empty())
+    if (build_stack.empty()) {
         return nullptr;
+    }
 
     auto begin_line = build_stack.front();
     auto i = begin_tbl.find(begin_line);
 
-    if (i == begin_tbl.end())
+    if (i == begin_tbl.end()) {
         return nullptr;
+    }
 
     i->second->pc_end_stmt = pc;
 
@@ -105,14 +108,16 @@ instrblock_t::handle_t instrblock_metadata_t::compile_end(
 instrblock_t::handle_t instrblock_metadata_t::compile_exit_point(
     const prog_pointer_t& pc)
 {
-    if (build_stack.empty())
+    if (build_stack.empty()) {
         return nullptr;
+    }
 
     auto begin_line = build_stack.front();
     auto i = begin_tbl.find(begin_line);
 
-    if (i == begin_tbl.end())
+    if (i == begin_tbl.end()) {
         return nullptr;
+    }
 
     exit_tbl.insert(std::make_pair(pc.get_line(), begin_line));
 
@@ -127,8 +132,9 @@ instrblock_t::handle_t instrblock_metadata_t::begin_find(
 {
     auto i = begin_tbl.find(line);
 
-    if (i == begin_tbl.end())
+    if (i == begin_tbl.end()) {
         return nullptr;
+    }
 
     return i->second;
 }
@@ -181,8 +187,9 @@ std::ostream& operator<<(std::ostream& os, const if_instrblock_t& ib)
     os << " endif line:" << ib.pc_endif_stmt.get_line();
     os << " else lines:";
 
-    for (const auto& ei : ib.else_list)
+    for (const auto& ei : ib.else_list) {
         os << ei.get_line() << " ";
+    }
 
     return os;
 }
@@ -195,8 +202,9 @@ void if_instrblock_metadata_t::clear()
     data.clear();
     block_to_if_line_tbl.clear();
 
-    while (!pc_stack.empty())
+    while (!pc_stack.empty()) {
         pc_stack.pop();
+    }
 }
 
 
@@ -206,8 +214,9 @@ std::ostream& operator<<(std::ostream& os, const if_instrblock_metadata_t& md)
 {
     os << "if block:";
 
-    for (const auto& e : md.data)
+    for (const auto& e : md.data) {
         os << e.second << std::endl;
+    }
 
     return os;
 }

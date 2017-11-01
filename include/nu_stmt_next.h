@@ -52,8 +52,8 @@ public:
         }
     }
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
-    virtual stmt_cl_t get_cl() const noexcept override;
+    void run(rt_prog_ctx_t& ctx) override;
+    stmt_cl_t get_cl() const noexcept override;
 
 protected:
     std::string _variable;

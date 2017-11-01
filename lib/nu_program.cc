@@ -54,7 +54,6 @@ void program_t::goto_end_block(prog_line_iterator_t& prog_ptr,
         if (prog_ptr->second.first->get_cl() == begin) {
             ++while_cnt;
         }
-
         else if (prog_ptr->second.first->get_cl() == end) {
             --while_cnt;
 
@@ -81,6 +80,7 @@ bool program_t::run_statement(stmt_t::handle_t stmt_handle, size_t stmt_id,
 
         if (stmt_pos >= 0) {
             if (++stmt_pos < int(block_ptr->size())) {
+
                 // resume execution from next statement
                 if (!block_ptr->run_pos(_ctx, stmt_pos)) {
                     // if not break condition returned
@@ -88,21 +88,18 @@ bool program_t::run_statement(stmt_t::handle_t stmt_handle, size_t stmt_id,
                     ++prog_ptr;
                 }
             }
-
             else {
                 // no stmt found in this line
                 // go to next line
                 ++prog_ptr;
             }
         }
-
         else {
             // no stmt found in this line
             // goto next line
             ++prog_ptr;
         }
     }
-
     else {
         // stmt executed, for default go to next line
         stmt_handle->run(_ctx);
@@ -145,8 +142,9 @@ bool program_t::get_dbg_info(line_num_t line, dbginfo_t& dbg)
 {
     auto code_line = _prog_line.find(line);
 
-    if (code_line == _prog_line.end())
+    if (code_line == _prog_line.end()) {
         return false;
+    }
 
     dbg = code_line->second.second;
 
@@ -160,8 +158,9 @@ bool program_t::set_dbg_info(line_num_t line, const dbginfo_t& dbg)
 {
     auto code_line = _prog_line.find(line);
 
-    if (code_line == _prog_line.end())
+    if (code_line == _prog_line.end()) {
         return false;
+    }
 
     code_line->second.second = dbg;
 
@@ -189,8 +188,9 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
     if (start_from) {
         auto jump = _prog_line.find(start_from);
 
-        if (next && jump != _prog_line.end())
+        if (next && jump != _prog_line.end()) {
             ++jump;
+        }
 
         if (jump == _prog_line.end()) {
             std::string err = "Line " + nu::to_string(start_from);
@@ -216,23 +216,25 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
         _ctx.runtime_pc.set(prog_ptr->first, return_stmt_id);
 
         if (prog_ptr->second.second.single_step_break_point
-            && !_function_call) {
+            && !_function_call) 
+        {
             prog_ptr->second.second.single_step_break_point = false;
             _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
             break;
         }
 
         if (prog_ptr->second.second.break_point) {
-            if (prog_ptr->second.second.condition_stmt != nullptr)
+            if (prog_ptr->second.second.condition_stmt != nullptr) {
                 prog_ptr->second.second.condition_stmt->run(_ctx);
-
-            else
+            }
+            else {
                 _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
+            }
 
-            if (_ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST])
+            if (_ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST]) {
                 break;
+            }
         }
-
         else if (prog_ptr->second.second.continue_after_break) {
             // Reset breakpoint for next stmt execution
             prog_ptr->second.second.break_point = true;
@@ -248,15 +250,17 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
 
         // Run statement and update prog_ptr
         if (run_statement(prog_ptr->second.first, return_stmt_id,
-                static_cast<prog_line_iterator_t&>(prog_ptr))) {
+                static_cast<prog_line_iterator_t&>(prog_ptr))) 
+        {
             return_stmt_id = 0;
         }
 
         check_break_event();
         _yield_host_os();
 
-        if (_ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST])
+        if (_ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST]) {
             break;
+        }
 
         if (_ctx.flag[rt_prog_ctx_t::FLG_RETURN_REQUEST]) {
             auto return_point = _ctx.get_return_line();
@@ -268,8 +272,9 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
             // If checkpoint enabled and line is zero
             // it means we ware executing a function call (in another stack
             // context) and we have to return to the main program
-            if (_function_call && line == 0)
+            if (_function_call && line == 0) {
                 break;
+            }
 
             auto jump = _prog_line.find(line);
 
@@ -282,19 +287,21 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
                     err += " not found.";
 
                     throw exception_t(err);
-                } else {
+                } 
+                else {
                     std::string err = "Runtime error.";
                     throw exception_t(err);
                 }
             }
 
-            if (jump == _prog_line.end())
+            if (jump == _prog_line.end()) {
                 break;
+            }
 
             prog_ptr = jump;
         }
-
         else if (_ctx.flag[rt_prog_ctx_t::FLG_JUMP_REQUEST]) {
+
             line_num_t line = _ctx.goingto_pc.get_line();
             auto jump = _prog_line.find(line);
             return_stmt_id = 0;
@@ -308,15 +315,18 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
                     err += " not found.";
 
                     throw exception_t(err);
-                } else {
+                } 
+                else {
                     std::string err = "Runtime error.";
-
                     throw exception_t(err);
                 }
             }
 
             prog_ptr = jump;
-        } else if (_ctx.flag[rt_prog_ctx_t::FLG_SKIP_TILL_NEXT]) {
+
+        } 
+        else if (_ctx.flag[rt_prog_ctx_t::FLG_SKIP_TILL_NEXT]) {
+
             auto flg = _ctx.flag.get(rt_prog_ctx_t::FLG_SKIP_TILL_NEXT);
 
             goto_end_block(static_cast<prog_line_iterator_t&>(prog_ptr),
@@ -369,8 +379,6 @@ bool program_t::run(
         arg_list.push_back(std::make_pair(
             hvalue, '\0' /*0 is a dummy value, unused in this context*/));
     }
-
-    //
 
     // Create a call-able object
     stmt_call_t call(arg_list, name, _ctx, true);

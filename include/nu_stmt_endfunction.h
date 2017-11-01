@@ -33,11 +33,12 @@ public:
 
     stmt_endfunction_t(prog_ctx_t& ctx);
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    void run(rt_prog_ctx_t& ctx) override;
 };
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 /* -------------------------------------------------------------------------- */

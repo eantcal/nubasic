@@ -44,8 +44,8 @@ public:
     void define(const std::string& var, const std::string& vtype,
         vec_size_t vect_size, prog_ctx_t& ctx, const std::string& id);
 
-    virtual stmt_cl_t get_cl() const noexcept override;
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    stmt_cl_t get_cl() const noexcept override;
+    void run(rt_prog_ctx_t& ctx) override;
 
 protected:
     std::string _id;

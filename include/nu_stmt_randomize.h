@@ -35,11 +35,14 @@ public:
     stmt_randomize_t(const stmt_randomize_t&) = delete;
     stmt_randomize_t& operator=(const stmt_randomize_t&) = delete;
 
-    virtual void run(rt_prog_ctx_t& ctx) override { _os_randomize(); }
+    void run(rt_prog_ctx_t& ctx) override { 
+        _os_randomize(); 
+    }
 };
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

@@ -49,7 +49,9 @@ public:
         return i.second;
     }
 
-    virtual void erase(const std::string& name) { map().erase(name); }
+    virtual void erase(const std::string& name) { 
+        map().erase(name); 
+    }
 
     bool is_defined(const std::string& name) const noexcept  {
         return _symbols.find(name) != _symbols.end();

@@ -33,18 +33,15 @@ public:
     label_tbl_t(const label_tbl_t&) = delete;
     label_tbl_t& operator=(const label_tbl_t&) = delete;
 
-    void set_explicit_line_reference_mode() noexcept
-    {
+    void set_explicit_line_reference_mode() noexcept {
         _explicit_line_reference = true;
     }
 
-    bool get_explicit_line_reference_mode() const noexcept
-    {
+    bool get_explicit_line_reference_mode() const noexcept {
         return _explicit_line_reference;
     }
 
-    void clear()
-    {
+    void clear() {
         symbol_map_t<icstring_t, unsigned int>::clear();
         _explicit_line_reference = false;
     }
@@ -60,6 +57,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

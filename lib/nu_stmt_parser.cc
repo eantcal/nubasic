@@ -105,12 +105,14 @@ void stmt_parser_t::remove_blank(nu::token_list_t& tl)
 {
     while (!tl.empty() && (tl.begin()->type() == tkncl_t::BLANK
                               || tl.begin()->type() == tkncl_t::LINE_COMMENT
-                              || tl.begin()->type() == tkncl_t::NEWLINE)) {
+                              || tl.begin()->type() == tkncl_t::NEWLINE)) 
+    {
         --tl;
     }
 
     while (!tl.empty() && (tl.rbegin()->type() == tkncl_t::BLANK
-                              || tl.begin()->type() == tkncl_t::LINE_COMMENT)) {
+                              || tl.begin()->type() == tkncl_t::LINE_COMMENT)) 
+    {
         tl--;
     }
 }
@@ -135,7 +137,8 @@ void stmt_parser_t::move_sub_expression(token_list_t& source_tl,
 {
     while (
         !source_tl.empty() && (!(source_tl.begin()->type() == idtype
-                                  && source_tl.begin()->identifier() == id))) {
+                                  && source_tl.begin()->identifier() == id))) 
+    {
         const token_t token(*source_tl.begin());
         dst_tl += token;
         --source_tl;
@@ -162,15 +165,16 @@ stmt_t::handle_t stmt_parser_t::parse_print(
 
         try {
             fd = nu::stoi(token.identifier());
-        } catch (...) {
+        } 
+        catch (...) {
             syntax_error(token.expression(), token.position());
         }
 
         --tl;
         remove_blank(tl);
 
-        if (!tl.empty()) // must be a comma separator
-        {
+        if (!tl.empty()) { // must be a comma separator
+        
             token = *tl.begin();
             syntax_error_if(
                 token.type() != tkncl_t::OPERATOR || token.identifier() != ",",
@@ -189,7 +193,8 @@ stmt_t::handle_t stmt_parser_t::parse_print(
             if (id.size() > 1 && id.c_str()[0] == '#') {
                 try {
                     fd = nu::stoi(id.substr(1, id.size() - 1));
-                } catch (...) {
+                } 
+                catch (...) {
                     syntax_error(token.expression(), token.position());
                 }
 
@@ -202,6 +207,7 @@ stmt_t::handle_t stmt_parser_t::parse_print(
                     syntax_error_if(token.type() != tkncl_t::OPERATOR
                             || token.identifier() != ",",
                         token.expression(), token.position());
+
                     --tl; // remove comma from tl
                 }
             }
@@ -323,8 +329,9 @@ stmt_t::handle_t stmt_parser_t::parse_input_con(
 
         // The semicolon will print a question mark at
         // the end of the prompt string
-        if (token.identifier() == ";")
+        if (token.identifier() == ";") {
             prompt += "?";
+        }
 
         extract_next_token(tl, token);
     }
@@ -345,7 +352,8 @@ stmt_t::handle_t stmt_parser_t::parse_input_con(
                 token.expression(), token.position());
 
             if (token.identifier() == ":"
-                && token.type() == tkncl_t::OPERATOR) {
+                && token.type() == tkncl_t::OPERATOR) 
+            {
                 break;
             }
 
@@ -394,15 +402,16 @@ void stmt_parser_t::parse_fd_args(prog_ctx_t& ctx, token_t token,
 
     try {
         fd = nu::stoi(token.identifier());
-    } catch (...) {
+    } 
+    catch (...) {
         syntax_error(token.expression(), token.position());
     }
 
     --tl;
     remove_blank(tl);
 
-    if (!tl.empty()) // must be a comma separator
-    {
+    if (!tl.empty()) { // must be a comma separator
+       
         token = *tl.begin();
         syntax_error_if(
             token.type() != tkncl_t::OPERATOR || token.identifier() != ",",
@@ -459,15 +468,16 @@ stmt_t::handle_t stmt_parser_t::parse_read(
 
     try {
         fd = nu::stoi(token.identifier());
-    } catch (...) {
+    } 
+    catch (...) {
         syntax_error(token.expression(), token.position());
     }
 
     --tl;
     remove_blank(tl);
 
-    if (!tl.empty()) // must be a comma separator
-    {
+    if (!tl.empty()) { // must be a comma separator
+
         token = *tl.begin();
         syntax_error_if(
             token.type() != tkncl_t::OPERATOR || token.identifier() != ",",
@@ -586,8 +596,9 @@ stmt_t::handle_t stmt_parser_t::parse_block(prog_ctx_t& ctx,
 {
     remove_blank(tl);
 
-    if (tl.empty())
+    if (tl.empty()) {
         return stmt_empty_t::handle_t(std::make_shared<stmt_empty_t>(ctx));
+    }
 
     stmt_block_t::handle_t hblock(std::make_shared<stmt_block_t>(ctx));
 
@@ -597,8 +608,9 @@ stmt_t::handle_t stmt_parser_t::parse_block(prog_ctx_t& ctx,
 
         remove_blank(tl);
 
-        if (tl.empty())
+        if (tl.empty()) {
             break;
+        }
 
         token_t token(*tl.begin());
 
@@ -632,8 +644,9 @@ stmt_t::handle_t stmt_parser_t::parse_branch_instr(
         --tl;
         remove_blank(tl);
 
-        if (!tl.empty())
+        if (!tl.empty()) {
             token = *tl.begin();
+        }
     }
 
     syntax_error_if(tl.empty() || (token.type() != tkncl_t::INTEGRAL
@@ -674,14 +687,15 @@ expr_any_t::handle_t stmt_parser_t::parse_sub_expr(
             --tl;
             remove_blank(tl);
 
-            if (token.type() == tkncl_t::SUBEXP_BEGIN)
+            if (token.type() == tkncl_t::SUBEXP_BEGIN) {
                 ++parenthesis_level;
-
+            }
             else if (token.type() == tkncl_t::SUBEXP_END) {
                 --parenthesis_level;
 
-                if (parenthesis_level < 1)
+                if (parenthesis_level < 1) {
                     break;
+                }
             }
 
             etl += token;
@@ -706,8 +720,9 @@ stmt_t::handle_t stmt_parser_t::parse_let(prog_ctx_t& ctx, nu::token_list_t& tl)
 {
     remove_blank(tl);
 
-    if (tl.empty())
+    if (tl.empty()) {
         return stmt_t::handle_t(std::make_shared<stmt_empty_t>(ctx));
+    }
 
     token_t token(*tl.begin());
     size_t pos = token.position();
@@ -720,13 +735,15 @@ stmt_t::handle_t stmt_parser_t::parse_let(prog_ctx_t& ctx, nu::token_list_t& tl)
     --tl;
     remove_blank(tl);
 
-    if (tl.empty())
+    if (tl.empty()) {
         return stmt_t::handle_t(std::make_shared<stmt_call_t>(identifier, ctx));
+    }
 
     token = *tl.begin();
 
     if (token.type() != tkncl_t::OPERATOR
-        && token.type() != tkncl_t::SUBEXP_BEGIN) {
+        && token.type() != tkncl_t::SUBEXP_BEGIN) 
+    {
         return parse_arg_list<stmt_call_t, 0>(ctx, token, tl,
             [](const token_t& t) {
                 return t.type() == tkncl_t::OPERATOR && t.identifier() == ",";
@@ -861,7 +878,8 @@ stmt_t::handle_t stmt_parser_t::parse_for_to_step(
     etl.clear();
 
     while (!tl.empty() && (tl.begin()->identifier() != "step"
-                              && tl.begin()->identifier() != ":")) {
+                              && tl.begin()->identifier() != ":")) 
+    {
         const token_t token(*tl.begin());
         etl += token;
         --tl;
@@ -943,17 +961,18 @@ stmt_t::handle_t stmt_parser_t::parse_exit(
     --tl;
     remove_blank(tl);
 
-    if (token.identifier() == "while")
+    if (token.identifier() == "while") {
         return stmt_t::handle_t(std::make_shared<stmt_exit_while_t>(ctx));
-
-    else if (token.identifier() == "do")
+    }
+    else if (token.identifier() == "do") {
         return stmt_t::handle_t(std::make_shared<stmt_exit_do_t>(ctx));
-
-    else if (token.identifier() == "sub" || token.identifier() == "function")
+    }
+    else if (token.identifier() == "sub" || token.identifier() == "function") {
         return stmt_t::handle_t(std::make_shared<stmt_exit_sub_t>(ctx));
-
-    else if (token.identifier() == "for")
+    }
+    else if (token.identifier() == "for") {
         return stmt_t::handle_t(std::make_shared<stmt_exit_for_t>(ctx));
+    }
 
     // throws an exception
     syntax_error_if(true, token.expression(), token.position());
@@ -1005,7 +1024,8 @@ stmt_t::handle_t stmt_parser_t::parse_procedure(
         remove_blank(tl);
 
         stmt_handle = stmt_t::handle_t(std::make_shared<T>(ctx, id));
-    } else {
+    } 
+    else {
         // reset '(' before other tokens
         tl.data().push_front(token);
         stmt_handle = parse_parameter_list<T>(ctx, token, tl, ")", ctx, id);
@@ -1020,7 +1040,7 @@ stmt_t::handle_t stmt_parser_t::parse_procedure(
         syntax_error_if(tl.empty() || tl.begin()->type() != tkncl_t::IDENTIFIER,
             token.expression(), token.position());
 
-        auto ret_type = tl.begin()->identifier();
+        const auto ret_type = tl.begin()->identifier();
 
         stmt_function_t* ptr
             = dynamic_cast<stmt_function_t*>(stmt_handle.get());
@@ -1092,9 +1112,10 @@ stmt_t::handle_t stmt_parser_t::parse_struct_element(
 
     size_t size = 0;
 
-    if (tl.empty())
+    if (tl.empty()) {
         return stmt_t::handle_t(
             std::make_shared<stmt_struct_element_t>(ctx, id, type, size));
+    }
 
     token = *tl.begin();
 
@@ -1115,7 +1136,8 @@ stmt_t::handle_t stmt_parser_t::parse_struct_element(
 
         try {
             size = size_t(nu::stoll(token.identifier()));
-        } catch (...) {
+        } 
+        catch (...) {
             syntax_error(token.expression(), token.position());
         }
 
@@ -1132,9 +1154,10 @@ stmt_t::handle_t stmt_parser_t::parse_struct_element(
         remove_blank(tl);
     }
 
-    if (tl.empty())
+    if (tl.empty()) {
         return stmt_t::handle_t(
             std::make_shared<stmt_struct_element_t>(ctx, id, type, size));
+    }
 
     token = *tl.begin();
 
@@ -1252,7 +1275,8 @@ stmt_on_goto_t::label_list_t stmt_parser_t::parse_label_list(
     stmt_on_goto_t::label_list_t lbl_list;
 
     while (!tl.empty() && (tl.begin()->type() != tkncl_t::OPERATOR
-                              && tl.begin()->identifier() != ":")) {
+                              && tl.begin()->identifier() != ":")) 
+    {
         token = *tl.begin();
 
         syntax_error_if(token.type() != tkncl_t::IDENTIFIER, token.expression(),
@@ -1265,8 +1289,9 @@ stmt_on_goto_t::label_list_t stmt_parser_t::parse_label_list(
         --tl;
         remove_blank(tl);
 
-        if (tl.empty())
+        if (tl.empty()) {
             break;
+        }
 
         token = *tl.begin();
 
@@ -1275,8 +1300,9 @@ stmt_on_goto_t::label_list_t stmt_parser_t::parse_label_list(
                 || (token.identifier() != "," && token.identifier() != ":"),
             token.expression(), token.position());
 
-        if (token.identifier() == ":")
+        if (token.identifier() == ":") {
             break;
+        }
 
         --tl;
         remove_blank(tl);
@@ -1455,7 +1481,6 @@ stmt_t::handle_t stmt_parser_t::parse_open(
         extract_next_token(tl, token);
     }
 
-
     if (access == "read") {
         syntax_error_if(token.type() != tkncl_t::IDENTIFIER
                 || (token.identifier() != "write"
@@ -1486,7 +1511,8 @@ stmt_t::handle_t stmt_parser_t::parse_open(
 
     try {
         fd = nu::stoi(fds);
-    } catch (...) {
+    } 
+    catch (...) {
         syntax_error(token.expression(), token.position());
     }
 
@@ -1516,7 +1542,8 @@ stmt_t::handle_t stmt_parser_t::parse_close(
 
     try {
         fd = nu::stoi(fds);
-    } catch (...) {
+    } 
+    catch (...) {
         syntax_error(token.expression(), token.position());
     }
 
@@ -1537,7 +1564,8 @@ stmt_t::handle_t stmt_parser_t::parse_const(
             token = *tl.begin();
 
             if (token.type() == tkncl_t::IDENTIFIER
-                && token.identifier() == "as") {
+                && token.identifier() == "as") 
+            {
                 --tl;
                 remove_blank(tl);
 
@@ -1599,7 +1627,7 @@ stmt_t::handle_t stmt_parser_t::parse_const(
     move_sub_expression(tl, // source
         etl, // destination
         ":", tkncl_t::OPERATOR // end-of-expression
-        );
+    );
 
     syntax_error_if(!variable_t::is_valid_name(variable_name, false),
         variable_name + " is an invalid identifier");
@@ -1630,7 +1658,8 @@ stmt_t::handle_t stmt_parser_t::parse_label(
             syntax_error_if(int(prog_label[label]) != _parsing_line, "Label '"
                     + token.identifier() + "' alrady defined at "
                     + nu::to_string(_parsing_line));
-        } else {
+        } 
+        else {
             prog_label.define(token.identifier(), _parsing_line);
         }
 
@@ -1691,22 +1720,27 @@ stmt_t::handle_t stmt_parser_t::parse_end(
         if (id == "while") {
             --tl;
             return stmt_t::handle_t(std::make_shared<stmt_wend_t>(ctx));
-        } else if (id == "if") {
+        } 
+        else if (id == "if") {
             --tl;
             return stmt_t::handle_t(std::make_shared<stmt_endif_t>(ctx));
-        } else if (id == "sub") {
+        } 
+        else if (id == "sub") {
             --tl;
             return stmt_t::handle_t(std::make_shared<stmt_endsub_t>(ctx));
-        } else if (id == "function") {
+        } 
+        else if (id == "function") {
             --tl;
             return stmt_t::handle_t(std::make_shared<stmt_endfunction_t>(ctx));
-        } else if (id == "struct") {
+        } 
+        else if (id == "struct") {
             ctx.compiling_struct_name.clear();
             ;
 
             --tl;
             return stmt_t::handle_t(std::make_shared<stmt_endstruct_t>(ctx));
-        } else {
+        } 
+        else {
             syntax_error(token.expression(), token.position());
         }
     }
@@ -1722,97 +1756,124 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
 {
     remove_blank(tl);
 
-    if (tl.empty())
+    if (tl.empty()) {
         return stmt_t::handle_t(std::make_shared<stmt_empty_t>(ctx));
+    }
 
     token_t token(*tl.begin());
 
-    if (token.type() == tkncl_t::NEWLINE)
+    if (token.type() == tkncl_t::NEWLINE) {
         return std::make_shared<stmt_empty_t>(ctx);
+    }
 
     const std::string& identifier = token.identifier();
 
     if (!ctx.compiling_struct_name.empty()) {
         if (!((token.identifier() == "end" || token.identifier() == "rem")
-                && token.type() == tkncl_t::IDENTIFIER)) {
+            && token.type() == tkncl_t::IDENTIFIER))
+        {
             return parse_struct_element(ctx, token, tl);
         }
     }
 
     syntax_error_if((token.type() != tkncl_t::IDENTIFIER)
-            && (token.type() == tkncl_t::OPERATOR
-                        && (token.identifier() != NU_BASIC_OP_INC
-                               && (token.identifier() != NU_BASIC_OP_DEC))),
+        && (token.type() == tkncl_t::OPERATOR
+            && (token.identifier() != NU_BASIC_OP_INC
+                && (token.identifier() != NU_BASIC_OP_DEC))),
         token.expression(), token.position());
 
-    if (identifier == NU_BASIC_OP_INC || identifier == NU_BASIC_OP_DEC)
+    if (identifier == NU_BASIC_OP_INC || identifier == NU_BASIC_OP_DEC) {
         return parse_expr(ctx, token, tl);
+    }
 
 #ifndef TINY_NUBASIC_VER
 
-    if (identifier == "textout")
+    if (identifier == "textout") {
         return parse_generic_instruction<stmt_textout_t>(ctx, token, tl, ctx);
+    }
 
-    if (identifier == "plotimage")
+    if (identifier == "plotimage") {
         return parse_generic_instruction<stmt_plotimage_t>(ctx, token, tl, ctx);
+    }
 
-    if (identifier == "line")
+    if (identifier == "line") {
         return parse_generic_instruction<stmt_line_t>(ctx, token, tl, ctx);
+    }
 
-    if (identifier == "setpixel")
+    if (identifier == "setpixel") {
         return parse_generic_instruction<stmt_set_pixel_t>(ctx, token, tl, ctx);
+    }
 
-    if (identifier == "rect")
+    if (identifier == "rect") {
         return parse_generic_instruction<stmt_rect_t>(ctx, token, tl, ctx);
+    }
 
-    if (identifier == "fillrect")
+    if (identifier == "fillrect") {
         return parse_generic_instruction<stmt_fillrect_t>(ctx, token, tl, ctx);
+    }
 
-    if (identifier == "ellipse")
+    if (identifier == "ellipse") {
         return parse_generic_instruction<stmt_ellipse_t>(ctx, token, tl, ctx);
+    }
 
-    if (identifier == "fillellipse")
+    if (identifier == "fillellipse") {
         return parse_generic_instruction<stmt_fillellipse_t>(
             ctx, token, tl, ctx);
+    }
 
 #endif // TINY_NUBASIC_VER
 
-    if (identifier == "print" || identifier == "write" || identifier == "print#"
-        || identifier == "write#") {
+    if (identifier == "print" || 
+        identifier == "write" || 
+        identifier == "print#" || 
+        identifier == "write#")
+    {
         return parse_print(ctx, token, tl);
     }
 
-    if (identifier == "locate")
+    if (identifier == "locate") {
         return parse_locate(ctx, token, tl);
+    }
 
-    if (identifier == "delay" || identifier == "sleep")
+    if (identifier == "delay" || identifier == "sleep") {
         return parse_delay(ctx, token, tl);
+    }
 
-    if (identifier == "mdelay")
+    if (identifier == "mdelay") {
         return parse_mdelay(ctx, token, tl);
+    }
 
-    if (identifier == "input")
+    if (identifier == "input") {
         return parse_input(ctx, token, tl);
+    }
 
-    if (identifier == "input#")
+    if (identifier == "input#") {
         return parse_input_file(ctx, token, tl);
+    }
 
-    if (identifier == "read")
+    if (identifier == "read") {
         return parse_read(ctx, token, tl);
+    }
 
-    if (identifier == "on")
+    if (identifier == "on") {
         return parse_on_goto(ctx, token, tl);
+    }
 
-    if (identifier == "go" || identifier == "goto" || identifier == "gosub")
+    if (identifier == "go" || 
+        identifier == "goto" || 
+        identifier == "gosub") 
+    {
         return parse_goto_gosub(ctx, token, tl);
+    }
 
     if (identifier == "rem") {
         tl.clear();
         return stmt_t::handle_t(std::make_shared<stmt_empty_t>(ctx));
     }
 
-    if (identifier == "end")
+    if (identifier == "end") {
         return parse_end(ctx, token, tl);
+    }
 
     if (identifier == "wend") {
         --tl;
@@ -1834,20 +1895,25 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
         return stmt_t::handle_t(std::make_shared<stmt_return_t>(ctx));
     }
 
-    if (identifier == "if")
+    if (identifier == "if") {
         return parse_if_then_else(ctx, token, tl);
+    }
 
-    if (identifier == "elif" || identifier == "elseif")
+    if (identifier == "elif" || identifier == "elseif") {
         return parse_elif_stmt(ctx, token, tl);
+    }
 
-    if (identifier == "for")
+    if (identifier == "for") {
         return parse_for_to_step(ctx, token, tl);
+    }
 
-    if (identifier == "next")
+    if (identifier == "next") {
         return parse_next(ctx, token, tl);
+    }
 
-    if (identifier == "exit")
+    if (identifier == "exit") {
         return parse_exit(ctx, token, tl);
+    }
 
     if (identifier == "beep") {
         --tl;
@@ -1864,54 +1930,70 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
         return stmt_t::handle_t(std::make_shared<stmt_randomize_t>(ctx));
     }
 
-    if (identifier == "const")
+    if (identifier == "const") {
         return parse_const(ctx, token, tl);
+    }
 
-    if (identifier == "dim")
+    if (identifier == "dim") {
         return parse_parameter_list<stmt_dim_t>(ctx, token, tl, ":", ctx);
+    }
 
-    if (identifier == "redim")
+    if (identifier == "redim") {
         return parse_parameter_list<stmt_redim_t>(ctx, token, tl, ":", ctx);
+    }
 
-    if (identifier == "open")
+    if (identifier == "open") {
         return parse_open(ctx, token, tl);
+    }
 
-    if (identifier == "close")
+    if (identifier == "close") {
         return parse_close(ctx, token, tl);
+    }
 
-    if (identifier == "while")
+    if (identifier == "while") {
         return parse_while(ctx, token, tl);
+    }
 
-    if (identifier == "loop")
+    if (identifier == "loop") {
         return parse_loop_while(ctx, token, tl);
+    }
 
-    if (identifier == "shell")
+    if (identifier == "shell") {
         return parse_generic_instruction<stmt_shell_t>(ctx, token, tl, ctx);
+    }
 
-    if (identifier == "chdir")
+    if (identifier == "chdir") {
         return parse_generic_instruction<stmt_chdir_t>(ctx, token, tl, ctx);
+    }
 
-    if (identifier == "fopen")
+    if (identifier == "fopen") {
         return parse_generic_instruction<stmt_fopen_t>(ctx, token, tl, ctx);
+    }
 
-    if (identifier == "seek")
+    if (identifier == "seek") {
         return parse_generic_instruction<stmt_fseek_t>(ctx, token, tl, ctx);
+    }
 
-    if (identifier == "flush")
+    if (identifier == "flush") {
         return parse_generic_instruction<stmt_flush_t>(ctx, token, tl, ctx);
+    }
 
-    if (identifier == "sub")
+    if (identifier == "sub") {
         return parse_procedure<stmt_sub_t>(ctx, token, tl);
+    }
 
-    if (identifier == "struct")
+    if (identifier == "struct") {
         return parse_struct(ctx, token, tl);
+    }
 
-    if (identifier == "function")
+    if (identifier == "function") {
         return parse_procedure<stmt_function_t>(ctx, token, tl);
+    }
     else {
         if (identifier == "let") {
             --tl;
-        } else {
+        } 
+        else {
             auto h = parse_label(ctx, token, tl);
 
             if (h)
@@ -2008,9 +2090,11 @@ bool stmt_parser_t::search_for__as_type(
     token = *etl.begin();
 
     if (token.type() == tkncl_t::SUBEXP_BEGIN) {
+
         while (!etl.empty()) {
-            if (token.type() == tkncl_t::SUBEXP_END)
+            if (token.type() == tkncl_t::SUBEXP_END) {
                 break;
+            }
 
             --etl;
         }

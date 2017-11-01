@@ -63,8 +63,7 @@ public:
     var_scope_t::handle_t get(type_t type = type_t::LOCAL) const noexcept;
 
     //! Get global scope
-    var_scope_t::handle_t get_global() const noexcept
-    {
+    var_scope_t::handle_t get_global() const noexcept {
         return get(type_t::GLOBAL);
     }
 

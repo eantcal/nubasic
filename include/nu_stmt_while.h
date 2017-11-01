@@ -46,8 +46,8 @@ public:
 
     ~stmt_while_t();
 
-    virtual stmt_cl_t get_cl() const noexcept override;
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    stmt_cl_t get_cl() const noexcept override;
+    void run(rt_prog_ctx_t& ctx) override;
 
 protected:
     expr_any_t::handle_t _condition;
@@ -57,11 +57,12 @@ protected:
 
     static void build_ctx(prog_ctx_t& ctx);
 
-    virtual bool notify(const event_t& ev) override;
+    bool notify(const event_t& ev) override;
 };
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

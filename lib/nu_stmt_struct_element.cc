@@ -36,7 +36,8 @@ stmt_struct_element_t::stmt_struct_element_t(prog_ctx_t& ctx,
     if (user_def_type != ctx.struct_prototypes.data.end()) {
         element_it->second.second.define_struct_member(
             name, user_def_type->second.second);
-    } else {
+    } 
+    else {
         syntax_error_if(type_code == variable_t::type_t::UNDEFINED, name, 0,
             "Struct... End Struct");
 
@@ -48,7 +49,10 @@ stmt_struct_element_t::stmt_struct_element_t(prog_ctx_t& ctx,
 
 /* -------------------------------------------------------------------------- */
 
-void stmt_struct_element_t::run(rt_prog_ctx_t& ctx) { ctx.go_to_next(); }
+void stmt_struct_element_t::run(rt_prog_ctx_t& ctx) 
+{ 
+    ctx.go_to_next(); 
+}
 
 
 /* -------------------------------------------------------------------------- */

@@ -39,16 +39,17 @@ public:
 
 
     variant_t eval(rt_prog_ctx_t& ctx) const override;
+    
+    bool empty() const noexcept override { 
+        return false; 
+    }
+    
+    std::string name() const noexcept override { 
+        return _name; 
+    }
 
 
-    virtual bool empty() const noexcept override { return false; }
-
-
-    std::string name() const noexcept override { return _name; }
-
-
-    func_args_t get_args() const noexcept override
-    {
+    func_args_t get_args() const noexcept override {
         func_args_t dummy;
         return dummy;
     }
@@ -59,6 +60,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

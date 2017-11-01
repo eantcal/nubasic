@@ -35,8 +35,9 @@ stmt_struct_t::stmt_struct_t(prog_ctx_t& ctx, const std::string& id)
     //
 
     // Remove an old declaration for replacing its prototype
-    if (i != ctx.struct_prototypes.data.end())
+    if (i != ctx.struct_prototypes.data.end()) {
         ctx.struct_prototypes.data.erase(i);
+    }
 
     ctx.struct_prototypes.data.insert(std::make_pair(id,
         std::make_pair(ctx.compiletime_pc, variant_t(struct_variant_t(id)))));
@@ -62,7 +63,8 @@ void stmt_struct_t::run(rt_prog_ctx_t& ctx)
         handle->flag.set(instrblock_t::EXIT, true);
         ctx.go_to(handle->pc_end_stmt);
         return;
-    } else {
+    } 
+    else {
         handle->flag.set(instrblock_t::EXIT, false);
     }
 

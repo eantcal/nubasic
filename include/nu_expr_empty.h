@@ -33,18 +33,20 @@ public:
     expr_empty_t& operator=(const expr_empty_t&) = default;
 
     //! It does nothing for an empty object
-    virtual variant_t eval(rt_prog_ctx_t&) const override
-    {
+    variant_t eval(rt_prog_ctx_t&) const override {
         return variant_t(0);
     }
 
     //! Returns true for an empty expression
-    virtual bool empty() const noexcept override { return true; }
+    bool empty() const noexcept override { 
+        return true; 
+    }
 
-    std::string name() const noexcept override { return ""; }
+    std::string name() const noexcept override { 
+        return ""; 
+    }
 
-    func_args_t get_args() const noexcept override
-    {
+    func_args_t get_args() const noexcept override {
         func_args_t dummy;
         return dummy;
     }

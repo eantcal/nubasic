@@ -46,9 +46,13 @@ public:
     //! Returns false for this type of object
     bool empty() const noexcept override;
 
-    std::string name() const noexcept override { return _name; }
+    std::string name() const noexcept override { 
+        return _name; 
+    }
 
-    func_args_t get_args() const noexcept override { return _var; }
+    func_args_t get_args() const noexcept override { 
+        return _var; 
+    }
 
 
 protected:

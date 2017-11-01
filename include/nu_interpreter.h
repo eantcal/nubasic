@@ -82,14 +82,12 @@ public:
         {
         }
 
-        breakpoint_cond_t(breakpoint_cond_t&& other)
-        {
+        breakpoint_cond_t(breakpoint_cond_t&& other) {
             condition_str = std::move(other.condition_str);
             condition_stmt = std::move(other.condition_stmt);
         }
 
-        breakpoint_cond_t& operator=(breakpoint_cond_t&& other)
-        {
+        breakpoint_cond_t& operator=(breakpoint_cond_t&& other) {
             if (this != &other) {
                 condition_str = std::move(other.condition_str);
                 condition_stmt = std::move(other.condition_stmt);
@@ -109,8 +107,7 @@ public:
 
     virtual ~interpreter_t();
 
-    bool get_and_reset_break_event() noexcept
-    {
+    bool get_and_reset_break_event() noexcept {
         volatile bool res = _break_event;
         _break_event = false;
         return ignore_break_event() ? false : res;
@@ -136,8 +133,7 @@ public:
 
     void renum_line(std::string& line, const renum_tbl_t& renum_tbl);
 
-    bool is_breakpoint_active() const noexcept
-    {
+    bool is_breakpoint_active() const noexcept {
         return _breakpoints.find(_prog_ctx.runtime_pc.get_line())
             != _breakpoints.end();
     }

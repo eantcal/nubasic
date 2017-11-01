@@ -42,11 +42,12 @@ public:
     stmt_struct_element_t(const stmt_struct_element_t&) = delete;
     stmt_struct_element_t& operator=(const stmt_struct_element_t&) = delete;
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    void run(rt_prog_ctx_t& ctx) override;
 };
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

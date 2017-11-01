@@ -31,35 +31,42 @@ namespace nu {
 //! Parses s interpreting its content as a floating-point number
 //! which is returned as a value of type float
 
-inline float stof(const std::string& s) { return (float)atof(s.c_str()); }
+inline float stof(const std::string& s) { 
+    return (float)atof(s.c_str()); 
+}
 
 
 /* -------------------------------------------------------------------------- */
 
 //! Parses s interpreting its content as a floating-point number
 //! which is returned as a value of type float
-inline double stod(const std::string& s) { return std::stod(s); }
+inline double stod(const std::string& s) { 
+    return std::stod(s); 
+}
 
 
 /* -------------------------------------------------------------------------- */
 
 //! Parses s interpreting its content as an integral number
 //! which is returned as an int value
-inline int stoi(const std::string& s) { return std::stoi(s); }
+inline int stoi(const std::string& s) { 
+    return std::stoi(s); 
+}
 
 
 /* -------------------------------------------------------------------------- */
 
 //! Parses s interpreting its content as an long integral number
 //! which is returned as an int value
-inline long long stoll(const std::string& s) { return std::stoll(s); }
+inline long long stoll(const std::string& s) { 
+    return std::stoll(s); 
+}
 
 
 /* -------------------------------------------------------------------------- */
 
 //! Returns a string with the representation of item
-template <class T> inline std::string to_string(const T& item)
-{
+template <class T> inline std::string to_string(const T& item) {
     return std::to_string(item);
 }
 

@@ -129,7 +129,8 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
         ret = size >= 0;
 
         if (vtype == nu::variable_t::type_t::STRING
-            || vtype == nu::variable_t::type_t::BOOLEAN) {
+            || vtype == nu::variable_t::type_t::BOOLEAN) 
+        {
             svalue = std::string(buf.begin(), buf.end());
         }
 
@@ -199,7 +200,8 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
         }
 
         scope->define(name, var_value_t(var, VAR_ACCESS_RW));
-    } else {
+    } 
+    else {
         switch (vtype) {
         case variable_t::type_t::STRING:
             scope->define(name, var_value_t(svalue, VAR_ACCESS_RW));
@@ -208,7 +210,8 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
         case variable_t::type_t::FLOAT:
             try {
                 scope->define(name, var_value_t(fvalue, VAR_ACCESS_RW));
-            } catch (...) {
+            } 
+            catch (...) {
                 scope->define(name, var_value_t(float(0), VAR_ACCESS_RW));
             }
 
@@ -217,7 +220,8 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
         case variable_t::type_t::DOUBLE:
             try {
                 scope->define(name, var_value_t(dvalue, VAR_ACCESS_RW));
-            } catch (...) {
+            } 
+            catch (...) {
                 scope->define(name, var_value_t(double(0), VAR_ACCESS_RW));
             }
 
@@ -227,7 +231,8 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
         case variable_t::type_t::LONG64:
             try {
                 scope->define(name, var_value_t(llvalue, VAR_ACCESS_RW));
-            } catch (...) {
+            } 
+            catch (...) {
                 scope->define(name, var_value_t((long long)0, VAR_ACCESS_RW));
             }
 
@@ -240,15 +245,17 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
                     name, var_value_t(strcasecmp(svalue.c_str(), "false") != 0
                                   && strcasecmp(svalue.c_str(), "0") != 0,
                               VAR_ACCESS_RW));
-            } catch (...) {
+            } 
+            catch (...) {
                 scope->define(name, var_value_t(false, VAR_ACCESS_RW));
             }
 
             break;
 
         case variable_t::type_t::BYTEVECTOR:
-            if (buf.size() > 0)
+            if (buf.size() > 0) {
                 scope->define(name, var_value_t(buf, VAR_ACCESS_RW));
+            }
 
             break;
 
@@ -263,7 +270,8 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
         default:
             try {
                 scope->define(name, var_value_t(ivalue, VAR_ACCESS_RW));
-            } catch (...) {
+            } 
+            catch (...) {
                 scope->define(name, var_value_t(0, VAR_ACCESS_RW));
             }
 
@@ -272,7 +280,6 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
     }
 
     ctx.set_errno(ret != 0 ? errno : 0);
-
     ctx.go_to_next();
 }
 

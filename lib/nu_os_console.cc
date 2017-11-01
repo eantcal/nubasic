@@ -31,16 +31,18 @@ namespace nu {
 
 static std::string _input_str(int n, std::function<int()> _getch_f)
 {
-    if (n <= 1)
+    if (n <= 1) {
         n = 1;
+    }
 
     std::string ret;
 
     for (int i = 0; i < n; ++i) {
         int c = _getch_f();
 
-        if (c == 0x03 /* ETX */)
+        if (c == 0x03 /* ETX */) {
             break;
+        }
 
         ret += (c & 0xff);
     }
@@ -76,8 +78,9 @@ void _os_cls()
     DWORD dwConSize;
 
     // Get the number of character cells in the current buffer.
-    if (!GetConsoleScreenBufferInfo(hConsole, &csbi))
+    if (!GetConsoleScreenBufferInfo(hConsole, &csbi)) {
         return;
+    }
 
     dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
 
@@ -92,8 +95,9 @@ void _os_cls()
     }
 
     // Get the current text attribute.
-    if (!GetConsoleScreenBufferInfo(hConsole, &csbi))
+    if (!GetConsoleScreenBufferInfo(hConsole, &csbi)) {
         return;
+    }
 
     // Set the buffer's attributes accordingly.
     if (!FillConsoleOutputAttribute(hConsole, // Handle to console screen buffer
@@ -144,10 +148,12 @@ std::string _os_input(FILE* finput_ptr)
                 return s;
         }
 
-        if (c != '\n')
+        if (c != '\n') {
             s += c;
+        }
 
-    } while (c != '\n');
+    } 
+    while (c != '\n');
 
     return s;
 }
@@ -155,25 +161,25 @@ std::string _os_input(FILE* finput_ptr)
 
 /* -------------------------------------------------------------------------- */
 
-int _os_kbhit() { return _kbhit() ? _getch() : 0; }
+int _os_kbhit() 
+{ 
+    return _kbhit() ? _getch() : 0; 
+}
 
 
 /* -------------------------------------------------------------------------- */
 
 static struct _cursor_info_t {
-    _cursor_info_t()
-    {
+    _cursor_info_t() {
         hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
         GetConsoleCursorInfo(hConsoleOutput, &structCursorInfo);
     }
 
-    ~_cursor_info_t()
-    {
+    ~_cursor_info_t() {
         SetConsoleCursorInfo(hConsoleOutput, &structCursorInfo);
     }
 
-    void set_cur_state(bool on)
-    {
+    void set_cur_state(bool on) {
         CONSOLE_CURSOR_INFO structCursorInfo_ = { 0 };
         structCursorInfo_.bVisible = on ? TRUE : FALSE;
         structCursorInfo_.dwSize = on ? structCursorInfo.dwSize : 1;
@@ -188,7 +194,10 @@ static struct _cursor_info_t {
 
 /* -------------------------------------------------------------------------- */
 
-void _os_cursor_visible(bool on) { _cur_info.set_cur_state(on); }
+void _os_cursor_visible(bool on) 
+{ 
+    _cur_info.set_cur_state(on); 
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -250,21 +259,25 @@ private:
     struct termios _tty_set;
 
 public:
-    save_tty_settings_t()
-    {
+    save_tty_settings_t() {
         _old_flags = fcntl(STDIN_FILENO, F_GETFL, 0);
         tcgetattr(STDIN_FILENO, &_tty_set); // grab old terminal I/O settings
         _tty_set.c_lflag &= ~ICANON;
         tcsetattr(STDIN_FILENO, TCSANOW, &_tty_set);
     }
 
-    ~save_tty_settings_t() { fcntl(STDIN_FILENO, F_SETFL, _old_flags); }
+    ~save_tty_settings_t() { 
+        fcntl(STDIN_FILENO, F_SETFL, _old_flags); 
+    }
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_init() { static save_tty_settings_t _init_terminal; }
+void _os_init() 
+{ 
+    static save_tty_settings_t _init_terminal; 
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -278,12 +291,18 @@ void _os_cls()
 
 /* -------------------------------------------------------------------------- */
 
-void _os_locate(int y, int x) { printf("%c[%d;%df", 0x1B, y, x); }
+void _os_locate(int y, int x) 
+{ 
+    printf("%c[%d;%df", 0x1B, y, x); 
+}
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_cursor_visible(bool on) { printf("%c[?25%c", 0x1B, !on ? 'l' : 'h'); }
+void _os_cursor_visible(bool on) 
+{ 
+    printf("%c[?25%c", 0x1B, !on ? 'l' : 'h'); 
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -360,7 +379,8 @@ std::string _os_input(FILE* finput_ptr)
 
         if (c != '\n')
             s += c;
-    } while (c != '\n');
+    } 
+    while (c != '\n');
 
     return s;
 }
@@ -373,8 +393,9 @@ int _os_kbhit()
     terminal_input_t ti(true);
     int c = 0;
 
-    while (ti.keybhit())
+    while (ti.keybhit()) {
         c = fgetc(stdin);
+    }
 
     return c;
 }

@@ -66,6 +66,7 @@ bool lxa_str_t::accept(char c)
 {
     // escape can be accepted only if it is within the quotes
     if (_escape_prefix && !_escape_found && c == _escape_prefix) {
+
         if (_begin_found != _begin_quote || !_end_found.empty()) {
             return false;
         }
@@ -75,6 +76,7 @@ bool lxa_str_t::accept(char c)
     }
 
     if (_begin_found != _begin_quote) {
+
         if (_bindex < _begin_quote.size() && c == _begin_quote[_bindex]) {
             _begin_found += c;
             ++_bindex;
@@ -107,7 +109,6 @@ bool lxa_str_t::accept(char c)
                 _data += '\a';
                 break;
 
-
             default:
                 _data += c;
             }
@@ -119,7 +120,8 @@ bool lxa_str_t::accept(char c)
         if (_eindex < _end_quote.size() && c == _end_quote[_eindex]) {
             _end_found += c;
             ++_eindex;
-        } else {
+        } 
+        else {
             _data += c;
         }
 
@@ -145,7 +147,10 @@ void lxa_str_t::reset()
 
 /* -------------------------------------------------------------------------- */
 
-const std::string& lxa_str_t::data() const { return _data; }
+const std::string& lxa_str_t::data() const 
+{
+    return _data; 
+}
 
 
 /* -------------------------------------------------------------------------- */

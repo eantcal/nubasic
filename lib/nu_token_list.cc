@@ -72,8 +72,9 @@ size_t token_list_t::find(
     assert(!((pos + items) > size()));
 
     for (size_t i = pos; i < (pos + items); ++i) {
-        if (test(i))
+        if (test(i)) {
             return i;
+        }
     }
 
     return npos;
@@ -135,7 +136,8 @@ std::list<token_list_t> token_list_t::get_parameters(btfunc_t test_begin,
                 begin_pos = i;
 
             ++level;
-        } else if (test_end(t)) {
+        } 
+        else if (test_end(t)) {
             --level;
 
             if (level < 1) {
@@ -150,7 +152,8 @@ std::list<token_list_t> token_list_t::get_parameters(btfunc_t test_begin,
 
             if (i == end_pos)
                 break;
-        } else if (level > 0) {
+        } 
+        else if (level > 0) {
             if (i != begin_pos)
                 ret += t;
         }
@@ -209,7 +212,8 @@ token_list_t token_list_t::sublist(
                 begin_pos = i;
 
             ++level;
-        } else if (test_end(t)) {
+        } 
+        else if (test_end(t)) {
             --level;
 
             if (level < 1) {
@@ -229,8 +233,9 @@ token_list_t token_list_t::sublist(
         syntax_error(t.expression(), t.position(), "Missing token, error");
     }
 
-    if (b_erase)
+    if (b_erase) {
         data().erase(begin() + begin_pos, begin() + end_pos);
+    }
 
     search_from = begin_pos;
 
@@ -253,7 +258,6 @@ token_list_t token_list_t::sublist(const token_t& first, const token_t& second,
             && t.type() == second.type();
     };
 
-
     return sublist(test_begin, test_end, search_from, b_erase);
 }
 
@@ -272,7 +276,6 @@ token_list_t token_list_t::sublist(
         return t.identifier() == second.first && t.type() == second.second;
     };
 
-
     return sublist(test_begin, test_end, search_from, b_erase);
 }
 
@@ -289,8 +292,9 @@ token_list_t::data_t::iterator token_list_t::skip_right(
     for (; search_from != end(); ++search_from) {
         const token_t& t = *search_from;
 
-        if (t.identifier() == first.first && t.type() == first.second)
+        if (t.identifier() == first.first && t.type() == first.second) {
             ++level;
+        }
 
         if (t.identifier() == second.first && t.type() == second.second) {
             --level;
@@ -325,8 +329,9 @@ token_list_t::data_t::reverse_iterator token_list_t::skip_left(
     for (; search_from != rend(); ++search_from) {
         const token_t& t = *search_from;
 
-        if (t.identifier() == second.first && t.type() == second.second)
+        if (t.identifier() == second.first && t.type() == second.second) {
             ++level;
+        }
 
         if (t.identifier() == first.first && t.type() == first.second) {
             --level;
@@ -385,7 +390,6 @@ token_list_t token_list_t::replace_sublist(
 token_list_t token_list_t::replace_sublist(const tkp_t& first,
     const tkp_t& second, size_t search_from, const token_list_t& replist)
 {
-
     auto test_begin = [&](const token_t& t) {
         return t.identifier() == first.first && t.type() == first.second;
     };
@@ -446,10 +450,12 @@ void token_list_t::_chekpos(size_t pos, size_t items)
 std::ostream& operator<<(std::ostream& os, const nu::token_list_t& tl)
 {
     for (const auto& e : tl.data()) {
-        if (e.identifier().empty())
+        if (e.identifier().empty()) {
             os << (e.type() == nu::tkncl_t::SUBEXP_BEGIN ? "{" : "}");
-        else
+        }
+        else {
             os << e.identifier();
+        }
     }
 
     return os;

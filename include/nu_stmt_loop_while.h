@@ -36,8 +36,8 @@ public:
     stmt_loop_while_t(const stmt_loop_while_t&) = delete;
     stmt_loop_while_t& operator=(const stmt_loop_while_t&) = delete;
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
-    virtual stmt_cl_t get_cl() const noexcept override;
+    void run(rt_prog_ctx_t& ctx) override;
+    stmt_cl_t get_cl() const noexcept override;
 
 protected:
     expr_any_t::handle_t _condition;

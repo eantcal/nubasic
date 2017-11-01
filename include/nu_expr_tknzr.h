@@ -64,35 +64,29 @@ public:
 
 
     //! Get a token and advance to the next one (if any)
-    virtual token_t next() override;
-
-
+    token_t next() override;
+    
     //! Split expression in token and copy them into a token list
-    virtual void get_tknlst(
-        token_list_t& tl, bool strip_comment = true) override;
+    void get_tknlst(token_list_t& tl, bool strip_comment = true) override;
 
 
     using typed_token_id_t = std::pair<std::string, tkncl_t>;
     using typed_token_set_t = std::set<typed_token_id_t>;
 
-    //! Remove comment lines and comments at end of token list
-    static void strip_comment_line(
-        token_list_t& tl, const typed_token_set_t& comment_id_set);
-
-
     //! Get begin sub-expression symbol
-    std::string subexp_begin_symbol() const noexcept
-    {
+    std::string subexp_begin_symbol() const noexcept {
         return _subexp_begin_symb;
     }
 
     //! Get end sub-expression symbol
-    std::string subexp_end_symbol() const noexcept { return _subexp_end_symb; }
-
-
+    std::string subexp_end_symbol() const noexcept { 
+        return _subexp_end_symb; 
+    }
+    
     //! Return expression position in the source line
-    size_t get_exp_pos() const noexcept { return _pos; }
-
+    size_t get_exp_pos() const noexcept { 
+        return _pos; 
+    }
 
 protected:
     //! Get a token and advance to the next one (if any)

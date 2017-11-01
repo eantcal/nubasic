@@ -31,7 +31,7 @@ namespace nu {
 struct os_shell_t : public generic_functor_t {
     static int exec(const std::string& cmd);
 
-    virtual int apply(rt_prog_ctx_t& ctx, args_t args) override;
+    int apply(rt_prog_ctx_t& ctx, args_t args) override;
 };
 
 
@@ -39,7 +39,7 @@ struct os_shell_t : public generic_functor_t {
 
 //! Changes current working directory
 struct os_chdir_t : public generic_functor_t {
-    virtual int apply(rt_prog_ctx_t& ctx, args_t args) override;
+    int apply(rt_prog_ctx_t& ctx, args_t args) override;
 };
 
 
@@ -47,7 +47,7 @@ struct os_chdir_t : public generic_functor_t {
 
 //! Implements FOPEN
 struct os_fopen_t : public generic_functor_t {
-    virtual int apply(rt_prog_ctx_t& ctx, args_t args) override;
+    int apply(rt_prog_ctx_t& ctx, args_t args) override;
 };
 
 
@@ -55,7 +55,7 @@ struct os_fopen_t : public generic_functor_t {
 
 //! Implements SEEK
 struct os_fseek_t : public generic_functor_t {
-    virtual int apply(rt_prog_ctx_t& ctx, args_t args) override;
+    int apply(rt_prog_ctx_t& ctx, args_t args) override;
 };
 
 
@@ -63,19 +63,12 @@ struct os_fseek_t : public generic_functor_t {
 
 //! Implements FLUSH
 struct os_fflush_t : public generic_functor_t {
-    virtual int apply(rt_prog_ctx_t& ctx, args_t args) override;
+    int apply(rt_prog_ctx_t& ctx, args_t args) override;
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-//! Implements READ
-struct os_fread_t : public generic_functor_t {
-    virtual int apply(rt_prog_ctx_t& ctx, args_t args) override;
-};
-
-
-/* -------------------------------------------------------------------------- */
 }
 
 

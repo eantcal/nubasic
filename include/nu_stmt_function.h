@@ -45,14 +45,13 @@ public:
     void define(const std::string& var, const std::string& vtype,
         vec_size_t vect_size, prog_ctx_t& ctx, const std::string& id);
 
-    void define_ret_type(const std::string& type, prog_ctx_t& ctx)
-    {
+    void define_ret_type(const std::string& type, prog_ctx_t& ctx) {
         auto& fproto = ctx.proc_prototypes.data[_id].second;
         fproto.ret_type = type;
     }
 
-    virtual stmt_cl_t get_cl() const noexcept override;
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    stmt_cl_t get_cl() const noexcept override;
+    void run(rt_prog_ctx_t& ctx) override;
 
 protected:
     std::string _id;
@@ -61,6 +60,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

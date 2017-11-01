@@ -49,10 +49,11 @@ void stmt_do_t::run(rt_prog_ctx_t& ctx)
     auto& dowctxs = ctx.do_loop_while_metadata;
     auto handle = dowctxs.begin_find(ctx.runtime_pc);
 
-    if (!handle)
+    if (!handle) {
         rt_error_code_t::get_instance().throw_if(true,
             ctx.runtime_pc.get_line(), rt_error_code_t::E_INTERNAL,
             "Do... Loop While");
+    }
 
     handle->flag.set(instrblock_t::EXIT, false);
     ctx.go_to_next();

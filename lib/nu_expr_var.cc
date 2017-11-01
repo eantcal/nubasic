@@ -22,12 +22,14 @@ variant_t expr_var_t::eval(rt_prog_ctx_t& ctx) const
 {
     var_scope_t::handle_t scope;
 
-    if (scope == nullptr)
+    if (scope == nullptr) {
         scope = ctx.proc_scope.get(ctx.proc_scope.get_type(_name));
+    }
 
     if (scope->is_defined(_name)) {
-        if (scope == nullptr)
+        if (scope == nullptr) {
             scope = ctx.proc_scope.get(ctx.proc_scope.get_type(_name));
+        }
 
         return (*scope)[_name].first;
     }
@@ -40,6 +42,7 @@ variant_t expr_var_t::eval(rt_prog_ctx_t& ctx) const
 }
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

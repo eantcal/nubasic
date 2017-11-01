@@ -70,8 +70,10 @@ public:
     func_args_t get_args() const noexcept override {
         func_args_t ret;
 
-        if (_var1)
+        if (_var1) {
             ret = _var1->get_args();
+        }
+
         if (_var2) {
             for (const auto& e : _var2->get_args())
                 ret.push_back(e);
@@ -106,8 +108,9 @@ public:
     //! Returns f(var1, var2) appling ctor given arguments
     variant_t eval(rt_prog_ctx_t& ctx) const override
     {
-        if (!_var1 || !_var2)
+        if (!_var1 || !_var2) {
             throw exception_t(std::string("Cannot resolve struct element"));
+        }
 
         auto var_name = _var1->name();
         auto var_idx = _var1->get_args();
@@ -117,24 +120,29 @@ public:
 
         if (var_idx.size() > 1 || var_member_idx.size() > 1
             || member_element.empty())
+        {
             throw exception_t(std::string("Cannot resolve struct element"));
+        }
 
         size_t var_vec_idx = 0;
         size_t element_vec_idx = 0;
 
-        if (!var_idx.empty())
+        if (!var_idx.empty()) {
             var_vec_idx = size_t(var_idx[0]->eval(ctx).to_long64());
+        }
 
-        if (!var_member_idx.empty())
+        if (!var_member_idx.empty()) {
             element_vec_idx = size_t(var_member_idx[0]->eval(ctx).to_long64());
+        }
 
         std::string err;
 
         variant_t res = ctx.resolve_struct_element(
             var_name, var_vec_idx, member_element, element_vec_idx, err);
 
-        if (!err.empty())
+        if (!err.empty()) {
             throw exception_t(err);
+        }
 
         return res;
     }

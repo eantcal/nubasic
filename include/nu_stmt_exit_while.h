@@ -34,7 +34,7 @@ public:
 
     stmt_exit_while_t(prog_ctx_t& ctx);
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    void run(rt_prog_ctx_t& ctx) override;
 };
 
 

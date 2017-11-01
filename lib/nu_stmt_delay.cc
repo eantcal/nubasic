@@ -34,11 +34,13 @@ static void __stmt_delay_t_run(rt_prog_ctx_t& ctx, arg_list_t& args,
     int iters = intv / poll_break_intv;
     int left_intv = intv % poll_break_intv;
 
-    while (!break_event && iters--)
+    while (!break_event && iters--) {
         delay_f(poll_break_intv);
+    }
 
-    if (left_intv && !break_event)
+    if (left_intv && !break_event) {
         delay_f(left_intv);
+    }
 
     ctx.go_to_next();
 }

@@ -11,6 +11,7 @@
 #include "nu_file_dscrptr_tbl.h"
 #include "nu_os_std.h"
 
+
 /* -------------------------------------------------------------------------- */
 
 namespace nu {
@@ -36,13 +37,15 @@ bool file_dscrptr_tbl_t::open_fd(
 {
     auto i = _file_tbl.find(fd);
 
-    if (i != _file_tbl.end())
+    if (i != _file_tbl.end()) {
         return false;
+    }
 
     FILE* fptr = fopen(fname.c_str(), fmode.c_str());
 
-    if (!fptr)
+    if (!fptr) {
         return false;
+    }
 
     _file_tbl.insert(
         std::make_pair(fd, std::make_shared<file_dscrptr_t>(fptr)));
@@ -57,8 +60,9 @@ bool file_dscrptr_tbl_t::seek_fd(int seek_ptr, int seek_origin, unsigned int fd)
 {
     FILE* fptr = resolve_fd(fd);
 
-    if (!fptr)
+    if (!fptr) {
         return false;
+    }
 
     return fseek(fptr, seek_ptr, seek_origin) == 0;
 }
@@ -70,8 +74,9 @@ bool file_dscrptr_tbl_t::flush_fd(unsigned int fd)
 {
     FILE* fptr = resolve_fd(fd);
 
-    if (!fptr)
+    if (!fptr) {
         return false;
+    }
 
     return fflush(fptr) == 0;
 }
@@ -83,8 +88,9 @@ FILE* file_dscrptr_tbl_t::resolve_fd(unsigned int fd)
 {
     auto i = _file_tbl.find(fd);
 
-    if (i == _file_tbl.end())
+    if (i == _file_tbl.end()) {
         return nullptr;
+    }
 
     return i->second->data();
 }
@@ -96,8 +102,9 @@ bool file_dscrptr_tbl_t::close_fd(unsigned int fd)
 {
     auto i = _file_tbl.find(fd);
 
-    if (i == _file_tbl.end())
+    if (i == _file_tbl.end()) {
         return false;
+    }
 
     assert(i->second);
 
@@ -118,8 +125,9 @@ FILE* file_dscrptr_t::data() const noexcept { return _fptr; }
 
 file_dscrptr_t::~file_dscrptr_t()
 {
-    if (_fptr)
+    if (_fptr) {
         fclose(_fptr);
+    }
 }
 
 
@@ -129,12 +137,14 @@ bool file_dscrptr_t::close() noexcept
 {
     bool ret = _fptr == nullptr ? false : fclose(_fptr) == 0;
 
-    if (ret)
+    if (ret) {
         _fptr = nullptr;
+    }
 
     return ret;
 }
 
 
 /* -------------------------------------------------------------------------- */
+
 }

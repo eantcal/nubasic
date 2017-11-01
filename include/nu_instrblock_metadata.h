@@ -40,7 +40,9 @@ struct instrblock_t {
 
     enum { EXIT };
 
-    instrblock_t() noexcept { flag.define(EXIT); }
+    instrblock_t() noexcept { 
+        flag.define(EXIT); 
+    }
 
     instrblock_t(const instrblock_t&) = default;
     instrblock_t& operator=(const instrblock_t&) = default;
@@ -73,9 +75,13 @@ protected:
     end_tbl_t exit_tbl; // exit-line -> begin line
 
 public:
-    bool empty() const noexcept { return begin_tbl.empty(); }
+    bool empty() const noexcept { 
+        return begin_tbl.empty(); 
+    }
 
-    size_t get_exit_point_cnt() const noexcept { return exit_tbl.size(); }
+    size_t get_exit_point_cnt() const noexcept { 
+        return exit_tbl.size(); 
+    }
 
 
     void trace(std::stringstream& ss, bool include_else = false);
@@ -124,6 +130,7 @@ struct if_instrblock_metadata_t {
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

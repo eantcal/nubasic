@@ -57,18 +57,14 @@ public:
     // Program counter (line, stmt)
     prog_pointer_t runtime_pc;
 
-
     // Going-to program counter (used with flags to handle control structures)
     prog_pointer_t goingto_pc;
-
 
     // Run-time descriptor file table
     file_dscrptr_tbl_t file_tbl;
 
-
     // FOR-Loop run-time data
     for_loop_rtdata_t for_loop_tbl;
-
 
     // Per-function return-value stack
     //
@@ -78,42 +74,35 @@ public:
 
     using source_line_t = std::map<prog_pointer_t::line_number_t, std::string>;
 
-
     rt_prog_ctx_t(
         runnable_t& robj, FILE* stdout_ptr, FILE* stdin_ptr, source_line_t& sl);
-
 
     void go_to(const prog_pointer_t& pc) noexcept;
     void go_to_next() noexcept;
 
-
     runnable_t& program() { return _program_code; }
-
 
     void set_return_line(const return_point_t& return_point) noexcept;
 
-
     return_point_t get_return_line() noexcept;
 
-
     void clear_rtdata();
-
 
     // Print-out traces of run-time data
     void trace_rtdata(std::stringstream& ss);
 
-
     // Set running statement error number
-    void set_errno(int errno_) noexcept { _errno = errno_; }
-
+    void set_errno(int errno_) noexcept { 
+        _errno = errno_; 
+    }
 
     // Get last error number of running program
-    int get_errno() const noexcept { return _errno; }
-
+    int get_errno() const noexcept { 
+        return _errno; 
+    }
 
     // Trace nested procedure calls
     return_stack_t return_stack;
-
 
     // Used by IDE to evaluate expressions
     variant_t exported_result;

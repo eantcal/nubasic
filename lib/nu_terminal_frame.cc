@@ -57,7 +57,8 @@ int create_terminal_frame(int argc, char* argv[])
     }
 
     else if (argc > 0
-        && (argc < 2 || strcmp(argv[1], NU_BASIC_XTERM_FRAME_SWITCH))) {
+        && (argc < 2 || strcmp(argv[1], NU_BASIC_XTERM_FRAME_SWITCH))) 
+    {
         std::string progname = argv[0];
         progname += " ";
         progname += NU_BASIC_XTERM_FRAME_SWITCH;

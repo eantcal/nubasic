@@ -36,11 +36,11 @@ void stmt_call_t::run(
     rt_prog_ctx_t& ctx, const prog_pointer_t::line_number_t& line)
 {
 
-    auto rt_error_if = [&](
-        bool cond, rt_error_code_t::value_t err, const std::string& desc) {
-        rt_error_code_t::get_instance().throw_if(
-            cond, ctx.runtime_pc.get_line(), err, desc);
-    };
+    auto rt_error_if = 
+        [&](bool cond, rt_error_code_t::value_t err, const std::string& desc) {
+            rt_error_code_t::get_instance().throw_if(
+                cond, ctx.runtime_pc.get_line(), err, desc);
+        };
 
     auto i = ctx.proc_prototypes.data.find(_name);
 

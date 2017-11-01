@@ -53,26 +53,28 @@ stmt_function_t::stmt_function_t(prog_ctx_t& ctx, const std::string& id)
     ctx.procedure_metadata.compile_begin(ctx.compiletime_pc, id);
 
     // Create an execution object (using a lamda)
-    auto this_func = [](rt_prog_ctx_t& ctx, const std::string& name,
-        const func_args_t& args) -> variant_t {
-        // Run the function
-        ctx.program().run(name, args);
+    auto this_func = 
+        [](rt_prog_ctx_t& ctx, const std::string& name,
+        const func_args_t& args) -> variant_t 
+        {
+            // Run the function
+            ctx.program().run(name, args);
 
-        // Retrieve the return value
-        auto i = ctx.function_retval_tbl.find(name);
+            // Retrieve the return value
+            auto i = ctx.function_retval_tbl.find(name);
 
-        syntax_error_if(i == ctx.function_retval_tbl.end(),
-            "Return value '" + name + "' not defined");
+            syntax_error_if(i == ctx.function_retval_tbl.end(),
+                "Return value '" + name + "' not defined");
 
-        auto& stack = i->second;
-        auto ret = stack.front();
-        stack.pop_front();
+            auto& stack = i->second;
+            auto ret = stack.front();
+            stack.pop_front();
 
-        if (stack.empty())
-            ctx.function_retval_tbl.erase(name);
+            if (stack.empty())
+                ctx.function_retval_tbl.erase(name);
 
-        return ret;
-    };
+            return ret;
+        };
 
     // Register this execution object as a function
     // (just like any other global function,
@@ -99,7 +101,6 @@ void stmt_function_t::run(rt_prog_ctx_t& ctx)
         ctx.go_to(handle->pc_end_stmt);
         return;
     }
-
     else {
         handle->flag.set(instrblock_t::EXIT, false);
     }
@@ -132,6 +133,7 @@ stmt_function_t::stmt_cl_t stmt_function_t::get_cl() const noexcept
 {
     return stmt_cl_t::SUB_BEGIN;
 }
+
 
 /* -------------------------------------------------------------------------- */
 

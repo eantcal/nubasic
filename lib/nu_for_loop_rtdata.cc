@@ -44,12 +44,14 @@ void for_loop_rtdata_t::cleanup_data(const std::string& proc_ctx)
     for (auto i = cbegin(); i != cend(); ++i) {
         const auto& key = i->first;
 
-        if (key.find(proc_ctx) == 0)
+        if (key.find(proc_ctx) == 0) {
             remove_list.insert(key);
+        }
     }
 
-    for (const auto& e : remove_list)
+    for (const auto& e : remove_list) {
         erase(e);
+    }
 }
 
 

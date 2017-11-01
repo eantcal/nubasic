@@ -43,13 +43,15 @@ static struct gdi_plus_t {
     GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR gdiplusToken;
 
-    gdi_plus_t()
-    {
+    gdi_plus_t() {
         // Initialize GDI+.
         GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
     }
 
-    ~gdi_plus_t() { GdiplusShutdown(gdiplusToken); }
+    ~gdi_plus_t() { 
+        GdiplusShutdown(gdiplusToken); 
+    }
+
 } _gdi_plus_instance;
 
 
@@ -91,13 +93,12 @@ public:
 
         SelectObject(_hdc, _hbr);
     }
-
-
-    HDC get_hdc() const noexcept { return _hdc; }
-
-
-    ~gdi_ctx_t() noexcept
-    {
+    
+    HDC get_hdc() const noexcept { 
+        return _hdc; 
+    }
+    
+    ~gdi_ctx_t() noexcept {
         if (_brush == SOLID_BRUSH && _hbr)
             DeleteObject(_hbr);
 
@@ -129,7 +130,8 @@ int os_textout_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
         nu::variable_t::type_t t) { return !nu::variable_t::is_number(t); };
 
     if (is_not_a_number(tx) || is_not_a_number(ty) || is_not_a_number(tc)
-        || tt != variant_t::type_t::STRING) {
+        || tt != variant_t::type_t::STRING) 
+    {
         return EINVAL;
     }
 
@@ -159,8 +161,9 @@ int os_line_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
 
-    if (args.size() != NARGS)
+    if (args.size() != NARGS) {
         return EINVAL;
+    }
 
     gdi_ctx_t gdi_ctx(args[COL], gdi_ctx_t::NO_BRUSH, 0, 1);
 
@@ -180,8 +183,9 @@ int os_set_pixel_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
     enum { X, Y, COL, NARGS };
 
-    if (args.size() != NARGS)
+    if (args.size() != NARGS) {
         return EINVAL;
+    }
 
     gdi_ctx_t gdi_ctx;
 
@@ -200,8 +204,9 @@ int os_rect_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
 
-    if (args.size() != NARGS)
+    if (args.size() != NARGS) {
         return EINVAL;
+    }
 
     gdi_ctx_t gdi_ctx(args[COL], gdi_ctx_t::NO_BRUSH, 0, 1);
 
@@ -219,8 +224,9 @@ int os_ellipse_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
 
-    if (args.size() != NARGS)
+    if (args.size() != NARGS) {
         return EINVAL;
+    }
 
     gdi_ctx_t gdi_ctx(args[COL], gdi_ctx_t::NO_BRUSH, 0, 1);
 
@@ -238,8 +244,9 @@ int os_fillrect_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
 
-    if (args.size() != NARGS)
+    if (args.size() != NARGS) {
         return EINVAL;
+    }
 
     gdi_ctx_t gdi_ctx(args[COL], gdi_ctx_t::SOLID_BRUSH, args[COL], 1);
 
@@ -257,8 +264,9 @@ int os_fillellipse_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
 
-    if (args.size() != NARGS)
+    if (args.size() != NARGS) {
         return EINVAL;
+    }
 
     gdi_ctx_t gdi_ctx(args[COL], gdi_ctx_t::SOLID_BRUSH, args[COL], 1);
 
@@ -276,8 +284,9 @@ int os_plotimage_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
 
     enum { FNAME, X, Y, NARGS };
 
-    if (args.size() != NARGS)
+    if (args.size() != NARGS) {
         return EINVAL;
+    }
 
     auto tx = args[X].get_type();
     auto ty = args[Y].get_type();
@@ -287,7 +296,8 @@ int os_plotimage_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
         nu::variable_t::type_t t) { return !nu::variable_t::is_number(t); };
 
     if (is_not_a_number(tx) || is_not_a_number(ty)
-        || (fname != variant_t::type_t::STRING)) {
+        || (fname != variant_t::type_t::STRING)) 
+    {
         return EINVAL;
     }
 
@@ -358,14 +368,17 @@ int _os_get_mouse_btn() noexcept
 {
     int ret = 0;
 
-    if (GetAsyncKeyState(VK_LBUTTON))
+    if (GetAsyncKeyState(VK_LBUTTON)) {
         ret |= 1;
+    }
 
-    if (GetAsyncKeyState(VK_RBUTTON))
+    if (GetAsyncKeyState(VK_RBUTTON)) {
         ret |= 4;
+    }
 
-    if (GetAsyncKeyState(VK_MBUTTON))
+    if (GetAsyncKeyState(VK_MBUTTON)) {
         ret |= 2;
+    }
 
     return ret;
 }
@@ -376,6 +389,7 @@ int _os_get_mouse_btn() noexcept
 int _os_msg_box(const std::string& title, const std::string& message, int flg)
 {
     (void)flg; // not yet used
+
     return ::MessageBox(
         0, message.c_str(), title.c_str(), MB_ICONINFORMATION | MB_OK);
 }
@@ -537,7 +551,8 @@ public:
     {
         try {
             _xterm_win = nu::stoi(::getenv("WINDOWID"));
-        } catch (...) {
+        } 
+        catch (...) {
             _xterm_win = 0;
         }
 
@@ -825,11 +840,11 @@ private:
     int _win_y = 0;
 
 public:
-    mouse_ctx_t()
-    {
+    mouse_ctx_t() {
         try {
             _xterm_win = nu::stoi(::getenv("WINDOWID"));
-        } catch (...) {
+        } 
+        catch (...) {
             _xterm_win = 0;
         }
 
@@ -866,8 +881,7 @@ public:
 
 
 public:
-    ~mouse_ctx_t()
-    {
+    ~mouse_ctx_t() {
         if (_display) {
             XCloseDisplay(_display);
         }
@@ -896,7 +910,8 @@ int os_textout_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
         nu::variable_t::type_t t) { return !nu::variable_t::is_number(t); };
 
     if (is_not_a_number(tx) || is_not_a_number(ty) || is_not_a_number(tc)
-        || tt != variant_t::type_t::STRING) {
+        || tt != variant_t::type_t::STRING) 
+    {
         return EINVAL;
     }
 
@@ -922,8 +937,9 @@ int os_line_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
 
-    if (args.size() != NARGS)
+    if (args.size() != NARGS) {
         return EINVAL;
+    }
 
     gdi_ctx_t gdi_ctx(args[COL], gdi_ctx_t::NO_BRUSH, 0, 1);
 
@@ -941,8 +957,9 @@ int os_set_pixel_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
     enum { X, Y, COL, NARGS };
 
-    if (args.size() != NARGS)
+    if (args.size() != NARGS) {
         return EINVAL;
+    }
 
     gdi_ctx_t gdi_ctx(args[COL], gdi_ctx_t::NO_BRUSH, 0, 1);
     gdi_ctx.setpixel(args[X], args[Y]);
@@ -959,8 +976,9 @@ int os_rect_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
 
-    if (args.size() != NARGS)
+    if (args.size() != NARGS) {
         return EINVAL;
+    }
 
     gdi_ctx_t gdi_ctx(args[COL], gdi_ctx_t::NO_BRUSH, 0, 1);
 
@@ -978,8 +996,9 @@ int os_fillrect_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
 
-    if (args.size() != NARGS)
+    if (args.size() != NARGS) {
         return EINVAL;
+    }
 
     gdi_ctx_t gdi_ctx(args[COL], gdi_ctx_t::NO_BRUSH, 0, 1);
 
@@ -997,8 +1016,9 @@ int os_ellipse_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
 
-    if (args.size() != NARGS)
+    if (args.size() != NARGS) {
         return EINVAL;
+    }
 
     gdi_ctx_t gdi_ctx(args[COL], gdi_ctx_t::NO_BRUSH, 0, 1);
 
@@ -1016,8 +1036,9 @@ int os_fillellipse_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
 
-    if (args.size() != NARGS)
+    if (args.size() != NARGS) {
         return EINVAL;
+    }
 
     gdi_ctx_t gdi_ctx(args[COL], gdi_ctx_t::NO_BRUSH, 0, 1);
 
@@ -1033,8 +1054,9 @@ int os_plotimage_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
 {
     enum { FNAME, X, Y, NARGS };
 
-    if (args.size() != NARGS)
+    if (args.size() != NARGS) {
         return EINVAL;
+    }
 
     auto tx = args[X].get_type();
     auto ty = args[Y].get_type();
@@ -1044,7 +1066,8 @@ int os_plotimage_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
         nu::variable_t::type_t t) { return !nu::variable_t::is_number(t); };
 
     if (is_not_a_number(tx) || is_not_a_number(ty)
-        || (fname != variant_t::type_t::STRING)) {
+        || (fname != variant_t::type_t::STRING)) 
+    {
         return EINVAL;
     }
 

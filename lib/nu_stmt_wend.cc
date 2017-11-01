@@ -28,11 +28,13 @@ stmt_wend_t::stmt_wend_t(prog_ctx_t& ctx)
 
     auto handle = ctx.while_metadata.end_find(ctx.compiletime_pc);
 
-    if (!handle)
+    if (!handle) {
         handle = ctx.while_metadata.compile_end(ctx.compiletime_pc);
+    }
 
-    if (handle)
+    if (handle) {
         handle->pc_end_stmt = ctx.compiletime_pc;
+    }
 }
 
 
@@ -50,7 +52,6 @@ void stmt_wend_t::run(rt_prog_ctx_t& ctx)
         // jump to while statement
         ctx.go_to(handle->pc_begin_stmt);
     }
-
     else {
         // LOOP completed, go to next line
         ctx.go_to_next();

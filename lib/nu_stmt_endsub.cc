@@ -28,11 +28,13 @@ stmt_endsub_t::stmt_endsub_t(prog_ctx_t& ctx)
 
     auto handle = ctx.procedure_metadata.end_find(ctx.compiletime_pc);
 
-    if (!handle)
+    if (!handle) {
         handle = ctx.procedure_metadata.compile_end(ctx.compiletime_pc);
+    }
 
-    if (handle)
+    if (handle) {
         handle->pc_end_stmt = ctx.compiletime_pc;
+    }
 }
 
 
@@ -42,9 +44,10 @@ void stmt_endsub_t::run(rt_prog_ctx_t& ctx)
 {
     auto handle = ctx.procedure_metadata.end_find(ctx.runtime_pc);
 
-    if (!handle)
+    if (!handle) {
         rt_error_code_t::get_instance().throw_if(true,
             ctx.runtime_pc.get_line(), rt_error_code_t::E_NO_MATCH_SUB, "");
+    }
 
     if (!handle->flag[instrblock_t::EXIT]) {
         ctx.flag.set(rt_prog_ctx_t::FLG_RETURN_REQUEST, true);
@@ -54,7 +57,8 @@ void stmt_endsub_t::run(rt_prog_ctx_t& ctx)
         ctx.for_loop_tbl.cleanup_data(scope_name);
 
         ctx.proc_scope.exit_scope();
-    } else {
+    } 
+    else {
         // SUB completed, go to next line
         ctx.go_to_next();
     }

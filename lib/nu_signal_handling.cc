@@ -46,7 +46,8 @@ signal_mgr_t& signal_mgr_t::instance()
 #ifdef _WIN32
         && GetConsoleWindow()
 #endif
-            ) {
+     ) 
+    {
         _console_active = _os_install_signal_handler();
     }
 
@@ -63,8 +64,9 @@ bool signal_mgr_t::dispatch(signal_handler_t::event_t ev)
     if (handler != _handlers.end() && !handler->second.empty()) {
         bool ret = true;
 
-        for (auto h : handler->second)
+        for (auto h : handler->second) {
             ret = h->notify(ev) && ret;
+        }
 
         return ret;
     }

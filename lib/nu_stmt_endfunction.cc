@@ -30,13 +30,12 @@ stmt_endfunction_t::stmt_endfunction_t(prog_ctx_t& ctx)
 
 void stmt_endfunction_t::run(rt_prog_ctx_t& ctx)
 {
-
     auto handle = ctx.procedure_metadata.end_find(ctx.runtime_pc);
 
-    if (!handle || handle->identifier.empty())
+    if (!handle || handle->identifier.empty()) {
         rt_error_code_t::get_instance().throw_if(true,
             ctx.runtime_pc.get_line(), rt_error_code_t::E_NO_MATCH_FUNC, "");
-
+    }
 
     if (!handle->flag[instrblock_t::EXIT]) {
         ctx.flag.set(rt_prog_ctx_t::FLG_RETURN_REQUEST, true);
@@ -44,7 +43,7 @@ void stmt_endfunction_t::run(rt_prog_ctx_t& ctx)
         // Retrieve name of this this function
         const std::string& identifier = handle->identifier;
 
-        auto scope_type = ctx.proc_scope.get_type(identifier);
+        const auto scope_type = ctx.proc_scope.get_type(identifier);
 
         // The return-value (same function name) must be defined
         if (scope_type != proc_scope_t::type_t::LOCAL)
@@ -52,7 +51,7 @@ void stmt_endfunction_t::run(rt_prog_ctx_t& ctx)
                 ctx.runtime_pc.get_line(), rt_error_code_t::E_NO_RET_VAL,
                 " '" + identifier + "' not defined. ");
 
-        bool expected_retval = ctx.proc_scope.is_func_call(identifier);
+        const bool expected_retval = ctx.proc_scope.is_func_call(identifier);
 
         if (expected_retval) {
             // Get return-value
@@ -63,13 +62,13 @@ void stmt_endfunction_t::run(rt_prog_ctx_t& ctx)
         }
 
         // Clean up any FOR-loop dynamic data
-        auto scope_name = ctx.proc_scope.get_scope_id();
+        const auto scope_name = ctx.proc_scope.get_scope_id();
         ctx.for_loop_tbl.cleanup_data(scope_name);
-
 
         // Leave the function scope
         ctx.proc_scope.exit_scope();
-    } else {
+    } 
+    else {
         // Sub completed, go to next line
         ctx.go_to_next();
     }

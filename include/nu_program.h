@@ -43,7 +43,8 @@ struct dbginfo_t {
 /* -------------------------------------------------------------------------- */
 
 class prog_line_t : public std::map<runnable_t::line_num_t,
-                        std::pair<stmt_t::handle_t, dbginfo_t>> {
+                        std::pair<stmt_t::handle_t, dbginfo_t>> 
+{
 };
 
 

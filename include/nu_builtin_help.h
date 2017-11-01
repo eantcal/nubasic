@@ -32,7 +32,12 @@
 
 namespace nu {
 
-enum class lang_item_t : int { COMMAND, INSTRUCTION, FUNCTION, OPERATOR };
+enum class lang_item_t : int { 
+    COMMAND, 
+    INSTRUCTION, 
+    FUNCTION, 
+    OPERATOR 
+};
 
 
 /* -------------------------------------------------------------------------- */
@@ -51,8 +56,7 @@ private:
 
     static builtin_help_t* _instance;
 
-    virtual void get_err_msg(const std::string& key, std::string& err) const
-    {
+    virtual void get_err_msg(const std::string& key, std::string& err) const {
         err = "item '";
         err += key + "' not found";
     }
@@ -65,6 +69,7 @@ public:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

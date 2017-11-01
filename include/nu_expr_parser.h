@@ -57,7 +57,6 @@ protected:
 
     static void reduce_brackets(token_list_t& rtl);
     static void convert_subscription_brackets(token_list_t& rtl);
-
     static void fix_real_numbers(token_list_t& rtl);
 };
 

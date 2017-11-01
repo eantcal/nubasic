@@ -84,14 +84,16 @@ std::string interpreter_t::skip_blank(expr_tknzr_t& tz, nu::token_t& t)
     std::string blank;
 
     while (!tz.eol() && t.type() == tkncl_t::BLANK) {
-        if (t.type() == tkncl_t::BLANK)
+        if (t.type() == tkncl_t::BLANK) {
             blank += t.org_id();
+        }
 
         t = tz.next();
     }
 
-    if (t.type() == tkncl_t::BLANK)
+    if (t.type() == tkncl_t::BLANK) {
         blank += t.org_id();
+    }
 
     return blank;
 }
@@ -120,7 +122,10 @@ std::string interpreter_t::version()
 
 /* -------------------------------------------------------------------------- */
 
-void interpreter_t::clear_rtdata() { get_rt_ctx().clear_rtdata(); }
+void interpreter_t::clear_rtdata() 
+{ 
+    get_rt_ctx().clear_rtdata(); 
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -174,8 +179,7 @@ void interpreter_t::renum_line(std::string& line, const renum_tbl_t& renum_tbl)
         EXPECTED_GOXX,
         EXPECTED_TO_OR_SUB,
         EXPECTED_LINENUM,
-    } state
-        = EXPECTED_GOXX;
+    } state = EXPECTED_GOXX;
 
     while (!tknzr.eol()) {
         token_t t = tknzr.next();
@@ -197,10 +201,9 @@ void interpreter_t::renum_line(std::string& line, const renum_tbl_t& renum_tbl)
         }
 
         if (t.type() == tkncl_t::STRING_LITERAL) {
+
             auto id = t.org_id();
-
             quote_string(id);
-
             new_line += "\"" + id + "\"";
 
             continue;
@@ -209,17 +212,19 @@ void interpreter_t::renum_line(std::string& line, const renum_tbl_t& renum_tbl)
         switch (state) {
         case EXPECTED_GOXX:
             if (t.type() == tkncl_t::IDENTIFIER) {
-                if (t.identifier() == "goto")
-                    state = EXPECTED_LINENUM;
 
-                else if (t.identifier() == "gosub")
+                if (t.identifier() == "goto") {
                     state = EXPECTED_LINENUM;
-
-                else if (t.identifier() == "go")
+                }
+                else if (t.identifier() == "gosub") {
+                    state = EXPECTED_LINENUM;
+                }
+                else if (t.identifier() == "go") {
                     state = EXPECTED_TO_OR_SUB;
-
-                else
+                }
+                else {
                     state = EXPECTED_GOXX;
+                }
             }
 
             new_line += t.org_id();
@@ -243,15 +248,18 @@ void interpreter_t::renum_line(std::string& line, const renum_tbl_t& renum_tbl)
 
                 try {
                     ln = nu::stoi(t.org_id());
-                } catch (...) {
+                } 
+                catch (...) {
                     ln = 0;
                 }
 
                 auto i = renum_tbl.find(ln);
 
-                new_line += i != renum_tbl.end() ? nu::to_string(i->second)
-                                                 : t.org_id();
-            } else {
+                new_line += 
+                    i != renum_tbl.end() ? 
+                        nu::to_string(i->second) : t.org_id();
+            } 
+            else {
                 new_line += t.org_id();
             }
 
@@ -285,8 +293,9 @@ void interpreter_t::renum_prog(runnable_t::line_num_t step)
         ln += step;
     }
 
-    for (auto i = renumered_source.begin(); i != renumered_source.end(); ++i)
+    for (auto i = renumered_source.begin(); i != renumered_source.end(); ++i) {
         renum_line(i->second, renum_tbl);
+    }
 
     // Replace renumbered breakpoints
     breakpoint_tbl_t breakpoints;
@@ -294,8 +303,9 @@ void interpreter_t::renum_prog(runnable_t::line_num_t step)
     for (const auto& rl : renum_tbl) {
         auto i = _breakpoints.find(rl.first);
 
-        if (i != _breakpoints.end())
+        if (i != _breakpoints.end()) {
             breakpoints.insert(std::make_pair(rl.second, i->second));
+        }
     }
 
     _breakpoints = breakpoints;
@@ -312,8 +322,9 @@ bool interpreter_t::update_program(const std::string& line, int ln)
 
     bool empty_line = ltknzr.eol();
 
-    if (ln < 1 && empty_line)
+    if (ln < 1 && empty_line) {
         return false;
+    }
 
     nu::token_t token(ltknzr.next());
     skip_blank(ltknzr, token);
@@ -323,10 +334,12 @@ bool interpreter_t::update_program(const std::string& line, int ln)
 
     if (ln > 0) {
         line_num = ln;
-    } else {
+    } 
+    else {
         try {
             line_num = nu::stoi(token.identifier());
-        } catch (std::exception&) {
+        } 
+        catch (std::exception&) {
             return false;
         }
 
@@ -353,8 +366,9 @@ bool interpreter_t::update_program(const std::string& line, int ln)
 
     _prog_line[line_num].first = h;
 
-    if (ln == 0 && !code.empty() && code.c_str()[0] == ' ')
+    if (ln == 0 && !code.empty() && code.c_str()[0] == ' ') {
         code = code.substr(1, code.size() - 1);
+    }
 
     _source_line[line_num] = code;
 
@@ -377,8 +391,9 @@ bool interpreter_t::save(const std::string& filepath)
 {
     FILE* f = fopen(filepath.c_str(), "w+b");
 
-    if (!f)
+    if (!f) {
         return false;
+    }
 
     bool ret = true;
 
@@ -418,11 +433,13 @@ std::string interpreter_t::read_line(FILE* f)
     while (!feof(f) && ferror(f) == 0) {
         char c = fgetc(f);
 
-        if (int(c >= 32) && int(c <= 127))
+        if (int(c >= 32) && int(c <= 127)) {
             line.push_back(c);
+        }
 
-        if (c == '\n')
+        if (c == '\n') {
             break;
+        }
     }
 
     return line;
@@ -440,11 +457,13 @@ std::string interpreter_t::read_line(std::stringstream & ss)
         
         ss >> std::noskipws >> c;
 
-        if (int(c >= 32) && int(c <= 127))
+        if (int(c >= 32) && int(c <= 127)) {
             line.push_back(c);
+        }
 
-        if (c == '\n')
+        if (c == '\n') {
             break;
+        }
     }
 
     return line;
@@ -457,10 +476,11 @@ bool interpreter_t::load(FILE* f)
 {
     std::string first_line = read_line(f);
 
-    if (!first_line.empty()) {
-        // skip executable script prefix line
-        if (first_line.size() >= 3 && first_line.substr(0, 2) == "#!")
-            first_line = read_line(f);
+    // skip executable script prefix line
+    if (!first_line.empty() &&
+        (first_line.size() >= 3 && first_line.substr(0, 2) == "#!")) 
+    {
+        first_line = read_line(f);
     }
 
     bool old_format = false;
@@ -487,12 +507,14 @@ bool interpreter_t::load(FILE* f)
 
         if (!line.empty() && ln == 0) {
             // skip executable script prefix line
-            if (line.size() > 2 && line.substr(0, 2) == "#!")
+            if (line.size() > 2 && line.substr(0, 2) == "#!") {
                 line = read_line(f);
+            }
         }
 
-        if (line.empty() && feof(f))
+        if (line.empty() && feof(f)) {
             break;
+        }
 
         if (line.empty() && ferror(f)) {
             fclose(f);
@@ -500,7 +522,8 @@ bool interpreter_t::load(FILE* f)
         }
 
         if ((!old_format || !line.empty())
-            && !update_program(line, old_format ? 0 : ++ln)) {
+            && !update_program(line, old_format ? 0 : ++ln)) 
+        {
             fclose(f);
             return false;
         }
@@ -518,8 +541,9 @@ bool interpreter_t::append(std::stringstream & is, int & n_of_lines)
     while (!is.eof() && !is.bad()) {
         std::string line = read_line(is);
 
-        if (line.empty() && is.eof())
+        if (line.empty() && is.eof()) {
             break;
+        }
 
         if (line.empty() && is.bad()) {
             return false;
@@ -552,11 +576,13 @@ bool interpreter_t::list(
     for (const auto& line : _source_line) {
         bool show[2] = { true, true };
 
-        if (from)
+        if (from) {
             show[0] = line.first >= from;
+        }
 
-        if (to)
+        if (to) {
             show[1] = line.first <= to;
+        }
 
         if (show[0] && show[1]) {
             bool bshow = true;
@@ -574,8 +600,9 @@ bool interpreter_t::list(
                 dbginfo_t dbg;
                 program_t* ptr = dynamic_cast<program_t*>(_prog);
 
-                if (ptr)
+                if (ptr) {
                     ptr->get_dbg_info(line.first, dbg);
+                }
 
                 fprintf(get_rt_ctx().get_stdout_ptr(), "%c%6u %s\n",
                     dbg.break_point ? '*' : ' ', line.first,
@@ -605,8 +632,9 @@ interpreter_t::exec_res_t interpreter_t::set_breakpoint(
     if (ptr) {
         bool res = ptr->get_dbg_info(line, dbg);
 
-        if (!res)
+        if (!res) {
             return exec_res_t::RT_ERROR;
+        }
 
         dbg.break_point = true;
         dbg.condition_stmt = bp.condition_stmt;
@@ -631,23 +659,22 @@ bool interpreter_t::continue_afterbrk(runnable_t::line_num_t line)
     dbginfo_t dbg;
     program_t* ptr = dynamic_cast<program_t*>(_prog);
 
-    if (ptr) {
-        bool res = ptr->get_dbg_info(line, dbg);
-
-        if (!res)
-            return false;
-
-        if (dbg.break_point) {
-            dbg.break_point = false;
-            dbg.continue_after_break = true;
-
-            return ptr->set_dbg_info(line, dbg);
-        }
-
-        return true;
+    if (!ptr) {
+        return false;
     }
 
-    return false;
+    if (!ptr->get_dbg_info(line, dbg)) {
+        return false;
+    }
+
+    if (dbg.break_point) {
+        dbg.break_point = false;
+        dbg.continue_after_break = true;
+
+        return ptr->set_dbg_info(line, dbg);
+    }
+
+    return true;
 }
 
 
@@ -659,23 +686,22 @@ interpreter_t::exec_res_t interpreter_t::erase_breakpoint(
     dbginfo_t dbg;
     program_t* ptr = dynamic_cast<program_t*>(_prog);
 
-    if (ptr) {
-        bool res = ptr->get_dbg_info(line, dbg);
+    if (!ptr) {
+        return exec_res_t::SYNTAX_ERROR;
+    }
 
-        if (!res)
-            return exec_res_t::RT_ERROR;
-
-        dbg.break_point = false;
-
-        if (ptr->set_dbg_info(line, dbg)) {
-            _breakpoints.erase(line);
-            return exec_res_t::CMD_EXEC;
-        }
-
+    if (!ptr->get_dbg_info(line, dbg)) {
         return exec_res_t::RT_ERROR;
     }
 
-    return exec_res_t::SYNTAX_ERROR;
+    dbg.break_point = false;
+
+    if (ptr->set_dbg_info(line, dbg)) {
+        _breakpoints.erase(line);
+        return exec_res_t::CMD_EXEC;
+    }
+
+    return exec_res_t::RT_ERROR;
 }
 
 
@@ -685,7 +711,8 @@ interpreter_t::exec_res_t interpreter_t::break_if(
     prog_pointer_t::line_number_t line, token_list_t& tl)
 {
     if (tl.empty() || tl.begin()->type() != tkncl_t::IDENTIFIER
-        || tl.begin()->identifier() != "if") {
+        || tl.begin()->identifier() != "if") 
+    {
         return exec_res_t::SYNTAX_ERROR;
     }
 
@@ -694,11 +721,10 @@ interpreter_t::exec_res_t interpreter_t::break_if(
     for (const auto& t : tl) {
         if (t.type() == tkncl_t::STRING_LITERAL) {
             auto id = t.org_id();
-
             quote_string(id);
-
             condition_str += "\"" + id + "\"";
-        } else {
+        } 
+        else {
             condition_str += t.org_id();
         }
     }
@@ -744,8 +770,9 @@ bool interpreter_t::get_fileparameter(tokenizer_t& tknzr, std::string& filename)
 {
     auto token = tknzr.next();
 
-    if (tknzr.eol())
+    if (tknzr.eol()) {
         return false;
+    }
 
     skip_blank(tknzr, token);
 
@@ -757,8 +784,9 @@ bool interpreter_t::get_fileparameter(tokenizer_t& tknzr, std::string& filename)
     }
 
     // Remove trailing spaces
-    while (!filename.empty() && *filename.rbegin() == ' ')
+    while (!filename.empty() && *filename.rbegin() == ' ') {
         filename = filename.substr(0, filename.size() - 1);
+    }
 
     return true;
 }
@@ -771,8 +799,9 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
     std::string command = cmd;
     tokenizer_t tknzr(command, 0);
 
-    if (tknzr.eol())
+    if (tknzr.eol()) {
         return exec_res_t::NOP;
+    }
 
     nu::token_t token(tknzr.next());
     skip_blank(tknzr, token);
@@ -786,7 +815,8 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
             + command.substr(i + 1, command.size() - i - 1);
         token.set_identifier("print", token_t::case_t::NOCHANGE);
         token.set_type(tkncl_t::IDENTIFIER);
-    } else if (token.identifier() == "!") {
+    } 
+    else if (token.identifier() == "!") {
         auto i = command.find("!");
 
         command = command.substr(i + 1, command.size() - i - 1);
@@ -794,17 +824,20 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         os_shell_t::exec(command);
 
         return exec_res_t::CMD_EXEC;
-    } else if (token.type() == tkncl_t::INTEGRAL) {
+    } 
+    else if (token.type() == tkncl_t::INTEGRAL) {
         unsigned int line = std::stoi(token.identifier());
 
-        if (line > 0)
+        if (line > 0) {
             rebuild(line - 1);
+        }
 
         add_ok = update_program(command);
     }
 
-    if (add_ok)
+    if (add_ok) {
         return exec_res_t::UPDATE_PROG;
+    }
 
     if (token.type() == tkncl_t::IDENTIFIER) {
         std::string cmd = token.identifier();
@@ -895,13 +928,15 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         if (cmd == "load") {
             std::string arg;
 
-            if (!get_fileparameter(tknzr, arg))
+            if (!get_fileparameter(tknzr, arg)) {
                 return exec_res_t::SYNTAX_ERROR;
+            }
 
             FILE* f = fopen(arg.c_str(), "r");
 
-            if (!f)
+            if (!f) {
                 return exec_res_t::IO_ERROR;
+            }
 
             clear_all();
 
@@ -911,18 +946,21 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         if (cmd == "exec") {
             std::string arg;
 
-            if (!get_fileparameter(tknzr, arg))
+            if (!get_fileparameter(tknzr, arg)) {
                 return exec_res_t::SYNTAX_ERROR;
+            }
 
             FILE* f = fopen(arg.c_str(), "r");
 
-            if (!f)
+            if (!f) {
                 return exec_res_t::IO_ERROR;
+            }
 
             clear_all();
 
-            if (!load(f))
+            if (!load(f)) {
                 return exec_res_t::IO_ERROR;
+            }
 
             run(0);
 
@@ -932,8 +970,9 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         if (cmd == "save") {
             std::string arg;
 
-            if (!get_fileparameter(tknzr, arg))
+            if (!get_fileparameter(tknzr, arg)) {
                 return exec_res_t::SYNTAX_ERROR;
+            }
 
             return save(arg) ? exec_res_t::CMD_EXEC : exec_res_t::IO_ERROR;
         }
@@ -942,8 +981,9 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         if (cmd == "build") {
             skip_blank(tknzr, token);
 
-            if (!tknzr.eol())
+            if (!tknzr.eol()) {
                 return exec_res_t::SYNTAX_ERROR;
+            }
 
             rebuild();
 
@@ -976,8 +1016,9 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                 rebuild();
                 run(0);
 
-                return is_breakpoint_active() ? exec_res_t::BREAKPOINT
-                                              : exec_res_t::CMD_EXEC;
+                return 
+                    is_breakpoint_active() ? exec_res_t::BREAKPOINT
+                                           : exec_res_t::CMD_EXEC;
             }
 
             skip_blank(tknzr, token);
@@ -1011,8 +1052,9 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
             stmt_parser_t::remove_blank(tl);
 
             if (tl.empty()) {
-                for (auto& b : _breakpoints)
+                for (auto& b : _breakpoints) {
                     list(b.first, b.first);
+                }
 
                 return exec_res_t::CMD_EXEC;
             }
@@ -1026,10 +1068,10 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                 --tl;
                 stmt_parser_t::remove_blank(tl);
 
-                if (tl.empty())
+                if (tl.empty()) {
                     return set_breakpoint(line, breakpoint_cond_t("", nullptr));
+                }
             }
-
             else {
                 return exec_res_t::SYNTAX_ERROR;
             }
@@ -1040,8 +1082,9 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         if (cmd == "rmbrk") {
             token = tknzr.next();
 
-            if (tknzr.eol())
+            if (tknzr.eol()) {
                 return exec_res_t::SYNTAX_ERROR;
+            }
 
             skip_blank(tknzr, token);
 
@@ -1056,8 +1099,9 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         if (cmd == "clrbrk") {
             auto breakpoints = _breakpoints;
 
-            for (const auto& line : breakpoints)
+            for (const auto& line : breakpoints) {
                 erase_breakpoint(line.first);
+            }
 
             return exec_res_t::CMD_EXEC;
         }
@@ -1117,12 +1161,14 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
             if (token.type() == tkncl_t::INTEGRAL) {
                 to_line = from_line = nu::stoi(token.identifier());
-            } else {
+            } 
+            else {
                 if (token.type() == tkncl_t::OPERATOR
                     && token.identifier() == "-") {
                     from_line = 0; // from begin
                     parse_minus = false;
-                } else {
+                } 
+                else {
                     return exec_res_t::SYNTAX_ERROR;
                 }
             }
@@ -1132,7 +1178,8 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
             if (parse_minus) {
                 if (token.type() == tkncl_t::OPERATOR
-                    && token.identifier() == "-") {
+                    && token.identifier() == "-") 
+                {
                     to_line = 0; // until the end
                 }
 
@@ -1141,15 +1188,16 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                                                     : exec_res_t::SYNTAX_ERROR;
                 }
 
-
                 token = tknzr.next();
                 skip_blank(tknzr, token);
             }
 
-            if (token.type() == tkncl_t::INTEGRAL)
+            if (token.type() == tkncl_t::INTEGRAL) {
                 to_line = nu::stoi(token.identifier());
-            else
+            }
+            else {
                 return exec_res_t::SYNTAX_ERROR;
+            }
 
             return list(from_line, to_line) ? exec_res_t::CMD_EXEC
                                             : exec_res_t::SYNTAX_ERROR;
@@ -1158,8 +1206,9 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         if (cmd == "grep") {
             token = tknzr.next();
 
-            if (tknzr.eol())
+            if (tknzr.eol()) {
                 return exec_res_t::SYNTAX_ERROR;
+            }
 
             skip_blank(tknzr, token);
 
@@ -1169,18 +1218,22 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
     }
 
     // Remove trailing spaces
-    while (!command.empty() && *command.rbegin() == ' ')
+    while (!command.empty() && *command.rbegin() == ' ') {
         command = command.substr(0, command.size() - 1);
+    }
 
     // Try to load and exec filename
     FILE* f = fopen(command.c_str(), "r");
+
     if (f) {
         clear_all();
+
         if (load(f)) {
             set_ignore_break_event(true);
             signal_mgr_t::instance().disable_notifications();
             bool res = run(0);
             exit(res ? 0 : 1);
+
             return exec_res_t::CMD_EXEC;
         }
     }
@@ -1261,13 +1314,15 @@ bool interpreter_t::run_next(runnable_t::line_num_t line)
 
 bool interpreter_t::has_runnable_stmt(int line) const noexcept
 {
-    if (line < 0 || _prog_line.empty())
+    if (line < 0 || _prog_line.empty()) {
         return false;
+    }
 
     prog_line_t::const_iterator it = _prog_line.find(line);
 
-    if (it == _prog_line.end())
+    if (it == _prog_line.end()) {
         return false;
+    }
 
     return (it->second.first->get_cl() != stmt_t::stmt_cl_t::EMPTY);
 }
@@ -1306,15 +1361,15 @@ bool interpreter_t::set_global_var(const std::string& name, const nu::variant_t&
 }
 
 
-
 /* -------------------------------------------------------------------------- */
 
 prog_pointer_t::line_number_t interpreter_t::get_cur_line_n() const noexcept
 {
     auto line = _prog_ctx.runtime_pc.get_line();
 
-    if (line < 1)
+    if (line < 1) {
         line = _prog_ctx.compiletime_pc.get_line();
+    }
 
     return line;
 }
@@ -1326,8 +1381,9 @@ prog_pointer_t::line_number_t interpreter_t::get_last_line_n() const noexcept
 {
     auto line = _prog_ctx.runtime_pc.get_last_line();
 
-    if (line < 1)
+    if (line < 1) {
         line = _prog_ctx.compiletime_pc.get_last_line();
+    }
 
     return line;
 }

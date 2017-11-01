@@ -36,10 +36,12 @@ public:
 
     stmt_elif_t(prog_ctx_t& ctx, expr_any_t::handle_t condition);
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    void run(rt_prog_ctx_t& ctx) override;
 
     //! Identifies the class of the statement
-    stmt_cl_t get_cl() const noexcept override { return stmt_cl_t::ELSE; }
+    stmt_cl_t get_cl() const noexcept override { 
+        return stmt_cl_t::ELSE; 
+    }
 
 protected:
     expr_any_t::handle_t _condition;
@@ -62,6 +64,7 @@ public:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

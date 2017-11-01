@@ -42,14 +42,13 @@ public:
     {
     }
 
-
     stmt_locate_t(arg_list_t args, prog_ctx_t& ctx)
         : stmt_t(ctx)
         , _args(args)
     {
     }
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    void run(rt_prog_ctx_t& ctx) override;
 
 protected:
     arg_list_t _args;
@@ -57,6 +56,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

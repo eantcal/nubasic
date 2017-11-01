@@ -70,28 +70,26 @@ public:
         if (i != _handlers.end())
             i->second.erase(handle);
     }
-
-
-    void disable_notifications() throw() { _disable_notifications = true; }
-
-
-    void enable_notifications() throw() { _disable_notifications = false; }
-
-
+    
+    void disable_notifications() throw() { 
+        _disable_notifications = true; 
+    }
+    
+    void enable_notifications() throw() { 
+        _disable_notifications = false; 
+    }
+    
 protected:
     using hlist_t = std::set<signal_handler_t::handle_t>;
-
     std::map<signal_handler_t::event_t, hlist_t> _handlers;
-
     bool dispatch(signal_handler_t::event_t ev);
-
     friend bool _ev_dispatcher(signal_handler_t::event_t ev);
-
     bool _disable_notifications = false;
 };
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

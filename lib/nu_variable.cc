@@ -27,32 +27,41 @@ variable_t::type_t variable_t::type_by_typename(std::string name)
 {
     std::transform(name.begin(), name.end(), name.begin(), tolower);
 
-    if (name == "integer")
+    if (name == "integer") {
         return type_t::INTEGER;
+    }
 
-    if (name == "long64")
+    if (name == "long64") {
         return type_t::LONG64;
+    }
 
-    if (name == "string")
+    if (name == "string") {
         return type_t::STRING;
+    }
 
-    if (name == "bytevect")
+    if (name == "bytevect") {
         return type_t::BYTEVECTOR;
+    }
 
-    if (name == "double")
+    if (name == "double") {
         return type_t::DOUBLE;
+    }
 
-    if (name == "float")
+    if (name == "float") {
         return type_t::FLOAT;
+    }
 
-    if (name == "boolean")
+    if (name == "boolean") {
         return type_t::BOOLEAN;
+    }
 
-    if (name == "any")
+    if (name == "any") {
         return type_t::ANY;
+    }
 
-    if (name == "object")
+    if (name == "object") {
         return type_t::OBJECT;
+    }
 
     return type_t::UNDEFINED;
 }
@@ -109,7 +118,7 @@ variable_t::type_t variable_t::type_by_name(const std::string& name)
 
     const char ch = *name.rbegin();
 
-    size_t pos = name.find_first_of('.', 0);
+    const size_t pos = name.find_first_of('.', 0);
 
     if (pos != size_t(-1))
         return type_t::STRUCT;
@@ -142,40 +151,47 @@ variable_t::type_t variable_t::type_by_name(const std::string& name)
 
 bool variable_t::is_valid_name(std::string name, bool ingnore_builtin)
 {
-    if (name.empty())
+    if (name.empty()) {
         return false;
+    }
 
     std::transform(name.begin(), name.end(), name.begin(), tolower);
 
     if (!ingnore_builtin
         && reserved_keywords_t::list.find(name)
-            != reserved_keywords_t::list.cend())
+        != reserved_keywords_t::list.cend())
+    {
         return false;
+    }
 
     auto letter = [](char c) { return c >= 'a' && c <= 'z'; };
 
     char first_char = name.c_str()[0];
 
-    if (!letter(first_char) && first_char != '_')
+    if (!letter(first_char) && first_char != '_') {
         return false;
+    }
 
-    if (name.size() == 1)
+    if (name.size() == 1) {
         return first_char != '_';
+    }
 
     auto number = [](char c) { return (c >= '0' && c <= '9'); };
 
     char prev_c = 0;
 
     for (size_t i = 1; i < name.size(); ++i) {
-        char c = name.c_str()[i];
 
-        bool valid = letter(c) || (c == '.' && prev_c != '.') || c == '_'
+        const char c = name.c_str()[i];
+
+        const bool valid = letter(c) || (c == '.' && prev_c != '.') || c == '_'
             || number(c) || (i == (name.size() - 1)
                                 && (c == '%' || c == '#' || c == '$' || c == '@'
                                        || c == '!' || c == '&'));
 
-        if (!valid)
+        if (!valid) {
             return false;
+        }
 
         prev_c = c;
     }

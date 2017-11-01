@@ -28,12 +28,15 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-struct for_loop_ctx_t {
+struct for_loop_ctx_t 
+{
     enum { FLG_FIRST_EXEC };
 
     flag_map_t flag;
 
-    for_loop_ctx_t() noexcept { flag.define(FLG_FIRST_EXEC, true); }
+    for_loop_ctx_t() noexcept { 
+        flag.define(FLG_FIRST_EXEC, true); 
+    }
 
     for_loop_ctx_t(const for_loop_ctx_t&) = default;
     for_loop_ctx_t& operator=(const for_loop_ctx_t&) = default;
@@ -48,13 +51,15 @@ struct for_loop_ctx_t {
 
 /* -------------------------------------------------------------------------- */
 
-struct for_loop_rtdata_t : public std::map<std::string, for_loop_ctx_t> {
+struct for_loop_rtdata_t : public std::map<std::string, for_loop_ctx_t> 
+{
     void trace(std::stringstream& ss);
     void cleanup_data(const std::string& proc_ctx);
 };
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

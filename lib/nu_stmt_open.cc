@@ -42,26 +42,33 @@ void stmt_open_t::run(rt_prog_ctx_t& ctx)
             rt_error_code_t::E_TYPE_ILLEGAL, "OPEN");
 
         mode = "r";
-    } else if (_mode == "output") {
+    } 
+    else if (_mode == "output") {
         rt_error_if(_access == "read" || _access == "read write",
             rt_error_code_t::E_TYPE_ILLEGAL, "OPEN");
 
         mode = "w";
-    } else if (_mode == "append") {
+    } 
+    else if (_mode == "append") {
         mode = "a";
 
-        if (_access.find("read") != std::string::npos)
+        if (_access.find("read") != std::string::npos) {
             mode += "+";
-    } else if (_mode == "random") {
+        }
+    } 
+    else if (_mode == "random") {
         mode = "r";
 
-        if (_access.find("write") != std::string::npos)
+        if (_access.find("write") != std::string::npos) {
             mode += "+";
-    } else if (_mode == "binary") {
+        }
+    } 
+    else if (_mode == "binary") {
         mode = "r";
 
-        if (_access.find("write") != std::string::npos)
+        if (_access.find("write") != std::string::npos) {
             mode += "+";
+        }
 
         mode += "b";
     }

@@ -20,7 +20,10 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-void stmt_empty_t::run(rt_prog_ctx_t& ctx) { ctx.go_to_next(); };
+void stmt_empty_t::run(rt_prog_ctx_t& ctx) 
+{ 
+    ctx.go_to_next(); 
+}
 
 
 /* -------------------------------------------------------------------------- */

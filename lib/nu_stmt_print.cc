@@ -29,16 +29,18 @@ void stmt_print_t::run(rt_prog_ctx_t& ctx)
     struct _hide_cursor_guard_t {
         bool _hide;
 
-        _hide_cursor_guard_t(bool hide) noexcept : _hide(hide)
+        _hide_cursor_guard_t(bool hide) noexcept : 
+            _hide(hide)
         {
-            if (_hide)
+            if (_hide) {
                 _os_cursor_visible(false);
+            }
         }
 
-        ~_hide_cursor_guard_t() noexcept
-        {
-            if (_hide)
+        ~_hide_cursor_guard_t() noexcept {
+            if (_hide) {
                 _os_cursor_visible(true);
+            }
         }
     };
 
@@ -71,7 +73,8 @@ void stmt_print_t::run(rt_prog_ctx_t& ctx)
             if (arg.first == nullptr) {
                 val = variant_t("");
                 separator = "";
-            } else {
+            } 
+            else {
                 val = arg.first->eval(ctx);
 
                 switch (arg.second) {

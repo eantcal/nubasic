@@ -31,13 +31,10 @@ public:
         : stmt_t(ctx)
     {
     }
-
-
-    virtual void run(rt_prog_ctx_t& ctx) override
-    {
+    
+    void run(rt_prog_ctx_t& ctx) override {
         ctx.flag.set(rt_prog_ctx_t::FLG_RETURN_REQUEST, true);
     }
-
 
 protected:
     prog_pointer_t::line_number_t _line_number = 0;
@@ -48,6 +45,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

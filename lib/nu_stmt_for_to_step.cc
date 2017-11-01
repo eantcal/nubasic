@@ -37,8 +37,9 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t& ctx)
 
     std::string counter = _variable;
 
-    if (scope_type != proc_scope_t::type_t::GLOBAL && !scope_id.empty())
+    if (scope_type != proc_scope_t::type_t::GLOBAL && !scope_id.empty()) {
         counter = scope_id + "::" + _variable;
+    }
 
     auto vartype = variable_t::type_by_name(_variable);
 
@@ -49,9 +50,11 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t& ctx)
         var_scope_t::handle_t scope = ctx.proc_scope.get(scope_type);
 
         if (scope->is_defined(_variable)) {
-            auto type = (*scope)[_variable].first.get_type();
-            if (type != variable_t::type_t::UNDEFINED)
+            const auto type = (*scope)[_variable].first.get_type();
+
+            if (type != variable_t::type_t::UNDEFINED) {
                 vartype = type;
+            }
         }
 
         switch (vartype) {
@@ -118,8 +121,9 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t& ctx)
 
         auto handle = ctx.for_loop_metadata.begin_find(ctx.runtime_pc);
 
-        if (handle)
+        if (handle) {
             handle->flag.set(instrblock_t::EXIT, false);
+        }
     }
 }
 

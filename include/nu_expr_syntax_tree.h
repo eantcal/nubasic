@@ -48,6 +48,7 @@ protected:
     std::string explicit_right_marker = ")";
     std::string implicit_left_marker = "";
     std::string implicit_right_marker = "";
+
     std::set<std::string> processing_ops;
     std::set<std::string> ignoring_ops;
 
@@ -64,17 +65,13 @@ protected:
     void swap_lr_markers();
 
     token_list_t remove_blank(token_list_t tl);
+    void skip_processed(token_list_t& tl, token_list_t::data_t::iterator& i);
     void rework_subexp(token_list_t& tl, token_list_t::data_t::iterator i);
     void rework_operator(token_list_t& tl, token_list_t::data_t::iterator i);
-    void skip_processed(token_list_t& tl, token_list_t::data_t::iterator& i);
-    void rework_minus_operator(
-        token_list_t& tl, token_list_t::data_t::iterator i);
-    void rework_unary_operator(
-        token_list_t& tl, token_list_t::data_t::iterator i);
     void rework_identifier(token_list_t& tl, token_list_t::data_t::iterator i);
-
     token_list_t rework_token_list(token_list_t tl);
-
+    void rework_minus_operator(token_list_t& tl, token_list_t::data_t::iterator i);
+    void rework_unary_operator(token_list_t& tl, token_list_t::data_t::iterator i);
 
 public:
     //! Converts a given token list into syntax-oriented
@@ -84,6 +81,7 @@ public:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

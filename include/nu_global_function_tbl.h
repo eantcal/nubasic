@@ -53,8 +53,7 @@ private:
     static global_function_tbl_t* _instance;
 
 protected:
-    virtual void get_err_msg(const std::string& key, std::string& err) const
-    {
+    virtual void get_err_msg(const std::string& key, std::string& err) const {
         err = "'" + key + "()' not defined";
     }
 
@@ -74,8 +73,7 @@ private:
     static global_operator_tbl_t* _instance;
 
 protected:
-    virtual void get_err_msg(const std::string& key, std::string& err) const
-    {
+    virtual void get_err_msg(const std::string& key, std::string& err) const {
         err = "'" + key + "()' not defined";
     }
 

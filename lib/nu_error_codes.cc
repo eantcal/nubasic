@@ -36,7 +36,9 @@ void rt_error_code_t::throw_exc(
         {
         }
 
-        int get() const noexcept { return _err; }
+        int get() const noexcept { 
+            return _err; 
+        }
     };
 
     std::string errmsg = stmt.empty() ? "" : stmt + " ";
@@ -56,8 +58,9 @@ std::string rt_error_code_t::message(value_t err_code)
 
     auto err_it = _err_desc_tbl.find(err_code);
 
-    if (err_it != _err_desc_tbl.end())
+    if (err_it != _err_desc_tbl.end()) {
         ret = err_it->second;
+    }
 
     return ret;
 }
@@ -67,8 +70,9 @@ std::string rt_error_code_t::message(value_t err_code)
 
 rt_error_code_t& rt_error_code_t::get_instance() noexcept
 {
-    if (!_instance_ptr)
+    if (!_instance_ptr) {
         _instance_ptr = new rt_error_code_t();
+    }
 
     assert(_instance_ptr);
 
@@ -148,8 +152,9 @@ void syntax_error(const std::string& expr, size_t pos, const std::string& msg)
 void syntax_error_if(
     bool condition, const std::string& expr, size_t pos, const std::string& msg)
 {
-    if (condition)
+    if (condition) {
         syntax_error(expr, pos, msg);
+    }
 }
 
 
@@ -157,8 +162,9 @@ void syntax_error_if(
 
 void syntax_error_if(bool condition, const std::string& msg)
 {
-    if (condition)
+    if (condition) {
         throw exception_t(msg);
+    }
 }
 
 

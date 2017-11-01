@@ -30,8 +30,9 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
     variant_t* var = nullptr;
 
     if (_struct_member) {
-        if (_vect_idx)
+        if (_vect_idx) {
             idx = _vect_idx->eval(ctx).to_int();
+        }
 
         var = ctx.get_struct_member_value(_variable, scope, idx);
 
@@ -41,17 +42,19 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
     }
 
     if (!var) {
-        if (scope == nullptr)
+        if (scope == nullptr) {
             scope = ctx.proc_scope.get(ctx.proc_scope.get_type(_variable));
+        }
 
         auto& v = (*scope)[_variable];
 
         const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
 
-        if (const_var)
+        if (const_var) {
             rt_error_code_t::get_instance().throw_if(true,
                 ctx.runtime_pc.get_line(), rt_error_code_t::E_CANNOT_MOD_CONST,
                 "'" + _variable + "'");
+        }
 
         var = &(v.first);
     }
@@ -91,10 +94,12 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
                     "'" + _variable + "(" + nu::to_string(idx) + ")'");
 
                 var->set_struct_value(val, idx);
-            } else {
+            } 
+            else {
                 _assign<size_t>(ctx, *var, val, vart, idx);
             }
-        } else {
+        } 
+        else {
             // expression can be only another vector with same size
 
             rt_error_code_t::get_instance().throw_if(
@@ -106,10 +111,12 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
             scope->define(_variable, var_value_t(val, VAR_ACCESS_RW));
         }
 
-    } else {
+    } 
+    else {
         if (val.is_struct()) {
             var->set_struct_value(val, 0);
-        } else {
+        } 
+        else {
             _assign<>(ctx, *var, val, vart);
         }
     }

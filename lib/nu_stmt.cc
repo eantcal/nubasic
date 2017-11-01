@@ -24,17 +24,26 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-stmt_t::stmt_t(prog_ctx_t& ctx) noexcept { _stmt_id = ctx.make_next_stmt_id(); }
+stmt_t::stmt_t(prog_ctx_t& ctx) noexcept 
+{ 
+    _stmt_id = ctx.make_next_stmt_id(); 
+}
 
 
 /* -------------------------------------------------------------------------- */
 
-stmt_t::stmt_cl_t stmt_t::get_cl() const noexcept { return stmt_cl_t::NA; }
+stmt_t::stmt_cl_t stmt_t::get_cl() const noexcept 
+{ 
+    return stmt_cl_t::NA; 
+}
 
 
 /* -------------------------------------------------------------------------- */
 
-stmt_t::~stmt_t() {}
+stmt_t::~stmt_t() 
+{
+    // empty
+}
 
 
 /* -------------------------------------------------------------------------- */

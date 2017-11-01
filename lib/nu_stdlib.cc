@@ -23,7 +23,10 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-int os_shell_t::exec(const std::string& cmd) { return ::system(cmd.c_str()); }
+int os_shell_t::exec(const std::string& cmd) 
+{ 
+    return ::system(cmd.c_str()); 
+}
 
 
 /* -------------------------------------------------------------------------- */

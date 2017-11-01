@@ -30,204 +30,51 @@ expr_syntax_tree_t::expr_syntax_tree_t()
 void expr_syntax_tree_t::change_operator_precedence(op_preced_t precedence)
 {
     processing_ops.clear();
-    ignoring_ops.clear();
+
+    ignoring_ops.insert({
+        ".",
+        "*", "/", "^", "\\", "mod", "div",
+        "+", "-",
+        "=", "<", ">", ">=", "<=", "<>",
+        "and", "or", "xor",
+        "band", "bor", "bxor", "bshl", "bshr"
+    });
 
     switch (precedence) {
+
     case op_preced_t::STRUCT_ACCESS:
         processing_ops.insert(".");
-
-        ignoring_ops.insert("*");
-        ignoring_ops.insert("/");
-        ignoring_ops.insert("^");
-        ignoring_ops.insert("\\");
-        ignoring_ops.insert("mod");
-        ignoring_ops.insert("div");
-
-        ignoring_ops.insert("+");
-        ignoring_ops.insert("-");
-
-        ignoring_ops.insert("=");
-        ignoring_ops.insert("<");
-        ignoring_ops.insert(">");
-        ignoring_ops.insert(">=");
-        ignoring_ops.insert("<>");
-        ignoring_ops.insert("<=");
-
-        ignoring_ops.insert("and");
-        ignoring_ops.insert("or");
-        ignoring_ops.insert("xor");
-
-        ignoring_ops.insert("band");
-        ignoring_ops.insert("bor");
-        ignoring_ops.insert("bxor");
-        ignoring_ops.insert("bshl");
-        ignoring_ops.insert("bshr");
         break;
 
     case op_preced_t::RELATIONAL_OP:
-        ignoring_ops.insert(".");
-
-        ignoring_ops.insert("*");
-        ignoring_ops.insert("/");
-        ignoring_ops.insert("^");
-        ignoring_ops.insert("\\");
-        ignoring_ops.insert("mod");
-        ignoring_ops.insert("div");
-
-        ignoring_ops.insert("+");
-        ignoring_ops.insert("-");
-
-        processing_ops.insert("=");
-        processing_ops.insert("<>");
-        processing_ops.insert("<");
-        processing_ops.insert(">");
-        processing_ops.insert(">=");
-        processing_ops.insert("<=");
-
-        ignoring_ops.insert("and");
-        ignoring_ops.insert("or");
-        ignoring_ops.insert("xor");
-
-        ignoring_ops.insert("band");
-        ignoring_ops.insert("bor");
-        ignoring_ops.insert("bxor");
-        ignoring_ops.insert("bshl");
-        ignoring_ops.insert("bshr");
+        processing_ops.insert({ "=", "<", ">", ">=", "<=", "<>" });
         break;
 
     case op_preced_t::RELATIONAL_ANDOR_OP:
-        ignoring_ops.insert(".");
-
-        ignoring_ops.insert("*");
-        ignoring_ops.insert("/");
-        ignoring_ops.insert("^");
-        ignoring_ops.insert("\\");
-        ignoring_ops.insert("mod");
-        ignoring_ops.insert("div");
-
-        ignoring_ops.insert("+");
-        ignoring_ops.insert("-");
-
-        ignoring_ops.insert("=");
-        ignoring_ops.insert("<>");
-
-        ignoring_ops.insert("<");
-        ignoring_ops.insert(">");
-        ignoring_ops.insert(">=");
-        ignoring_ops.insert("<=");
-
-        processing_ops.insert("and");
-        processing_ops.insert("or");
-        processing_ops.insert("xor");
-
-        ignoring_ops.insert("band");
-        ignoring_ops.insert("bor");
-        ignoring_ops.insert("bxor");
-        ignoring_ops.insert("bshl");
-        ignoring_ops.insert("bshr");
+        processing_ops.insert({ "and", "or", "xor" });
         break;
 
 
     case op_preced_t::MATH_MUL_DIV:
-        ignoring_ops.insert(".");
-
-        processing_ops.insert("*");
-        processing_ops.insert("/");
-        processing_ops.insert("^");
-        processing_ops.insert("\\");
-        processing_ops.insert("mod");
-        processing_ops.insert("div");
-
-        ignoring_ops.insert("+");
-        ignoring_ops.insert("-");
-
-        ignoring_ops.insert("=");
-        ignoring_ops.insert(">=");
-
-        ignoring_ops.insert("<");
-        ignoring_ops.insert(">");
-        ignoring_ops.insert("<>");
-        ignoring_ops.insert("<=");
-
-        ignoring_ops.insert("and");
-        ignoring_ops.insert("or");
-        ignoring_ops.insert("xor");
-
-        ignoring_ops.insert("band");
-        ignoring_ops.insert("bor");
-        ignoring_ops.insert("bxor");
-        ignoring_ops.insert("bshl");
-        ignoring_ops.insert("bshr");
+        processing_ops.insert({ "*", "/", "^", "\\", "mod", "div" });
         break;
 
     case op_preced_t::MATH_SUM:
-        ignoring_ops.insert(".");
-
-        ignoring_ops.insert("*");
-        ignoring_ops.insert("/");
-        ignoring_ops.insert("^");
-        ignoring_ops.insert("\\");
-        ignoring_ops.insert("mod");
-        ignoring_ops.insert("div");
-
-        processing_ops.insert("+");
-        processing_ops.insert("-");
-
-        ignoring_ops.insert("=");
-        ignoring_ops.insert("<>");
-
-        ignoring_ops.insert("<");
-        ignoring_ops.insert(">");
-        ignoring_ops.insert(">=");
-        ignoring_ops.insert("<=");
-
-        ignoring_ops.insert("and");
-        ignoring_ops.insert("or");
-        ignoring_ops.insert("xor");
-
-        ignoring_ops.insert("band");
-        ignoring_ops.insert("bor");
-        ignoring_ops.insert("bxor");
-        ignoring_ops.insert("bshl");
-        ignoring_ops.insert("bshr");
+        processing_ops.insert({ "+", "-" });
         break;
 
 
     case op_preced_t::BITWISE_OP:
-        ignoring_ops.insert(".");
-
-        ignoring_ops.insert("*");
-        ignoring_ops.insert("/");
-        ignoring_ops.insert("^");
-        ignoring_ops.insert("\\");
-        ignoring_ops.insert("mod");
-        ignoring_ops.insert("div");
-
-        ignoring_ops.insert("+");
-        ignoring_ops.insert("-");
-
-        ignoring_ops.insert("=");
-        ignoring_ops.insert("<>");
-
-        ignoring_ops.insert("<");
-        ignoring_ops.insert(">");
-        ignoring_ops.insert(">=");
-        ignoring_ops.insert("<=");
-
-        ignoring_ops.insert("and");
-        ignoring_ops.insert("or");
-        ignoring_ops.insert("xor");
-
-        processing_ops.insert("band");
-        processing_ops.insert("bor");
-        processing_ops.insert("bxor");
-        processing_ops.insert("bshl");
-        processing_ops.insert("bshr");
+        processing_ops.insert({ "band", "bor", "bxor", "bshl", "bshr" });
         break;
 
     default:
         assert(0);
         break;
+    }
+
+    for (const auto& item : processing_ops) {
+        ignoring_ops.erase(item);
     }
 }
 
@@ -259,23 +106,28 @@ token_list_t expr_syntax_tree_t::remove_blank(token_list_t tl)
         if (!is_blank(i->type())) {
             if (i->type() == old_token_cl && i->identifier() == old_token_id) {
                 if (i->type() != tkncl_t::SUBEXP_BEGIN
-                    && i->type() != tkncl_t::SUBEXP_END) {
+                    && i->type() != tkncl_t::SUBEXP_END) 
+                {
                     syntax_error(i->expression(), i->position());
                 }
             }
 
             if (i->type() == tkncl_t::OPERATOR) {
+
                 if (old_token_cl == tkncl_t::SUBEXP_BEGIN
                     && (i->identifier() != "+" && i->identifier() != "-"
                            && i->identifier() != NU_BASIC_OP_INC
-                           && i->identifier() != NU_BASIC_OP_DEC)) {
+                           && i->identifier() != NU_BASIC_OP_DEC)) 
+                {
                     syntax_error(i->expression(), i->position());
                 }
             }
 
             if (i->type() == tkncl_t::SUBEXP_END
                 && old_token_cl == tkncl_t::OPERATOR)
+            {
                 syntax_error(i->expression(), i->position());
+            }
 
             ret_tl += *i;
             old_token_cl = i->type();
@@ -302,6 +154,7 @@ void expr_syntax_tree_t::rework_subexp(
 
     token_list_t::tkp_t begin
         = { explicit_left_marker, tkncl_t::SUBEXP_BEGIN }; // (
+
     token_list_t::tkp_t end
         = { explicit_right_marker, tkncl_t::SUBEXP_END }; // )
 
@@ -318,6 +171,7 @@ void expr_syntax_tree_t::rework_subexp(
     // mark as already precessed
     subexp.data().push_front(
         token_t(implicit_left_marker, tkncl_t::SUBEXP_BEGIN, pos, ptr));
+
     subexp.data().push_back(
         token_t(implicit_right_marker, tkncl_t::SUBEXP_END, pos, ptr));
 
@@ -334,10 +188,15 @@ void expr_syntax_tree_t::rework_operator(
 {
 
     if (i == tl.end() || tl.size() < 3 || (i - 1) == tl.end()
-        || (i + 1) == tl.end()) {
+        || (i + 1) == tl.end()) 
+    {
         const size_t pos = i != tl.end() ? i->position() : 0;
+
         const std::string expr
-            = i != tl.end() ? i->expression() : "Internal error 14";
+            = i != tl.end() ? i->expression() : 
+            std::string("Internal error at ") 
+            + __FILE__ + 
+            std::to_string(__LINE__);
 
         syntax_error(expr, pos);
     }
@@ -348,8 +207,10 @@ void expr_syntax_tree_t::rework_operator(
     std::set<std::string> ops = processing_ops;
 
     if (ops.find(i->identifier()) != ops.end()) {
+
         if ((i + 1) == tl.end() || i == tl.begin()
-            || (i - 1)->type() == tkncl_t::OPERATOR) {
+            || (i - 1)->type() == tkncl_t::OPERATOR) 
+        {
             syntax_error(*expr_ptr, pos);
         }
 
@@ -399,7 +260,8 @@ void expr_syntax_tree_t::rework_operator(
                 = tl.sublist(tl.iterator_to_pos(i) - left_size, left_size);
 
             left_list = rework_token_list(left_list);
-        } else {
+        } 
+        else {
             left_list += *(i - 1);
         }
 
@@ -410,13 +272,15 @@ void expr_syntax_tree_t::rework_operator(
             auto end_it = tl.skip_right(begin_it, begin, end);
             right_size = end_it - begin_it - 1;
 
-            if (right_identifier)
+            if (right_identifier) {
                 ++right_size;
+            }
 
             right_list = tl.sublist(tl.iterator_to_pos(i) + 1, right_size);
 
             right_list = rework_token_list(right_list);
-        } else {
+        } 
+        else {
             right_list += *(i + 1);
         }
 
@@ -434,7 +298,8 @@ void expr_syntax_tree_t::rework_operator(
                 tl.iterator_to_pos(i + right_size), subexp);
 
         tl = ret_tl;
-    } else {
+    } 
+    else {
         syntax_error(*expr_ptr, pos);
     }
 }
@@ -453,8 +318,10 @@ void expr_syntax_tree_t::rework_minus_operator(
     std::set<std::string> ops = { "-" };
 
     if (ops.find(i->identifier()) != ops.end()) {
-        if ((i + 1) == tl.end())
+
+        if ((i + 1) == tl.end()) {
             syntax_error(*expr_ptr, pos);
+        }
 
         token_list_t::tkp_t begin
             = { implicit_left_marker, tkncl_t::SUBEXP_BEGIN };
@@ -463,16 +330,12 @@ void expr_syntax_tree_t::rework_minus_operator(
             = { implicit_right_marker, tkncl_t::SUBEXP_END };
 
         bool right_identifier = (i + 1)->type() == tkncl_t::IDENTIFIER;
-
         bool right_sub = (i + 1)->type() == tkncl_t::SUBEXP_BEGIN;
-
         bool right_explicit = (i + 1)->identifier() == explicit_left_marker;
 
-        if (right_identifier) {
-            if ((i + 2) != tl.end()) {
-                right_sub = (i + 2)->type() == tkncl_t::SUBEXP_BEGIN;
-                right_explicit = (i + 2)->identifier() == explicit_left_marker;
-            }
+        if (right_identifier && (i + 2) != tl.end()) {
+            right_sub = (i + 2)->type() == tkncl_t::SUBEXP_BEGIN;
+            right_explicit = (i + 2)->identifier() == explicit_left_marker;
         }
 
         if (right_explicit) {
@@ -498,8 +361,10 @@ void expr_syntax_tree_t::rework_minus_operator(
             right_list = tl.sublist(tl.iterator_to_pos(i) + 1, right_size);
 
             right_list = rework_token_list(right_list);
-        } else
+        } 
+        else {
             right_list += *(i + 1);
+        }
 
         token_list_t subexp;
         subexp += *i;
@@ -531,8 +396,9 @@ void expr_syntax_tree_t::rework_identifier(
     size_t pos = i->position();
     auto expr_ptr = i->expression_ptr();
 
-    if ((i + 1) == tl.end())
+    if ((i + 1) == tl.end()) {
         return;
+    }
 
     token_list_t::tkp_t begin = { implicit_left_marker, tkncl_t::SUBEXP_BEGIN };
 
@@ -559,7 +425,8 @@ void expr_syntax_tree_t::rework_identifier(
 
         right_list = rework_token_list(right_list);
 
-    } else {
+    } 
+    else {
         right_list += *(i + 1);
     }
 
@@ -569,6 +436,7 @@ void expr_syntax_tree_t::rework_identifier(
 
     subexp.data().push_front(
         token_t(implicit_left_marker, tkncl_t::SUBEXP_BEGIN, pos, expr_ptr));
+
     subexp.data().push_back(
         token_t(implicit_right_marker, tkncl_t::SUBEXP_END, pos, expr_ptr));
 
@@ -589,13 +457,15 @@ void expr_syntax_tree_t::skip_processed(
         if (i->type() == tkncl_t::IDENTIFIER
             && ((i + 1) == tl.end()
                    || ((i + 1)->type() == tkncl_t::OPERATOR
-                          || (i + 1)->type() == tkncl_t::SUBEXP_END))) {
+                          || (i + 1)->type() == tkncl_t::SUBEXP_END))) 
+        {
             ++i;
             continue;
         }
 
         if (i->type() == tkncl_t::SUBEXP_BEGIN
-            && i->identifier() == implicit_left_marker) {
+            && i->identifier() == implicit_left_marker) 
+        {
             token_list_t::tkp_t begin
                 = { implicit_left_marker, tkncl_t::SUBEXP_BEGIN };
 
@@ -606,18 +476,20 @@ void expr_syntax_tree_t::skip_processed(
 
             i += subexp.size();
 
-            if (i == tl.end())
+            if (i == tl.end()) {
                 break;
+            }
 
             continue;
         }
-
         else if ((i->type() != tkncl_t::SUBEXP_BEGIN
                      && i->type() != tkncl_t::OPERATOR
                      && i->type() != tkncl_t::IDENTIFIER)
-            || ignoring_ops.find(i->identifier()) != ignoring_ops.end()) {
+            || ignoring_ops.find(i->identifier()) != ignoring_ops.end()) 
+        {
             ++i;
-        } else {
+        } 
+        else {
             break;
         }
     }
@@ -633,14 +505,16 @@ token_list_t expr_syntax_tree_t::rework_token_list(token_list_t tl)
     // If an expression begins with "+"
     // just ignore it
     if (i != tl.end()
-        && (i->identifier() == "+" && i->type() == tkncl_t::OPERATOR)) {
+        && (i->identifier() == "+" && i->type() == tkncl_t::OPERATOR)) 
+    {
         tl.data().erase(i);
         i = tl.begin();
     }
 
     // If an expression begins with "-"...
     if (i != tl.end()
-        && (i->identifier() == "-" && i->type() == tkncl_t::OPERATOR)) {
+        && (i->identifier() == "-" && i->type() == tkncl_t::OPERATOR)) 
+    {
         rework_minus_operator(tl, i);
         i = tl.begin();
     }
@@ -648,7 +522,8 @@ token_list_t expr_syntax_tree_t::rework_token_list(token_list_t tl)
     // If an expression begins with increment or decrement unary operator...
     if (i != tl.end() && (i->type() == tkncl_t::OPERATOR
                              && (i->identifier() == NU_BASIC_OP_INC
-                                    || i->identifier() == NU_BASIC_OP_DEC))) {
+                                    || i->identifier() == NU_BASIC_OP_DEC))) 
+    {
         rework_unary_operator(tl, i);
         i = tl.begin();
     }
@@ -659,7 +534,8 @@ token_list_t expr_syntax_tree_t::rework_token_list(token_list_t tl)
     if (i == tl.end() || ((tl.begin()->type() == tkncl_t::SUBEXP_BEGIN
                              && i->identifier() == implicit_left_marker
                              && (tl.end() - 1)->type() == tkncl_t::SUBEXP_END
-                             && i->identifier() == implicit_right_marker))) {
+                             && i->identifier() == implicit_right_marker))) 
+    {
         return tl;
     }
 
@@ -669,7 +545,8 @@ token_list_t expr_syntax_tree_t::rework_token_list(token_list_t tl)
     }
 
     if (i->type() == tkncl_t::SUBEXP_BEGIN
-        && i->identifier() == explicit_left_marker) {
+        && i->identifier() == explicit_left_marker) 
+    {
         rework_subexp(tl, i);
         return rework_token_list(tl);
     }
@@ -733,8 +610,10 @@ void expr_syntax_tree_t::rework_unary_operator(
     std::set<std::string> ops = { NU_BASIC_OP_INC, NU_BASIC_OP_DEC };
 
     if (ops.find(i->identifier()) != ops.end()) {
-        if ((i + 1) == tl.end())
+
+        if ((i + 1) == tl.end()) {
             syntax_error(*expr_ptr, pos);
+        }
 
         token_list_t::tkp_t begin
             = { implicit_left_marker, tkncl_t::SUBEXP_BEGIN };
@@ -770,13 +649,15 @@ void expr_syntax_tree_t::rework_unary_operator(
             auto end_it = tl.skip_right(begin_it, begin, end);
             right_size = end_it - begin_it - 1;
 
-            if (right_identifier)
+            if (right_identifier) {
                 ++right_size;
+            }
 
             right_list = tl.sublist(tl.iterator_to_pos(i) + 1, right_size);
 
             right_list = rework_token_list(right_list);
-        } else {
+        } 
+        else {
             right_list += *(i + 1);
         }
 

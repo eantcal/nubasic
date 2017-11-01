@@ -42,8 +42,7 @@ public:
     }
 
     //! move operator
-    expr_literal_t& operator=(expr_literal_t&& obj)
-    {
+    expr_literal_t& operator=(expr_literal_t&& obj) {
         if (this != &obj)
             _val = std::move(obj._val);
 
@@ -51,19 +50,21 @@ public:
     }
 
     //! Return the literal expression value
-    variant_t eval(rt_prog_ctx_t& ctx) const override
-    {
+    variant_t eval(rt_prog_ctx_t& ctx) const override {
         (void)ctx;
         return _val;
     }
 
     //! Returns false for this expression type
-    virtual bool empty() const noexcept override { return false; }
+    bool empty() const noexcept override { 
+        return false; 
+    }
 
-    std::string name() const noexcept override { return ""; }
+    std::string name() const noexcept override { 
+        return ""; 
+    }
 
-    func_args_t get_args() const noexcept override
-    {
+    func_args_t get_args() const noexcept override {
         func_args_t dummy;
         return dummy;
     }
@@ -74,6 +75,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 /* -------------------------------------------------------------------------- */

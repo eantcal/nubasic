@@ -47,7 +47,9 @@ public:
     stmt_t(prog_ctx_t& ctx) noexcept;
 
 
-    int get_stmt_id() const noexcept { return _stmt_id; }
+    int get_stmt_id() const noexcept { 
+        return _stmt_id; 
+    }
 
 
     enum class stmt_cl_t {

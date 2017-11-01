@@ -34,47 +34,40 @@ class runnable_t : protected signal_handler_t {
 public:
     using line_num_t = prog_pointer_t::line_number_t;
     using stmt_num_t = prog_pointer_t::stmt_number_t;
-
-
-    runnable_t()
-    {
+    
+    runnable_t() {
         signal_mgr_t::instance().register_handler(event_t::BREAK, this);
     }
 
 
-    virtual ~runnable_t()
-    {
+    virtual ~runnable_t() {
         signal_mgr_t::instance().unregister_handler(event_t::BREAK, this);
     }
 
 
     virtual bool run(line_num_t start_from = 0) = 0;
-
-
     virtual bool cont(line_num_t start_from, stmt_num_t stmt_id) = 0;
-
-
     virtual bool run(
         const std::string& name, const std::vector<expr_any_t::handle_t>& args)
         = 0;
 
-
 protected:
-    virtual bool notify(const event_t& ev) override
-    {
+    bool notify(const event_t& ev) override {
         _break_event = ev == event_t::BREAK;
         return true;
     }
 
-
-    bool break_event() const noexcept { return _break_event; }
-
-
-    void reset_break_event() noexcept { _break_event = false; }
-
-
-    void set_break_event() noexcept { _break_event = true; }
-
+    bool break_event() const noexcept { 
+        return _break_event; 
+    }
+    
+    void reset_break_event() noexcept { 
+        _break_event = false; 
+    }
+    
+    void set_break_event() noexcept { 
+        _break_event = true; 
+    }
 
 private:
     bool _break_event = false;
@@ -82,6 +75,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

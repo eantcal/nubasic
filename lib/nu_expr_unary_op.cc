@@ -29,14 +29,15 @@ expr_unary_op_t::expr_unary_op_t(
 
 /* -------------------------------------------------------------------------- */
 
-bool expr_unary_op_t::empty() const noexcept { return false; }
+bool expr_unary_op_t::empty() const noexcept { 
+    return false; 
+}
 
 
 /* -------------------------------------------------------------------------- */
 
 variant_t expr_unary_op_t::eval(rt_prog_ctx_t& ctx) const
 {
-
     if (!global_function_tbl_t::get_instance().is_defined(_op_name)) {
         throw exception_t(
             std::string("Error: \"" + _op_name + "\" undefined symbol"));

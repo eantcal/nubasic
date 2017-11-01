@@ -30,12 +30,14 @@ variant_t eval_expr(rt_prog_ctx_t& ctx, std::string data)
         nu::token_list_t tl;
         tokenizer_t st(data);
         expr_parser_t ep;
-        auto h = ep.compile(st);
 
-        return h->eval(ctx).to_str();
-    } catch (nu::exception_t&) {
+        auto h = ep.compile(st);
+        return h->eval(ctx);
+    } 
+    catch (nu::exception_t&) {
         return variant_t(std::string("Syntax Error"));
-    } catch (std::exception&) {
+    } 
+    catch (std::exception&) {
         return variant_t(std::string("Runtime Error"));
     }
 }

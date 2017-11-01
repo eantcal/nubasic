@@ -50,8 +50,9 @@ void prog_ctx_t::clear_metadata()
     // Remove user-defined-functions
     auto& funcs = global_function_tbl_t::get_instance();
 
-    for (auto& f : function_tbl)
+    for (auto& f : function_tbl) {
         funcs.erase(f);
+    }
 
     function_tbl.clear();
 
@@ -67,8 +68,9 @@ static std::vector<std::string> split(const std::string& s, char delim = '.')
     std::stringstream ss(s);
     std::string item;
 
-    while (std::getline(ss, item, delim))
+    while (std::getline(ss, item, delim)) {
         elems.push_back(item);
+    }
 
     return elems;
 }
@@ -237,6 +239,7 @@ void prog_ctx_t::trace_metadata(std::stringstream& ss)
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

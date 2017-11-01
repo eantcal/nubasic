@@ -47,6 +47,7 @@ struct file_dscrptr_t {
     FILE* data() const noexcept;
 
     ~file_dscrptr_t();
+
     file_dscrptr_t(FILE* fptr)
         : _fptr(fptr)
     {
@@ -71,9 +72,13 @@ struct file_dscrptr_tbl_t {
     bool flush_fd(unsigned int fd);
     void trace(std::stringstream& ss);
 
-    bool empty() const noexcept { return _file_tbl.empty(); }
+    bool empty() const noexcept { 
+        return _file_tbl.empty(); 
+    }
 
-    void clear() noexcept { _file_tbl.clear(); }
+    void clear() noexcept { 
+        _file_tbl.clear(); 
+    }
 
 
 protected:
@@ -83,6 +88,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

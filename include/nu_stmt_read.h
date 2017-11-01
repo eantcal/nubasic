@@ -51,7 +51,7 @@ public:
     {
     }
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    void run(rt_prog_ctx_t& ctx) override;
 
 protected:
     arg_list_t _args;
@@ -61,6 +61,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

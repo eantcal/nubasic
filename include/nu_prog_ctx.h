@@ -109,10 +109,14 @@ public:
     void trace_metadata(std::stringstream& ss);
 
     // Get stdout file pointer
-    FILE* get_stdout_ptr() const noexcept { return _stdout_ptr; }
+    FILE* get_stdout_ptr() const noexcept { 
+        return _stdout_ptr; 
+    }
 
     // Get stdin file pointer
-    FILE* get_stdin_ptr() const noexcept { return _stdin_ptr; }
+    FILE* get_stdin_ptr() const noexcept { 
+        return _stdin_ptr; 
+    }
 
 private:
     prog_pointer_t::stmt_number_t _stmt_id_cnt = 0;

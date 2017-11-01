@@ -46,8 +46,9 @@ void stmt_locate_t::run(rt_prog_ctx_t& ctx)
 
         ++i;
 
-        if (i > ARGS_NUM) // paranoid
+        if (i > ARGS_NUM) {
             break;
+        }
     }
 
     // locate y,x
@@ -55,11 +56,13 @@ void stmt_locate_t::run(rt_prog_ctx_t& ctx)
     int y = val[0].to_int();
     int x = val[1].to_int();
 
-    if (x <= 0)
+    if (x <= 0) {
         x = 1;
+    }
 
-    if (y <= 0)
+    if (y <= 0) {
         y = 1;
+    }
 
     _os_locate(y, x);
 

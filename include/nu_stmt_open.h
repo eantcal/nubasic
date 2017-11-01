@@ -44,7 +44,7 @@ public:
     {
     }
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    void run(rt_prog_ctx_t& ctx) override;
 
 protected:
     expr_any_t::handle_t _filename;

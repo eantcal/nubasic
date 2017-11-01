@@ -75,8 +75,9 @@ void get_functor_vargs(rt_prog_ctx_t& ctx, const std::string& name,
 {
     check_arg_num(args, int(check_vect.size()), name);
 
-    for (auto& arg : args)
+    for (auto& arg : args) {
         vargs.push_back(arg->eval(ctx));
+    }
 
     int i = 0;
 
@@ -90,9 +91,11 @@ void get_functor_vargs(rt_prog_ctx_t& ctx, const std::string& name,
 
         // Accept implicit conversion from/to types double/float/int
         if (variable_t::is_number(vargt)
-            && variable_t::is_number(vargs[i].get_type())) {
+            && variable_t::is_number(vargs[i].get_type())) 
+        {
             invalid_check = false;
-        } else {
+        } 
+        else {
             invalid_check = vargs[i].get_type() != vargt;
         }
 
@@ -517,9 +520,11 @@ static variant_t process_operator(rt_prog_ctx_t& ctx,
 
     if (operator_name == NU_BASIC_OP_INC) {
         variable_value->increment();
-    } else if (operator_name == NU_BASIC_OP_DEC) {
+    } 
+    else if (operator_name == NU_BASIC_OP_DEC) {
         variable_value->decrement();
-    } else {
+    } 
+    else {
         rt_error_code_t::get_instance().throw_if(
             true, 0, rt_error_code_t::E_FUNC_UNDEF, "");
     }
@@ -592,8 +597,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _sign {
-            double operator()(double x) noexcept
-            {
+            double operator()(double x) noexcept {
                 return x > 0.0F ? 1.0F : (x == 0.0F ? 0.0F : -1.0F);
             }
         };
@@ -603,8 +607,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _min {
-            double operator()(double x, double y) noexcept
-            {
+            double operator()(double x, double y) noexcept {
                 return x < y ? x : y;
             }
         };
@@ -614,8 +617,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _max {
-            double operator()(double x, double y) noexcept
-            {
+            double operator()(double x, double y) noexcept {
                 return x > y ? x : y;
             }
         };
@@ -625,8 +627,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _pow {
-            double operator()(double x, double y) noexcept
-            {
+            double operator()(double x, double y) noexcept {
                 return ::pow(x, y);
             }
         };
@@ -636,8 +637,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _int_truncate {
-            int operator()(double x) noexcept
-            {
+            int operator()(double x) noexcept {
                 // Truncate to greatest integer less or equal to Argument
                 // Example:
                 // int(-5) => -5
@@ -659,8 +659,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _rnd {
-            double operator()(double x) noexcept
-            {
+            double operator()(double x) noexcept {
                 if (x < 0.0F) {
                     // Seed the random-number generator with the
                     // current time so that the numbers will be
@@ -688,8 +687,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _boolean_not {
-            int operator()(double x) noexcept
-            {
+            int operator()(double x) noexcept {
                 return int((x == 0.0F) ? 1 : 0);
             }
         };
@@ -734,8 +732,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _space_str {
-            std::string operator()(int nspace) noexcept
-            {
+            std::string operator()(int nspace) noexcept {
                 std::string s;
                 nspace = nspace < 0 ? 0 : nspace;
 
@@ -752,8 +749,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _chr_str {
-            std::string operator()(int code) noexcept
-            {
+            std::string operator()(int code) noexcept {
                 char s[2] = { 0 };
                 s[0] = code;
                 return s;
@@ -765,12 +761,13 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _left_str {
-            std::string operator()(const std::string& s, int n) noexcept
-            {
-                if (n <= 0)
+            std::string operator()(const std::string& s, int n) noexcept {
+                if (n <= 0) {
                     return std::string();
-                else if (n > int(s.size()))
+                }
+                else if (n > int(s.size())) {
                     n = int(s.size());
+                }
 
                 return s.substr(0, n);
             }
@@ -781,10 +778,10 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _lcase_str {
-            std::string operator()(const std::string& s) noexcept
-            {
+            std::string operator()(const std::string& s) noexcept {
                 std::string ret = s;
                 std::transform(ret.begin(), ret.end(), ret.begin(), ::tolower);
+
                 return ret;
             }
         };
@@ -794,10 +791,10 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _ucase_str {
-            std::string operator()(const std::string& s) noexcept
-            {
+            std::string operator()(const std::string& s) noexcept {
                 std::string ret = s;
                 std::transform(ret.begin(), ret.end(), ret.begin(), ::toupper);
+
                 return ret;
             }
         };
@@ -819,12 +816,13 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _right_str {
-            std::string operator()(const std::string& s, int n) noexcept
-            {
-                if (n <= 0)
+            std::string operator()(const std::string& s, int n) noexcept {
+                if (n <= 0) {
                     return s;
-                else if (n > int(s.size()))
+                }
+                else if (n > int(s.size())) {
                     n = int(s.size());
+                }
 
                 int skip = int(s.size()) - n;
 
@@ -840,19 +838,23 @@ fmap["sin"] = functor<float, _sin>;
             int operator()(
                 const std::string& s, const std::string& search_str) noexcept
             {
-                if (search_str.empty())
+                if (search_str.empty()) {
                     return 0;
-                else if (s.empty() || search_str.size() > s.size())
+                }
+                else if (s.empty() || search_str.size() > s.size()) {
                     return -1;
-                else if (search_str.size() == s.size() && s == search_str)
+                }
+                else if (search_str.size() == s.size() && s == search_str) {
                     return 0;
+                }
 
                 std::string mystr = s;
                 int pos = 0;
 
                 while (search_str.size() <= mystr.size()) {
-                    if (mystr.substr(0, search_str.size()) == search_str)
+                    if (mystr.substr(0, search_str.size()) == search_str) {
                         return pos;
+                    }
 
                     ++pos;
                     mystr = mystr.substr(1, mystr.size() - 1);
@@ -890,17 +892,21 @@ fmap["sin"] = functor<float, _sin>;
             std::string operator()(
                 const std::string& s, int pos, int n) noexcept
             {
-                if (pos < 1)
+                if (pos < 1) {
                     pos = 0;
+                }
 
-                if (pos >= int(s.size()))
+                if (pos >= int(s.size())) {
                     return std::string();
+                }
 
-                if (n < 0)
+                if (n < 0) {
                     n = 0;
+                }
 
-                if ((pos + n) >= int(s.size()))
+                if ((pos + n) >= int(s.size())) {
                     n = int(s.size()) - pos;
+                }
 
                 return s.substr(pos, n);
             }
@@ -921,17 +927,21 @@ fmap["sin"] = functor<float, _sin>;
             {
                 --pos;
 
-                if (pos < 1)
+                if (pos < 1) {
                     pos = 0;
+                }
 
-                if (pos >= int(s.size()))
+                if (pos >= int(s.size())) {
                     return std::string();
+                }
 
-                if (n < 0)
+                if (n < 0) {
                     n = 0;
+                }
 
-                if ((pos + n) >= int(s.size()))
+                if ((pos + n) >= int(s.size())) {
                     n = int(s.size()) - pos;
+                }
 
                 return s.substr(pos, n);
             }
@@ -950,7 +960,6 @@ fmap["sin"] = functor<float, _sin>;
             std::string operator()(
                 const std::string& s, int pos, const std::string& c_s) noexcept
             {
-
                 if (pos >= int(s.size())) {
                     pos = int(s.size() - 1);
                 }
@@ -974,12 +983,10 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _val_str {
-            double operator()(const std::string& x) noexcept
-            {
+            double operator()(const std::string& x) noexcept {
                 try {
                     return nu::stod(x);
                 }
-
                 catch (...) {
                     return 0.0;
                 }
@@ -992,8 +999,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _to_str {
-            std::string operator()(double x) noexcept
-            {
+            std::string operator()(double x) noexcept {
                 if (::floor(x) == x) {
                     return to_string(int(x));
                 }
@@ -1023,8 +1029,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _to_hex_str {
-            std::string operator()(double x) noexcept
-            {
+            std::string operator()(double x) noexcept {
                 std::stringstream ss;
                 ss << std::hex << int(x);
                 return ss.str();
@@ -1035,8 +1040,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["hex"] = functor_string_double<_to_hex_str>;
 
 
-        auto functor_errno = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_errno = 
+            [](rt_prog_ctx_t& ctx, const std::string& name,
+                const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
             return nu::variant_t(ctx.get_errno());
         };
@@ -1044,8 +1051,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["errno"] = functor_errno;
 
 
-        auto functor_errno_str = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_errno_str = 
+            [](rt_prog_ctx_t& ctx, const std::string& name,
+                const nu::func_args_t& args) 
+        {
             std::vector<variant_t> vargs;
             get_functor_vargs(
                 ctx, name, args, { variant_t::type_t::INTEGER }, vargs);
@@ -1056,8 +1065,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["errno$"] = functor_errno_str;
 
 
-        auto functor_eof = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_eof = 
+            [](rt_prog_ctx_t& ctx, const std::string& name,
+                const nu::func_args_t& args) 
+        {
             std::vector<variant_t> vargs;
             get_functor_vargs(
                 ctx, name, args, { variant_t::type_t::INTEGER }, vargs);
@@ -1076,8 +1087,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["eof"] = functor_eof;
 
 
-        auto functor_ferror = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_ferror = 
+            [](rt_prog_ctx_t& ctx, const std::string& name,
+                const nu::func_args_t& args) 
+        {
             std::vector<variant_t> vargs;
             get_functor_vargs(
                 ctx, name, args, { variant_t::type_t::INTEGER }, vargs);
@@ -1095,9 +1108,12 @@ fmap["sin"] = functor<float, _sin>;
         fmap["ferror"] = functor_ferror;
 
 
-        auto functor_ftell = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_ftell = 
+            [](rt_prog_ctx_t& ctx, const std::string& name,
+                const nu::func_args_t& args) 
+        {
             std::vector<variant_t> vargs;
+
             get_functor_vargs(
                 ctx, name, args, { variant_t::type_t::INTEGER }, vargs);
 
@@ -1116,7 +1132,9 @@ fmap["sin"] = functor<float, _sin>;
 
         auto functor_fsize = [](rt_prog_ctx_t& ctx, const std::string& name,
             const nu::func_args_t& args) {
+
             std::vector<variant_t> vargs;
+
             get_functor_vargs(
                 ctx, name, args, { variant_t::type_t::INTEGER }, vargs);
 
@@ -1147,8 +1165,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["fsize"] = functor_fsize;
 
 
-        auto functor_inkeys = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_inkeys = 
+            [](rt_prog_ctx_t& ctx, const std::string& name,
+                const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
 
             int ch = _os_kbhit();
@@ -1165,8 +1185,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["inkey"] = functor_inkeys;
 
 
-        auto functor_getvkey = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_getvkey = 
+            [](rt_prog_ctx_t& ctx, const std::string& name,
+                const nu::func_args_t& args)
+        {
             check_arg_num(args, 0, name);
 
             return variant_t(_os_get_vkey());
@@ -1175,8 +1197,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["getvkey"] = functor_getvkey;
 
 
-        auto functor_pwd = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_pwd = 
+                [](rt_prog_ctx_t& ctx, const std::string& name,
+                    const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
 
             auto wd = _os_get_working_dir();
@@ -1188,14 +1212,14 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _getenv_str {
-            std::string operator()(const std::string& x) noexcept
-            {
+            std::string operator()(const std::string& x) noexcept {
                 std::string ret;
 
                 char* var = ::getenv(x.c_str());
 
-                if (var)
+                if (var) {
                     ret = var;
+                }
 
                 return ret;
             }
@@ -1217,8 +1241,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _unsetenv_str {
-            int operator()(const std::string& var) noexcept
-            {
+            int operator()(const std::string& var) noexcept {
                 return _os_unsetenv(var.c_str());
             }
         };
@@ -1227,8 +1250,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _erase_file {
-            int operator()(const std::string& var) noexcept
-            {
+            int operator()(const std::string& var) noexcept {
                 return _os_erase_file(var.c_str());
             }
         };
@@ -1237,8 +1259,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _erase_dir {
-            int operator()(const std::string& var) noexcept
-            {
+            int operator()(const std::string& var) noexcept {
                 return _os_erase_dir(var.c_str());
             }
         };
@@ -1247,8 +1268,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _make_dir {
-            int operator()(const std::string& var) noexcept
-            {
+            int operator()(const std::string& var) noexcept {
                 return _os_make_dir(var.c_str());
             }
         };
@@ -1257,8 +1277,10 @@ fmap["sin"] = functor<float, _sin>;
 
 
 #ifndef TINY_NUBASIC_VER
-        auto functor_getswidth = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_getswidth = 
+            [](rt_prog_ctx_t& ctx, const std::string& name,
+                const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_screen_width());
         };
@@ -1266,8 +1288,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["getswidth"] = functor_getswidth;
 
 
-        auto functor_getsheight = [](rt_prog_ctx_t& ctx,
-            const std::string& name, const nu::func_args_t& args) {
+        auto functor_getsheight = 
+            [](rt_prog_ctx_t& ctx,
+                const std::string& name, const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_screen_height());
         };
@@ -1275,8 +1299,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["getsheight"] = functor_getsheight;
 
 
-        auto functor_getwindowx = [](rt_prog_ctx_t& ctx,
-            const std::string& name, const nu::func_args_t& args) {
+        auto functor_getwindowx = 
+            [](rt_prog_ctx_t& ctx,
+                const std::string& name, const nu::func_args_t& args)
+        {
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_window_x());
         };
@@ -1284,8 +1310,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["getwindowx"] = functor_getwindowx;
 
 
-        auto functor_getwindowy = [](rt_prog_ctx_t& ctx,
-            const std::string& name, const nu::func_args_t& args) {
+        auto functor_getwindowy = 
+            [](rt_prog_ctx_t& ctx,
+                const std::string& name, const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_window_y());
         };
@@ -1293,8 +1321,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["getwindowy"] = functor_getwindowy;
 
 
-        auto functor_getwindowdx = [](rt_prog_ctx_t& ctx,
-            const std::string& name, const nu::func_args_t& args) {
+        auto functor_getwindowdx = 
+            [](rt_prog_ctx_t& ctx,
+                const std::string& name, const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_window_dx());
         };
@@ -1302,8 +1332,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["getwindowdx"] = functor_getwindowdx;
 
 
-        auto functor_getwindowdy = [](rt_prog_ctx_t& ctx,
-            const std::string& name, const nu::func_args_t& args) {
+        auto functor_getwindowdy = 
+            [](rt_prog_ctx_t& ctx,
+                const std::string& name, const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_window_dy());
         };
@@ -1311,8 +1343,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["getwindowdy"] = functor_getwindowdy;
 
 
-        auto functor_getmousex = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_getmousex = 
+            [](rt_prog_ctx_t& ctx, const std::string& name,
+                const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_mouse_x());
         };
@@ -1320,8 +1354,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["getmousex"] = functor_getmousex;
 
 
-        auto functor_getmousey = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_getmousey = 
+            [](rt_prog_ctx_t& ctx, const std::string& name,
+                const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_mouse_y());
         };
@@ -1329,16 +1365,21 @@ fmap["sin"] = functor<float, _sin>;
         fmap["getmousey"] = functor_getmousey;
 
 
-        auto functor_getmousebtn = [](rt_prog_ctx_t& ctx,
-            const std::string& name, const nu::func_args_t& args) {
+        auto functor_getmousebtn = 
+            [](rt_prog_ctx_t& ctx,
+                const std::string& name, const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_mouse_btn());
         };
 
         fmap["getmousebtn"] = functor_getmousebtn;
 
-        auto functor_set_topmost = [](rt_prog_ctx_t& ctx,
-            const std::string& name, const nu::func_args_t& args) {
+
+        auto functor_set_topmost = 
+            [](rt_prog_ctx_t& ctx,
+                const std::string& name, const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_set_topmost());
         };
@@ -1346,10 +1387,12 @@ fmap["sin"] = functor<float, _sin>;
         fmap["settopmost"] = functor_set_topmost;
 
 #endif // TINY_NUBASIC_VER
+        
 
-
-        auto functor_pi = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_pi = 
+            [](rt_prog_ctx_t& ctx, const std::string& name,
+                const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
             return nu::variant_t(3.1415926535897F);
         };
@@ -1357,8 +1400,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["pi"] = functor_pi;
 
 
-        auto functor_plat_id = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_plat_id = 
+            [](rt_prog_ctx_t& ctx, const std::string& name,
+                const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
 #ifdef WIN32
             return 1;
@@ -1415,8 +1460,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["syssec"] = functor_get_sec;
         fmap["time"] = functor_get_time;
 
-        auto functor_sys_time = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_sys_time = 
+            [](rt_prog_ctx_t& ctx, const std::string& name,
+                const nu::func_args_t& args) 
+        {
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_systime());
         };
@@ -1426,8 +1473,10 @@ fmap["sin"] = functor<float, _sin>;
 
 
         auto functor_sizeof_bv = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+            const nu::func_args_t& args) 
+        {
             std::vector<variant_t> vargs;
+
             get_functor_vargs(
                 ctx, name, args, { variant_t::type_t::UNDEFINED }, vargs);
 
@@ -1438,8 +1487,10 @@ fmap["sin"] = functor<float, _sin>;
         fmap["sizeof@"] = functor_sizeof_bv;
 
 
-        auto functor_sizeof = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+        auto functor_sizeof = 
+            [](rt_prog_ctx_t& ctx, const std::string& name,
+                const nu::func_args_t& args) 
+        {
             std::vector<variant_t> vargs;
             get_functor_vargs(
                 ctx, name, args, { variant_t::type_t::UNDEFINED }, vargs);
@@ -1465,8 +1516,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _play_sound {
-            int operator()(const std::string& filename, int flg) noexcept
-            {
+            int operator()(const std::string& filename, int flg) noexcept {
                 return _os_play_sound(filename, flg);
             }
         };
@@ -1476,8 +1526,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _move_window {
-            int operator()(int x, int y, int dx, int dy) noexcept
-            {
+            int operator()(int x, int y, int dx, int dy) noexcept {
                 return _os_move_window(x, y, dx, dy);
             }
         };
@@ -1487,8 +1536,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _get_pixel {
-            int operator()(int x, int y) noexcept
-            {
+            int operator()(int x, int y) noexcept {
                 return _os_get_pixel(x, y);
             }
         };
@@ -1499,8 +1547,7 @@ fmap["sin"] = functor<float, _sin>;
 
 
         struct _rgb {
-            int operator()(int r, int g, int b) noexcept
-            {
+            int operator()(int r, int g, int b) noexcept {
                 return ((int)(((uint8_t)(r) | ((uint16_t)((uint8_t)(g)) << 8))
                     | (((uint32_t)(uint8_t)(b)) << 16)));
             }
@@ -1517,8 +1564,7 @@ fmap["sin"] = functor<float, _sin>;
         fmap["hcnt"] = nu::hash_cnt;
 
         struct _exit_program {
-            int operator()(int retcode) noexcept
-            {
+            int operator()(int retcode) noexcept {
                 exit(retcode);
                 return 0;
             }
@@ -1536,41 +1582,43 @@ fmap["sin"] = functor<float, _sin>;
 
 global_operator_tbl_t& global_operator_tbl_t::get_instance()
 {
-    if (!_instance) {
-        _instance = new global_operator_tbl_t();
-        assert(_instance);
-
-        global_operator_tbl_t& opmap = *_instance;
-        using arg_t = const variant_t&;
-
-        opmap["mod"] = [](arg_t a, arg_t b) { return a.int_mod(b); };
-        opmap["div"] = [](arg_t a, arg_t b) { return a.int_div(b); };
-        opmap["<="] = [](arg_t a, arg_t b) { return a <= b; };
-        opmap[">="] = [](arg_t a, arg_t b) { return a >= b; };
-        opmap["="] = [](arg_t a, arg_t b) { return a == b; };
-        opmap["<>"] = [](arg_t a, arg_t b) { return a != b; };
-        opmap["<"] = [](arg_t a, arg_t b) { return a < b; };
-        opmap[">"] = [](arg_t a, arg_t b) { return a > b; };
-        opmap["+"] = [](arg_t a, arg_t b) { return a + b; };
-        opmap["-"] = [](arg_t a, arg_t b) { return a - b; };
-        opmap["/"] = [](arg_t a, arg_t b) { return a / b; };
-        opmap["*"] = [](arg_t a, arg_t b) { return a * b; };
-        opmap["^"] = [](arg_t a, arg_t b) { return a.power(b); };
-        opmap["\\"] = [](arg_t a, arg_t b) { return a.int_div(b); };
-        opmap["and"] = [](arg_t a, arg_t b) { return a && b; };
-        opmap["or"] = [](arg_t a, arg_t b) { return a || b; };
-        opmap["xor"] = [](arg_t a, arg_t b) { return a != b; };
-
-        opmap["bor"] = [](arg_t a, arg_t b) { return a.to_int() | b.to_int(); };
-        opmap["band"]
-            = [](arg_t a, arg_t b) { return a.to_int() & b.to_int(); };
-        opmap["bxor"]
-            = [](arg_t a, arg_t b) { return a.to_int() ^ b.to_int(); };
-        opmap["bshr"]
-            = [](arg_t a, arg_t b) { return a.to_int() >> b.to_int(); };
-        opmap["bshl"]
-            = [](arg_t a, arg_t b) { return a.to_int() << b.to_int(); };
+    if (_instance) {
+        return *_instance;
     }
+
+    _instance = new global_operator_tbl_t();
+    assert(_instance);
+
+    global_operator_tbl_t& opmap = *_instance;
+    using arg_t = const variant_t&;
+
+    opmap["mod"] = [](arg_t a, arg_t b) { return a.int_mod(b); };
+    opmap["div"] = [](arg_t a, arg_t b) { return a.int_div(b); };
+
+    opmap["<="] = [](arg_t a, arg_t b) { return a <= b; };
+    opmap[">="] = [](arg_t a, arg_t b) { return a >= b; };
+    opmap["="] = [](arg_t a, arg_t b) { return a == b; };
+    opmap["<>"] = [](arg_t a, arg_t b) { return a != b; };
+    opmap["<"] = [](arg_t a, arg_t b) { return a < b; };
+    opmap[">"] = [](arg_t a, arg_t b) { return a > b; };
+
+    opmap["+"] = [](arg_t a, arg_t b) { return a + b; };
+    opmap["-"] = [](arg_t a, arg_t b) { return a - b; };
+
+    opmap["/"] = [](arg_t a, arg_t b) { return a / b; };
+    opmap["*"] = [](arg_t a, arg_t b) { return a * b; };
+    opmap["^"] = [](arg_t a, arg_t b) { return a.power(b); };
+    opmap["\\"] = [](arg_t a, arg_t b) { return a.int_div(b); };
+
+    opmap["and"] = [](arg_t a, arg_t b) { return a && b; };
+    opmap["or"] = [](arg_t a, arg_t b) { return a || b; };
+    opmap["xor"] = [](arg_t a, arg_t b) { return a != b; };
+
+    opmap["bor"] = [](arg_t a, arg_t b) { return a.to_int() | b.to_int(); };
+    opmap["band"] = [](arg_t a, arg_t b) { return a.to_int() & b.to_int(); };
+    opmap["bxor"] = [](arg_t a, arg_t b) { return a.to_int() ^ b.to_int(); };
+    opmap["bshr"] = [](arg_t a, arg_t b) { return a.to_int() >> b.to_int(); };
+    opmap["bshl"] = [](arg_t a, arg_t b) { return a.to_int() << b.to_int(); };
 
     return *_instance;
 }

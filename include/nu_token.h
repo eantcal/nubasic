@@ -57,7 +57,9 @@ class token_t {
     friend class base_tknzr_t;
 
 public:
-    enum class case_t { LOWER, NOCHANGE };
+    enum class case_t { 
+        LOWER, NOCHANGE 
+    };
 
     using data_ptr_t = std::shared_ptr<std::string>;
 
@@ -70,21 +72,37 @@ public:
 
     void set_identifier(const std::string& id, case_t casemode);
 
-    const std::string& identifier() const noexcept { return _identifier; }
+    const std::string& identifier() const noexcept { 
+        return _identifier; 
+    }
 
-    const std::string& org_id() const noexcept { return _org_id; }
+    const std::string& org_id() const noexcept { 
+        return _org_id; 
+    }
 
-    tkncl_t type() const noexcept { return _type; }
+    tkncl_t type() const noexcept { 
+        return _type; 
+    }
 
-    void set_type(tkncl_t cl) noexcept { _type = cl; }
+    void set_type(tkncl_t cl) noexcept { 
+        _type = cl; 
+    }
 
-    size_t position() const noexcept { return _position; }
+    size_t position() const noexcept { 
+        return _position; 
+    }
 
-    void set_position(size_t pos) noexcept { _position = pos; }
+    void set_position(size_t pos) noexcept { 
+        _position = pos; 
+    }
 
-    std::string expression() const noexcept { return *_expression_ptr; }
+    std::string expression() const noexcept { 
+        return *_expression_ptr; 
+    }
 
-    data_ptr_t expression_ptr() const noexcept { return _expression_ptr; }
+    data_ptr_t expression_ptr() const noexcept { 
+        return _expression_ptr; 
+    }
 
     token_t(token_t&& other)
         : _identifier(std::move(other._identifier))
@@ -95,8 +113,7 @@ public:
     {
     }
 
-    token_t& operator=(token_t&& other)
-    {
+    token_t& operator=(token_t&& other) {
         if (this != &other) {
             _identifier = std::move(other._identifier);
             _org_id = std::move(other._org_id);
@@ -122,8 +139,7 @@ private:
     size_t _position = 0;
     data_ptr_t _expression_ptr;
 
-    void _set_id_lowercase()
-    {
+    void _set_id_lowercase() {
         std::transform(_identifier.begin(), _identifier.end(),
             _identifier.begin(), tolower);
     }

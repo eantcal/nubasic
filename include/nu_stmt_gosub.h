@@ -44,7 +44,7 @@ public:
     {
     }
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    void run(rt_prog_ctx_t& ctx) override;
 
 protected:
     prog_pointer_t::line_number_t _line_number = 0;
@@ -53,6 +53,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

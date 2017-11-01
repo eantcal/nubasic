@@ -60,7 +60,6 @@ void stmt_sub_t::run(rt_prog_ctx_t& ctx)
         ctx.go_to(handle->pc_end_stmt);
         return;
     }
-
     else {
         handle->flag.set(instrblock_t::EXIT, false);
     }

@@ -60,7 +60,8 @@ bool stmt_block_t::run_pos(rt_prog_ctx_t& ctx, int pos)
                 stmt_num = ctx.goingto_pc.get_stmt_pos();
                 stmt_it = _stmts.begin() + stmt_num;
                 continue;
-            } else {
+            } 
+            else {
                 // exit this block
                 break_cond = true;
                 break;
@@ -85,6 +86,7 @@ int stmt_block_t::find_stmt_pos(int stmtid) const noexcept
     prog_pointer_t::stmt_number_t stmt_num = 0;
 
     while (stmt_it != _stmts.cend()) {
+
         if (*stmt_it && (*stmt_it)->get_stmt_id() == stmtid) {
             stmt_pos = stmt_num;
             break;

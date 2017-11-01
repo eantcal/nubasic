@@ -48,17 +48,21 @@ public:
     lxa_atom_t(const lxa_atom_t&) = default;
     lxa_atom_t& operator=(const lxa_atom_t&) = default;
 
+    void register_pattern(const T& pattern) { 
+        _plist.insert(pattern); 
+    }
 
-    void register_pattern(const T& pattern) { _plist.insert(pattern); }
+    void remove_pattern(const T& pattern) { 
+        _plist.erase(pattern); 
+    }
 
+    void reset() override { 
+        _data.clear(); 
+    }
 
-    void remove_pattern(const T& pattern) { _plist.erase(pattern); }
-
-
-    virtual void reset() { _data.clear(); }
-
-
-    virtual const std::string& data() const { return _data; }
+    const std::string& data() const override { 
+        return _data; 
+    }
 };
 
 
@@ -67,13 +71,14 @@ public:
 class lxa_word_t : public lxa_atom_t<std::string> {
 public:
     bool keyword_matches = false;
+
     lxa_word_t() = default;
     lxa_word_t(const lxa_word_t&) = default;
     lxa_word_t& operator=(const lxa_word_t&) = default;
-    virtual bool accept(char c);
 
-    void reset()
-    {
+    bool accept(char c) override;
+
+    void reset() override {
         lxa_atom_t<std::string>::reset();
         keyword_matches = false;
     }
@@ -87,7 +92,8 @@ public:
     lxa_symb_t() = default;
     lxa_symb_t(const lxa_symb_t&) = default;
     lxa_symb_t& operator=(const lxa_symb_t&) = default;
-    virtual bool accept(char c);
+
+    bool accept(char c) override;
 };
 
 
@@ -111,11 +117,13 @@ public:
     {
     }
 
-    virtual bool accept(char c);
-    virtual void reset();
-    virtual const std::string& data() const;
+    bool accept(char c) override;
+    void reset() override;
+    const std::string& data() const override;
 
-    bool string_complete() const { return _end_found == _end_quote; }
+    bool string_complete() const { 
+        return _end_found == _end_quote; 
+    }
 };
 
 

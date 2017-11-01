@@ -119,10 +119,12 @@ std::string _os_get_systime()
     while (!s.empty()) {
         auto c = s.c_str()[s.size() - 1];
 
-        if (c == '\n' || c == '\r')
+        if (c == '\n' || c == '\r') {
             s = s.substr(0, s.size() - 1);
-        else
+        }
+        else {
             break;
+        }
     }
 
     return s;
@@ -169,6 +171,7 @@ int _os_get_vkey()
     }
 
     int key = _getch();
+
     if (key == 224) {
         key = _getch();
         switch (key) {

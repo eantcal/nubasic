@@ -108,7 +108,8 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
             }
 
             scope->define(name, var_value_t(var, VAR_ACCESS_RW));
-        } else {
+        } 
+        else {
             var_scope_t::handle_t scope
                 = ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
@@ -134,7 +135,8 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
                 try {
                     scope->define(
                         name, var_value_t(nu::stod(value), VAR_ACCESS_RW));
-                } catch (...) {
+                } 
+                catch (...) {
                     scope->define(name, var_value_t(double(0), VAR_ACCESS_RW));
                 }
 
@@ -144,7 +146,8 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
                 try {
                     scope->define(
                         name, var_value_t(nu::stof(value), VAR_ACCESS_RW));
-                } catch (...) {
+                } 
+                catch (...) {
                     scope->define(name, var_value_t(float(0), VAR_ACCESS_RW));
                 }
 
@@ -154,7 +157,8 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
                 try {
                     scope->define(
                         name, var_value_t(nu::stoll(value), VAR_ACCESS_RW));
-                } catch (...) {
+                } 
+                catch (...) {
                     scope->define(name, var_value_t(0, VAR_ACCESS_RW));
                 }
 
@@ -167,7 +171,8 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
                         var_value_t(strcasecmp(value.c_str(), "false") != 0
                                 && strcasecmp(value.c_str(), "0") != 0,
                             VAR_ACCESS_RW));
-                } catch (...) {
+                } 
+                catch (...) {
                     scope->define(name, var_value_t(false, VAR_ACCESS_RW));
                 }
 
@@ -178,7 +183,8 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
                 try {
                     scope->define(
                         name, var_value_t(nu::stoi(value), VAR_ACCESS_RW));
-                } catch (...) {
+                } 
+                catch (...) {
                     scope->define(name, var_value_t(0, VAR_ACCESS_RW));
                 }
 

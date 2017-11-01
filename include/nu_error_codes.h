@@ -76,7 +76,7 @@ public:
     void throw_exc(int line, value_t errcode, const std::string& stmt);
 
 
-    inline void throw_if(
+    void throw_if(
         bool cond, int line, value_t errcode, const std::string& stmt)
     {
         if (cond)
@@ -85,8 +85,7 @@ public:
 
 
     std::string message(value_t);
-
-
+    
     static rt_error_code_t& get_instance() noexcept;
 
 private:

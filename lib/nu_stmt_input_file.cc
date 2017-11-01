@@ -142,7 +142,8 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
             }
 
             ctx.proc_scope.get()->define(name, var_value_t(var, VAR_ACCESS_RW));
-        } else {
+        } 
+        else {
             var_scope_t::handle_t scope
                 = ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
@@ -169,7 +170,8 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
                 try {
                     (ctx.proc_scope.get())
                         ->define(name, var_value_t(dvalue, VAR_ACCESS_RW));
-                } catch (...) {
+                } 
+                catch (...) {
                     (ctx.proc_scope.get())
                         ->define(name, var_value_t(double(0), VAR_ACCESS_RW));
                 }
@@ -180,7 +182,8 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
                 try {
                     (ctx.proc_scope.get())
                         ->define(name, var_value_t(fvalue, VAR_ACCESS_RW));
-                } catch (...) {
+                } 
+                catch (...) {
                     (ctx.proc_scope.get())
                         ->define(name, var_value_t(float(0), VAR_ACCESS_RW));
                 }
@@ -195,7 +198,8 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
                             var_value_t(strcasecmp(svalue.c_str(), "false") != 0
                                     && strcasecmp(svalue.c_str(), "0") != 0,
                                 VAR_ACCESS_RW));
-                } catch (...) {
+                } 
+                catch (...) {
                     (ctx.proc_scope.get())
                         ->define(name, var_value_t(false, VAR_ACCESS_RW));
                 }
@@ -206,7 +210,8 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
                 try {
                     (ctx.proc_scope.get())
                         ->define(name, var_value_t(llvalue, VAR_ACCESS_RW));
-                } catch (...) {
+                } 
+                catch (...) {
                     (ctx.proc_scope.get())
                         ->define(
                             name, var_value_t((long long)0, VAR_ACCESS_RW));
@@ -227,7 +232,8 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
                 try {
                     (ctx.proc_scope.get())
                         ->define(name, var_value_t(ivalue, VAR_ACCESS_RW));
-                } catch (...) {
+                } 
+                catch (...) {
                     (ctx.proc_scope.get())
                         ->define(name, var_value_t(0, VAR_ACCESS_RW));
                 }

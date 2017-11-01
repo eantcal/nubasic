@@ -48,10 +48,9 @@ public:
         signal_mgr_t::instance().register_handler(event_t::BREAK, this);
     }
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    void run(rt_prog_ctx_t& ctx) override;
 
-    virtual ~stmt_delay_t()
-    {
+    virtual ~stmt_delay_t() {
         signal_mgr_t::instance().unregister_handler(event_t::BREAK, this);
     }
 
@@ -59,7 +58,7 @@ protected:
     arg_list_t _args;
     volatile bool _break_delay = false;
 
-    virtual bool notify(const event_t& ev) override;
+    bool notify(const event_t& ev) override;
 
     stmt_delay_t(const stmt_delay_t&) = delete;
     stmt_delay_t& operator=(const stmt_delay_t&) = delete;
@@ -80,7 +79,7 @@ public:
     {
     }
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    void run(rt_prog_ctx_t& ctx) override;
 
     stmt_mdelay_t(const stmt_mdelay_t&) = delete;
     stmt_mdelay_t& operator=(const stmt_mdelay_t&) = delete;
@@ -88,6 +87,7 @@ public:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 /* -------------------------------------------------------------------------- */

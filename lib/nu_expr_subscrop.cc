@@ -23,9 +23,10 @@ variant_t expr_subscrop_t::eval(rt_prog_ctx_t& ctx) const
     var_scope_t::handle_t scope
         = ctx.proc_scope.get(ctx.proc_scope.get_type(_name));
 
-    if (!scope->is_defined(_name))
+    if (!scope->is_defined(_name)) {
         throw exception_t(
             std::string("Error: \"" + _name + "\" undefined symbol"));
+    }
 
     const variant_t& var_value = (*scope)[_name].first;
     (void)var_value; // TODO

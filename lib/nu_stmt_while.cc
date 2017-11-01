@@ -50,10 +50,12 @@ stmt_while_t::stmt_while_t(prog_ctx_t& ctx, expr_any_t::handle_t condition,
     , _while_stmt(while_stmt)
     , _single_stmt(while_stmt != nullptr)
 {
-    if (_single_stmt)
+    if (_single_stmt) {
         signal_mgr_t::instance().register_handler(event_t::BREAK, this);
-    else
+    }
+    else {
         build_ctx(ctx);
+    }
 }
 
 
@@ -61,8 +63,9 @@ stmt_while_t::stmt_while_t(prog_ctx_t& ctx, expr_any_t::handle_t condition,
 
 stmt_while_t::~stmt_while_t()
 {
-    if (_single_stmt)
+    if (_single_stmt) {
         signal_mgr_t::instance().unregister_handler(event_t::BREAK, this);
+    }
 }
 
 
@@ -93,16 +96,18 @@ void stmt_while_t::run(rt_prog_ctx_t& ctx)
         if (!static_cast<bool>(_condition->eval(ctx))) {
             handle->flag.set(instrblock_t::EXIT, true);
             ctx.go_to(handle->pc_end_stmt);
-        } else {
+        } 
+        else {
             handle->flag.set(instrblock_t::EXIT, false);
             ctx.go_to_next();
         }
     }
     //  while <condition> do <stmt>
-    else
+    else {
         while (static_cast<bool>(_condition->eval(ctx)) && !_break_while_loop) {
             _while_stmt->run(ctx);
         }
+    }
 
     if (_break_while_loop) {
         ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);

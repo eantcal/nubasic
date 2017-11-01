@@ -40,6 +40,7 @@ stmt_endif_t::stmt_endif_t(prog_ctx_t& ctx)
         ifctxs.pc_stack.empty(), "'End If': no any if-statement matching");
 
     auto if_pc = ifctxs.pc_stack.top();
+
     ifctxs.data[if_pc].pc_endif_stmt = ctx.compiletime_pc;
     ifctxs.block_to_if_line_tbl[ctx.compiletime_pc] = if_pc;
     ifctxs.pc_stack.pop();

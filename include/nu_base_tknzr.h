@@ -54,70 +54,75 @@ public:
     //! Get a token and advance to the next one (if any)
     virtual token_t next() = 0;
 
-
     //! Get a token list
     virtual void get_tknlst(token_list_t& tl, bool strip_comment) = 0;
 
 
     //! Get buffer pointer (cptr)
-    size_t tell() const { return _cptr; }
+    size_t tell() const noexcept { 
+        return _cptr; 
+    }
 
 
     //! Get size of the input buffer
-    size_t size() const { return _data_len; }
+    size_t size() const noexcept { 
+        return _data_len; 
+    }
 
 
     //! Return true if current position >= size()
-    bool eol() const { return tell() >= size(); }
+    bool eol() const noexcept { 
+        return tell() >= size(); 
+    }
 
 
     //! Reset buffer pointer to zero
-    void reset() noexcept { _rst_cptr(); }
-
+    void reset() noexcept { 
+        _cptr = 0; 
+    }
 
     //! Create a token object
-    static token_t make_token(size_t pos, token_t::data_ptr_t data_ptr)
-    {
+    static token_t make_token(size_t pos, token_t::data_ptr_t data_ptr) {
         return token_t(pos, data_ptr);
     }
 
 
 protected:
     //! Get current pointed character within the buffer
-    char get_symbol() const noexcept { return !eol() ? (*_data)[tell()] : 0; }
+    char get_symbol() const noexcept { 
+        return !eol() ? (*_data)[tell()] : 0; 
+    }
 
 
     //! If not eof, move buffer pointer to next symbol
-    void seek_next() noexcept
-    {
-        if (tell() < size())
-            _inc_cptr();
+    void seek_next() noexcept {
+        if (tell() < size()) {
+            ++_cptr;
+        }
     }
 
 
     //! Assign a new value to cptr
-    void set_cptr(size_t cptr) { _cptr = cptr; }
+    void set_cptr(size_t cptr) noexcept { 
+        _cptr = cptr; 
+    }
 
 
     //! If not begin of buffer, move cptr to the previous symbol
-    void seek_prev() noexcept
-    {
-        if (tell())
-            _dec_cptr();
+    void seek_prev() noexcept {
+        if (tell()) {
+            --_cptr;
+        }
     }
 
 
     //! Return a shared_ptr to internal data
-    token_t::data_ptr_t data() const noexcept { return _data; }
+    token_t::data_ptr_t data() const noexcept { 
+        return _data; 
+    }
 
 
 private:
-    void _inc_cptr() noexcept { ++_cptr; }
-
-    void _dec_cptr() noexcept { --_cptr; }
-
-    void _rst_cptr() noexcept { _cptr = 0; }
-
     std::shared_ptr<std::string> _data;
     size_t _data_len = 0;
     size_t _cptr = 0;

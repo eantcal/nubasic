@@ -37,7 +37,6 @@ void stmt_gosub_t::run(rt_prog_ctx_t& ctx)
         _line_number = ctx.prog_label[_label];
     }
 
-
     ctx.set_return_line(
         std::make_pair(ctx.runtime_pc.get_line(), get_stmt_id()));
 

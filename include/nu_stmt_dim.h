@@ -47,7 +47,7 @@ public:
     stmt_dim_t(const stmt_dim_t&) = delete;
     stmt_dim_t& operator=(const stmt_dim_t&) = delete;
 
-    virtual void run(rt_prog_ctx_t& ctx) override;
+    void run(rt_prog_ctx_t& ctx) override;
 
     void define(const std::string& var, const std::string& vtype,
         vec_size_t vect_size, prog_ctx_t& ctx)
@@ -62,6 +62,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

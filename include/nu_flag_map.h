@@ -29,22 +29,22 @@ public:
     flag_map_t() = default;
     flag_map_t(const flag_map_t&) = default;
     flag_map_t& operator=(const flag_map_t&) = default;
-
-
-    void reset_all() noexcept { _data = 0; }
-
-
-    void define(int id, bool val = false) noexcept
-    {
+    
+    void reset_all() noexcept { 
+        _data = 0; 
+    }
+    
+    void define(int id, bool val = false) noexcept {
         assert(size_t(id) < sizeof(_data) * 8);
 
         _mask |= (1LL << id);
 
-        if (val)
+        if (val) {
             _data |= _mask;
-
-        else
+        }
+        else {
             _data &= ~_mask;
+        }
     }
 
 
@@ -54,30 +54,35 @@ public:
 
         decltype(_data) idmask = 1LL << id;
 
-        if ((_mask & idmask) == 0)
+        if ((_mask & idmask) == 0) {
             return false;
+        }
 
         return ((_data & idmask) != 0);
     }
 
 
-    inline bool operator[](int id) const noexcept { return get(id); }
+    bool operator[](int id) const noexcept { 
+        return get(id); 
+    }
 
 
-    void set(int id, bool value)
-    {
+    void set(int id, bool value) {
+
         assert(size_t(id) < sizeof(_data) * 8);
 
         decltype(_data) idmask = 1ULL << id;
 
-        if ((_mask & idmask) == 0)
+        if ((_mask & idmask) == 0) {
             return;
+        }
 
-        if (value)
+        if (value) {
             _data |= idmask;
-
-        else
+        }
+        else {
             _data &= ~idmask;
+        }
     }
 
 
@@ -88,6 +93,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
+
 }
 
 

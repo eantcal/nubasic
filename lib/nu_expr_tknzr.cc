@@ -39,17 +39,21 @@ expr_tknzr_t::expr_tknzr_t(const std::string& data, size_t pos,
     _subexp_begin_symb.push_back(subexp_bsymb);
     _subexp_end_symb.push_back(subexp_esymb);
 
-    for (auto e : blanks)
+    for (auto e : blanks) {
         _blank.register_pattern(e);
+    }
 
-    for (auto e : newlines)
+    for (auto e : newlines) {
         _newl.register_pattern(e);
+    }
 
-    for (auto e : operators)
+    for (auto e : operators) {
         _op.register_pattern(e);
+    }
 
-    for (auto e : str_op)
+    for (auto e : str_op) {
         _word_op.register_pattern(e);
+    }
 
     if (!_line_comment.empty()) {
         for (const auto & comment_word : line_comment) {
@@ -64,7 +68,6 @@ expr_tknzr_t::expr_tknzr_t(const std::string& data, size_t pos,
 
     _op.register_pattern(subexp_bsymb);
     _op.register_pattern(subexp_esymb);
-
 }
 
 
@@ -74,12 +77,14 @@ void expr_tknzr_t::get_tknlst(token_list_t& tl, bool strip_comment)
 {
     tl.clear();
 
-    if (eol())
+    if (eol()) {
         return;
+    }
 
     do {
         tl.data().push_back(next());
-    } while (!eol());
+    } 
+    while (!eol());
 
     //if (strip_comment) {
     //    strip_comment_line(tl, _comment_line_set);
@@ -91,12 +96,10 @@ void expr_tknzr_t::get_tknlst(token_list_t& tl, bool strip_comment)
 
 static inline bool identifier_char(char c)
 {
-    if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z')
-        || (c >= 'A' && c <= 'Z') || c == '_') {
-        return true;
-    }
-
-    return false;
+    return 
+        ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z')
+        || 
+        (c >= 'A' && c <= 'Z') || c == '_');
 }
 
 
@@ -110,7 +113,8 @@ token_t expr_tknzr_t::next()
     auto tkn = _next();
 
     if (!(tkn.type() == tkncl_t::INTEGRAL
-            || (tkn.identifier() == "." && tkn.type() == tkncl_t::OPERATOR))) {
+            || (tkn.identifier() == "." && tkn.type() == tkncl_t::OPERATOR))) 
+    {
         return tkn;
     }
 
@@ -135,7 +139,8 @@ token_t expr_tknzr_t::next()
         }
 
         id += tkn.identifier();
-    } else if (tkn.identifier() == "." && tkn.type() == tkncl_t::OPERATOR) {
+    } 
+    else if (tkn.identifier() == "." && tkn.type() == tkncl_t::OPERATOR) {
         tkn = _next();
 
         if (tkn.type() != tkncl_t::INTEGRAL) {
@@ -144,7 +149,8 @@ token_t expr_tknzr_t::next()
         }
 
         id = "0." + tkn.identifier();
-    } else {
+    } 
+    else {
         set_cptr(pointer);
         return _next();
     }
@@ -233,7 +239,7 @@ token_t expr_tknzr_t::_next()
                      !identifier_char(symbol))) /*->NOTE1*/
         {
             /*NOTE1*/
-            // operators like or, and, etc... may be part of
+            // operators like 'or', 'and', etc... may be part of
             // an identifier such as 'for', 'mandatory', etc...
             // we have to recognize this case in order to
             // avoid to split this identifier in different
@@ -250,7 +256,8 @@ token_t expr_tknzr_t::_next()
                         seek_next();
 
                         if (identifier_char(symbol)
-                            && identifier_char(get_symbol())) {
+                            && identifier_char(get_symbol())) 
+                        {
                             /*->NOTE1*/
                             break;
                         }
@@ -269,9 +276,8 @@ token_t expr_tknzr_t::_next()
                         token.set_identifier(_word_op.data(), token_t::case_t::LOWER);
                         token.set_type(tkncl_t::OPERATOR);
                         return token;
-
-
-                    } else {
+                    } 
+                    else {
                         _word_op.reset();
                         set_cptr(set_point);
                         token.set_identifier(other, token_t::case_t::LOWER);
@@ -298,6 +304,7 @@ token_t expr_tknzr_t::_next()
 
         if (is_operator) {
             char ssymb[2] = { symbol };
+
             if (_line_comment.find(ssymb) != _line_comment.end()) {
                 std::string comment;
                 extract_comment(token, comment);
@@ -306,6 +313,7 @@ token_t expr_tknzr_t::_next()
         }
         
         if (_blank.accept(symbol) || _newl.accept(symbol) || is_operator) {
+
             if (other.empty()) {
                 std::string s_symbol;
                 s_symbol.push_back(symbol);
@@ -313,19 +321,25 @@ token_t expr_tknzr_t::_next()
 
                 if (!_blank.data().empty()) {
                     token.set_type(tkncl_t::BLANK);
-                } else if (!_newl.data().empty()) {
+                } 
+                else if (!_newl.data().empty()) {
                     token.set_type(tkncl_t::NEWLINE);
-                } else {
-                    if (token.identifier() == subexp_begin_symbol())
+                } 
+                else {
+                    if (token.identifier() == subexp_begin_symbol()) {
                         token.set_type(tkncl_t::SUBEXP_BEGIN);
-                    else if (token.identifier() == subexp_end_symbol())
+                    }
+                    else if (token.identifier() == subexp_end_symbol()) {
                         token.set_type(tkncl_t::SUBEXP_END);
-                    else
+                    }
+                    else {
                         token.set_type(tkncl_t::OPERATOR);
+                    }
                 }
 
                 seek_next();
-            } else {
+            } 
+            else {
                 token.set_identifier(other, token_t::case_t::LOWER);
                 token.set_type(token_class(other));
 
