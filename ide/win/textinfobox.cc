@@ -34,8 +34,7 @@ txtinfobox_t::txtinfobox_t(HWND hParentWnd, HINSTANCE hInst,
 
     assert(_ctrl_hwnd);
 
-    HANDLE hFont = NULL;
-    LOGFONT lFont;
+    LOGFONT lFont{ 0 };
 
     lFont.lfHeight = fontSize;
     lFont.lfWidth = 0;
@@ -53,7 +52,7 @@ txtinfobox_t::txtinfobox_t(HWND hParentWnd, HINSTANCE hInst,
 
     strncpy(lFont.lfFaceName, fontName.c_str(), sizeof(lFont.lfFaceName) - 1);
 
-    hFont = CreateFontIndirect(&lFont);
+    auto hFont = CreateFontIndirect(&lFont);
 
     SendMessage(_ctrl_hwnd, WM_SETFONT, (WPARAM)hFont, (DWORD)TRUE);
 }

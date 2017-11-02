@@ -88,7 +88,8 @@ struct cfg_t {
             if (mkdir(path, mode) != 0 && errno != EEXIST) {
                 return false;
             }
-        } else if (!S_ISDIR(st.st_mode)) {
+        } 
+        else if (!S_ISDIR(st.st_mode)) {
             return false;
         }
 
@@ -221,7 +222,6 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
             std::cerr << msg << std::endl;
         }
-
     }
 
 
@@ -448,8 +448,9 @@ struct app_t : public nu::dialog_search_t::observer_t {
         std::stringstream ss(s);
         std::string item;
 
-        while (std::getline(ss, item, delim))
+        while (std::getline(ss, item, delim)) {
             elems.push_back(item);
+        }
 
         return elems;
     }
@@ -502,8 +503,9 @@ struct app_t : public nu::dialog_search_t::observer_t {
         auto font = cfg(IDE_SETTINGS_DEF_FONTNAME);
         auto fontsize = cfg(IDE_SETTINGS_DEF_FONTSIZE);
 
-        if (font.empty())
+        if (font.empty()) {
             font = IDE_DEF_FONT;
+        }
 
         int i_fontsize = IDE_DEF_FONT_SIZE;
 
@@ -644,7 +646,8 @@ struct app_t : public nu::dialog_search_t::observer_t {
             std::string msg = "Load '";
             msg += _full_path_str;
             msg += "'\n";
-        } else {
+        } 
+        else {
             std::string msg = "Could not open file \"";
 
             msg += _full_path_str + "\".";
@@ -677,8 +680,9 @@ struct app_t : public nu::dialog_search_t::observer_t {
         os << "Ln " << editor().get_current_line();
         os << " Col " << editor().get_current_colum() << "\r\n";
 
-        if (is_dirty())
+        if (is_dirty()) {
             os << "<Mod>";
+        }
 
         const auto txt = os.str();
         statusbar().set_text(txt.c_str());
@@ -690,7 +694,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
     void save_document_as() {
         nu::dialog_savefile_t dlg(mainwin(), "Save File");
 
-        auto response = dlg.run("", _full_path_str.c_str());
+        const auto response = dlg.run("", _full_path_str.c_str());
 
         if (response == GTK_RESPONSE_ACCEPT) {
             const char *filename = dlg.filename();
@@ -719,7 +723,8 @@ struct app_t : public nu::dialog_search_t::observer_t {
             fclose(fp);
 
             editor().cmd(SCI_SETSAVEPOINT);
-        } else {
+        } 
+        else {
             std::string msg = "Could not save file \"";
             msg += filename;
             msg += "\".";
@@ -732,8 +737,9 @@ struct app_t : public nu::dialog_search_t::observer_t {
     /* -------------------------------------------------------------------------- */
 
     void save_document() {
-        if (_full_path_str.empty())
+        if (_full_path_str.empty()) {
             _full_path_str = "noname.bas";
+        }
 
         save_file(_full_path_str.c_str());
     }
@@ -756,10 +762,12 @@ struct app_t : public nu::dialog_search_t::observer_t {
                 mainwin(), msg.c_str(), "Confirmation", GTK_BUTTONS_YES_NO);
 
             if (decision == GTK_RESPONSE_YES) {
-                if (save_as_dialog)
+                if (save_as_dialog) {
                     save_document_as();
-                else
+                }
+                else {
                     save_document();
+                }
             }
 
             return decision;
@@ -909,7 +917,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
         nu::dialog_openfile_t dlg(nuwin, "Open File");
 
-        auto response = dlg.run();
+        const auto response = dlg.run();
 
         if (response == GTK_RESPONSE_ACCEPT) {
             const char *filename = dlg.filename();
@@ -937,8 +945,9 @@ struct app_t : public nu::dialog_search_t::observer_t {
         auto fontname = app.cfg(IDE_SETTINGS_DEF_FONTNAME);
         auto fontsize = app.cfg(IDE_SETTINGS_DEF_FONTSIZE);
 
-        if (fontname.empty())
+        if (fontname.empty()) {
             fontname = IDE_DEF_FONT;
+        }
 
         int i_fontsize = IDE_DEF_FONT_SIZE;
 
@@ -949,7 +958,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
         nu::dialog_font_t dlg(nuwin, fontname.c_str(), i_fontsize);
 
-        auto response = dlg.run();
+        const auto response = dlg.run();
 
         if (response == GTK_RESPONSE_OK) {
 
@@ -1132,14 +1141,20 @@ struct app_t : public nu::dialog_search_t::observer_t {
         // File ---------------------------------------------------------------
         nu::menu_t menu("File", menubar, accelgroup);
 
-        menu.add_stock_item(window, GTK_STOCK_NEW, []{ get_instance().set_new_document(true); });
+        menu.add_stock_item(window, GTK_STOCK_NEW, 
+            []{ get_instance().set_new_document(true); });
+
         menu.add_stock_item(window, GTK_STOCK_OPEN, menu_file_open);
         menu.add_separator();
-        menu.add_stock_item(window, GTK_STOCK_SAVE, []{ get_instance().save_document(); });
+
+        menu.add_stock_item(window, GTK_STOCK_SAVE, 
+            []{ get_instance().save_document(); });
+
         menu.add_stock_item(window, GTK_STOCK_SAVE_AS, menu_file_saveas);
 
         menu.add_separator();
-        menu.add_stock_item(window, GTK_STOCK_QUIT, [](){ get_instance().quit(); });
+        menu.add_stock_item(window, GTK_STOCK_QUIT, 
+            [](){ get_instance().quit(); });
     }
 
 
@@ -1229,7 +1244,6 @@ struct app_t : public nu::dialog_search_t::observer_t {
         menu.add_stock_item(window, "Go to Program Counter",
             []{ get_instance().show_execution_point(
                     get_instance().interpreter().get_cur_line_n()); });
-
 
         return &menu;
     }
@@ -1322,7 +1336,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
         tf.chrg.cpMax = 0;
 
-        pos = (long)ed.cmd(SCI_FINDTEXT, _search_flags, &tf);
+        pos = long(ed.cmd(SCI_FINDTEXT, _search_flags, &tf));
 
         if (pos >= 0) {
             ed.go_to_pos(pos);
@@ -1566,6 +1580,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
         std::string value;
 
         auto it = _cfg.find(key);
+
         if (it !=_cfg.end()) {
             value = it->second;
         }
@@ -1629,11 +1644,13 @@ struct app_t : public nu::dialog_search_t::observer_t {
     /* ---------------------------------------------------------------------- */
 
     bool toggle_breakpoint(long line = -1) noexcept {
-        if (line<0) 
-            line = editor().get_current_line();          
+        if (line<0) {
+            line = editor().get_current_line();
+        }
 
-        if (!remove_breakpoint(line))
+        if (!remove_breakpoint(line)) {
             add_breakpoint(line);
+        }
 
         return true;
     }
@@ -1784,8 +1801,9 @@ struct app_t : public nu::dialog_search_t::observer_t {
     /* ---------------------------------------------------------------------- */
 
     void eval_sel() {
-        if (is_prog_running())
+        if (is_prog_running()) {
             return;
+        }
 
         std::string sel = editor().get_selection();
         std::string qsel;
@@ -1793,11 +1811,14 @@ struct app_t : public nu::dialog_search_t::observer_t {
         for (size_t i = 0; i < sel.length(); ++i) {
             if (sel[i] == '\\') {
                 qsel += "\\\\";
-            } else if (sel[i] == '"') {
+            } 
+            else if (sel[i] == '"') {
                 qsel += '\\';
                 qsel += '"';
-            } else if (sel[i] >= 20)
+            } 
+            else if (sel[i] >= 20) {
                 qsel += sel[i];
+            }
         }
 
         evaluate_expression(qsel);
@@ -1810,7 +1831,8 @@ struct app_t : public nu::dialog_search_t::observer_t {
         try {
             interpreter().exec_command(cmd);
             return true;
-        } catch (nu::runtime_error_t& e) {
+        } 
+        catch (nu::runtime_error_t& e) {
             char buf[ERR_MSG_BUF_SIZE] = { 0 };
             int line = e.get_line_num();
             line = line <= 0 ? interpreter().get_cur_line_n() : line;
@@ -1822,14 +1844,17 @@ struct app_t : public nu::dialog_search_t::observer_t {
             errorbar().show();
             nu::msgbox(mainwin(), buf, "Runtime Error");
 
-        } catch (std::exception& e) {
+        } 
+        catch (std::exception& e) {
             char buf[ERR_MSG_BUF_SIZE] = { 0 };
 
-            if (interpreter().get_cur_line_n() > 0)
+            if (interpreter().get_cur_line_n() > 0) {
                 snprintf(buf, sizeof(buf) - 1, "At line %i: %s\n",
                         interpreter().get_cur_line_n(), e.what());
-            else
+            }
+            else {
                 snprintf(buf, sizeof(buf) - 1, "%s\n", e.what());
+            }
 
             errorbar().set_text(buf, GTK_MESSAGE_INFO);
             errorbar().show();
@@ -1844,11 +1869,13 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
     void start_debugging(dbg_flg_t flg = dbg_flg_t::NORMAL_EXECUTION) {
 
-        if (is_prog_running())
+        if (is_prog_running()) {
             return;
+        }
 
-        if (_need_build && !rebuild_code(true))
-            return;
+        if (_need_build && !rebuild_code(true)) {
+            return; 
+        }
         
         set_prog_running(true);
 
@@ -1906,8 +1933,9 @@ struct app_t : public nu::dialog_search_t::observer_t {
     /* ---------------------------------------------------------------------- */
 
     bool rebuild_code(bool show_err_msg) noexcept {
-        if (is_prog_running())
+        if (is_prog_running()) {
             return false;
+        }
 
         remove_prog_cnt_marker();
 
@@ -1915,8 +1943,9 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
         auto doc_size = ed.cmd(SCI_GETLENGTH);
 
-        if (doc_size <= 0)
+        if (doc_size <= 0) {
             return true;
+        }
 
         std::vector<char> data(doc_size + 1);
         ed.get_text_range(0, int(doc_size), data.data());
@@ -1926,8 +1955,6 @@ struct app_t : public nu::dialog_search_t::observer_t {
         int line_num = 1;
         interpreter().clear_all();
         bool old_style_prog = false;
-
-        // remove_funcs_menu(); // TODO
 
         bool first_is_special_comment = false;
 
@@ -1941,21 +1968,26 @@ struct app_t : public nu::dialog_search_t::observer_t {
                 line += ch;
 
             if (i >= (doc_size - 1) || ch == '\n'
-                    || (ch == '\r' && i < doc_size && data[i + 1] == '\n')) {
+                    || (ch == '\r' && i < doc_size && data[i + 1] == '\n')) 
+            {
                 if (ch == '\r')
                     ++i;
 
                 if (line_num == 1 && line.size() > 2 && line.substr(0, 2) == "#!") {
                     first_is_special_comment = true;
-                } else if (line_num == 1
-                        || (line_num == 2 && first_is_special_comment)) {
+                } 
+                else if (line_num == 1
+                        || (line_num == 2 && first_is_special_comment)) 
+                {
                     try {
                         auto tokens = split(line);
+
                         if (!tokens.empty()) {
                             auto lnum = std::stoi(tokens[0]);
                             old_style_prog = lnum >= 1;
                         }
-                    } catch (...) {
+                    } 
+                    catch (...) {
                     }
                 }
 
@@ -1968,7 +2000,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
                     return false;
                 }
 
-                int percent = int(double(i)/double(doc_size) * 100);
+                const int percent = int(double(i)/double(doc_size) * 100);
 
                 std::string s_line_num = "Completed " + std::to_string(percent) + " %";
                 errorbar().set_text(s_line_num.c_str(), GTK_MESSAGE_QUESTION );
@@ -1987,7 +2019,6 @@ struct app_t : public nu::dialog_search_t::observer_t {
         }
 
         set_title();
-        // create_funcs_menu(); // TODO
 
         _need_build = false;
 
@@ -2029,7 +2060,8 @@ struct app_t : public nu::dialog_search_t::observer_t {
             save_if_unsure();
             std::string nubasic_exe = "nubasic -e \"" + _full_path_str + "\"";
             exec_process(nubasic_exe);
-        } else {
+        } 
+        else {
             auto decision = nu::msgbox(
                 mainwin(), "Source file not specified, proceed anyway ?", 
                 "Run Interpreter", GTK_BUTTONS_YES_NO);
@@ -2050,7 +2082,9 @@ struct app_t : public nu::dialog_search_t::observer_t {
             // Ignore first line if it begins with #!
             if (line_num == 1 && line.size() > 2 && line[0] == '#'
                     && line[1] == '!')
+            {
                 return true;
+            }
 
             if (!interpreter().update_program(line, line_num)) {
                 std::string msg = "Syntax Error at line ";
@@ -2069,8 +2103,9 @@ struct app_t : public nu::dialog_search_t::observer_t {
             }
         }
         catch (nu::runtime_error_t& e) {
-            if (!dump_err_msg)
+            if (!dump_err_msg) {
                 return false;
+            }
 
             int line = e.get_line_num();
             line = line <= 0 ? interpreter().get_cur_line_n() : line;
@@ -2088,8 +2123,9 @@ struct app_t : public nu::dialog_search_t::observer_t {
             return false;
         }
         catch (std::exception& e) {
-            if (!dump_err_msg)
+            if (!dump_err_msg) {
                 return false;
+            }
 
             char lbuf[ERR_MSG_BUF_SIZE] = { 0 };
 
@@ -2100,7 +2136,8 @@ struct app_t : public nu::dialog_search_t::observer_t {
                    lbuf, sizeof(lbuf) - 1, "At line %i: %s\n", line, e.what());
 
                 show_error_line(line);
-            } else {
+            } 
+            else {
                 snprintf(lbuf, sizeof(lbuf) - 1, "%s\n", e.what());
             }
 
@@ -2193,7 +2230,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
         online_help_url = "xdg-open \"" + online_help_url + "\"";
 
-	std::cerr << online_help_url << std::endl;
+        std::cerr << online_help_url << std::endl;
 
         if (0 != system(online_help_url.c_str())) {
             const char* msg = "Error loading Interet Browser";

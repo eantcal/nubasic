@@ -61,12 +61,12 @@ public:
             auto vbox = gtk_vbox_new(FALSE, 5);
 
             gtk_box_pack_start(
-                    GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(_window))), 
-                    vbox, 
-                    TRUE, 
-                    TRUE, 
-                    0
-                    );
+                GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(_window))), 
+                vbox, 
+                TRUE, 
+                TRUE, 
+                0
+            );
 
             gtk_container_set_border_width(GTK_CONTAINER (vbox), 5);
 
@@ -120,9 +120,10 @@ public:
 
             search_text(NULL, GTK_ENTRY(entry));
 
-            gtk_entry_set_icon_from_stock(GTK_ENTRY(entry),
-                    GTK_ENTRY_ICON_SECONDARY,
-                    GTK_STOCK_CLEAR);
+            gtk_entry_set_icon_from_stock(
+                GTK_ENTRY(entry),
+                GTK_ENTRY_ICON_SECONDARY,
+                GTK_STOCK_CLEAR);
 
             g_signal_connect(entry, "icon-press", G_CALLBACK(icon_press_cb), NULL);
 
@@ -136,7 +137,8 @@ public:
             _btn_forward = gtk_radio_button_new_with_label (NULL, "Forward");
 
             // Create a second radio button, and add it to the same group as _btn_forward
-            _btn_backward = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(_btn_forward), 
+            _btn_backward = 
+                gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(_btn_forward), 
                     "Backward");
 
             gtk_container_add(GTK_CONTAINER(vbox), _btn_forward);
@@ -144,7 +146,6 @@ public:
 
             gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (_btn_forward), TRUE);
             gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (_btn_backward), FALSE);
-
         }
 
         if (!gtk_widget_get_visible(_window)) {
@@ -217,9 +218,6 @@ private:
     }
 
 
-    
-    
-
     /* ---------------------------------------------------------------------- */
 
     enum class op_t { FIND, REPLACE, REPLACE_ALL };
@@ -250,15 +248,19 @@ private:
         auto match_case = 
             GTK_TOGGLE_BUTTON (_this._match_case)->active;
 
-        if (match_case) 
+        if (match_case) {
             _this._flgs |= MATCHCASE;
-        else
+        }
+        else {
             _this._flgs &= ~MATCHCASE;
+        }
 
-        if (match_word_only) 
+        if (match_word_only) {
             _this._flgs |= WHOLEWORD;
-        else
+        }
+        else {
             _this._flgs &= ~WHOLEWORD;
+        }
 
         if (observer) {
             switch( op ) {

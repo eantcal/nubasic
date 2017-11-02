@@ -106,15 +106,14 @@ struct autocompl_t {
 
 /* -------------------------------------------------------------------------- */
 
-std::string data;
+    std::string data;
 
-autocompl_t()
-{
-    for (auto& token : nu::reserved_keywords_t::list) {
-	data += token;
-	data += " ";
+    autocompl_t() {
+        for (auto& token : nu::reserved_keywords_t::list) {
+	        data += token;
+	        data += " ";
+        }
     }
-}
 
 
 /* -------------------------------------------------------------------------- */
@@ -158,7 +157,9 @@ public:
 
     enum { TIMER_EVAL_SELECTION, TIMER_CTX_HELP };
 
-    nu::interpreter_t& interpreter() { return _interpreter; }
+    nu::interpreter_t& interpreter() noexcept { 
+        return _interpreter; 
+    }
 
     enum {
         LINENUM_WIDTH = 5,
@@ -168,375 +169,347 @@ public:
         DEF_CARETPERIOD = 400 // ms
     };
 
-
     /**
     * editor_t ctor
     */
     editor_t();
 
-
     /**
     * Set main window handle
     */
-    void set_hwnd(HWND hWnd) noexcept { _hwnd_main = hWnd; }
-
+    void set_hwnd(HWND hWnd) noexcept { 
+        _hwnd_main = hWnd; 
+    }
 
     /**
     * Get main window handle
     */
-    HWND get_main_hwnd() const noexcept { return _hwnd_main; }
-
+    HWND get_main_hwnd() const noexcept { 
+        return _hwnd_main; 
+    }
 
     /**
     * Get editor window handle
     */
-    HWND get_editor_hwnd() const noexcept { return _hwnd_editor; }
-
+    HWND get_editor_hwnd() const noexcept { 
+        return _hwnd_editor; 
+    }
 
     /**
      * Set editor window handle
      */
-    void set_editor_hwnd(HWND hwnd) noexcept { _hwnd_editor = hwnd; }
-
+    void set_editor_hwnd(HWND hwnd) noexcept { 
+        _hwnd_editor = hwnd; 
+    }
 
     /**
      * Set splitter position
      */
-    void set_splitbar_pos(DWORD wDX, DWORD oDY)
-    {
+    void set_splitbar_pos(DWORD wDX, DWORD oDY) {
         MoveWindow(_h_splitter, 0, oDY, wDX, SPLIT_BAR_HEIGHT, TRUE);
     }
-
 
     /**
     * Set splitter position
     */
-    void set_infobox_pos(DWORD x, DWORD y, DWORD dx, DWORD dy)
-    {
+    void set_infobox_pos(DWORD x, DWORD y, DWORD dx, DWORD dy) {
         MoveWindow(_h_infobox, x, y, dx, dy, TRUE);
     }
-
 
     /**
      * Create splitter control
      */
     void create_splitter(HWND hWnd);
 
-
     /**
      * Create search controls
      */
     void create_search_replace_cntrls(HWND hWnd);
-
 
     /**
      * Append a string to info box
      */
     void add_info(std::string msg, DWORD message_style);
 
-
     /**
      * Clear info box content to clipboard
      */
     void copy_info_to_clipboard();
-
 
     /**
      * Clear info box
      */
     void clear_info();
 
+    /**
+     * Hide info box
+     */
+    void hide_info() { 
+        resize_info(10); 
+    }
 
     /**
-    * Hide info box
-    */
-    void hide_info() { resize_info(10); }
-
-
-    /**
-    * Resize info box
-    */
+     * Resize info box
+     */
     void resize_info(int editor_tenth = 9);
 
-
     /**
-    * Handle WM_DROPFILES message received from the application window
-    * which has registered as a recipient of dropped files
-    */
+     * Handle WM_DROPFILES message received from the application window
+     * which has registered as a recipient of dropped files
+     */
     void on_drop_files(HDROP hDropInfo);
 
+    /**
+     * Set replace msg
+     */
+    void set_find_replace_msg(UINT msg) noexcept { 
+        _find_replace_msg = msg; 
+    }
 
     /**
-    * Set replace msg
-    */
-    void set_find_replace_msg(UINT msg) noexcept { _find_replace_msg = msg; }
-
-
-    /**
-    * Get replace msg
-    */
-    UINT get_find_replace_msg() const noexcept { return _find_replace_msg; }
-
+     * Get replace msg
+     */
+    UINT get_find_replace_msg() const noexcept { 
+        return _find_replace_msg; 
+    }
 
     /**
-    * Get instance handle
-    */
-    HINSTANCE get_instance_handle() const noexcept { return _hInstance; }
-
+     * Get instance handle
+     */
+    HINSTANCE get_instance_handle() const noexcept { 
+        return _hInstance; 
+    }
 
     /**
-    * Set instance handle
-    */
-    void set_instance_handle(HINSTANCE hInst) noexcept
-    {
+     * Set instance handle
+     */
+    void set_instance_handle(HINSTANCE hInst) noexcept {
         _hInstance = hInst;
     }
 
+    /**
+     * Export a reference to the current dialog window handle
+     */
+    HWND& current_dialog() noexcept { 
+        return _current_dialog; 
+    }
 
     /**
-    * Export a reference to the current dialog window handle
-    */
-    HWND& current_dialog() noexcept { return _current_dialog; }
-
-
-    /**
-    * Set the reference to the current dialog window handle
-    */
-    void set_current_dialog(HWND hwnd) { _current_dialog = hwnd; }
-
+     * Set the reference to the current dialog window handle
+     */
+    void set_current_dialog(HWND hwnd) noexcept { 
+        _current_dialog = hwnd; 
+    }
 
     /**
-    * Export a reference to the "Go to ..." line
-    */
-    int& goto_line() noexcept { return _goto_line; }
-
+     * Export a reference to the "Go to ..." line
+     */
+    int& goto_line() noexcept { 
+        return _goto_line; 
+    }
 
     /**
-    * Send a command to the editor control
-    */
-    LRESULT send_command(UINT Msg, WPARAM wParam = 0, LPARAM lParam = 0) const
-    {
+     * Send a command to the editor control
+     */
+    LRESULT send_command(UINT Msg, WPARAM wParam = 0, LPARAM lParam = 0) const {
         return ::SendMessage(_hwnd_editor, Msg, wParam, lParam);
     }
 
     /**
-    * Get editor text within the range [start, end]
-    */
+     * Get editor text within the range [start, end]
+     */
     void get_text_range(int start, int end, char* text) const;
 
-
     /**
-    * Set main window title to current file name
-    */
+     * Set main window title to current file name
+     */
     void set_title();
 
-
     /**
-    * New document
-    */
+     * New document
+     */
     void set_new_document(bool clear_title = true);
 
-
     /**
-    * Show open document dialog
-    */
+     * Show open document dialog
+     */
     void open_document();
 
-
     /**
-    * Open document filename
-    */
+     * Open document filename
+     */
     void open_document_file(const char* fileName);
 
-
     /**
-    * Save editing document
-    */
+     * Save editing document
+     */
     void save_document();
 
-
     /**
-    * Show "save as..." dialog
-    */
+     * Show "save as..." dialog
+     */
     void save_document_as();
 
-
     /**
-    * Save editing document with fileName
-    */
+     * Save editing document with fileName
+     */
     void save_file(const std::string& filename);
 
-
     /**
-    * Check and save open document if needed
-    */
+     * Check and save open document if needed
+     */
     int save_if_unsure();
 
-
     /**
-    * Dispatch menu and accelerator commands
-    */
+     * Dispatch menu and accelerator commands
+     */
     void exec_command(int id);
 
-
     /**
-    * Enable / disable menu item accordlying current editor state
-    */
+     * Enable / disable menu item accordlying current editor state
+     */
     void check_menus();
 
-
     /**
-    * Process editor notifications
-    */
+     * Process editor notifications
+     */
     void notify(SCNotification* notification);
 
+    /**
+     * Set editor item style
+     */
+    void set_item_style(
+        int style, 
+        COLORREF fore, 
+        COLORREF back = editor::white,
+        int size = -1, 
+        const char* face = nullptr);
 
     /**
-    * Set editor item style
-    */
-    void set_item_style(int style, COLORREF fore, COLORREF back = editor::white,
-        int size = -1, const char* face = 0);
-
-    /**
-    * Get line count
-    */
-    int get_line_count() const noexcept
-    {
+     * Get line count
+     */
+    int get_line_count() const noexcept {
         return int((send_command(SCI_GETLINECOUNT, 0, 0)));
     }
 
 
     /**
-    * Toggle the display of the folding margin
-    */
-    void set_folding_margin(bool enable) noexcept
-    {
+     * Toggle the display of the folding margin
+     */
+    void set_folding_margin(bool enable) noexcept {
         send_command(SCI_SETMARGINWIDTHN, 2, enable ? DEF_MARGIN_WIDTH : 0);
     }
 
 
     /**
-    * Calculate the width for line numbers
-    * \return number of pixels for the margin width of margin (0)
-    */
-    int get_line_num_width() const noexcept
-    {
+     * Calculate the width for line numbers
+     * \return number of pixels for the margin width of margin (0)
+     */
+    int get_line_num_width() const noexcept {
         return int(LINENUM_WIDTH
             * send_command(SCI_TEXTWIDTH, STYLE_LINENUMBER, (LPARAM)("9")));
     }
 
 
     /**
-    *  Set the display of line numbers on or off.
-    * \param enable if we shuld display line numbers
-    */
-    void set_numbers_margin(bool enable)
-    {
+     *  Set the display of line numbers on or off.
+     * \param enable if we shuld display line numbers
+     */
+    void set_numbers_margin(bool enable) {
         send_command(
             SCI_SETMARGINWIDTHN, 0, enable ? get_line_num_width() + 4 : 0);
     }
 
-
     /**
-    * Toggle the display of the selection bookmark margin
-    */
-    void set_selection_margin(bool enable)
-    {
+     * Toggle the display of the selection bookmark margin
+     */
+    void set_selection_margin(bool enable) {
         send_command(SCI_SETMARGINWIDTHN, 1, enable ? DEF_MARGIN_WIDTH : 0);
     }
 
-
     /**
-    * Zoom in/out
-    */
-    void zoom_in(bool in = true)
-    {
+     * Zoom in/out
+     */
+    void zoom_in(bool in = true) {
         send_command(in ? SCI_ZOOMIN : SCI_ZOOMOUT, 0, 0);
     }
 
-
     /**
-    * Initilize the editor
-    */
+     * Initilize the editor
+     */
     void init_editor(const std::string& fontname, int height);
 
+    /**
+     * Refresh editor
+     */
+    void refresh() {
+        send_command(SCI_COLOURISE, 0, -1);
+    }
+
 
     /**
-    * Refresh editor
-    */
-    void refresh();
-
-
-    /**
-    * Update UI and do brace matching
-    */
+     * Update UI and do brace matching
+     */
     void update_ui();
 
-
     /**
-    * Add a bookmark if not already present at given line
-    * Otherwise remove it
-    * \param line where to add/remove bookmark - lines start at 1
-    */
-    void toggle_bookmark(long line) noexcept
-    {
+     * Add a bookmark if not already present at given line
+     * Otherwise remove it
+     * \param line where to add/remove bookmark - lines start at 1
+     */
+    void toggle_bookmark(long line) noexcept {
         // just one of following function will be effect !
-        if (!add_bookmark(line))
+        if (!add_bookmark(line)) {
             remove_bookmark(line);
+        }
     }
 
 
     /**
-    * Add a bookmark at given line
-    * \param line where to add bookmark - lines start at 1
-    */
-    bool add_bookmark(long line) noexcept
-    {
-        if (!has_bookmark(line)) {
-            const auto m = int(marker_t::BOOKMARK);
-
-            send_command(SCI_MARKERDEFINE, m, SC_MARK_BOOKMARK);
-            send_command(SCI_MARKERSETFORE, m, RGB(0, 0, 0));
-            send_command(SCI_MARKERSETBACK, m, RGB(0, 255, 0));
-
-            send_command(SCI_MARKERADD, line - 1, m);
-            return true;
+     * Add a bookmark at given line
+     * \param line where to add bookmark - lines start at 1
+     */
+    bool add_bookmark(long line) noexcept {
+        if (has_bookmark(line)) {
+            return false;
         }
 
-        return false;
+        const auto m = int(marker_t::BOOKMARK);
+
+        send_command(SCI_MARKERDEFINE, m, SC_MARK_BOOKMARK);
+        send_command(SCI_MARKERSETFORE, m, RGB(0, 0, 0));
+        send_command(SCI_MARKERSETBACK, m, RGB(0, 255, 0));
+
+        send_command(SCI_MARKERADD, line - 1, m);
+        return true;
     }
 
 
     /**
-    * Remove the program counter marker
-    */
-    void remove_prog_cnt_marker()
-    {
+     * Remove the program counter marker
+     */
+    void remove_prog_cnt_marker() {
         send_command(SCI_MARKERDELETEALL, int(marker_t::PROGCOUNTER), 0);
         send_command(SCI_MARKERDELETEALL, int(marker_t::LINESELECTION), 0);
         send_command(SCI_LINESCROLLDOWN, 0, 0);
         send_command(SCI_LINESCROLLUP, 0, 0);
     }
 
-
     /**
-    * Show execution point
-    */
+     * Show execution point
+     */
     bool show_execution_point(int line) noexcept;
 
-
     /**
-    * Show error line
-    */
+     * Show error line
+     */
     bool show_error_line(int line) noexcept;
 
-
     /**
-    * Remove a bookmark at given line
-    * \param line where to delete bookmark - lines start at 1
-    */
-    bool remove_bookmark(long line) noexcept
-    {
+     * Remove a bookmark at given line
+     * \param line where to delete bookmark - lines start at 1
+     */
+    bool remove_bookmark(long line) noexcept {
         if (has_bookmark(line)) {
             send_command(SCI_MARKERDELETE, line - 1, 0);
             return true;
@@ -545,13 +518,11 @@ public:
         return false;
     }
 
-
     /**
-    * Add a breakpoint at given line
-    * \param line where to add breakpoint - lines start at 1
-    */
-    bool add_breakpoint(long line) noexcept
-    {
+     * Add a breakpoint at given line
+     * \param line where to add breakpoint - lines start at 1
+     */
+    bool add_breakpoint(long line) noexcept {
         const auto m = int(marker_t::BREAKPOINT);
         send_command(SCI_MARKERDEFINE, m, SC_MARK_CIRCLE);
         send_command(SCI_MARKERSETFORE, m, RGB(255, 255, 255));
@@ -562,26 +533,24 @@ public:
         return true;
     }
 
-
     /**
-    * Add a breakpoint at given line
-    * \param line where to add breakpoint - lines start at 1
-    */
-    bool toggle_breakpoint(long line) noexcept
-    {
-        if (!remove_breakpoint(line))
+     * Add a breakpoint at given line
+     * \param line where to add breakpoint - lines start at 1
+     */
+    bool toggle_breakpoint(long line) noexcept {
+        if (!remove_breakpoint(line)) {
             add_breakpoint(line);
+        }
 
         return true;
     }
 
 
     /**
-    * Remove a breakpoint at given line
-    * \param line where to delete bookmark - lines start at 1
-    */
-    bool remove_breakpoint(long line) noexcept
-    {
+     * Remove a breakpoint at given line
+     * \param line where to delete bookmark - lines start at 1
+     */
+    bool remove_breakpoint(long line) noexcept {
         if (has_breakpoint(line)) {
             send_command(SCI_MARKERDELETE, line - 1, 1);
             return true;
@@ -590,21 +559,17 @@ public:
         return false;
     }
 
-
     /**
-    * Remove all bookmarks
-    */
-    void remove_all_bookmarks() noexcept
-    {
+     * Remove all bookmarks
+     */
+    void remove_all_bookmarks() noexcept {
         send_command(SCI_MARKERDELETEALL, int(marker_t::BOOKMARK), 0);
     }
 
-
     /**
-    * Remove all breakpoints
-    */
-    void remove_all_breakpoints() noexcept
-    {
+     * Remove all breakpoints
+     */
+    void remove_all_breakpoints() noexcept {
         send_command(SCI_MARKERDELETEALL, int(marker_t::BREAKPOINT), 0);
     }
 
@@ -625,12 +590,11 @@ public:
 
 
     /**
-    * Check if given line has a bookmark
-    * \param line where to add bookmark - lines start at 1
-    * \return true if given line has a bookmark - otherwise false
-    */
-    bool has_bookmark(long line) const noexcept
-    {
+     * Check if given line has a bookmark
+     * \param line where to add bookmark - lines start at 1
+     * \return true if given line has a bookmark - otherwise false
+     */
+    bool has_bookmark(long line) const noexcept {
         const auto m = int(marker_t::BOOKMARK) + 1;
         return ((send_command(SCI_MARKERGET, line - 1, 0) & m) == m);
     }
@@ -640,300 +604,261 @@ public:
     * \param line where to add breakpoint - lines start at 1
     * \return true if given line has a breakpoint - otherwise false
     */
-    bool has_breakpoint(long line) const noexcept
-    {
+    bool has_breakpoint(long line) const noexcept {
         const auto m = int(marker_t::BREAKPOINT) + 1;
         return ((send_command(SCI_MARKERGET, line - 1, 0) & m) == m);
     }
 
-
     /**
-    * Find next bookmark from current line
-    */
+     * Find next bookmark from current line
+     */
     void find_next_bookmark();
 
-
     /**
-    * Find previous bookmark from current line
-    */
+     * Find previous bookmark from current line
+     */
     void find_prev_bookmark();
-
 
     /**
     * Goto given character position
     * \param pos new character position
     */
-    void go_to_pos(long pos) noexcept { send_command(SCI_GOTOPOS, pos, 0); }
-
+    void go_to_pos(long pos) noexcept { 
+        send_command(SCI_GOTOPOS, pos, 0); 
+    }
 
     /**
-    * Get the current line number - this the with the caret in it
-    * \return line number with the caret in it - starts with 1
-    */
+     * Get the current line number - this the with the caret in it
+     * \return line number with the caret in it - starts with 1
+     */
     LRESULT get_current_line() const noexcept;
 
-
     /**
-    * Get the current column number = position of the caret within the line.
-    * This return value my be affected by the TAB setting! Starts with 1
-    * \return current column number
-    */
+     * Get the current column number = position of the caret within the line.
+     * This return value my be affected by the TAB setting! Starts with 1
+     * \return current column number
+     */
     LRESULT get_current_colum() const noexcept;
 
-
     /**
-    * Return the current character position within the file.
-    * \return current character position
-    */
+     * Return the current character position within the file.
+     * \return current character position
+     */
     LRESULT get_current_position() const noexcept;
 
-
     /**
-    * Return the current style at the caret
-    * \return the current style index
-    */
+     * Return the current style at the caret
+     * \return the current style index
+     */
     LRESULT get_current_style() const noexcept;
 
-
     /**
-    * Return the current folding level at the caret line
-    * \return the current folding level
-    */
+     * Return the current folding level at the caret line
+     * \return the current folding level
+     */
     int get_fold_level() const noexcept;
 
-
     /**
-    * Set the fontname
-    */
-    void set_font(int style, const std::string& name) noexcept
-    {
+     * Set the fontname
+     */
+    void set_font(int style, const std::string& name) noexcept {
         send_command(
             SCI_STYLESETFONT, style, reinterpret_cast<LPARAM>(name.c_str()));
     }
 
-
     /**
-    * Set the font height in points
-    */
-    void set_font_height(int style, int height) noexcept
-    {
+     * Set the font height in points
+     */
+    void set_font_height(int style, int height) noexcept {
         send_command(SCI_STYLESETSIZE, style, static_cast<LPARAM>(height));
     }
 
-
     /**
-    * Set the foreground color
-    */
-    void set_fg(int style, COLORREF crForeground) noexcept
-    {
+     * Set the foreground color
+     */
+    void set_fg(int style, COLORREF crForeground) noexcept {
         send_command(
             SCI_STYLESETFORE, style, static_cast<LPARAM>(crForeground));
     }
 
-
     /**
-    * Set the backgroundcolor
-    */
-    void set_bg(int style, COLORREF crBackground) noexcept
-    {
+     * Set the backgroundcolor
+     */
+    void set_bg(int style, COLORREF crBackground) noexcept {
         send_command(
             SCI_STYLESETBACK, style, static_cast<LPARAM>(crBackground));
     }
 
-
     /**
-    * Set given style to bold
-    */
-    void set_font_bold(int style, bool enable) noexcept
-    {
+     * Set given style to bold
+     */
+    void set_font_bold(int style, bool enable) noexcept {
         send_command(SCI_STYLESETBOLD, style, static_cast<LPARAM>(enable));
     }
 
-
     /**
-    * Set given style to italic
-    */
-    void set_font_italic(int style, bool enable) noexcept
-    {
+     * Set given style to italic
+     */
+    void set_font_italic(int style, bool enable) noexcept {
         send_command(SCI_STYLESETITALIC, style, static_cast<LPARAM>(enable));
     }
 
-
     /**
-    * Set given style to underline
-    */
-    void set_font_underline(int style, bool enable) noexcept
-    {
+     * Set given style to underline
+     */
+    void set_font_underline(int style, bool enable) noexcept {
         send_command(SCI_STYLESETUNDERLINE, style, static_cast<LPARAM>(enable));
     }
 
-
     /**
-    * Get true if overstrike is enabled
-    */
-    bool get_overstrike() const noexcept
-    {
+     * Get true if overstrike is enabled
+     */
+    bool get_overstrike() const noexcept {
         return send_command(SCI_GETOVERTYPE, 0, 0) != 0;
     }
 
-
     /**
-    * Set overstrike state
-    */
-    void nu::editor_t::set_overstrike(bool enable) noexcept
-    {
+     * Set overstrike state
+     */
+    void nu::editor_t::set_overstrike(bool enable) noexcept {
         send_command(SCI_SETOVERTYPE, enable ? TRUE : FALSE, 0);
     }
 
     /**
-    * Goto givven line position
-    * \param line new line - lines start at 1
-    */
-    void go_to_line(long line) { send_command(SCI_GOTOLINE, line - 1, 0); }
-
+     * Goto givven line position
+     * \param line new line - lines start at 1
+     */
+    void go_to_line(long line) { 
+        send_command(SCI_GOTOLINE, line - 1, 0); 
+    }
 
     /**
-    * Search forward for a given string and select it if found.
-    * You may use regular expressions on the text.
-    * \param text to search
-    * \return TRUE if text is ffound else FALSE
-    */
+     * Search forward for a given string and select it if found.
+     * You may use regular expressions on the text.
+     * \param text to search
+     * \return TRUE if text is ffound else FALSE
+     */
     bool search_forward(LPSTR szText);
 
-
     /**
-    * Search backward for a given string and select it if found.
-    * You may use regular expressions on the text.
-    * \param szText text to search
-    * \return TRUE if text is ffound else FALSE
-    */
+     * Search backward for a given string and select it if found.
+     * You may use regular expressions on the text.
+     * \param szText text to search
+     * \return TRUE if text is ffound else FALSE
+     */
     bool search_backward(LPSTR szText);
 
-
     /**
-    * Replace a text with a new text. You can use regular
-    * expression with tagging on the replacement text.
-    * \param szText new text
-    */
+     * Replace a text with a new text. You can use regular
+     * expression with tagging on the replacement text.
+     * \param szText new text
+     */
     void replace_searching_text(PCSTR szText);
 
 
     /**
-    * Get start of selection as character position
-    * \return character position of selection begin
-    *  otherwise -1 on error
-    */
-    LRESULT get_selection_begin() const noexcept
-    {
+     * Get start of selection as character position
+     * \return character position of selection begin
+     *  otherwise -1 on error
+     */
+    LRESULT get_selection_begin() const noexcept {
         return send_command(SCI_GETSELECTIONSTART, 0, 0);
     }
 
-
     /**
-    * Get end of selection as character position
-    * \return character position of selection end
-    *  otherwise -1 on error
-    */
-    LRESULT get_selection_end() const noexcept
-    {
+     * Get end of selection as character position
+     * \return character position of selection end
+     *  otherwise -1 on error
+     */
+    LRESULT get_selection_end() const noexcept {
         return send_command(SCI_GETSELECTIONEND, 0, 0);
     }
 
-
     /**
-    * Get selected string
-    * \return string with currentliy selected text
-    */
+     * Get selected string
+     * \return string with currentliy selected text
+     */
     std::string get_selection();
 
 
     /**
-    * Replace a text in a selection or in the complete file multiple times
-    * \return number of replacements
-    */
+     * Replace a text in a selection or in the complete file multiple times
+     * \return number of replacements
+     */
     int replace_all(LPCSTR szFind, LPCSTR szReplace, BOOL bUseSelection);
 
 
     /*
-    * Called from WinMain to set application command line
-    * \param cmdLine passed to WinMain startup function
-    */
-    void set_command_line(LPCSTR cmdLine) { _command_line = cmdLine; }
-
-
+     * Called from WinMain to set application command line
+     * \param cmdLine passed to WinMain startup function
+     */
+    void set_command_line(LPCSTR cmdLine) noexcept { 
+        _command_line = cmdLine; 
+    }
+    
     /**
-    * Returns program command line (set with set_command_line)
-    * \return command line
-    */
-    const std::string& get_command_line() const { return _command_line; }
-
-
-    /**
-       * Returns scintilla search flags
-       * \return flags
-       */
-    int get_search_flags() const
-    {
-        return int(send_command(SCI_GETSEARCHFLAGS, 0, 0));
+     * Returns program command line (set with set_command_line)
+     * \return command line
+     */
+    const std::string& get_command_line() const noexcept { 
+        return _command_line; 
     }
 
-
     /**
-    * Set up search flags to scintilla
-    */
-    void set_search_flags(int flags)
-    {
+     * Returns scintilla search flags
+     * \return flags
+     */
+    int get_search_flags() const {
+        return int(send_command(SCI_GETSEARCHFLAGS, 0, 0));
+    }
+    
+    /**
+     * Set up search flags to scintilla
+     */
+    void set_search_flags(int flags) {
         _search_flags = flags;
         send_command(SCI_SETSEARCHFLAGS, _search_flags, 0);
     }
 
-
     /**
-    * Invert search direction flg
-    */
-    void invert_search_direction() noexcept
-    {
+     * Invert search direction flg
+     */
+    void invert_search_direction() noexcept {
         _invert_search_direction = !_invert_search_direction;
     }
 
-
     /**
-    * Get search direction flg
-    */
-    bool get_search_direction() const noexcept
-    {
+     * Get search direction flg
+     */
+    bool get_search_direction() const noexcept {
         return _invert_search_direction;
     }
-
-
+    
     /**
-    * Rebuild code and check code syntax
-    */
+     * Rebuild code and check code syntax
+     */
     bool rebuild_code(bool show_msg_error) noexcept;
-
-
+    
     /**
-    * Remove functions reference menu
-    */
-    void remove_funcs_menu() noexcept
-    {
+     * Remove functions reference menu
+     */
+    void remove_funcs_menu() noexcept {
         HMENU hmenu = GetMenu(get_main_hwnd());
 
-        if (_func_submenu)
+        if (_func_submenu) {
             DeleteMenu(hmenu, (UINT)1, MF_BYCOMMAND);
+        }
     }
 
     /**
-    * Create functions reference menu
-    */
+     * Create functions reference menu
+     */
     void create_funcs_menu() noexcept;
-
-
+    
     /**
-    * Resolve function line using id of "functions" menu
-    */
-    int resolve_funclinenum_from_id(int id) const noexcept
-    {
+     * Resolve function line using id of "functions" menu
+     */
+    int resolve_funclinenum_from_id(int id) const noexcept {
         const auto i = _func_map.find(id);
 
         if (i == _func_map.end())
@@ -941,20 +866,18 @@ public:
 
         return i->second;
     }
-
-
+    
     /**
-    * Show splash
-    */
+     * Show splash
+     */
     void show_splash();
 
 
     /**
-    * Create a console if needed
-    */
+     * Create a console if needed
+     */
     void alloc_console();
-
-
+    
     enum class dbg_flg_t {
         NORMAL_EXECUTION,
         CONTINUE_EXECUTION = 1,
@@ -962,62 +885,55 @@ public:
     };
 
     /**
-    * Start program debugging
-    */
+     * Start program debugging
+     */
     void start_debugging(dbg_flg_t flg = dbg_flg_t::NORMAL_EXECUTION);
-
-
+    
     /**
-    * Start program debugging
-    */
-    void continue_debugging()
-    {
+     * Start program debugging
+     */
+    void continue_debugging() {
         start_debugging(dbg_flg_t::CONTINUE_EXECUTION);
     }
 
     /**
-    * Continue one statement
-    */
-    void singlestep_debugging()
-    {
+     * Continue one statement
+     */
+    void singlestep_debugging() {
         start_debugging(dbg_flg_t::SINGLE_STEP_EXECUTION);
     }
-
-
+    
     /**
-    * Evaluate selection
-    */
+     * Evaluate selection
+     */
     void eval_sel();
-
-
+    
     /**
      * Show on-line Help
      */
     void show_ctx_help();
-
-
+    
     /**
-    * Show running-mode dialog box
-    */
+     * Show running-mode dialog box
+     */
     void show_running_dialog();
-
-
+    
     /**
-    * Send a command to interpreter
-    */
+     * Send a command to interpreter
+     */
     bool exec_interpreter_cmd(const std::string& cmd, bool bgmode);
-
-
+    
     /**
     * Ask the interpreter to evaluate an expression
     */
     bool evaluate_expression(const std::string& expression);
-
-
+    
     /*
-    * Return true if document has been modified but not saved
-    */
-    bool is_dirty() const noexcept { return _is_dirty; }
+     * Return true if document has been modified but not saved
+     */
+    bool is_dirty() const noexcept { 
+        return _is_dirty; 
+    }
 
 protected:
     using func_map_t = std::map<int, int>;
@@ -1042,8 +958,7 @@ protected:
     const char* filter = EDITOR_FILE_FILTER;
 
     //! Set dirty flag
-    void set_dirty_flag()
-    {
+    void set_dirty_flag() {
         _is_dirty = true;
         _need_build = true;
     }
@@ -1107,9 +1022,9 @@ public:
         msg.wParam = 0;
 
         while (going) {
-            if (cbk_f)
-                if (cbk_f(cbk_data))
-                    break;
+            if (cbk_f && cbk_f(cbk_data)) {
+                break;
+            }
 
             going = GetMessage(&msg, NULL, 0, 0) != 0;
 
@@ -1120,7 +1035,8 @@ public:
                         DispatchMessage(&msg);
                     }
                 }
-            } else if (going) {
+            } 
+            else if (going) {
                 if (TranslateAccelerator(
                         _editor.get_main_hwnd(), hAccTable, &msg)
                     == 0) {
@@ -1148,7 +1064,7 @@ static txtinfobox_t* g_info = nullptr;
 
 void nu::editor_t::create_splitter(HWND hWnd)
 {
-    WNDCLASSEX wcex;
+    WNDCLASSEX wcex{ 0 };
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
@@ -1177,7 +1093,7 @@ void nu::editor_t::create_splitter(HWND hWnd)
 
 void nu::editor_t::create_search_replace_cntrls(HWND hWnd)
 {
-    auto ver = interpreter().version();
+    const auto ver = interpreter().version();
 
     _h_infobox = CreateWindowEx(
         WS_EX_CLIENTEDGE | WS_EX_DLGMODALFRAME, // make rich edit control appear
@@ -1193,8 +1109,7 @@ void nu::editor_t::create_search_replace_cntrls(HWND hWnd)
         get_instance_handle(), // this app instance owns this window
         NULL);
 
-    HANDLE hFont = NULL;
-    LOGFONT lFont;
+    LOGFONT lFont{ 0 };
 
     lFont.lfHeight = 14;
     lFont.lfWidth = 0;
@@ -1210,7 +1125,9 @@ void nu::editor_t::create_search_replace_cntrls(HWND hWnd)
     lFont.lfQuality = ANTIALIASED_QUALITY;
     lFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;
     strcpy(lFont.lfFaceName, "Consolas");
-    hFont = CreateFontIndirect(&lFont);
+
+    auto hFont = CreateFontIndirect(&lFont);
+
     SendMessage(_h_infobox, WM_SETFONT, (WPARAM)hFont, (DWORD)TRUE);
 }
 
@@ -1222,7 +1139,8 @@ void nu::editor_t::copy_info_to_clipboard()
     if (IDYES
         == MessageBox(get_main_hwnd(),
                "Do you want to save status information to the clipboard ?",
-               "Clear message window", MB_ICONQUESTION | MB_YESNO)) {
+               "Clear message window", MB_ICONQUESTION | MB_YESNO)) 
+    {
         SendMessage(_h_infobox, EM_SETSEL, 0, -1);
         SendMessage(_h_infobox, WM_COPY, 0, 0);
         MessageBox(get_main_hwnd(), "Logs copied to the clipboard !",
@@ -1236,7 +1154,8 @@ void nu::editor_t::copy_info_to_clipboard()
 void nu::editor_t::clear_info()
 {
     if (IDYES == MessageBox(get_main_hwnd(), "Are you sure ?",
-                     "Clear message window", MB_ICONQUESTION | MB_YESNO)) {
+                     "Clear message window", MB_ICONQUESTION | MB_YESNO)) 
+    {
         copy_info_to_clipboard();
 
         SendMessage(_h_infobox, EM_SETSEL, 0, -1);
@@ -1258,7 +1177,8 @@ void nu::editor_t::on_drop_files(HDROP hDropInfo)
 
     if (iFiles != 1) {
         MessageBox(get_main_hwnd(), "One file at a time, please.", NULL, MB_OK);
-    } else {
+    } 
+    else {
         DragQueryFile(hDropInfo, 0, lpszFile, sizeof(lpszFile));
         std::string fileName;
 
@@ -1323,7 +1243,7 @@ void nu::editor_t::add_info(std::string msg, DWORD message_style)
     SYSTEMTIME st;
     GetLocalTime(&st);
 
-    char szDateTime[256];
+    char szDateTime[256] = { 0 };
     sprintf(szDateTime, "\n%02i-%02i-%i %02i:%02i:%02i\n", st.wDay, st.wMonth,
         st.wYear, st.wHour, st.wMinute, st.wSecond);
 
@@ -1376,8 +1296,9 @@ bool nu::editor_t::build_basic_line(
     }
     // Print out Runtime Error Messages
     catch (nu::runtime_error_t& e) {
-        if (!dump_err_msg)
+        if (!dump_err_msg) {
             return false;
+        }
 
         int line = e.get_line_num();
         line = line <= 0 ? g_editor.interpreter().get_cur_line_n() : line;
@@ -1408,7 +1329,8 @@ bool nu::editor_t::build_basic_line(
                 lbuf, sizeof(lbuf) - 1, "At line %i: %s\n", line, e.what());
 
             show_error_line(line);
-        } else {
+        } 
+        else {
             _snprintf(lbuf, sizeof(lbuf) - 1, "%s\n", e.what());
         }
 
@@ -1427,9 +1349,8 @@ bool nu::editor_t::build_basic_line(
 
 LRESULT nu::editor_t::get_current_line() const noexcept
 {
-    return send_command(
-               SCI_LINEFROMPOSITION, send_command(SCI_GETCURRENTPOS, 0, 0), 0)
-        + 1;
+    return 1 +
+        send_command(SCI_LINEFROMPOSITION, send_command(SCI_GETCURRENTPOS, 0, 0), 0);
 }
 
 
@@ -1437,8 +1358,8 @@ LRESULT nu::editor_t::get_current_line() const noexcept
 
 LRESULT nu::editor_t::get_current_colum() const noexcept
 {
-    return send_command(SCI_GETCOLUMN, send_command(SCI_GETCURRENTPOS, 0, 0), 0)
-        + 1;
+    return 1 + 
+        send_command(SCI_GETCOLUMN, send_command(SCI_GETCURRENTPOS, 0, 0), 0);
 }
 
 
@@ -1473,10 +1394,11 @@ int nu::editor_t::get_fold_level() const noexcept
 
 void nu::editor_t::find_next_bookmark()
 {
-    auto line = send_command(SCI_MARKERNEXT, get_current_line(), 0xffff);
+    const auto line = send_command(SCI_MARKERNEXT, get_current_line(), 0xffff);
 
-    if (line >= 0)
+    if (line >= 0) {
         send_command(SCI_GOTOLINE, line, 0);
+    }
 }
 
 
@@ -1484,11 +1406,12 @@ void nu::editor_t::find_next_bookmark()
 
 void nu::editor_t::find_prev_bookmark()
 {
-    auto line
+    const auto line
         = send_command(SCI_MARKERPREVIOUS, get_current_line() - 2, 0xffff);
 
-    if (line >= 0)
+    if (line >= 0) {
         send_command(SCI_GOTOLINE, line, 0);
+    }
 }
 
 
@@ -1496,7 +1419,7 @@ void nu::editor_t::find_prev_bookmark()
 
 bool nu::editor_t::search_forward(LPSTR szText)
 {
-    if (szText == NULL) {
+    if (! szText) {
         return false;
     }
 
@@ -1510,18 +1433,18 @@ bool nu::editor_t::search_forward(LPSTR szText)
 
     pos = long(send_command(SCI_FINDTEXT, _search_flags, (LPARAM)&tf));
 
-    if (pos >= 0) {
-        ::SetFocus(_hwnd_editor);
-
-        go_to_pos(pos);
-
-        send_command(SCI_SETSEL, tf.chrgText.cpMin, tf.chrgText.cpMax);
-        send_command(SCI_FINDTEXT, _search_flags, (LPARAM)&tf);
-
-        return true;
+    if (pos < 0) {
+        return false;
     }
 
-    return false;
+    ::SetFocus(_hwnd_editor);
+
+    go_to_pos(pos);
+
+    send_command(SCI_SETSEL, tf.chrgText.cpMin, tf.chrgText.cpMax);
+    send_command(SCI_FINDTEXT, _search_flags, (LPARAM)&tf);
+
+    return true;
 }
 
 
@@ -1539,27 +1462,23 @@ bool nu::editor_t::search_backward(LPSTR szText)
 
     tf.lpstrText = szText;
 
-    if (lMinSel >= 0)
-        tf.chrg.cpMin = lMinSel - 1;
-    else
-        tf.chrg.cpMin = pos - 1;
-
+    tf.chrg.cpMin = lMinSel >= 0 ? lMinSel - 1 : pos - 1;
     tf.chrg.cpMax = 0;
 
-    pos = (long)send_command(SCI_FINDTEXT, _search_flags, (LPARAM)&tf);
+    pos = long(send_command(SCI_FINDTEXT, _search_flags, (LPARAM)&tf));
 
-    if (pos >= 0) {
-        ::SetFocus(_hwnd_editor);
-
-        go_to_pos(pos);
-
-        send_command(SCI_SETSEL, tf.chrgText.cpMin, tf.chrgText.cpMax);
-        send_command(SCI_FINDTEXT, _search_flags, (LPARAM)&tf);
-
-        return true;
+    if (pos < 0) {
+        return false;
     }
 
-    return false;
+    ::SetFocus(_hwnd_editor);
+
+    go_to_pos(pos);
+
+    send_command(SCI_SETSEL, tf.chrgText.cpMin, tf.chrgText.cpMax);
+    send_command(SCI_FINDTEXT, _search_flags, (LPARAM)&tf);
+
+    return true;
 }
 
 
@@ -1569,21 +1488,19 @@ std::string nu::editor_t::get_selection()
 {
     long sel_len = long((get_selection_end() - get_selection_begin()) + 1);
 
-    if (sel_len > 0) {
-        std::vector<char> buf(sel_len + 1);
-
-        buf[0] = '\0';
-
-        send_command(SCI_GETSELTEXT, 0, reinterpret_cast<LPARAM>(buf.data()));
-
-        std::string str;
-
-        std::copy(buf.begin(), buf.end(), std::back_inserter(str));
-
-        return str;
+    if (sel_len <= 0) {
+        return std::string();
     }
 
-    return std::string();
+    std::vector<char> buf(sel_len + 1);
+
+    buf[0] = '\0';
+    send_command(SCI_GETSELTEXT, 0, reinterpret_cast<LPARAM>(buf.data()));
+
+    std::string str;
+    std::copy(buf.begin(), buf.end(), std::back_inserter(str));
+
+    return str;
 }
 
 
@@ -1632,7 +1549,8 @@ int nu::editor_t::replace_all(
                 SCI_SEARCHINTARGET, strlen(szFind), (LPARAM)szFind));
             nCount++;
         }
-    } else {
+    } 
+    else {
         // start with first and last char in buffer
         long length = 0;
         long begin = 0;
@@ -1700,7 +1618,6 @@ void nu::editor_t::create_funcs_menu() noexcept
 
     for (const auto& f : prototypes) {
         int idm = IDM_INTERPRETER_BROWSER_FUN + id;
-
         _func_map.insert(std::make_pair(idm, f.second.first.get_line()));
 
         ++id;
@@ -1720,8 +1637,9 @@ void nu::editor_t::show_splash()
     HANDLE image = ::LoadBitmap(
         GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_NUBASIC_SPLASH));
 
-    if (!image)
+    if (!image) {
         return;
+    }
 
     const int wdx = 400;
     const int wdy = 160 + GetSystemMetrics(SM_CYCAPTION);
@@ -1729,8 +1647,8 @@ void nu::editor_t::show_splash()
     RECT r = { 0 };
     GetClientRect(GetDesktopWindow(), &r);
 
-    auto wx = (r.right - r.left - wdx) / 2;
-    auto wy = (r.bottom - r.top - wdy) / 2;
+    const auto wx = (r.right - r.left - wdx) / 2;
+    const auto wy = (r.bottom - r.top - wdy) / 2;
 
     HWND hwnd = ::CreateWindowA("STATIC", EDITOR_INFO, WS_VISIBLE, wx, wy, wdx,
         wdy, NULL, NULL, NULL, NULL);
@@ -1745,10 +1663,10 @@ void nu::editor_t::show_splash()
 
     GetClientRect(hwnd, &r);
 
-    int dx = r.right - r.left;
-    int dy = r.bottom - r.top;
+    const int dx = r.right - r.left;
+    const int dy = r.bottom - r.top;
 
-    auto ret = ::BitBlt(hdc, (dx - bm.bmWidth) / 2, (dy - bm.bmHeight) / 2,
+    ::BitBlt(hdc, (dx - bm.bmWidth) / 2, (dy - bm.bmHeight) / 2,
         bm.bmWidth, bm.bmHeight, hdcMem, 0, 0, SRCCOPY);
 
     Sleep(3000);
@@ -1768,18 +1686,21 @@ void nu::editor_t::alloc_console()
 {
     HWND hwnd = ::GetConsoleWindow();
 
-    if (hwnd)
+    if (hwnd) {
         return;
+    }
 
     AllocConsole();
     SetConsoleTitle("nuBASIC - Press CTRL+C to break execution");
 
     hwnd = ::GetConsoleWindow();
-    if (hwnd != NULL) {
+
+    if ( hwnd ) {
         HMENU hMenu = ::GetSystemMenu(hwnd, FALSE);
 
-        if (hMenu != NULL)
+        if ( hMenu ) {
             DeleteMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
+        }
     }
 
     COORD dwSize; // new screen buffer size
@@ -1807,8 +1728,9 @@ void nu::editor_t::alloc_console()
 
 void nu::editor_t::start_debugging(dbg_flg_t flg)
 {
-    if (_need_build && !rebuild_code(true))
+    if (_need_build && !rebuild_code(true)) {
         return;
+    }
 
     reset_all_breakpoints();
     remove_prog_cnt_marker();
@@ -1841,13 +1763,15 @@ bool nu::editor_t::show_execution_point(int line) noexcept
 {
     remove_prog_cnt_marker();
 
-    if (line < 1)
+    if (line < 1) {
         line = 1;
+    }
 
     auto endpos = send_command(SCI_GETLINEENDPOSITION, line - 1, 0) + 1;
 
-    while (!interpreter().has_runnable_stmt(line) && line < endpos)
+    while (!interpreter().has_runnable_stmt(line) && line < endpos) {
         ++line;
+    }
 
     if (send_command(SCI_POSITIONFROMLINE, line - 1, 0) >= 0) {
         const auto l = int(marker_t::LINESELECTION);
@@ -1868,7 +1792,8 @@ bool nu::editor_t::show_execution_point(int line) noexcept
         go_to_line(line);
 
         update_ui();
-    } else {
+    } 
+    else {
         send_command(SCI_MARKERDELETE, line - 1, int(marker_t::LINESELECTION));
         send_command(SCI_MARKERDELETE, line - 1, int(marker_t::PROGCOUNTER));
     }
@@ -1883,8 +1808,9 @@ bool nu::editor_t::show_error_line(int line) noexcept
 {
     remove_prog_cnt_marker();
 
-    if (line < 1)
+    if (line < 1) {
         line = 1;
+    }
 
     if (send_command(SCI_POSITIONFROMLINE, line - 1, 0) >= 0) {
         const auto l = int(marker_t::LINESELECTION);
@@ -1896,7 +1822,8 @@ bool nu::editor_t::show_error_line(int line) noexcept
         go_to_line(line);
 
         update_ui();
-    } else {
+    } 
+    else {
         send_command(SCI_MARKERDELETE, line - 1, int(marker_t::LINESELECTION));
     }
 
@@ -1965,7 +1892,8 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
             g_editor.interpreter().exec_command(cmd);
             RunningDlgWndProc_terminate = true;
             return true;
-        } catch (nu::runtime_error_t& e) {
+        } 
+        catch (nu::runtime_error_t& e) {
             char buf[2048] = { 0 };
             int line = e.get_line_num();
             line = line <= 0 ? g_editor.interpreter().get_cur_line_n() : line;
@@ -1976,7 +1904,8 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
             g_editor.add_info(buf, CFM_BOLD | CFM_ITALIC);
             MessageBox(get_main_hwnd(), buf, "Runtime Error", MB_ICONERROR);
 
-        } catch (std::exception& e) {
+        } 
+        catch (std::exception& e) {
             char buf[2048] = { 0 };
 
             if (g_editor.interpreter().get_cur_line_n() > 0)
@@ -2060,11 +1989,14 @@ void nu::editor_t::eval_sel()
     for (size_t i = 0; i < sel.length(); ++i) {
         if (sel[i] == '\\') {
             qsel += "\\\\";
-        } else if (sel[i] == '"') {
+        } 
+        else if (sel[i] == '"') {
             qsel += '\\';
             qsel += '"';
-        } else if (sel[i] >= 20)
+        } 
+        else if (sel[i] >= 20) {
             qsel += sel[i];
+        }
     }
 
     evaluate_expression(qsel);
@@ -2108,8 +2040,9 @@ static std::vector<std::string> split(const std::string& s, char delim = ' ')
     std::stringstream ss(s);
     std::string item;
 
-    while (std::getline(ss, item, delim))
+    while (std::getline(ss, item, delim)) {
         elems.push_back(item);
+    }
 
     return elems;
 }
@@ -2123,8 +2056,9 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) noexcept
 
     auto doc_size = send_command(SCI_GETLENGTH);
 
-    if (doc_size <= 0)
+    if (doc_size <= 0) {
         return true;
+    }
 
     RECT rcClient; // Client area of parent window.
     GetClientRect(_h_splitter, &rcClient);
@@ -2202,8 +2136,9 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) noexcept
     }
 
     // Ensure that lines are mapped 1:1 with editing lines
-    if (old_style_prog)
+    if (old_style_prog) {
         interpreter().exec_command("renum 1");
+    }
 
     set_title();
     create_funcs_menu();
@@ -2222,14 +2157,18 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) noexcept
 
 void nu::editor_t::replace_searching_text(PCSTR szText)
 {
-    if (szText == NULL)
+    if (szText == NULL) {
         return;
+    }
 
     send_command(SCI_TARGETFROMSELECTION, 0, 0);
-    if (_search_flags & SCFIND_REGEXP)
+
+    if (_search_flags & SCFIND_REGEXP) {
         send_command(SCI_REPLACETARGETRE, strlen(szText), (LPARAM)szText);
-    else
+    }
+    else {
         send_command(SCI_REPLACETARGET, strlen(szText), (LPARAM)szText);
+    }
 }
 
 
@@ -2324,9 +2263,10 @@ void nu::editor_t::open_document_file(const char* fileName)
             _full_path_str
                 = _full_path_str.substr(1, _full_path_str.size() - 1);
 
-            if (_full_path_str.c_str()[_full_path_str.size() - 1] == '\"')
+            if (_full_path_str.c_str()[_full_path_str.size() - 1] == '\"') {
                 _full_path_str
                     = _full_path_str.substr(0, _full_path_str.size() - 1);
+            }
         }
     }
 
@@ -2360,7 +2300,8 @@ void nu::editor_t::open_document_file(const char* fileName)
         msg += "'\n";
 
         add_info(msg, CFM_ITALIC);
-    } else {
+    } 
+    else {
         std::string msg = "Could not open file \"";
 
         msg += _full_path_str + "\".";
@@ -2406,8 +2347,9 @@ void nu::editor_t::open_document()
     ofn.lpstrTitle = "Open File";
     ofn.Flags = OFN_HIDEREADONLY;
 
-    if (::GetOpenFileName(&ofn))
+    if (::GetOpenFileName(&ofn)) {
         open_document_file(open_file_name.data());
+    }
 }
 
 
@@ -2415,8 +2357,9 @@ void nu::editor_t::open_document()
 
 void nu::editor_t::save_document()
 {
-    if (_full_path_str.empty())
+    if (_full_path_str.empty()) {
         _full_path_str = EDITOR_NONAME_FILE;
+    }
 
     save_file(_full_path_str);
 }
@@ -2468,7 +2411,8 @@ void nu::editor_t::save_file(const std::string& filename)
 
         std::string msg = "Save '" + filename + "'\n";
         add_info(msg, CFM_ITALIC);
-    } else {
+    } 
+    else {
         std::string msg = "Could not save file \"" + filename + "\".";
         add_info(msg + "\n", CFM_ITALIC | CFM_BOLD);
         MessageBox(_hwnd_main, msg.c_str(), editor::application_name, MB_OK);
@@ -2494,10 +2438,12 @@ int nu::editor_t::save_if_unsure()
             _hwnd_main, msg.c_str(), editor::application_name, MB_YESNOCANCEL);
 
         if (decision == IDYES) {
-            if (save_as_dialog)
+            if (save_as_dialog) {
                 save_document_as();
-            else
+            }
+            else {
                 save_document();
+            }
         }
 
         return decision;
@@ -2519,7 +2465,7 @@ static bool exec_process(const std::string& cmd_line)
 
     PROCESS_INFORMATION proc_info;
 
-    BOOL bFuncRetn = CreateProcess(NULL,
+    const BOOL bFuncRetn = CreateProcess(NULL,
         cmd, // command line
         NULL, // process security attributes
         NULL, // primary thread security attributes
@@ -2540,18 +2486,21 @@ static bool stop_process(const std::string& cmd_line)
 {
     HWND h = FindWindow(0, "nuBASIC");
 
-    if (!h)
+    if (!h) {
         return false;
+    }
 
     DWORD processId = 0;
 
-    if (!GetWindowThreadProcessId(h, &processId))
+    if (!GetWindowThreadProcessId(h, &processId)) {
         return false;
+    }
 
     HANDLE tmpHandle = OpenProcess(PROCESS_ALL_ACCESS, TRUE, processId);
 
-    if (!tmpHandle)
+    if (!tmpHandle) {
         return false;
+    }
 
     return TerminateProcess(tmpHandle, 0) != FALSE;
 }
@@ -2562,7 +2511,6 @@ static bool stop_process(const std::string& cmd_line)
 BOOL CALLBACK DlgProc_GotoLine(
     HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-
     switch (Msg) {
     case WM_INITDIALOG: {
         std::string text = std::to_string(g_editor.goto_line());
@@ -2601,13 +2549,15 @@ void nu::editor_t::exec_command(int id)
 {
     switch (id) {
     case IDM_FILE_NEW:
-        if (save_if_unsure() != IDCANCEL)
+        if (save_if_unsure() != IDCANCEL) {
             set_new_document();
+        }
         break;
 
     case IDM_FILE_OPEN:
-        if (save_if_unsure() != IDCANCEL)
+        if (save_if_unsure() != IDCANCEL) {
             open_document();
+        }
         break;
 
     case IDM_FILE_SAVE:
@@ -2619,8 +2569,9 @@ void nu::editor_t::exec_command(int id)
         break;
 
     case IDM_FILE_EXIT:
-        if (save_if_unsure() != IDCANCEL)
+        if (save_if_unsure() != IDCANCEL) {
             ::PostQuitMessage(0);
+        }
         break;
 
     case IDM_EDIT_UNDO:
@@ -2704,8 +2655,9 @@ void nu::editor_t::exec_command(int id)
                 MessageBox(get_main_hwnd(), "Error loading nuBasic",
                     "Run Interpreter", MB_ICONASTERISK | MB_OK);
             }
-        } else {
-            auto decision = MessageBox(get_main_hwnd(),
+        } 
+        else {
+            const auto decision = MessageBox(get_main_hwnd(),
                 "Source file not specified, proceed anyway ?",
                 "Run Interpreter", MB_YESNOCANCEL);
 
@@ -2727,7 +2679,8 @@ void nu::editor_t::exec_command(int id)
 
     case IDM_SEARCH_GOTOLINE:
         if (IDOK == DialogBox(_hInstance, MAKEINTRESOURCE(IDD_GOTOLINE),
-                        _hwnd_main, (DLGPROC)DlgProc_GotoLine)) {
+                        _hwnd_main, (DLGPROC)DlgProc_GotoLine)) 
+        {
             go_to_line(g_editor.goto_line());
         }
         break;
@@ -2760,8 +2713,9 @@ void nu::editor_t::exec_command(int id)
     case IDM_SEARCH_FINDANDREPLACE: {
         std::string selection = g_editor.get_selection();
 
-        if (!selection.empty())
+        if (!selection.empty()) {
             strncpy(_find_str, selection.c_str(), sizeof(_find_str) - 1);
+        }
 
         _find_replace_data.lStructSize = sizeof(_find_replace_data);
         _find_replace_data.hInstance = NULL;
@@ -2812,8 +2766,9 @@ void nu::editor_t::exec_command(int id)
         cf.nFontType = SCREEN_FONTTYPE;
         cf.nSizeMin = 24;
 
-        if (ChooseFont(&cf) == TRUE)
+        if (ChooseFont(&cf) == TRUE) {
             g_editor.init_editor(_logfont.lfFaceName, abs(_logfont.lfHeight));
+        }
 
         break;
     }
@@ -2880,8 +2835,6 @@ void nu::editor_t::exec_command(int id)
         g_editor.zoom_in(false);
         break;
 
-    
-
     case IDM_ABOUT_ABOUT:
         g_editor.show_splash();
 
@@ -2939,11 +2892,6 @@ void nu::editor_t::set_def_folding(int margin, long pos)
             SCI_TOGGLEFOLD, send_command(SCI_LINEFROMPOSITION, pos, 0), 0);
     }
 }
-
-
-/* -------------------------------------------------------------------------- */
-
-void nu::editor_t::refresh() { send_command(SCI_COLOURISE, 0, -1); }
 
 
 /* -------------------------------------------------------------------------- */
@@ -3027,11 +2975,13 @@ void nu::editor_t::set_item_style(
     send_command(SCI_STYLESETFORE, style, fore);
     send_command(SCI_STYLESETBACK, style, back);
 
-    if (size >= 1)
+    if (size >= 1) {
         send_command(SCI_STYLESETSIZE, style, size);
+    }
 
-    if (face)
+    if (face) {
         send_command(SCI_STYLESETFONT, style, reinterpret_cast<LPARAM>(face));
+    }
 }
 
 
@@ -3162,7 +3112,6 @@ void nu::editor_t::init_editor(const std::string& fontname, int height)
 
 /* -------------------------------------------------------------------------- */
 
-
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
     PAINTSTRUCT ps;
@@ -3242,8 +3191,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         return 0;
 
     case WM_SIZE:
-        if (wParam != 1)
+        if (wParam != 1) {
             g_editor.resize_info();
+        }
         return 0;
 
     case WM_DROPFILES:
@@ -3254,11 +3204,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         if (LOWORD(wParam) >= IDM_INTERPRETER_BROWSER_FUN) {
             auto line = g_editor.resolve_funclinenum_from_id(LOWORD(wParam));
 
-            if (line <= 0)
+            if (line <= 0) {
                 MessageBeep(0);
+            }
 
             g_editor.go_to_line((long)line);
-        } else {
+
+        } 
+        else {
             g_editor.exec_command(LOWORD(wParam));
         }
 
@@ -3275,7 +3228,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
             case TBN_QUERYINSERT:
                 return ret_val;
             }
-        } else {
+        } 
+        else {
             g_editor.notify(reinterpret_cast<SCNotification*>(lParam));
         }
         return 0;
@@ -3303,20 +3257,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
             LPFINDREPLACE lpf = ((LPFINDREPLACE)lParam);
 
-            if (lpf->Flags & FR_MATCHCASE)
+            if (lpf->Flags & FR_MATCHCASE) {
                 flgs |= SCFIND_MATCHCASE;
-            else
+            }
+            else {
                 flgs &= ~SCFIND_MATCHCASE;
+            }
 
-            if (lpf->Flags & FR_WHOLEWORD)
+            if (lpf->Flags & FR_WHOLEWORD) {
                 flgs |= SCFIND_WHOLEWORD;
-            else
+            }
+            else {
                 flgs &= ~SCFIND_WHOLEWORD;
+            }
 
             g_editor.set_search_flags(flgs);
 
             if (lpf->Flags & FR_FINDNEXT) {
-                bool search_result
+                const bool search_result
                     = (lpf->Flags & FR_DOWN) != g_editor.get_search_direction()
                     ? g_editor.search_forward(lpf->lpstrFindWhat)
                     : g_editor.search_backward(lpf->lpstrFindWhat);
@@ -3324,11 +3282,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
                 if (!search_result
                     && IDYES == MessageBox(0, "Text not found, do you want to "
                                               "invert search direction?",
-                                    "Search...", MB_YESNO)) {
+                                    "Search...", MB_YESNO)) 
+                {
                     g_editor.invert_search_direction();
 
                     // Invert selection and repeat searching
-                    bool search_result = (lpf->Flags & FR_DOWN)
+                    const bool search_result = (lpf->Flags & FR_DOWN)
                             != g_editor.get_search_direction()
                         ? g_editor.search_forward(lpf->lpstrFindWhat)
                         : g_editor.search_backward(lpf->lpstrFindWhat);
@@ -3391,22 +3350,18 @@ static void RegisterWindowClass()
     wndclass.lpszMenuName = resourceName;
     wndclass.lpszClassName = nu::editor::class_name;
 
-    if (!::RegisterClassEx(&wndclass))
+    if (!::RegisterClassEx(&wndclass)) {
         ::exit(FALSE);
+    }
 }
-
-
-/* -------------------------------------------------------------------------- */
-
-//#pragma warning(disable : 4786)
 
 
 /* -------------------------------------------------------------------------- */
 
 static BOOL GetClientWindowRect(HWND hWnd, RECT& rect)
 {
-    HWND hParent = GetParent(hWnd);
-    BOOL ret_val = GetWindowRect(hWnd, &rect);
+    const HWND hParent = GetParent(hWnd);
+    const BOOL ret_val = GetWindowRect(hWnd, &rect);
 
     if (ret_val) {
         POINT left_top, right_bottom;
@@ -3455,8 +3410,10 @@ LRESULT CALLBACK HSplitterWndProc(
         GetClientWindowRect(g_editor.get_editor_hwnd(), old_editor_rect);
         GetClientWindowRect(g_editor._h_splitter, old_hsplitter_rect);
         GetClientWindowRect(g_editor._h_infobox, old_searchbox_rect);
-        if (g_toolbar)
+
+        if (g_toolbar) {
             GetClientWindowRect(g_toolbar->get_hwnd(), toolbar_rect);
+        }
 
         SetCapture(hWnd);
         ClipCursor(NULL);
@@ -3521,7 +3478,6 @@ LRESULT CALLBACK HSplitterWndProc(
         FrameRect(hdc, &rect, GetSysColorBrush(COLOR_3DLIGHT)); // WHITE
         EndPaint(hWnd, &ps);
     } break;
-
 
     default:
         return DefWindowProc(hWnd, Message, wParam, lParam);

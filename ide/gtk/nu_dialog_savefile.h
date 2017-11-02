@@ -48,7 +48,8 @@ public:
 
         assert(_dialog_savefile);
 
-        gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (_dialog_savefile), TRUE);
+        gtk_file_chooser_set_do_overwrite_confirmation(
+            GTK_FILE_CHOOSER (_dialog_savefile), TRUE);
     }
 
     GtkResponseType run(
@@ -70,8 +71,9 @@ public:
         auto resp = gtk_dialog_run(GTK_DIALOG(_dialog_savefile));
 
         if (resp == GTK_RESPONSE_ACCEPT) {
-            if (_filename) 
+            if (_filename) {
                 g_free(_filename);
+            }
 
             _filename = gtk_file_chooser_get_filename(
                     GTK_FILE_CHOOSER(_dialog_savefile));
@@ -85,8 +87,9 @@ public:
     }
 
     virtual ~dialog_savefile_t() {
-        if (_filename) 
+        if (_filename) {
             g_free(_filename);
+        }
 
         gtk_widget_destroy(_dialog_savefile);
     }

@@ -57,7 +57,7 @@ public:
 
     GtkResponseType run() noexcept {
 
-        auto resp = gtk_dialog_run(GTK_DIALOG(_dialog_font));
+        const auto resp = gtk_dialog_run(GTK_DIALOG(_dialog_font));
 
         if ( resp == GTK_RESPONSE_OK) {
             auto font = gtk_font_selection_dialog_get_font_name(_dialog_font);

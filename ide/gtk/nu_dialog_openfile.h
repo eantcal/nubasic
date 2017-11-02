@@ -32,8 +32,7 @@ public:
         return _dialog_openfile;
     }
 
-    dialog_openfile_t(const window_t& parent, const char* title = "")
-    {
+    dialog_openfile_t(const window_t& parent, const char* title = "") {
         _dialog_openfile = gtk_file_chooser_dialog_new(
             title, 
             GTK_WINDOW(parent.get_internal_obj()),
@@ -52,8 +51,9 @@ public:
         auto resp = gtk_dialog_run(GTK_DIALOG(_dialog_openfile));
 
         if (resp == GTK_RESPONSE_ACCEPT) {
-            if (_filename) 
+            if (_filename) {
                 g_free(_filename);
+            }
 
             _filename = gtk_file_chooser_get_filename(
                     GTK_FILE_CHOOSER(_dialog_openfile));
@@ -67,8 +67,9 @@ public:
     }
 
     virtual ~dialog_openfile_t() {
-        if (_filename) 
+        if (_filename) {
             g_free(_filename);
+        }
 
         gtk_widget_destroy(_dialog_openfile);
     }

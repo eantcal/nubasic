@@ -183,8 +183,9 @@ public:
     }
 
     bool toggle_breakpoint(long line) const noexcept {
-        if (!remove_breakpoint(line))
+        if (!remove_breakpoint(line)) {
             add_breakpoint(line);
+        }
 
         return true;
     }
@@ -282,7 +283,8 @@ public:
 
 
     std::string get_selection() {
-        long sel_len = long((get_selection_end() - get_selection_begin()) + 1);
+        const long sel_len = 
+            long((get_selection_end() - get_selection_begin()) + 1);
 
         if (sel_len > 0) {
             std::vector<char> buf(sel_len + 1);
@@ -299,11 +301,15 @@ public:
     }
 
     int get_current_line() const noexcept {
-        return int(cmd(SCI_LINEFROMPOSITION, int(cmd(SCI_GETCURRENTPOS, 0, 0)), 0)) + 1;
+        return int(
+            cmd(
+                SCI_LINEFROMPOSITION, 
+                int(cmd(SCI_GETCURRENTPOS, 0, 0)), 0)) + 1;
     }
 
     int get_current_colum() const noexcept {
-        return int(cmd(SCI_GETCOLUMN, int(cmd(SCI_GETCURRENTPOS, 0, 0)), 0)) + 1;
+        return int(
+            cmd(SCI_GETCOLUMN, int(cmd(SCI_GETCURRENTPOS, 0, 0)), 0)) + 1;
     }
 
     int get_current_position() const noexcept {
@@ -315,25 +321,28 @@ public:
     }
 
     int get_fold_level() const noexcept {
-        int level = int(cmd(SCI_GETFOLDLEVEL, get_current_line(), 0))
+        const int level = int(cmd(SCI_GETFOLDLEVEL, get_current_line(), 0))
             & SC_FOLDLEVELNUMBERMASK;
 
         return level - 1024;
     }
 
     void find_next_bookmark() const noexcept {
-        auto line = int(cmd(SCI_MARKERNEXT, get_current_line(), 0xffff));
+        const auto line = 
+            int(cmd(SCI_MARKERNEXT, get_current_line(), 0xffff));
 
-        if (line >= 0)
+        if (line >= 0) {
             cmd(SCI_GOTOLINE, line, 0);
+        }
     }
 
     void find_prev_bookmark() const noexcept {
-        auto line
+        const auto line
             = int(cmd(SCI_MARKERPREVIOUS, get_current_line() - 2, 0xffff));
 
-        if (line >= 0)
+        if (line >= 0) {
             cmd(SCI_GOTOLINE, line, 0);
+        }
     }
 
     void set_item_style(
@@ -346,17 +355,16 @@ public:
         cmd(SCI_STYLESETFORE, style, fore);
         cmd(SCI_STYLESETBACK, style, back);
 
-        if (size >= 1)
+        if (size >= 1) {
             cmd(SCI_STYLESETSIZE, style, size);
+        }
 
-        if (face)
+        if (face) {
             cmd(SCI_STYLESETFONT, style, face);
+        }
     }
 
-    /* -------------------------------------------------------------------------- */
-
-    void get_text_range(int start, int end, char* text) const noexcept
-    {
+    void get_text_range(int start, int end, char* text) const noexcept {
         Sci_TextRange tr = { 0 };
 
         tr.chrg.cpMin = start;

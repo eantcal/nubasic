@@ -17,14 +17,25 @@
 
 /* -------------------------------------------------------------------------- */
 
-toolbar_t::toolbar_t(HWND hWnd, HINSTANCE hInstance, UINT idi_toolbar,
-    UINT_PTR res_id, int n_of_bitmaps, TBBUTTON buttons[], int n_of_buttons,
-    int bmwidth, int bmheight, int btwidth, int btheight)
+toolbar_t::toolbar_t(
+    HWND hWnd, 
+    HINSTANCE hInstance, 
+    UINT idi_toolbar,
+    UINT_PTR res_id, 
+    int n_of_bitmaps, 
+    TBBUTTON buttons[], 
+    int n_of_buttons,
+    int bmwidth, 
+    int bmheight, 
+    int btwidth, 
+    int btheight
+)
     : _hinstance(hInstance)
 {
     _hparent = hWnd;
 
-    _toolbar = CreateToolbarEx(hWnd, // parent
+    _toolbar = CreateToolbarEx(
+        hWnd, // parent
         WS_CHILD | WS_BORDER | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_ADJUSTABLE
             | TBSTYLE_FLAT,
         idi_toolbar, // toolbar id
@@ -45,7 +56,10 @@ toolbar_t::toolbar_t(HWND hWnd, HINSTANCE hInstance, UINT idi_toolbar,
 
 /* -------------------------------------------------------------------------- */
 
-void toolbar_t::on_resize() { SendMessage(_toolbar, TB_AUTOSIZE, 0L, 0L); }
+void toolbar_t::on_resize() 
+{ 
+    SendMessage(_toolbar, TB_AUTOSIZE, 0L, 0L); 
+}
 
 
 /* -------------------------------------------------------------------------- */

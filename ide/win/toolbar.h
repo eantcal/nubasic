@@ -31,15 +31,18 @@
 /* -------------------------------------------------------------------------- */
 
 class toolbar_t {
-private:
-    HWND _toolbar;
-    HINSTANCE _hinstance;
-    HWND _hparent;
-
 public:
-    toolbar_t(HWND hParentWnd, HINSTANCE hInstance, UINT idi_toolbar,
-        UINT_PTR res_id, int n_of_bitmaps, TBBUTTON buttons[], int n_of_buttons,
-        int bmwidth = 28, int bmheight = 32, int btwidth = 28,
+    toolbar_t(
+        HWND hParentWnd, 
+        HINSTANCE hInstance, 
+        UINT idi_toolbar,
+        UINT_PTR res_id, 
+        int n_of_bitmaps, 
+        TBBUTTON buttons[], 
+        int n_of_buttons,
+        int bmwidth = 28, 
+        int bmheight = 32, 
+        int btwidth = 28,
         int btheight = 32);
 
     virtual void on_resize();
@@ -51,7 +54,14 @@ public:
 
     bool get_rect(RECT& rect);
 
-    HWND get_hwnd() const throw() { return _toolbar; }
+    HWND get_hwnd() const throw() { 
+        return _toolbar; 
+    }
+
+private:
+    HWND _toolbar;
+    HINSTANCE _hinstance;
+    HWND _hparent;
 };
 
 
