@@ -1,4 +1,3 @@
-#!/bin/sh
 ### autogen.sh with sensible comments ###############################
 
 # Use this script to bootstrap your build AFTER checking it out from

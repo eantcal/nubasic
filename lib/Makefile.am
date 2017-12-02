@@ -81,24 +81,8 @@ libnubasic_a_SOURCES = $(top_srcdir)/config.h \
    nu_var_scope.cc \
    nu_variant.cc 
 
-if COMPILE_TINYVER
 
-AM_CXXFLAGS = $(INTI_CFLAGS) -std=c++11 -DTINY_NUBASIC_VER -I$(top_srcdir)/include
-
-else
-
-libnubasic_a_SOURCES += \
-   nu_stb_image.cc \
-   nu_os_gdi.cc \
-   nu_playsnd.cc
-
-if GNOME_TERMINAL
-    AM_CXXFLAGS = $(INTI_CFLAGS) -pthread -std=c++11 -I$(top_srcdir)/include -DGNOME_TERMINAL
-else
-    AM_CXXFLAGS = $(INTI_CFLAGS) -pthread -std=c++11 -I$(top_srcdir)/include
-endif
-
-endif 
+    AM_CXXFLAGS = $(INTI_CFLAGS) -pthread -std=c++11 -I$(top_srcdir)/include -DTINY_NUBASIC_VER
 
 libnubasic_a_LIBADD = $(INTI_LIBS) 
 
