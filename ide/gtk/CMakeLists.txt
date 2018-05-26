@@ -34,7 +34,7 @@ endif()
 
 add_subdirectory(mipjson)
 
-set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GTK2_DEFINITIONS}" )
+set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GTK2_DEFINITIONS} -std=c++14" )
 
 include_directories(../../ ../../include mipjson/include mipjson/miptknzr/include ../scintilla/include ${X11_INCLUDE_DIR} ${GTK2_INCLUDE_DIRS})
 link_directories(${lib_BINARY_DIR} ../scintilla/bin )

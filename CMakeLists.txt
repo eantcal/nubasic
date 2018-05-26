@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 2.8.12)
 
-option(WITH_X11 "X11 graphics/sound" ON)
-option(WITH_IDE "GTK+2 Integrated Development Environment (IDE)" ON)
+if (NOT APPLE)
+  option(WITH_X11 "X11 graphics/sound" ON)
+  option(WITH_IDE "GTK+2 Integrated Development Environment (IDE)" ON)
+else()
+  message("On this platform we don't suport X11 and GTK+2 IDE")
+endif()
 
 if (WITH_X11)
   include (${CMAKE_ROOT}/Modules/FindX11.cmake)
@@ -34,13 +38,20 @@ endif()
 add_subdirectory(lib)
 
 if (WITH_IDE)
-  add_subdirectory(ide/gtk)
+  include (${CMAKE_ROOT}/Modules/FindGTK2.cmake)
+  if(NOT GTK2_FOUND)
+    message("Error: GTK2 not found, cannot build gtk2 version")
+  else()
+    add_subdirectory(ide/gtk)
+  endif() 
 endif()
 
 include_directories(include ${X11_INCLUDE_DIR})
 link_directories(${lib_BINARY_DIR})
 
 file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
+
+set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++14" )
 
 add_executable(nubasic ${SOURCES})
 
