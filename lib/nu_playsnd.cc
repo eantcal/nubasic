@@ -6,11 +6,20 @@
 // See COPYING file in the project root for full license information.
 //
 
+
 /* -------------------------------------------------------------------------- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+
+/* -------------------------------------------------------------------------- */
+
+#ifndef TINY_NUBASIC_VER
+
+
+/* -------------------------------------------------------------------------- */
 
 #if HAVE_LIBSDL2
 #include <SDL2/SDL.h>
@@ -192,4 +201,8 @@ bool play_sound(const char* path, bool sync_mode)
 
 
 /* -------------------------------------------------------------------------- */
+
 }
+
+
+#endif //!TINY_NUBASIC_VER

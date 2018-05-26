@@ -6,6 +6,10 @@
 // See COPYING file in the project root for full license information.
 //
 
+
+/* -------------------------------------------------------------------------- */
+
+#ifndef TINY_NUBASIC_VER
 #include "nu_stb_image.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -40,3 +44,5 @@ void image_free(unsigned char* image)
 /* -------------------------------------------------------------------------- */
 
 } // namespace nu
+
+#endif // !TINY_NUBASIC_VER

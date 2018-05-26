@@ -209,6 +209,6 @@ AM_CONDITIONAL([GNOME_TERMINAL], [test "x$gnome_terminal" = "xyes" ])
 # ---------------------------------------------------------------------------- #
 
 AM_CONDITIONAL([GTKIDE], [test x"$want_gtkide" == x"yes"])
-AM_COND_IF([GTKIDE], [AC_CONFIG_FILES([miptknzr/lib/Makefile mipjson/lib/Makefile ide/gtk/Makefile])])
+AM_COND_IF([GTKIDE], [AC_CONFIG_FILES([ide/gtk/mipjson/miptknzr/lib/Makefile ide/gtk/mipjson/lib/Makefile ide/gtk/Makefile])])
 
 AC_OUTPUT

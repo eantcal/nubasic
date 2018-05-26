@@ -6056,7 +6056,7 @@ else
 fi
 
 if test -z "$GTKIDE_TRUE"; then :
-  ac_config_files="$ac_config_files miptknzr/lib/Makefile mipjson/lib/Makefile ide/gtk/Makefile"
+  ac_config_files="$ac_config_files ide/gtk/mipjson/miptknzr/lib/Makefile ide/gtk/mipjson/lib/Makefile ide/gtk/Makefile"
 
 fi
 
@@ -6829,8 +6829,8 @@ do
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
-    "miptknzr/lib/Makefile") CONFIG_FILES="$CONFIG_FILES miptknzr/lib/Makefile" ;;
-    "mipjson/lib/Makefile") CONFIG_FILES="$CONFIG_FILES mipjson/lib/Makefile" ;;
+    "ide/gtk/mipjson/miptknzr/lib/Makefile") CONFIG_FILES="$CONFIG_FILES ide/gtk/mipjson/miptknzr/lib/Makefile" ;;
+    "ide/gtk/mipjson/lib/Makefile") CONFIG_FILES="$CONFIG_FILES ide/gtk/mipjson/lib/Makefile" ;;
     "ide/gtk/Makefile") CONFIG_FILES="$CONFIG_FILES ide/gtk/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
