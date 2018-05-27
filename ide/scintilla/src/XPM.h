@@ -8,9 +8,7 @@
 #ifndef XPM_H
 #define XPM_H
 
-#ifdef SCI_NAMESPACE
 namespace Scintilla {
-#endif
 
 /**
  * Hold a pixmap in XPM format.
@@ -27,11 +25,15 @@ class XPM {
 public:
 	explicit XPM(const char *textForm);
 	explicit XPM(const char *const *linesForm);
+	XPM(const XPM &) = delete;
+	XPM(XPM &&) = delete;
+	XPM &operator=(const XPM &) = delete;
+	XPM &operator=(XPM &&) = delete;
 	~XPM();
 	void Init(const char *textForm);
 	void Init(const char *const *linesForm);
 	/// Decompose image into runs and use FillRectangle for each run
-	void Draw(Surface *surface, PRectangle &rc);
+	void Draw(Surface *surface, const PRectangle &rc);
 	int GetHeight() const { return height; }
 	int GetWidth() const { return width; }
 	void PixelAt(int x, int y, ColourDesired &colour, bool &transparent) const;
@@ -43,9 +45,6 @@ private:
  * A translucent image stored as a sequence of RGBA bytes.
  */
 class RGBAImage {
-	// Deleted so RGBAImage objects can not be copied
-	RGBAImage(const RGBAImage &) = delete;
-	RGBAImage &operator=(const RGBAImage &) = delete;
 	int height;
 	int width;
 	float scale;
@@ -53,6 +52,11 @@ class RGBAImage {
 public:
 	RGBAImage(int width_, int height_, float scale_, const unsigned char *pixels_);
 	explicit RGBAImage(const XPM &xpm);
+	// Deleted so RGBAImage objects can not be copied.
+	RGBAImage(const RGBAImage &) = delete;
+	RGBAImage(RGBAImage &&) = delete;
+	RGBAImage &operator=(const RGBAImage &) = delete;
+	RGBAImage &operator=(RGBAImage &&) = delete;
 	virtual ~RGBAImage();
 	int GetHeight() const { return height; }
 	int GetWidth() const { return width; }
@@ -61,19 +65,24 @@ public:
 	float GetScaledWidth() const { return width / scale; }
 	int CountBytes() const;
 	const unsigned char *Pixels() const;
-	void SetPixel(int x, int y, ColourDesired colour, int alpha=0xff);
+	void SetPixel(int x, int y, ColourDesired colour, int alpha);
 };
 
 /**
  * A collection of RGBAImage pixmaps indexed by integer id.
  */
 class RGBAImageSet {
-	typedef std::map<int, RGBAImage*> ImageMap;
+	typedef std::map<int, std::unique_ptr<RGBAImage>> ImageMap;
 	ImageMap images;
 	mutable int height;	///< Memorize largest height of the set.
 	mutable int width;	///< Memorize largest width of the set.
 public:
 	RGBAImageSet();
+	// Deleted so RGBAImageSet objects can not be copied.
+	RGBAImageSet(const RGBAImageSet &) = delete;
+	RGBAImageSet(RGBAImageSet &&) = delete;
+	RGBAImageSet &operator=(const RGBAImageSet &) = delete;
+	RGBAImageSet &operator=(RGBAImageSet &&) = delete;
 	~RGBAImageSet();
 	/// Remove all images.
 	void Clear();
@@ -87,8 +96,6 @@ public:
 	int GetWidth() const;
 };
 
-#ifdef SCI_NAMESPACE
 }
-#endif
 
 #endif

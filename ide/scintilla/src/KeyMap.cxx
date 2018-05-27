@@ -5,7 +5,7 @@
 // Copyright 1998-2003 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include <stdexcept>
 #include <vector>
@@ -17,9 +17,7 @@
 
 #include "KeyMap.h"
 
-#ifdef SCI_NAMESPACE
 using namespace Scintilla;
-#endif
 
 KeyMap::KeyMap() {
 	for (int i = 0; MapDefault[i].key; i++) {

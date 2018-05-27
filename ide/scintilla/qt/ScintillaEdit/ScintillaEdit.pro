@@ -10,17 +10,13 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = ScintillaEdit
 TEMPLATE = lib
 CONFIG += lib_bundle
+CONFIG += c++1z
 
-unix {
-    # <regex> requires C++11 support
-    greaterThan(QT_MAJOR_VERSION, 4){
-        CONFIG += c++11
-    } else {
-        QMAKE_CXXFLAGS += -std=c++0x
-    }
+VERSION = 4.0.5
+
+win32 {
+        QMAKE_CXXFLAGS += -std:c++latest
 }
-
-VERSION = 3.7.4
 
 SOURCES += \
     ScintillaEdit.cpp \
@@ -48,6 +44,7 @@ SOURCES += \
     ../../src/EditModel.cxx \
     ../../src/Document.cxx \
     ../../src/Decoration.cxx \
+    ../../src/DBCS.cxx \
     ../../src/ContractionState.cxx \
     ../../src/CharClassify.cxx \
     ../../src/CellBuffer.cxx \
@@ -63,10 +60,11 @@ SOURCES += \
     ../../lexlib/LexerNoExceptions.cxx \
     ../../lexlib/LexerModule.cxx \
     ../../lexlib/LexerBase.cxx \
+    ../../lexlib/DefaultLexer.cxx \
     ../../lexlib/CharacterSet.cxx \
     ../../lexlib/CharacterCategory.cxx \
     ../../lexlib/Accessor.cxx \
-    ../../lexers/*.cxx
+    $$files(../../lexers/*.cxx, false)
 
 HEADERS  += \
     ScintillaEdit.h \

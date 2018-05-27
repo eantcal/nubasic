@@ -1,8 +1,11 @@
 // Unit Tests for Scintilla internal data structures
 
+#include <cstddef>
 #include <cstring>
 #include <stdexcept>
+#include <vector>
 #include <algorithm>
+#include <memory>
 
 #include "Platform.h"
 
@@ -14,15 +17,17 @@
 
 #include "catch.hpp"
 
+using namespace Scintilla;
+
 // Test CellBuffer.
 
 TEST_CASE("CellBuffer") {
 
 	const char sText[] = "Scintilla";
-	const size_t sLength = strlen(sText);
+	const Sci::Position sLength = static_cast<Sci::Position>(strlen(sText));
 
-	CellBuffer cb;
-	
+	CellBuffer cb(true, false);
+
 	SECTION("InsertOneLine") {
 		bool startSequence = false;
 		const char *cpChange = cb.InsertString(0, sText, static_cast<int>(sLength), startSequence);
@@ -40,7 +45,7 @@ TEST_CASE("CellBuffer") {
 
 	SECTION("InsertTwoLines") {
 		const char sText2[] = "Two\nLines";
-		const size_t sLength2 = strlen(sText2);
+		const Sci::Position sLength2 = static_cast<Sci::Position>(strlen(sText2));
 		bool startSequence = false;
 		const char *cpChange = cb.InsertString(0, sText2, static_cast<int>(sLength), startSequence);
 		REQUIRE(startSequence);
@@ -115,7 +120,7 @@ TEST_CASE("CellBuffer") {
 		REQUIRE(memcmp(cb.BufferPointer(), sTextAfterDeletion, strlen(sTextAfterDeletion)) == 0);
 		REQUIRE(cb.CanUndo());
 		REQUIRE(!cb.CanRedo());
-		
+
 		cb.DeleteUndoHistory();
 		REQUIRE(!cb.CanUndo());
 		REQUIRE(!cb.CanRedo());

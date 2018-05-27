@@ -71,14 +71,12 @@
 
 #endif
 
-#ifdef SCI_NAMESPACE
 namespace Scintilla {
-#endif
 
 typedef float XYPOSITION;
 typedef double XYACCUMULATOR;
 inline int RoundXYPosition(XYPOSITION xyPos) {
-	return int(xyPos + 0.5);
+	return static_cast<int>(xyPos + 0.5);
 }
 
 // Underlying the implementation of the platform classes are platform specific types.
@@ -101,7 +99,7 @@ public:
 	XYPOSITION x;
 	XYPOSITION y;
 
-	explicit Point(XYPOSITION x_=0, XYPOSITION y_=0) : x(x_), y(y_) {
+	constexpr explicit Point(XYPOSITION x_=0, XYPOSITION y_=0) : x(x_), y(y_) {
 	}
 
 	static Point FromInts(int x_, int y_) {
@@ -109,8 +107,6 @@ public:
 	}
 
 	// Other automatically defined methods (assignment, copy constructor, destructor) are fine
-
-	static Point FromLong(long lpoint);
 };
 
 /**
@@ -136,7 +132,7 @@ public:
 
 	// Other automatically defined methods (assignment, copy constructor, destructor) are fine
 
-	bool operator==(PRectangle &rc) const {
+	bool operator==(const PRectangle &rc) const {
 		return (rc.left == left) && (rc.right == right) &&
 			(rc.top == top) && (rc.bottom == bottom);
 	}
@@ -221,15 +217,15 @@ public:
 		return co;
 	}
 
-	unsigned int GetRed() const {
+	unsigned char GetRed() const {
 		return co & 0xff;
 	}
 
-	unsigned int GetGreen() const {
+	unsigned char GetGreen() const {
 		return (co >> 8) & 0xff;
 	}
 
-	unsigned int GetBlue() const {
+	unsigned char GetBlue() const {
 		return (co >> 16) & 0xff;
 	}
 };
@@ -332,7 +328,6 @@ public:
 	virtual XYPOSITION Ascent(Font &font_)=0;
 	virtual XYPOSITION Descent(Font &font_)=0;
 	virtual XYPOSITION InternalLeading(Font &font_)=0;
-	virtual XYPOSITION ExternalLeading(Font &font_)=0;
 	virtual XYPOSITION Height(Font &font_)=0;
 	virtual XYPOSITION AverageCharWidth(Font &font_)=0;
 
@@ -342,11 +337,6 @@ public:
 	virtual void SetUnicodeMode(bool unicodeMode_)=0;
 	virtual void SetDBCSMode(int codePage)=0;
 };
-
-/**
- * A simple callback action passing one piece of untyped user data.
- */
-typedef void (*CallBackAction)(void*);
 
 /**
  * Class to hide the details of window manipulation.
@@ -363,12 +353,19 @@ public:
 	virtual ~Window();
 	Window &operator=(WindowID wid_) {
 		wid = wid_;
+		cursorLast = cursorInvalid;
+		return *this;
+	}
+	Window &operator=(const Window &other) {
+		if (this != &other) {
+			wid = other.wid;
+			cursorLast = other.cursorLast;
+		}
 		return *this;
 	}
 	WindowID GetID() const { return wid; }
 	bool Created() const { return wid != 0; }
 	void Destroy();
-	bool HasFocus();
 	PRectangle GetPosition();
 	void SetPosition(PRectangle rc);
 	void SetPositionRelative(PRectangle rc, Window relativeTo);
@@ -379,7 +376,6 @@ public:
 	virtual void SetFont(Font &font);
 	enum Cursor { cursorInvalid, cursorText, cursorArrow, cursorUp, cursorWait, cursorHoriz, cursorVert, cursorReverseArrow, cursorHand };
 	void SetCursor(Cursor curs);
-	void SetTitle(const char *s);
 	PRectangle GetMonitorRect(Point pt);
 private:
 	Cursor cursorLast;
@@ -389,13 +385,26 @@ private:
  * Listbox management.
  */
 
+// ScintillaBase implements IListBoxDelegate to receive ListBoxEvents from a ListBox
+
+struct ListBoxEvent {
+	enum class EventType { selectionChange, doubleClick } event;
+	ListBoxEvent(EventType event_) : event(event_) {
+	}
+};
+
+class IListBoxDelegate {
+public:
+	virtual void ListNotify(ListBoxEvent *plbe)=0;
+};
+
 class ListBox : public Window {
 public:
 	ListBox();
-	virtual ~ListBox();
+	~ListBox() override;
 	static ListBox *Allocate();
 
-	virtual void SetFont(Font &font)=0;
+	void SetFont(Font &font) override =0;
 	virtual void Create(Window &parent, int ctrlID, Point location, int lineHeight_, bool unicodeMode_, int technology_)=0;
 	virtual void SetAverageCharWidth(int width)=0;
 	virtual void SetVisibleRows(int rows)=0;
@@ -412,7 +421,7 @@ public:
 	virtual void RegisterImage(int type, const char *xpm_data)=0;
 	virtual void RegisterRGBAImage(int type, int width, int height, const unsigned char *pixelsImage) = 0;
 	virtual void ClearRegisteredImages()=0;
-	virtual void SetDoubleClickAction(CallBackAction, void *)=0;
+	virtual void SetDelegate(IListBoxDelegate *lbDelegate)=0;
 	virtual void SetList(const char* list, char separator, char typesep)=0;
 };
 
@@ -429,7 +438,7 @@ public:
 	void Show(Point pt, Window &w);
 };
 
-class ElapsedTime {
+class[[deprecated("Use ElapsedPeriod")]] ElapsedTime {
 	long bigBit;
 	long littleBit;
 public:
@@ -482,48 +491,22 @@ public:
 	static const char *DefaultFont();
 	static int DefaultFontSize();
 	static unsigned int DoubleClickTime();
-	static bool MouseButtonBounce();
 	static void DebugDisplay(const char *s);
-	static bool IsKeyDown(int key);
-	static long SendScintilla(
-		WindowID w, unsigned int msg, unsigned long wParam=0, long lParam=0);
-	static long SendScintillaPointer(
-		WindowID w, unsigned int msg, unsigned long wParam=0, void *lParam=0);
-	static bool IsDBCSLeadByte(int codePage, char ch);
-	static int DBCSCharLength(int codePage, const char *s);
-	static int DBCSCharMaxLength();
-
-	// These are utility functions not really tied to a platform
-	static int Minimum(int a, int b);
-	static int Maximum(int a, int b);
-	// Next three assume 16 bit shorts and 32 bit longs
 	static long LongFromTwoShorts(short a,short b) {
 		return (a) | ((b) << 16);
 	}
-	static short HighShortFromLong(long x) {
-		return static_cast<short>(x >> 16);
-	}
-	static short LowShortFromLong(long x) {
-		return static_cast<short>(x & 0xffff);
-	}
+
 	static void DebugPrintf(const char *format, ...);
 	static bool ShowAssertionPopUps(bool assertionPopUps_);
 	static void Assert(const char *c, const char *file, int line) CLANG_ANALYZER_NORETURN;
-	static int Clamp(int val, int minVal, int maxVal);
 };
 
 #ifdef  NDEBUG
 #define PLATFORM_ASSERT(c) ((void)0)
 #else
-#ifdef SCI_NAMESPACE
 #define PLATFORM_ASSERT(c) ((c) ? (void)(0) : Scintilla::Platform::Assert(#c, __FILE__, __LINE__))
-#else
-#define PLATFORM_ASSERT(c) ((c) ? (void)(0) : Platform::Assert(#c, __FILE__, __LINE__))
-#endif
 #endif
 
-#ifdef SCI_NAMESPACE
 }
-#endif
 
 #endif

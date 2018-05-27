@@ -477,7 +477,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
         ed.cmd(SCI_CLEARDOCUMENTSTYLE, 0, 0);
 
         // Set the number of styling bits to 7 (default is 5)
-        ed.cmd(SCI_SETSTYLEBITS, 7, 0);
+        // ed.cmd(SCI_SETSTYLEBITS, 7, 0); // TODO
 
         // Set the display for indentation guides to on.
         // This displays vertical lines from the beginning of

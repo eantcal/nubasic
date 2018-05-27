@@ -5,8 +5,6 @@
 // Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
-#include <string.h>
-
 #include <stdexcept>
 
 #include "Platform.h"
@@ -14,9 +12,7 @@
 #include "Scintilla.h"
 #include "Style.h"
 
-#ifdef SCI_NAMESPACE
 using namespace Scintilla;
-#endif
 
 FontAlias::FontAlias() {
 }
@@ -64,12 +60,13 @@ bool FontSpecification::operator<(const FontSpecification &other) const {
 }
 
 FontMeasurements::FontMeasurements() {
-	Clear();
+	ClearMeasurements();
 }
 
-void FontMeasurements::Clear() {
+void FontMeasurements::ClearMeasurements() {
 	ascent = 1;
 	descent = 1;
+	capitalHeight = 1;
 	aveCharWidth = 1;
 	spaceWidth = 1;
 	sizeZoomed = 2;
@@ -143,7 +140,7 @@ void Style::Clear(ColourDesired fore_, ColourDesired back_, int size_,
 	changeable = changeable_;
 	hotspot = hotspot_;
 	font.ClearFont();
-	FontMeasurements::Clear();
+	FontMeasurements::ClearMeasurements();
 }
 
 void Style::ClearTo(const Style &source) {

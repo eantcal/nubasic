@@ -702,14 +702,6 @@ set void SetWhitespaceSize=2086(int size,)
 # Get the size of the dots used to mark space characters.
 get int GetWhitespaceSize=2087(,)
 
-# Divide each styling byte into lexical class bits (default: 5) and indicator
-# bits (default: 3). If a lexer requires more than 32 lexical states, then this
-# is used to expand the possible states.
-set void SetStyleBits=2090(int bits,)
-
-# Retrieve number of bits in style bytes used to hold the lexical state.
-get int GetStyleBits=2091(,)
-
 # Used to hold extra styling information for each line.
 set void SetLineState=2092(int line, int state)
 
@@ -730,6 +722,14 @@ get colour GetCaretLineBack=2097(,)
 
 # Set the colour of the background of the line containing the caret.
 set void SetCaretLineBack=2098(colour back,)
+
+# Retrieve the caret line frame width.
+# Width = 0 means this option is disabled.
+get int GetCaretLineFrame=2704(,)
+
+# Display the caret line framed.
+# Set width != 0 to enable this option and width = 0 to disable it.
+set void SetCaretLineFrame=2705(int width,)
 
 # Set a style to be changeable or not (read only).
 # Experimental feature, currently buggy.
@@ -922,6 +922,7 @@ get int GetPrintMagnification=2147(,)
 
 enu PrintOption=SC_PRINT_
 # PrintColourMode - use same colours as screen.
+# with the exception of line number margins, which use a white background
 val SC_PRINT_NORMAL=0
 # PrintColourMode - invert the light value of each style for printing.
 val SC_PRINT_INVERTLIGHT=1
@@ -931,6 +932,8 @@ val SC_PRINT_BLACKONWHITE=2
 val SC_PRINT_COLOURONWHITE=3
 # PrintColourMode - only the default-background is forced to be white for printing.
 val SC_PRINT_COLOURONWHITEDEFAULTBG=4
+# PrintColourMode - use same colours as screen, including line number margins.
+val SC_PRINT_SCREENCOLOURS=5
 
 # Modify colours when printing for clearer printed text.
 set void SetPrintColourMode=2148(int mode,)
@@ -989,7 +992,7 @@ fun int GetSelText=2161(, stringresult text)
 # Return the length of the text.
 fun int GetTextRange=2162(, textrange tr)
 
-# Draw the selection in normal style or with selection highlighted.
+# Draw the selection either highlighted or in normal (non-highlighted) style.
 fun void HideSelection=2163(bool hide,)
 
 # Retrieve the x value of the point in the window where a position is displayed.
@@ -1411,13 +1414,6 @@ get bool GetVScrollBar=2281(,)
 # Append a string to the end of the document without changing the selection.
 fun void AppendText=2282(int length, string text)
 
-# Is drawing done in two phases with backgrounds drawn before foregrounds?
-get bool GetTwoPhaseDraw=2283(,)
-
-# In twoPhaseDraw mode, drawing is performed in two phases, first the background
-# and then the foreground. This avoids chopping off characters that overlap the next run.
-set void SetTwoPhaseDraw=2284(bool twoPhase,)
-
 enu PhasesDraw=SC_PHASES_
 val SC_PHASES_ONE=0
 val SC_PHASES_TWO=1
@@ -1614,6 +1610,9 @@ fun void LineDelete=2338(,)
 # Switch the current line with the previous.
 fun void LineTranspose=2339(,)
 
+# Reverse order of selected lines.
+fun void LineReverse=2354(,)
+
 # Duplicate the current line.
 fun void LineDuplicate=2404(,)
 
@@ -1775,13 +1774,21 @@ set void SetZoom=2373(int zoomInPoints,)
 # Retrieve the zoom level.
 get int GetZoom=2374(,)
 
+enu DocumentOption=SC_DOCUMENTOPTION_
+val SC_DOCUMENTOPTION_DEFAULT=0
+val SC_DOCUMENTOPTION_STYLES_NONE=0x1
+val SC_DOCUMENTOPTION_TEXT_LARGE=0x100
+
 # Create a new document object.
 # Starts with reference count of 1 and not selected into editor.
-fun int CreateDocument=2375(,)
+fun int CreateDocument=2375(int bytes, int documentOptions)
 # Extend life of document.
 fun void AddRefDocument=2376(, int doc)
 # Release a reference to the document, deleting document if it fades to black.
 fun void ReleaseDocument=2377(, int doc)
+
+# Get which document options are set.
+get int GetDocumentOptions=2379(,)
 
 # Get which document modification events are sent to the container.
 get int GetModEventMask=2378(,)
@@ -1967,6 +1974,9 @@ set void SetSelectionMode=2422(int selectionMode,)
 
 # Get the mode of the current selection.
 get int GetSelectionMode=2423(,)
+
+# Get whether or not regular caret moves will extend or reduce the selection.
+get bool GetMoveExtendsSelection=2706(,)
 
 # Retrieve the position of the start of the selection at the given line (INVALID_POSITION if no selection on this line).
 fun position GetLineSelStartPosition=2424(int line,)
@@ -2541,7 +2551,7 @@ set void SetTechnology=2630(int technology,)
 get int GetTechnology=2631(,)
 
 # Create an ILoader*.
-fun int CreateLoader=2632(int bytes,)
+fun int CreateLoader=2632(int bytes, int documentOptions)
 
 # On OS X, show a find indicator.
 fun void FindIndicatorShow=2640(position start, position end)
@@ -2634,9 +2644,6 @@ get int GetPropertyExpanded=4009(string key, stringresult value)
 # interpreted as an int AFTER any "$()" variable replacement.
 get int GetPropertyInt=4010(string key, int defaultValue)
 
-# Retrieve the number of bits the current lexer needs for styling.
-get int GetStyleBitsNeeded=4011(,)
-
 # Retrieve the name of the lexer.
 # Return the length of the text.
 # Result is NUL-terminated.
@@ -2697,6 +2704,21 @@ get int DistanceToSecondaryStyles=4025(,)
 # Get the set of base styles that can be extended with sub styles
 # Result is NUL-terminated.
 get int GetSubStyleBases=4026(, stringresult styles)
+
+# Retrieve the number of named styles for the lexer.
+get int GetNamedStyles=4029(,)
+
+# Retrieve the name of a style.
+# Result is NUL-terminated.
+fun int NameOfStyle=4030(int style, stringresult name)
+
+# Retrieve a ' ' separated list of style tags like "literal quoted string".
+# Result is NUL-terminated.
+fun int TagsOfStyle=4031(int style, stringresult tags)
+
+# Retrieve a description of a style.
+# Result is NUL-terminated.
+fun int DescriptionOfStyle=4032(int style, stringresult description)
 
 # Notifications
 # Type of modification and the action which caused the modification.
@@ -2906,6 +2928,7 @@ val SCLEX_TEHEX=119
 val SCLEX_JSON=120
 val SCLEX_EDIFACT=121
 val SCLEX_INDENT=122
+val SCLEX_MAXIMA=123
 
 # When a lexer specifies its language as SCLEX_AUTOMATIC it receives a
 # value assigned in sequence from SCLEX_AUTOMATIC+1.
@@ -2933,7 +2956,11 @@ val SCE_P_FSTRING=16
 val SCE_P_FCHARACTER=17
 val SCE_P_FTRIPLE=18
 val SCE_P_FTRIPLEDOUBLE=19
-# Lexical states for SCLEX_CPP, SCLEX_BULLANT, SCLEX_COBOL, SCLEX_TACL, SCLEX_TAL
+# Lexical states for SCLEX_CPP
+# Lexical states for SCLEX_BULLANT
+# Lexical states for SCLEX_COBOL
+# Lexical states for SCLEX_TACL
+# Lexical states for SCLEX_TAL
 lex Cpp=SCLEX_CPP SCE_C_
 lex BullAnt=SCLEX_BULLANT SCE_C_
 lex COBOL=SCLEX_COBOL SCE_C_
@@ -3521,6 +3548,16 @@ val SCE_MATLAB_STRING=5
 val SCE_MATLAB_OPERATOR=6
 val SCE_MATLAB_IDENTIFIER=7
 val SCE_MATLAB_DOUBLEQUOTESTRING=8
+# Lexical states for SCLEX_MAXIMA
+lex Maxima=SCLEX_MAXIMA SCE_MAXIMA_
+val SCE_MAXIMA_OPERATOR=0
+val SCE_MAXIMA_COMMANDENDING=1
+val SCE_MAXIMA_COMMENT=2
+val SCE_MAXIMA_NUMBER=3
+val SCE_MAXIMA_STRING=4
+val SCE_MAXIMA_COMMAND=5
+val SCE_MAXIMA_VARIABLE=6
+val SCE_MAXIMA_UNKNOWN=7
 # Lexical states for SCLEX_SCRIPTOL
 lex Sol=SCLEX_SCRIPTOL SCE_SCRIPTOL_
 val SCE_SCRIPTOL_DEFAULT=0
@@ -4844,12 +4881,33 @@ evt void FocusIn=2028(void)
 evt void FocusOut=2029(void)
 evt void AutoCCompleted=2030(string text, int position, int ch, CompletionMethods listCompletionMethod)
 evt void MarginRightClick=2031(int modifiers, int position, int margin)
-
-# There are no provisional APIs currently, but some arguments to SCI_SETTECHNOLOGY are provisional.
+evt void AutoCSelectionChange=2032(int listType, string text, int position)
 
 cat Provisional
 
+enu Bidirectional=SC_BIDIRECTIONAL_
+val SC_BIDIRECTIONAL_DISABLED=0
+val SC_BIDIRECTIONAL_L2R=1
+val SC_BIDIRECTIONAL_R2L=2
+
+# Retrieve bidirectional text display state.
+get int GetBidirectional=2708(,)
+
+# Set bidirectional text display state.
+set void SetBidirectional=2709(int bidirectional,)
+
 cat Deprecated
+
+# Divide each styling byte into lexical class bits (default: 5) and indicator
+# bits (default: 3). If a lexer requires more than 32 lexical states, then this
+# is used to expand the possible states.
+set void SetStyleBits=2090(int bits,)
+
+# Retrieve number of bits in style bytes used to hold the lexical state.
+get int GetStyleBits=2091(,)
+
+# Retrieve the number of bits the current lexer needs for styling.
+get int GetStyleBitsNeeded=4011(,)
 
 # Deprecated in 3.5.5
 
@@ -4858,3 +4916,11 @@ set void SetKeysUnicode=2521(bool keysUnicode,)
 
 # Are keys always interpreted as Unicode?
 get bool GetKeysUnicode=2522(,)
+
+# Is drawing done in two phases with backgrounds drawn before foregrounds?
+get bool GetTwoPhaseDraw=2283(,)
+
+# In twoPhaseDraw mode, drawing is performed in two phases, first the background
+# and then the foreground. This avoids chopping off characters that overlap the next run.
+set void SetTwoPhaseDraw=2284(bool twoPhase,)
+
