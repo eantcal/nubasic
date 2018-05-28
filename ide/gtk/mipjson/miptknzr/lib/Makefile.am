@@ -8,5 +8,5 @@ libmiptknzr_a_SOURCES = \
 
 AM_CXXFLAGS = $(INTI_CFLAGS) \
    -std=c++11 \
-   -I$(top_srcdir)/miptknzr/include
+   -I$(top_srcdir)/ide/gtk/mipjson/miptknzr/include
 
