@@ -2994,7 +2994,7 @@ void nu::editor_t::init_editor(const std::string& fontname, int height)
     send_command(SCI_CLEARDOCUMENTSTYLE, 0, 0);
 
     // Set the number of styling bits to 7 (default is 5)
-    send_command(SCI_SETSTYLEBITS, 7, 0);
+    // send_command(SCI_SETSTYLEBITS, 7, 0); // NO LONGER SUPPORTED
 
     // Set the display for indetation guides to on.
     // This displays vertical lines from the beginning of

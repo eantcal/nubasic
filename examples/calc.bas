@@ -299,7 +299,7 @@ Sub Main()
             End If
 
             If fn = 24 Then
-               Text = eval(Text)
+               Text = str(eval(Text))
             Else
                Text = addFunc( fn, Text )
             End If
@@ -308,7 +308,7 @@ Sub Main()
                Memory = "0" 
                If fn=4 Then ClearStack
             ElIf fn=1 Then
-               Memory = str(val(eval( Memory + " + (" + Text + ")" )))
+               Memory = str(eval( Memory + " + (" + Text + ")" ))
             ElIf fn=2 Then
 
                l = Len(Memory)
