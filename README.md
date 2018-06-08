@@ -50,7 +50,7 @@ The program aplay is generally part of most basic Linux distributions.
 
 ## Other dependencies
 - nuBASIC (full version for Linux) relies on stb_image.h part of STB library (https://github.com/nothings/stb)
-- nuBASIC IDE relies on Scintilla
+- nuBASIC IDE relies on Scintilla (https://www.scintilla.org)
 
 ## Installers
 You can download installers here: https://sourceforge.net/projects/nubasic/files/latest/download
