@@ -55,4 +55,8 @@ The program aplay is generally part of most basic Linux distributions.
 ## Installers
 You can download installers here: https://sourceforge.net/projects/nubasic/files/latest/download
 
+## Android
+A nuBASIC version for Android (ARM) system is available at https://github.com/eantcal/nubasic/tree/termux (it includes a pre-built binary).
+This is version is not stable and relies on Termux (https://termux.com)
+
 ![nubasic on android](https://sites.google.com/site/nubasiclanguageinterpreter/home/screenshot/nubasicide_on_android.png?attredirects=0)
