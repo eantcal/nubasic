@@ -38,19 +38,8 @@ To install successfully nuBASIC (32/64 bit - packages including editor) the foll
 ## Linux Installation Prerequisites
 To install nuBASIC (full version) the following software components are required on the installation system:
 - X11 - X Windowing System (including xterm, xmessage)
-
-You may compile nuBASIC either enabling or disabling SDL2 support (--enable-sdl2 configure switch is provided). SDL2 support is disabled for default.
-In case of disabling SDL2 support, you need "aplay" external tool in order to exec PlaySound function.
-The program aplay is generally part of most basic Linux distributions.
-
-- To install SDL2 on Debian/Ubuntu use the following command:
-``$ sudo apt-get install libsdl2-2.0-0``
-- To install SDL2 on Fedora/Centos use the following command:
-``$ yum install SDL2-devel``
-
-## Other dependencies
-- nuBASIC (full version for Linux) relies on stb_image.h part of STB library (https://github.com/nothings/stb)
-- nuBASIC IDE relies on Scintilla (https://www.scintilla.org)
+- Gtk+ 2.0
+- aplay (which is generally part of most basic Linux distributions).
 
 ## Installers
 You can download installers here: https://sourceforge.net/projects/nubasic/files/latest/download
@@ -60,3 +49,5 @@ A nuBASIC version for Android (ARM) system is available at https://github.com/ea
 This is version is not stable and relies on Termux (https://termux.com)
 
 ![nubasic on android](https://sites.google.com/site/nubasiclanguageinterpreter/home/screenshot/nubasicide_on_android.png?attredirects=0)
+
+(see also README file)
