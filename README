@@ -47,13 +47,9 @@ Guides (PDF, ODT):
 -------------------------------------------------------------------------------
 How to download and install?
 -------------------------------------------------------------------------------
-You can download the latest released version from  Source Forge.
-Both nuBASIC binary autoinstallers and gzipped tar archive containing all 
-source files can be downloaded from Sourceforge.net - nuBASIC project. 
+You can download the latest released version from Source Forge.
+The source code is managed using the git version control system provided by Github
 
--------------------------------------------------------------------------------
-How to build it?
--------------------------------------------------------------------------------
 nuBASIC source has been written in C++11 and compiles under several operating 
 systems including Windows and Linux. 
 
@@ -61,68 +57,38 @@ To compile nuBASIC you may create a Visual C++ console application or
 build it by using GCC >= 4.8.1 (both VS project files and autoconf/automake 
 source files have been provided) or using MinGW / MinGW w64 >= 4.8.x
 
-* Getting the latest released code
-You can download source package nubasic-<ver>.tar.gz at link 
+-------------------------------------------------------------------------------
+How to build nuBASIC in 10 moves on Ubuntu
+-------------------------------------------------------------------------------
+1) Install any build essential tools (c++ compiler, etc.):
+# sudo apt install build-essential
 
-https://sourceforge.net/projects/nubasic/files/source%20code/
+2) Install cmake:
+# sudo apt install cmake
 
-To build nuBASIC you have:
-- Download and uncompress the tarball.
-- Enter the package-name directory where you uncompressed it, 
-and just type the following commands:
+3) Install X11 development libraries:
+# sudo apt install libx11-dev
 
-./configure
+4) Install xterm:
+# sudo apt install xterm
+
+5) Install gtk+ 2.0:
+# sudo apt install gtk2.0
+
+6) Install git:
+# sudo apt install git
+
+7) Get nubasic source code from repository:
+# git clone https://github.com/eantcal/nubasic.git
+
+8) Enter nubasic directory:
+# cd nubasic
+
+9) Create build directory and run cmake:
+# mkdir build && cd build && cmake ..
+
+10) Make nubasic and nubasicide:
 make
-sudo make install
-
-The source code is laso managed using the git version control system. 
-To get your own copy of the project sources, use the following command.
-
-git clone git://git.code.sf.net/p/nubasic/code nubasic-code
-
-If the git protocol is blocked by your local area network, then you can 
-use the alternative HTTP protocol instead.
-
-git clone http://git.code.sf.net/p/nubasic/code nubasic-code
-
-
-To build nuBASIC you need to install GNU GCC Compiler and Development 
-Environment.
-To do that, for example, using a Debian/Ubuntu type the following 
-apt-get command as root user:
-
-sudo apt-get install build-essential
-
-Unless you configure nuBASIC to create the "tiny" version 
-(./configure --enable-tinyver), you have to install following 
-additional packages: libx11-dev, sdl2-dev, xmessage, xterm
-
-* Install script for development libs:
-
-sudo apt-get -y install libx11-dev
-sudo apt-get install libsdl2-dev
-sudo apt-get install xterm
-sudo apt-get install xmessage
-
-* See also
-Ubuntu: https://help.ubuntu.com/community/InstallingCompilers
-
-Others: 
-http://www.rpmfind.net/linux/rpm2html/search.php?query=gcc-c%2b%2b
-http://rpmfind.net/linux/RPM/Development_Libraries_X11.html
-
-* Building nuBASIC in a separate 'build' directory
-To separate source and build directories you have to create the build 
-directory anywhere you want and call configure from there. 
-This will then build the code in the build directory you have created
-
-Example:
-
-mkdir your_nubasic_build_dir
-cd your_nubasic_build_dir
-your_nubasic_source_dir/configure
-make
-make install
 
 -------------------------------------------------------------------------------
 Windows Installer packages
@@ -131,7 +97,6 @@ You can download setup*.zip packages, that are standalone binary installers,
 following the link 
 
 https://sourceforge.net/projects/nubasic/files/binary/Windows/
-
 
 * Installing nuBASIC for Windows
 
@@ -176,34 +141,9 @@ Linux Installation Prerequisites
 -------------------------------------------------------------------------------
 To install nuBASIC (full version) the following software components are 
 required on the installation system:
-X11 - X Windowing System (including xterm, xmessage)
-
-* Simple DirectMedia Layer 2
-The Simple DirectMedia Layer 2 (SDL2) - https://www.libsdl.org/ library is needed 
-from version 1.12 to version 1.16 of nuBASIC. Next releases don't need it.
-It provides sound facility for implementing PlaySound function.
-
-To install SDL2 on Debian/Ubuntu use the following command:
-
-$ sudo apt-get install libsdl2-2.0-0
-
-See also:
-http://packages.ubuntu.com/search?suite=default&section=all&arch=any&keywords=libsdl2&searchon=names
-
-To install SDL2 on Fedora/Centos use the following command:
-
-$ yum install SDL2-devel
-
-You may compile nuBASIC either enabling or disabling SDL2 support 
-(--enable-sdl2 configure switch is provided). SDL2 support is disabled for default.
-In case of disabling SDL2 support, you need "aplay" external tool in order to exec 
-PlaySound function.
-
-The program aplay is generally part of most basic Linux distributions.
-
-Other dipendencies
-nuBASIC (full version for Linux) relies on stb_image.h part of 
-STB library (https://github.com/nothings/stb)
+- X11 - X Windowing System (including xterm, xmessage)
+- Gtk+ 2.0
+- aplay (which is generally part of most basic Linux distributions).
 
 -------------------------------------------------------------------------------
 Introduction to nuBASIC
