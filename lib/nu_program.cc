@@ -223,7 +223,7 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
             break;
         }
 
-        if (prog_ptr->second.second.break_point) {
+        if (prog_ptr->second.second.break_point && !_function_call) {
             if (prog_ptr->second.second.condition_stmt != nullptr) {
                 prog_ptr->second.second.condition_stmt->run(_ctx);
             }

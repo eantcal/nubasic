@@ -314,6 +314,10 @@ static help_content_t _help_content[] = {
         "Returns e (the base of natural logarithms) to the power of x",
         "Exp(x)" },
 
+	{ lang_item_t::FUNCTION, "conv",
+		"Returns a vector of double values as result of convolution 2 given vectors of numbers",
+		"Conv( v1, v2 [, count1, count2 ] ))" },
+
     { lang_item_t::FUNCTION, "abs",
         "Returns the absolute value of the expression x", "Abs(x)" },
 

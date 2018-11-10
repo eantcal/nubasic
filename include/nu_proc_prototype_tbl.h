@@ -52,6 +52,7 @@ struct func_param_t {
 
 struct func_prototype_t {
     std::string ret_type;
+	size_t array_size = 0;
     std::list<func_param_t> parameters;
 
     func_prototype_t() = default;

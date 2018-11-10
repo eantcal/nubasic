@@ -1047,10 +1047,39 @@ stmt_t::handle_t stmt_parser_t::parse_procedure(
 
         syntax_error_if(ptr == nullptr, token.expression(), token.position());
 
-        --tl;
-        remove_blank(tl);
+		--tl;
+		remove_blank(tl);
 
-        ptr->define_ret_type(ret_type, ctx);
+		size_t array_size = 0;
+
+		if (tl.size() > 1) {
+			syntax_error_if(tl.begin()->type() != tkncl_t::SUBEXP_BEGIN,
+				token.expression(), token.position());
+
+			--tl;
+			remove_blank(tl);
+
+			syntax_error_if(tl.size() < 2 || tl.begin()->type() != tkncl_t::INTEGRAL,
+				token.expression(), token.position());
+
+			try {
+				const auto val = std::stol(tl.begin()->identifier());
+				array_size = val < 0 ? 0 : val;
+			}
+			catch (...) {}
+
+			--tl;
+			remove_blank(tl);
+
+			syntax_error_if(array_size<1 || tl.size() < 1 || 
+				tl.begin()->type() != tkncl_t::SUBEXP_END,
+				token.expression(), token.position());
+
+			--tl;
+			remove_blank(tl);
+		}
+
+        ptr->define_ret_type(ret_type, ctx, array_size);
     }
 
 

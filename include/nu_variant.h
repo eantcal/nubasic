@@ -135,6 +135,9 @@ public:
     variant_t(const char* value, size_t vect_size = 0);
     variant_t(const real_t& value, size_t vect_size = 0);
     variant_t(const double_t& value, size_t vect_size = 0);
+	variant_t(const std::vector<double_t>& value);
+	variant_t(std::vector<double_t>&& value);
+
     variant_t(const integer_t& value, size_t vect_size = 0);
     variant_t(const bool_t& value, size_t vect_size = 0);
     variant_t(const long64_t& value, size_t vect_size = 0);
@@ -183,6 +186,26 @@ public:
 
     size_t vector_size() const noexcept { return _vect_size; }
 
+	bool copy_vector_content(std::vector<double> & dst) {
+		
+		// Check if we are dealing with vectors
+		if (!is_vector() || dst.size()<1) {
+			return false;
+		}
+
+		// Do not try to copy more elements of dst capacity
+		size_t items_to_copy = vector_size();
+		if (dst.size() < items_to_copy) {
+			items_to_copy = dst.size();
+		}
+
+		for (size_t i = 0; i < items_to_copy; ++i) {
+			dst[i] = to_double(i);
+		}
+
+		return true;
+	}
+
     real_t to_real(size_t idx = 0) const { return real_t(to_double(idx)); }
     double_t to_double(size_t idx = 0) const;
     integer_t to_int(size_t idx = 0) const { return integer_t(to_long64(idx)); }
@@ -220,7 +243,7 @@ public:
     void set_str(const char* value, size_t idx) { _set<string_t>(value, _s_data, type_t::STRING, idx); }
     void set_int(const integer_t& value, size_t idx) { _set(value, _i_data, type_t::INTEGER, idx); }
     void set_real(real_t value, size_t idx) { _set(value, _f_data, type_t::FLOAT, idx);  }
-    void set_double(double_t value, size_t idx) { _set(value, _f_data, type_t::DOUBLE); }
+    void set_double(double_t value, size_t idx) { _set(value, _f_data, type_t::DOUBLE, idx); }
     void set_bvect(integer_t value, size_t idx) { _set(value, _i_data, type_t::BYTEVECTOR, idx); }
     void set_bool(bool_t value, size_t idx) { _set(value, _i_data, type_t::BOOLEAN, idx); }
     void set_long64(long64_t value, size_t idx) { _set(value, _i_data, type_t::LONG64, idx); }
