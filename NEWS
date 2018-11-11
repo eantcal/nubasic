@@ -1,10 +1,22 @@
 nuBASIC NEWS -- history of user-visible changes.
 http://www.nubasic.eu/
-Author - Antonino Calderone - antonino.calderone@gmail.com - (c) 2014-2017
+Author - Antonino Calderone - antonino.calderone@gmail.com - (c) 2014-2018
 
 Please send nuBASIC and nuBasic IDE bug reports to <antonino.calderone@gmail.com>.
 
 Win32/64 built with VS2017 needs "Visual C++ Redistributable Packages for Visual Studio 2017"
+
+Nov 11, 2018
+* Released nuBASIC 1.49 IDE 1.48 for Windows
+- Bug-fix: wrong access to element of array of double with index greater than 0
+- Update scilexer to 4.05
+- Add function Conv() and related conv.bas example
+- Add function GetVKey()
+- Add new text version of Rosetta example
+- Extend the function syntax in order to allow to return an array (by val)
+- Allow to assign an array to another (of same type) with unique assignment operation 
+- Additional improvements and minor bug-fixes
+
 
 Jul 3, 2017
 * Released nuBASIC 1.48 / nuBASIC GTK+ IDE 1.48 for Linux
