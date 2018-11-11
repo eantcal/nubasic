@@ -100,11 +100,13 @@ void stmt_call_t::run(
         auto vtype_code
             = variable_t::type_by_typename(function_prototype.ret_type);
 
+		const auto vsize = function_prototype.array_size;
+
         switch (vtype_code) {
         case variable_t::type_t::STRING:
         case variable_t::type_t::OBJECT:
             sub_xscope->define(_name,
-                var_value_t(variant_t("", vtype_code, 0), VAR_ACCESS_RW));
+                var_value_t(variant_t("", vtype_code, vsize), VAR_ACCESS_RW));
             break;
 
         case variable_t::type_t::FLOAT:
@@ -115,7 +117,7 @@ void stmt_call_t::run(
         case variable_t::type_t::BYTEVECTOR:
         case variable_t::type_t::ANY:
             sub_xscope->define(_name,
-                var_value_t(variant_t("0", vtype_code, 0), VAR_ACCESS_RW));
+                var_value_t(variant_t("0", vtype_code, vsize), VAR_ACCESS_RW));
             break;
 
         case variable_t::type_t::STRUCT:
@@ -128,6 +130,7 @@ void stmt_call_t::run(
 
             auto value = it->second.second; // struct prototype
 
+			//TODO: extend to array of structures
             sub_xscope->define(_name, var_value_t(value, VAR_ACCESS_RW));
             break;
         }

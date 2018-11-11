@@ -470,6 +470,81 @@ variant_t math_functor2(
 
 /* -------------------------------------------------------------------------- */
 
+template<typename T>
+std::vector<T>
+conv(const std::vector<T> &f, const std::vector<T> &g) {
+	const int nf = int(f.size());
+	const int ng = int(g.size());
+	const int n = nf + ng - 1;
+
+	std::vector<T> out(n, T());
+
+	for (auto i=0; i < n; ++i) {
+		const int jmn = (i >= ng - 1) ? i - (ng - 1) : 0;
+		const int jmx = (i < nf - 1) ? i : nf - 1;
+
+		for (auto j=jmn; j <= jmx; ++j) {
+			out[i] += (f[j] * g[i - j]);
+		}
+	}
+
+	return out;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+variant_t conv_functor(
+	rt_prog_ctx_t& ctx,
+	const std::string& name,
+	const nu::func_args_t& args) 
+{
+	const auto args_num = args.size();
+
+	rt_error_code_t::get_instance().throw_if(
+		args_num != 4 && args_num != 2, 0, rt_error_code_t::E_INVALID_ARGS, "");
+
+	auto variant_v1 = args[0]->eval(ctx);
+	auto variant_v2 = args[1]->eval(ctx);
+
+	const auto actual_v1_size = variant_v1.vector_size();
+	const auto actual_v2_size = variant_v2.vector_size();
+
+	size_t size_v1 = 
+		args_num == 4 ? size_t(args[2]->eval(ctx).to_long64()) : actual_v1_size;
+
+	size_t size_v2 = 
+		args_num == 4 ? size_t(args[3]->eval(ctx).to_long64()) : actual_v2_size;
+
+	rt_error_code_t::get_instance().throw_if(
+		size_v1 > actual_v1_size || size_v1<1, 0, rt_error_code_t::E_INV_VECT_SIZE, args[0]->name());
+
+	rt_error_code_t::get_instance().throw_if(
+		size_v2 > actual_v2_size || size_v2<1, 0, rt_error_code_t::E_INV_VECT_SIZE, args[1]->name());
+
+	std::vector<double> v1(size_v1);
+	std::vector<double> v2(size_v2);
+
+	bool ok = variant_v1.copy_vector_content(v1);
+
+	rt_error_code_t::get_instance().throw_if(
+		!ok, 0, rt_error_code_t::E_INV_VECT_SIZE, args[0]->name());
+
+    ok = variant_v2.copy_vector_content(v2);
+
+	rt_error_code_t::get_instance().throw_if(
+		!ok, 0, rt_error_code_t::E_INV_VECT_SIZE, args[1]->name());
+
+	auto vr = conv(v1, v2);
+
+	nu::variant_t result(std::move(vr));
+
+	return result;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 static variant_t evaluate_expression(
     rt_prog_ctx_t& ctx, const std::string& name, const nu::func_args_t& args)
 {
@@ -499,7 +574,6 @@ static variant_t process_operator(rt_prog_ctx_t& ctx,
 {
     rt_error_code_t::get_instance().throw_if(
         args.size() != 1, 0, rt_error_code_t::E_INVALID_ARGS, "");
-
 
     auto var = args[0];
     auto var_ptr = dynamic_cast<expr_var_t*>(var.get());
@@ -1545,6 +1619,7 @@ fmap["sin"] = functor<float, _sin>;
         fmap["getpixel"] = functor_int_int_int<_get_pixel>;
 #endif
 
+		fmap["conv"] = conv_functor;
 
         struct _rgb {
             int operator()(int r, int g, int b) noexcept {

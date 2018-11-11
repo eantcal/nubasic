@@ -100,11 +100,10 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
             }
         } 
         else {
-            // expression can be only another vector with same size
+            // destination vector size will be set to the source size
 
             rt_error_code_t::get_instance().throw_if(
-                var->vector_size() != val.vector_size()
-                    || var->get_type() != val.get_type(),
+                var->get_type() != val.get_type(),
                 ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_MISMATCH,
                 "'" + _variable + "'");
 
