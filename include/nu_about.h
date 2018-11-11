@@ -36,7 +36,7 @@ namespace about {
     static const char* const homepage = "http://www.nubasic.eu";
     static const char* const license = "The MIT License (MIT)";
     static const char* const version = PACKAGE_VERSION;
-    static const char* const copyright = "2014-2017";
+    static const char* const copyright = "2014-2018";
     static const char* const description
         = "nuBASIC is a programming language from the BASIC family.\n"
           "nuBASIC is developed in C++ and distributed under MIT License."

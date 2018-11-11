@@ -510,10 +510,10 @@ variant_t conv_functor(
 	const auto actual_v1_size = variant_v1.vector_size();
 	const auto actual_v2_size = variant_v2.vector_size();
 
-	size_t size_v1 = 
+	const size_t size_v1 = 
 		args_num == 4 ? size_t(args[2]->eval(ctx).to_long64()) : actual_v1_size;
 
-	size_t size_v2 = 
+	const size_t size_v2 = 
 		args_num == 4 ? size_t(args[3]->eval(ctx).to_long64()) : actual_v2_size;
 
 	rt_error_code_t::get_instance().throw_if(
