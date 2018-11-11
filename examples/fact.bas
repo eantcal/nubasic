@@ -1,7 +1,7 @@
 #!/usr/local/bin/nubasic
-Rem This file is part of nuBASIC - acaldmail@gmail.com
-Rem The following procedure uses recursion to 
-Rem calculate the factorial of its original argument.
+REM This file is part of nuBASIC - antonino.calderone@gmail.com
+REM The following procedure uses recursion to 
+REM calculate the factorial of its original argument.
 
 Function fact%(n%)
   If n%<=1 Then

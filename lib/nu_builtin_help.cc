@@ -315,7 +315,7 @@ static help_content_t _help_content[] = {
         "Exp(x)" },
 
 	{ lang_item_t::FUNCTION, "conv",
-		"Returns a vector of double values as result of convolution 2 given vectors of numbers",
+		"Returns a vector of double as result of convolution 2 given vectors of numbers",
 		"Conv( v1, v2 [, count1, count2 ] ))" },
 
     { lang_item_t::FUNCTION, "abs",
@@ -330,7 +330,7 @@ static help_content_t _help_content[] = {
     { lang_item_t::FUNCTION, "getenv", "Gets an environment variable",
         "GetEnv[$](var$)" },
 
-    { lang_item_t::FUNCTION, "getvkey", "Returns the next character from the standard input",
+    { lang_item_t::FUNCTION, "getvkey", "Returns the next vkey code from the standard input",
         "GetVKey()" },
 
     { lang_item_t::FUNCTION, "setenv",

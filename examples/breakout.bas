@@ -1,6 +1,6 @@
 #!/usr/local/bin/nubasic
 10 Rem breakout.bas : This file is part of nuBASIC 
-20 Rem (c) acaldmail@gmail.com
+20 Rem (c) antonino.calderone@gmail.com
 30 Rem
 40 Rem Init variables
 50 Dim wall%(64)
