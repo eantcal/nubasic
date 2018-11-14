@@ -314,9 +314,9 @@ static help_content_t _help_content[] = {
         "Returns e (the base of natural logarithms) to the power of x",
         "Exp(x)" },
 
-	{ lang_item_t::FUNCTION, "conv",
-		"Returns a vector of double as result of convolution 2 given vectors of numbers",
-		"Conv( v1, v2 [, count1, count2 ] ))" },
+    { lang_item_t::FUNCTION, "conv",
+        "Returns a vector of double as result of convolution 2 given vectors of numbers",
+        "Conv( v1, v2 [, count1, count2 ] ))" },
 
     { lang_item_t::FUNCTION, "abs",
         "Returns the absolute value of the expression x", "Abs(x)" },
@@ -597,7 +597,7 @@ static help_content_t _help_content[] = {
         "While...Wend loops can be nested to any level.\n"
         "Each Wend matches the most recent While.\n"
         "The While...Wend statement syntax has these parts:\n"
-        "- condition  :	 Numeric expression or string expression "
+        "- condition  :     Numeric expression or string expression "
         "that evaluates to True or False.\n"
         "- statements : Optional. One or more statements executed while "
         "condition is True.\n"
@@ -616,7 +616,7 @@ static help_content_t _help_content[] = {
         "Do...Loop While loops can be nested to any level.\n"
         "Each Loop While matches the most recent Do.\n"
         "The Do...Loop While statement syntax has these parts:\n"
-        "- condition  :	 Numeric expression or string expression "
+        "- condition  :     Numeric expression or string expression "
         "that evaluates to True or False.\n"
         "- statements : Optional. One or more statements executed while "
         "condition is True.\n"

@@ -265,7 +265,7 @@ token_t expr_tknzr_t::_next()
                         token.set_identifier(
                             _word_op.data(), token_t::case_t::LOWER);
 
-						// If we detect line comment prefix
+                        // If we detect line comment prefix
                         // include left part of line into the comment
                         if (_line_comment.find(_word_op.data()) != _line_comment.end()) {
                             std::string comment = _word_op.data();

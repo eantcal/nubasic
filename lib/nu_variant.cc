@@ -112,32 +112,32 @@ variant_t::variant_t(const double_t& value, size_t vect_size)
 /* -------------------------------------------------------------------------- */
 
 variant_t::variant_t(const std::vector<double_t>& value)
-	: _type(type_t::DOUBLE)
-	, _vect_size(value.size())
-	, _vector_type(_vect_size >= 1)
+    : _type(type_t::DOUBLE)
+    , _vect_size(value.size())
+    , _vector_type(_vect_size >= 1)
 {
-	if (_vect_size < 1) {
-		_f_data.resize(1);
-	}
-	else {
-		_f_data = value;
-	}
+    if (_vect_size < 1) {
+        _f_data.resize(1);
+    }
+    else {
+        _f_data = value;
+    }
 }
 
 
 /* -------------------------------------------------------------------------- */
 
 variant_t::variant_t(std::vector<double_t>&& value)
-	: _type(type_t::DOUBLE)
-	, _vect_size(value.size())
-	, _vector_type(_vect_size >= 1)
+    : _type(type_t::DOUBLE)
+    , _vect_size(value.size())
+    , _vector_type(_vect_size >= 1)
 {
-	if (_vect_size < 1) {
-		_f_data.resize(1);
-	}
-	else {
-		_f_data = std::move(value);
-	}
+    if (_vect_size < 1) {
+        _f_data.resize(1);
+    }
+    else {
+        _f_data = std::move(value);
+    }
 }
 
 
