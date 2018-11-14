@@ -53,12 +53,8 @@ The source code is managed using the git version control system provided by Gith
 nuBASIC source has been written in C++11 and compiles under several operating 
 systems including Windows and Linux. 
 
-To compile nuBASIC you may create a Visual C++ console application or 
-build it by using GCC >= 4.8.1 (both VS project files and autoconf/automake 
-source files have been provided) or using MinGW / MinGW w64 >= 4.8.x
-
 -------------------------------------------------------------------------------
-How to build nuBASIC in 10 moves on Ubuntu
+How to build nuBASIC on Ubuntu in 10 moves
 -------------------------------------------------------------------------------
 1) Install any build essential tools (c++ compiler, etc.):
 # sudo apt install build-essential
@@ -89,6 +85,40 @@ How to build nuBASIC in 10 moves on Ubuntu
 
 10) Make nubasic and nubasicide:
 make
+
+-------------------------------------------------------------------------------
+How to build nuBASIC on Visual Studio for Windows
+-------------------------------------------------------------------------------
+
+1) Install Visual Studio for Windows including C++ compiler 
+(any version is suitable since VS2015; see Microsoft website on Visual Studio 
+for more information about it).
+
+2) Get the source code using git for Windows and cloning nuBASIC project 
+or in alternative download and extract the nuBASIC source code using the link 
+https://github.com/eantcal/nubasic/archive/master.zip
+
+3) Build the Scilexer.dll 
+
+3.1) Go to ide/scintilla/win32 and open SciLexer.sln Visual Studio solution file 
+from Visual Studio.
+
+3.2) Select the solution platform Release/x64 from the standard toolbar selectors 
+(see documentation on Visual Studio for more information)
+
+3.3) Build the solution (Ctrl+Shift+B)
+
+4) Build nuBASIC + nuBasicIDE
+4.1) Open the solution file named nubasic.sln from source root directory.
+4.2) Select the solution platform Release64/x64 from the standard toolbar selectors.
+(see documentation on Visual Studio for more information)
+4.3) Build the solution (Ctrl+Shift+B)
+
+nuBasicIDE relies on Scilexer.dll to be executed, so copy 
+nubasic\ide\scintilla\win32\x64\Release\Scilexer.dll into nubasic\x64\Release64.
+
+You can repeat the same operations for x86 platform and Debug target, 
+replacing x64 with x86 and Release with Debug in the precious steps.
 
 -------------------------------------------------------------------------------
 Windows Installer packages
