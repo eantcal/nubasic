@@ -872,6 +872,8 @@ stmt_t::handle_t stmt_parser_t::parse_for_to_step(
         "to", tkncl_t::IDENTIFIER // end-of-expression
         );
 
+	syntax_error_if(tl.empty(), expr, pos);
+
     extract_next_token(tl, token);
 
     auto from_expr = ep.compile(etl, pos);
