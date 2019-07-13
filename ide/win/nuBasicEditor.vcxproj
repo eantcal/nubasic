@@ -312,6 +312,7 @@
     <ClInclude Include="..\..\include\nu_stmt_parser.h" />
     <ClInclude Include="..\..\include\nu_stmt_print.h" />
     <ClInclude Include="..\..\include\nu_stmt_randomize.h" />
+    <ClInclude Include="..\..\include\nu_stmt_read.h" />
     <ClInclude Include="..\..\include\nu_stmt_read_file.h" />
     <ClInclude Include="..\..\include\nu_stmt_redim.h" />
     <ClInclude Include="..\..\include\nu_stmt_return.h" />
@@ -408,6 +409,7 @@
     <ClCompile Include="..\..\lib\nu_stmt_open.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_parser.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_print.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_read.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_read_file.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_redim.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_struct.cc" />

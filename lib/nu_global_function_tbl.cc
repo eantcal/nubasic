@@ -545,6 +545,46 @@ variant_t conv_functor(
 
 /* -------------------------------------------------------------------------- */
 
+variant_t restore_functor(
+    rt_prog_ctx_t& ctx,
+    const std::string& name,
+    const nu::func_args_t& args)
+{
+    const auto args_num = args.size();
+
+    rt_error_code_t::get_instance().throw_if(
+        args_num > 1, 0, rt_error_code_t::E_INVALID_ARGS, "");
+
+    nu::variant_t v(nu::long64_t(0));
+
+    if (args_num>0) 
+        v = args[0]->eval(ctx);
+
+    auto index = v.to_long64();
+
+    nu::long64_t old_val = ctx.read_data_store_index;
+
+    if (index < 0) {
+        ctx.read_data_store.clear();
+        ctx.read_data_store_index = 0;
+        nu::variant_t result(0);
+        return result;
+    }
+
+    rt_error_code_t::get_instance().throw_if(
+        index < 0 || 
+        index >= nu::long64_t(ctx.read_data_store.size()), 0, 
+        rt_error_code_t::E_VAL_OUT_OF_RANGE, name);
+
+    ctx.read_data_store_index = index;
+    nu::variant_t result(old_val);
+
+    return result;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 static variant_t evaluate_expression(
     rt_prog_ctx_t& ctx, const std::string& name, const nu::func_args_t& args)
 {
@@ -1620,6 +1660,8 @@ fmap["sin"] = functor<float, _sin>;
 #endif
 
         fmap["conv"] = conv_functor;
+
+        fmap["restore"] = restore_functor;
 
         struct _rgb {
             int operator()(int r, int g, int b) noexcept {

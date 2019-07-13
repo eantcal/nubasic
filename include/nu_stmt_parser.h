@@ -272,6 +272,11 @@ protected:
         prog_ctx_t& ctx, token_t token, token_list_t& tl);
 
 
+    //! parse Read statement
+    stmt_t::handle_t parse_read(
+        prog_ctx_t& ctx, token_t token, nu::token_list_t& tl);
+
+
     //! parse Input [#<file>] statement
     stmt_t::handle_t parse_input(
         prog_ctx_t& ctx, token_t token, nu::token_list_t& tl);

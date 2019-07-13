@@ -49,6 +49,7 @@
 #include "nu_stmt_open.h"
 #include "nu_stmt_print.h"
 #include "nu_stmt_randomize.h"
+#include "nu_stmt_read.h"
 #include "nu_stmt_read_file.h"
 #include "nu_stmt_redim.h"
 #include "nu_stmt_return.h"
@@ -292,6 +293,51 @@ var_arg_t stmt_parser_t::parse_var_arg(
 
     return std::make_pair(variable_name, variable_vector_index);
 }
+
+/* -------------------------------------------------------------------------- */
+
+stmt_t::handle_t stmt_parser_t::parse_read(
+    prog_ctx_t& ctx, token_t token, nu::token_list_t& tl)
+{
+    --tl;
+    remove_blank(tl);
+    syntax_error_if(tl.empty(), token.expression(), token.position());
+
+    token = *tl.begin();
+
+    var_list_t var_list;
+
+    while (!tl.empty()
+        && (token.type() != tkncl_t::OPERATOR || token.identifier() != ":")) {
+
+        auto var = parse_var_arg(ctx, token, tl);
+        var_list.push_back(var);
+
+        if (!tl.empty()) {
+            token = *tl.begin();
+
+            syntax_error_if(token.type() != tkncl_t::OPERATOR
+                || (token.identifier() != "," && token.identifier() != ":"),
+                token.expression(), token.position());
+
+            if (token.identifier() == ":"
+                && token.type() == tkncl_t::OPERATOR)
+            {
+                break;
+            }
+
+            extract_next_token(tl, token);
+
+            token = *tl.begin();
+        }
+    }
+
+    syntax_error_if(var_list.empty(), token.expression(), token.position());
+
+    return stmt_t::handle_t(
+        std::make_shared<stmt_read_t>(ctx, var_list));
+}
+
 
 
 /* -------------------------------------------------------------------------- */
@@ -1916,6 +1962,10 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
 
     if (identifier == "read#") {
         return parse_read_file(ctx, token, tl);
+    }
+
+    if (identifier == "read") {
+        return parse_read(ctx, token, tl);
     }
 
     if (identifier == "on") {

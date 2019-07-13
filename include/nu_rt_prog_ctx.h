@@ -66,6 +66,7 @@ public:
 
     // Read/Data/Restore data store
     std::vector<nu::variant_t> read_data_store;
+    size_t read_data_store_index = 0;
 
     // Per-function return-value stack
     //

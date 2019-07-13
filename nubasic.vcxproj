@@ -337,6 +337,7 @@
     <ClCompile Include="lib/nu_interpreter.cc" />
     <ClCompile Include="lib/nu_lxa.cc" />
     <ClCompile Include="lib\nu_stmt_data.cc" />
+    <ClCompile Include="lib\nu_stmt_read.cc" />
     <ClCompile Include="lib\nu_stmt_read_file.cc" />
     <ClCompile Include="main.cc" />
     <ClCompile Include="lib/nu_builtin_help.cc" />
@@ -501,6 +502,7 @@
     <ClInclude Include="include/nu_variant.h" />
     <ClInclude Include="include/nu_var_scope.h" />
     <ClInclude Include="include\nu_stmt_data.h" />
+    <ClInclude Include="include\nu_stmt_read.h" />
     <ClInclude Include="include\nu_stmt_read_file.h" />
   </ItemGroup>
   <ItemGroup>

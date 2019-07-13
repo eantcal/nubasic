@@ -116,6 +116,7 @@ void rt_prog_ctx_t::clear_rtdata()
 
     // Clear read-data store
     read_data_store.clear();
+    read_data_store_index = 0;
 }
 
 
@@ -187,6 +188,7 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
 
     if (!read_data_store.empty()) {
         ss << "Read-Data store:" << std::endl;
+        ss << "\t" << "Index = " << read_data_store_index << std::endl;
 
         size_t size = read_data_store.size();
         if (size > 10)

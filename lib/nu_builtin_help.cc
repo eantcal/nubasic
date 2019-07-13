@@ -657,15 +657,20 @@ static help_content_t _help_content[] = {
 
     { lang_item_t::INSTRUCTION, "data",
         "Stores the result of expressions (including constants and variables) that are "
-        "accessed later by Read statement. ",
-        "Data [expression][,]..." },
+        "accessed later by Read statement. Data is added on statement Data execution. "
+        "Data can be removed from memory using special command Restore(-1).",
+        "Data [expression1][,][expression2][,]..." },
 
     { lang_item_t::INSTRUCTION, "read",
         "Reads values from a Data statement and assign them to variables. ",
         "Read [variable1][,][variable2][,] ..." },
 
     { lang_item_t::INSTRUCTION, "restore",
-        "Allows Data statements to be reread from a specified data index.",
+        "Allows Data statements to be reread from a specified data index."
+        "If index < 0, data store is cleared and index set to 0. "
+        "Restore can be used as function and its returned value "
+        "will match the old index. If index is not specified "
+        " it will be assigned to zero by default.",
         "Restore [index]" },
 
     { lang_item_t::INSTRUCTION, "locate",
