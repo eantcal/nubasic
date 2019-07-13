@@ -297,7 +297,7 @@ protected:
 
 
     //! parse Read
-    stmt_t::handle_t parse_read(
+    stmt_t::handle_t parse_read_file(
         prog_ctx_t& ctx, token_t token, token_list_t& tl);
 
 
@@ -322,6 +322,10 @@ protected:
 
     //! parse Print statement
     stmt_t::handle_t parse_print(
+        prog_ctx_t& ctx, token_t token, token_list_t& tl);
+
+    //! parse Data statement
+    stmt_t::handle_t parse_data(
         prog_ctx_t& ctx, token_t token, token_list_t& tl);
 
 

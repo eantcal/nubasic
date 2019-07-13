@@ -655,6 +655,19 @@ static help_content_t _help_content[] = {
         "following the most recent GoSub statement line (See also GoSub)",
         "Return" },
 
+    { lang_item_t::INSTRUCTION, "data",
+        "Stores the result of expressions (including constants and variables) that are "
+        "accessed later by Read statement. ",
+        "Data [expression][,]..." },
+
+    { lang_item_t::INSTRUCTION, "read",
+        "Reads values from a Data statement and assign them to variables. ",
+        "Read [variable1][,][variable2][,] ..." },
+
+    { lang_item_t::INSTRUCTION, "restore",
+        "Allows Data statements to be reread from a specified data index.",
+        "Restore [index]" },
+
     { lang_item_t::INSTRUCTION, "locate",
         "Moves the cursor to the specified position on the active screen",
         "Locate row,col" },
@@ -690,7 +703,7 @@ static help_content_t _help_content[] = {
         "The list of variables must be separated by a comma",
         "Input# filenum, variable1[, variable2, ...]\n" },
 
-    { lang_item_t::INSTRUCTION, "read",
+    { lang_item_t::INSTRUCTION, "read#",
         "Reads data from file that will be placed into a variable.\n"
         "Read statement overwrites the destination variable content with data "
         "content.\n"
@@ -699,7 +712,7 @@ static help_content_t _help_content[] = {
         "any positive integer value.\n"
         "Using plain type variable like integer or float the size \n"
         "must be equal to this variable size\n",
-        "Read filenum, variable, size\n" },
+        "Read# filenum, variable, size\n" },
 
     { lang_item_t::INSTRUCTION, "delay",
         "Suspends the execution of the next statement in the application "

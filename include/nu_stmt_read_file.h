@@ -30,17 +30,17 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_read_t : public stmt_t {
+class stmt_read_file_t : public stmt_t {
 public:
-    stmt_read_t(const stmt_read_t&) = delete;
-    stmt_read_t& operator=(const stmt_read_t&) = delete;
+    stmt_read_file_t(const stmt_read_file_t&) = delete;
+    stmt_read_file_t& operator=(const stmt_read_file_t&) = delete;
 
-    stmt_read_t(prog_ctx_t& ctx, int, const var_arg_t&)
+    stmt_read_file_t(prog_ctx_t& ctx, int, const var_arg_t&)
         : stmt_t(ctx)
     {
     }
 
-    stmt_read_t(const arg_list_t& args, // integer expr which is size of dst buf
+    stmt_read_file_t(const arg_list_t& args, // integer expr which is size of dst buf
         prog_ctx_t& ctx,
         int fd, // integer value which is the file number
         const var_arg_t& var) // destination variable

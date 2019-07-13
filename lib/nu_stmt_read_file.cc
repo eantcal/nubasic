@@ -8,7 +8,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "nu_stmt_read.h"
+#include "nu_stmt_read_file.h"
 #include "nu_error_codes.h"
 #include "nu_os_console.h"
 #include "nu_rt_prog_ctx.h"
@@ -24,7 +24,7 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-void stmt_read_t::run(rt_prog_ctx_t& ctx)
+void stmt_read_file_t::run(rt_prog_ctx_t& ctx)
 {
     auto rt_error_if
         = [&](bool cond, rt_error_code_t::value_t err, const std::string desc) {
@@ -32,17 +32,17 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
                   cond, ctx.runtime_pc.get_line(), err, desc);
           };
 
-    rt_error_if(_args.size() != 1, rt_error_code_t::E_WRG_NUM_ARGS, "Read");
+    rt_error_if(_args.size() != 1, rt_error_code_t::E_WRG_NUM_ARGS, "Read#");
 
     auto size_expr = _args.begin()->first->eval(ctx);
 
     rt_error_if(!variable_t::is_number(size_expr.get_type()),
-        rt_error_code_t::E_INVALID_ARGS, "Read");
+        rt_error_code_t::E_INVALID_ARGS, "Read#");
 
     auto size = _args.begin()->first->eval(ctx).to_int();
 
     rt_error_if(size < 0, rt_error_code_t::E_TYPE_ILLEGAL,
-        "Read (size=" + to_string(size) + ")");
+        "Read# (size=" + to_string(size) + ")");
 
     if (size == 0) {
         // nothing to do
@@ -85,7 +85,7 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
     variant_t var = v.first;
     const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
 
-    rt_error_if(const_var, rt_error_code_t::E_CANNOT_MOD_CONST, "Read " + name);
+    rt_error_if(const_var, rt_error_code_t::E_CANNOT_MOD_CONST, "Read# " + name);
 
     auto vtype = var.get_type();
 
@@ -95,7 +95,7 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
     switch (vtype) {
     case nu::variable_t::type_t::INTEGER:
         rt_error_if(size != sizeof(integer_t), rt_error_code_t::E_TYPE_ILLEGAL,
-            "Read (size=" + to_string(size) + ")");
+            "Read# (size=" + to_string(size) + ")");
 
         ret = fscanf(s_in, "%i", &ivalue);
         break;
@@ -103,21 +103,21 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
 
     case nu::variable_t::type_t::LONG64:
         rt_error_if(size != sizeof(long64_t), rt_error_code_t::E_TYPE_ILLEGAL,
-            "Read (size=" + to_string(size) + ")");
+            "Read# (size=" + to_string(size) + ")");
 
         ret = fscanf(s_in, "%lli", &llvalue);
         break;
 
     case nu::variable_t::type_t::FLOAT:
         rt_error_if(size != sizeof(real_t), rt_error_code_t::E_TYPE_ILLEGAL,
-            "Read (size=" + to_string(size) + ")");
+            "Read# (size=" + to_string(size) + ")");
 
         ret = fscanf(s_in, "%f", &fvalue);
         break;
 
     case nu::variable_t::type_t::DOUBLE:
         rt_error_if(size != sizeof(double_t), rt_error_code_t::E_TYPE_ILLEGAL,
-            "Read (size=" + to_string(size) + ")");
+            "Read# (size=" + to_string(size) + ")");
 
         ret = fscanf(s_in, "%lf", &dvalue);
         break;
@@ -141,27 +141,27 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
     case nu::variable_t::type_t::ANY:
     case nu::variable_t::type_t::OBJECT:
     default:
-        rt_error_if(true, rt_error_code_t::E_TYPE_ILLEGAL, "Read");
+        rt_error_if(true, rt_error_code_t::E_TYPE_ILLEGAL, "Read#");
         break;
     }
 
 
     if (is_vector) {
         rt_error_if(!scope->is_defined(name), rt_error_code_t::E_VAR_UNDEF,
-            "Read '" + name + "'");
+            "Read# '" + name + "'");
 
         size_t idx = index->eval(ctx).to_int();
 
         if (var.get_type() == variant_t::type_t::BYTEVECTOR) {
             rt_error_if(
-                true, rt_error_code_t::E_TYPE_ILLEGAL, "Read '" + name + "'");
+                true, rt_error_code_t::E_TYPE_ILLEGAL, "Read# '" + name + "'");
         }
 
         else {
             // check size
             rt_error_if(idx >= var.vector_size(),
                 rt_error_code_t::E_INV_VECT_SIZE,
-                "Read '" + name + "(" + nu::to_string(idx) + ")'");
+                "Read# '" + name + "(" + nu::to_string(idx) + ")'");
 
             switch (vtype) {
             case nu::variable_t::type_t::INTEGER:
@@ -263,7 +263,7 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
         case nu::variable_t::type_t::STRUCT:
         case nu::variable_t::type_t::ANY:
         case nu::variable_t::type_t::OBJECT:
-            rt_error_if(true, rt_error_code_t::E_TYPE_ILLEGAL, "Read");
+            rt_error_if(true, rt_error_code_t::E_TYPE_ILLEGAL, "Read#");
             break;
 
         case variable_t::type_t::INTEGER:

@@ -113,6 +113,9 @@ void rt_prog_ctx_t::clear_rtdata()
 
     // Clear hash tables
     hash_tbls.clear();
+
+    // Clear read-data store
+    read_data_store.clear();
 }
 
 
@@ -179,6 +182,22 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
                     ss << "\t" << "..." << std::endl;
                 }
             }
+        }
+    }
+
+    if (!read_data_store.empty()) {
+        ss << "Read-Data store:" << std::endl;
+
+        size_t size = read_data_store.size();
+        if (size > 10)
+            size = 10;
+
+        for (size_t i = 0; i < size; ++i) {
+            ss << "\t[" << i << "] -> " << read_data_store[i] << std::endl;
+        }
+
+        if (size > 10) {
+            ss << "\t" << "..." << std::endl;
         }
     }
 

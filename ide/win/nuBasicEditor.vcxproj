@@ -279,6 +279,7 @@
     <ClInclude Include="..\..\include\nu_stmt_close.h" />
     <ClInclude Include="..\..\include\nu_stmt_cls.h" />
     <ClInclude Include="..\..\include\nu_stmt_const.h" />
+    <ClInclude Include="..\..\include\nu_stmt_data.h" />
     <ClInclude Include="..\..\include\nu_stmt_delay.h" />
     <ClInclude Include="..\..\include\nu_stmt_dim.h" />
     <ClInclude Include="..\..\include\nu_stmt_do.h" />
@@ -311,7 +312,7 @@
     <ClInclude Include="..\..\include\nu_stmt_parser.h" />
     <ClInclude Include="..\..\include\nu_stmt_print.h" />
     <ClInclude Include="..\..\include\nu_stmt_randomize.h" />
-    <ClInclude Include="..\..\include\nu_stmt_read.h" />
+    <ClInclude Include="..\..\include\nu_stmt_read_file.h" />
     <ClInclude Include="..\..\include\nu_stmt_redim.h" />
     <ClInclude Include="..\..\include\nu_stmt_return.h" />
     <ClInclude Include="..\..\include\nu_stmt_struct.h" />
@@ -376,6 +377,7 @@
     <ClCompile Include="..\..\lib\nu_stmt_close.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_cls.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_const.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_data.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_delay.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_dim.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_do.cc" />
@@ -406,7 +408,7 @@
     <ClCompile Include="..\..\lib\nu_stmt_open.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_parser.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_print.cc" />
-    <ClCompile Include="..\..\lib\nu_stmt_read.cc" />
+    <ClCompile Include="..\..\lib\nu_stmt_read_file.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_redim.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_struct.cc" />
     <ClCompile Include="..\..\lib\nu_stmt_struct_element.cc" />

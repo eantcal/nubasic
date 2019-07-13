@@ -20,7 +20,7 @@ namespace nu {
 
 const std::set<std::string> reserved_keywords_t::list = { "any", "and", "as", "band",
     "bor", "bshl", "bshr", "bxor", "chdir", "div", "mod", "or", "xor ", "beep",
-    "close", "cls", "conv", "const", "delay", "dim", "do", "ellipse", "else", "elif",
+    "close", "cls", "conv", "const", "data", "delay", "dim", "do", "ellipse", "else", "elif",
     "exit", "end", "fillellipse", "fillrect", "fopen", "for", "function",
     "gosub", "goto", "if", "input", "let", "line", "playsound", "locate",
     "mdelay", "movewindow", "next", "object", "on", "open", "print", "read", "redim",

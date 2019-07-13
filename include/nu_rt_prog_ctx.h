@@ -32,7 +32,6 @@ public:
     using return_point_t = std::pair<prog_pointer_t::line_number_t,
         prog_pointer_t::stmt_number_t>;
 
-
     rt_prog_ctx_t(const rt_prog_ctx_t&) = delete;
     rt_prog_ctx_t& operator=(const rt_prog_ctx_t&) = delete;
 
@@ -53,7 +52,6 @@ public:
     using map_t = std::unordered_map<std::string, nu::variant_t>;
     std::unordered_map<std::string, map_t> hash_tbls;
 
-
     // Program counter (line, stmt)
     prog_pointer_t runtime_pc;
 
@@ -65,6 +63,9 @@ public:
 
     // FOR-Loop run-time data
     for_loop_rtdata_t for_loop_tbl;
+
+    // Read/Data/Restore data store
+    std::vector<nu::variant_t> read_data_store;
 
     // Per-function return-value stack
     //

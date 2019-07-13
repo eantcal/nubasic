@@ -19,6 +19,7 @@
 #include "nu_stmt_close.h"
 #include "nu_stmt_cls.h"
 #include "nu_stmt_const.h"
+#include "nu_stmt_data.h"
 #include "nu_stmt_delay.h"
 #include "nu_stmt_dim.h"
 #include "nu_stmt_do.h"
@@ -48,7 +49,7 @@
 #include "nu_stmt_open.h"
 #include "nu_stmt_print.h"
 #include "nu_stmt_randomize.h"
-#include "nu_stmt_read.h"
+#include "nu_stmt_read_file.h"
 #include "nu_stmt_redim.h"
 #include "nu_stmt_return.h"
 #include "nu_stmt_struct.h"
@@ -237,6 +238,32 @@ stmt_t::handle_t stmt_parser_t::parse_print(
         ctx, fd);
 }
 
+
+/* -------------------------------------------------------------------------- */
+
+stmt_t::handle_t stmt_parser_t::parse_data(
+    prog_ctx_t& ctx, token_t token, nu::token_list_t& tl)
+{
+    --tl;
+    remove_blank(tl);
+
+    syntax_error_if(tl.empty(), token.expression(), token.position());
+
+
+    if (token.type() == tkncl_t::STRING_LITERAL && tl.size() == 1) {
+        --tl;
+
+        // Create statement to print out a literal string
+        return stmt_t::handle_t(
+            std::make_shared<stmt_data_t>(ctx, token.identifier()));
+    }
+
+    return parse_arg_list<stmt_data_t, 0>(ctx, token, tl,
+        [](const token_t& t) {
+        return t.type() == tkncl_t::OPERATOR
+            && (t.identifier() == "," || t.identifier() == ";");
+        }, ctx);
+}
 
 /* -------------------------------------------------------------------------- */
 
@@ -451,7 +478,7 @@ void stmt_parser_t::parse_fd_args(prog_ctx_t& ctx, token_t token,
 /* -------------------------------------------------------------------------- */
 
 // parse statement 'READ filenumber, variable, sizeexpr'
-stmt_t::handle_t stmt_parser_t::parse_read(
+stmt_t::handle_t stmt_parser_t::parse_read_file(
     prog_ctx_t& ctx, token_t token, nu::token_list_t& tl)
 {
     --tl;
@@ -507,7 +534,7 @@ stmt_t::handle_t stmt_parser_t::parse_read(
 
     remove_blank(tl);
 
-    return parse_arg_list<stmt_read_t, 1>(ctx, token, tl,
+    return parse_arg_list<stmt_read_file_t, 1>(ctx, token, tl,
         [](const token_t& t) {
             return t.type() == tkncl_t::OPERATOR && t.identifier() == ",";
         },
@@ -1862,6 +1889,11 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
         return parse_print(ctx, token, tl);
     }
 
+    if (identifier == "data")
+    {
+        return parse_data(ctx, token, tl);
+    }
+
     if (identifier == "locate") {
         return parse_locate(ctx, token, tl);
     }
@@ -1882,8 +1914,8 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
         return parse_input_file(ctx, token, tl);
     }
 
-    if (identifier == "read") {
-        return parse_read(ctx, token, tl);
+    if (identifier == "read#") {
+        return parse_read_file(ctx, token, tl);
     }
 
     if (identifier == "on") {
