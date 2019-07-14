@@ -123,6 +123,7 @@ rt_error_code_t::rt_error_code_t()
     e[E_NO_MATCH_FOR] = "matching For statement not found";
     e[E_STRUCT_UNDEF] = "Struct not defined";
     e[E_NO_MATCH_STRUCT] = "matching Struct statement not defined";
+    e[E_INV_DATA_SEPARATOR] = "invalid separator";
 }
 
 

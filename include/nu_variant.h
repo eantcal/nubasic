@@ -171,20 +171,29 @@ public:
         _struct_data[vector_idx] = v._struct_data[0];
     }
 
-    const std::string& struct_type_name() const noexcept { return _struct_data_type_name;  }
+    const std::string& struct_type_name() const noexcept { 
+        return _struct_data_type_name;  
+    }
+
     void describe_type(std::stringstream& ss) const noexcept;
 
-    void resize(size_t size)
-    {
+    void resize(size_t size) {
         _vector_type = size > 0;
         _vect_size = size;
         _resize(size);
     }
 
-    bool is_vector() const noexcept { return _vector_type; }
-    bool is_struct() const noexcept { return _type == type_t::STRUCT; }
+    bool is_vector() const noexcept { 
+        return _vector_type; 
+    }
 
-    size_t vector_size() const noexcept { return _vect_size; }
+    bool is_struct() const noexcept { 
+        return _type == type_t::STRUCT; 
+    }
+
+    size_t vector_size() const noexcept { 
+        return _vect_size; 
+    }
 
 	bool copy_vector_content(std::vector<double> & dst) {
 		
@@ -281,48 +290,42 @@ protected:
     std::vector<struct_data_t> _struct_data;
     std::string _struct_data_type_name;
 
-    const std::string& _at_s(size_t idx) const
-    {
+    const std::string& _at_s(size_t idx) const {
         rt_error_code_t::get_instance().throw_if(
             idx >= _s_data.size(), 0, rt_error_code_t::E_VAL_OUT_OF_RANGE, "");
 
         return _s_data[idx];
     }
 
-    std::string& _at_s(size_t idx)
-    {
+    std::string& _at_s(size_t idx) {
         rt_error_code_t::get_instance().throw_if(
             idx >= _s_data.size(), 0, rt_error_code_t::E_VAL_OUT_OF_RANGE, "");
 
         return _s_data[idx];
     }
 
-    const long64_t& _at_i(size_t idx) const
-    {
+    const long64_t& _at_i(size_t idx) const {
         rt_error_code_t::get_instance().throw_if(
             idx >= _i_data.size(), 0, rt_error_code_t::E_VAL_OUT_OF_RANGE, "");
 
         return _i_data[idx];
     }
 
-    long64_t& _at_i(size_t idx)
-    {
+    long64_t& _at_i(size_t idx) {
         rt_error_code_t::get_instance().throw_if(
             idx >= _i_data.size(), 0, rt_error_code_t::E_VAL_OUT_OF_RANGE, "");
 
         return _i_data[idx];
     }
 
-    const double_t& _at_f(size_t idx) const
-    {
+    const double_t& _at_f(size_t idx) const {
         rt_error_code_t::get_instance().throw_if(
             idx >= _f_data.size(), 0, rt_error_code_t::E_VAL_OUT_OF_RANGE, "");
 
         return _f_data[idx];
     }
 
-    double_t& _at_f(size_t idx)
-    {
+    double_t& _at_f(size_t idx) {
         rt_error_code_t::get_instance().throw_if(
             idx >= _f_data.size(), 0, rt_error_code_t::E_VAL_OUT_OF_RANGE, "");
 

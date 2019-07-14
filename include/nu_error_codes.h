@@ -70,6 +70,7 @@ public:
         E_NO_MATCH_FOR,
         E_STRUCT_UNDEF,
         E_NO_MATCH_STRUCT,
+        E_INV_DATA_SEPARATOR
     };
 
 

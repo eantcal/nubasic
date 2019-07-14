@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 nuBASIC - http://www.nubasic.eu
-(c) Antonino Calderone <antonino.calderone@gmail.com> - 2014 - 2018
+(c) Antonino Calderone <antonino.calderone@gmail.com> - 2014 - 2019
 -------------------------------------------------------------------------------
 
 nuBASIC is an implementation of an interpreter of the BASIC programming 
@@ -28,8 +28,7 @@ Features
 Released packages
 -------------------------------------------------------------------------------
 Linux Installers:
-RPM (Fedora) 64 bit Installer - nubasic-<ver>-1.fc21.x86_64.rpm
-Debian / Ubuntu 64 bit Installer - nubasic_<ver>-1_amd64.deb
+Debian / Ubuntu 64 bit Installer - nubasic_<ver>.deb
 
 Windows Installers:
 * Windows 64 bit Installer (VC++ build) - nubasic-ide-<ver>-setup_x64.zip
@@ -84,7 +83,42 @@ How to build nuBASIC on Ubuntu in 10 moves
 # mkdir build && cd build && cmake ..
 
 10) Make nubasic and nubasicide:
-make
+make && make install
+
+-------------------------------------------------------------------------------
+How to build nuBASIC on Visual Studio for Windows
+-------------------------------------------------------------------------------
+
+1) Install Visual Studio for Windows including C++ compiler 
+(any version is suitable since VS2015; see Microsoft website on Visual Studio 
+for more information about it).
+
+2) Get the source code using git for Windows and cloning nuBASIC project 
+or in alternative download and extract the nuBASIC source code using the link 
+https://github.com/eantcal/nubasic/archive/master.zip
+
+3) Build the Scilexer.dll 
+
+3.1) Go to ide/scintilla/win32 and open SciLexer.sln Visual Studio solution file 
+from Visual Studio.
+
+3.2) Select the solution platform Release/x64 from the standard toolbar selectors 
+(see documentation on Visual Studio for more information)
+
+3.3) Build the solution (Ctrl+Shift+B)
+
+4) Build nuBASIC + nuBasicIDE
+4.1) Open the solution file named nubasic.sln from source root directory.
+4.2) Select the solution platform Release64/x64 from the standard toolbar selectors.
+(see documentation on Visual Studio for more information)
+4.3) Build the solution (Ctrl+Shift+B)
+
+nuBasicIDE relies on Scilexer.dll to be executed, so copy 
+nubasic\ide\scintilla\win32\x64\Release\Scilexer.dll into nubasic\x64\Release64.
+
+You can repeat the same operations for x86 platform and Debug target, 
+replacing x64 with x86 and Release with Debug in the precious steps.
+
 
 -------------------------------------------------------------------------------
 How to build nuBASIC on Visual Studio for Windows
@@ -141,29 +175,13 @@ Different precompiled nuBASIC versions are provided:
 Those versions include IDE with an advanced editor based on Scintilla 
 (http://www.scintilla.org/).
 
-Since version 1.31, binaries for Windows have been built by using 
-Microsoft Visual C++ 2015, so you may need to install Visual C++ Redistributable 
-Packages 2015.
-To do this, search for "Visual C++ Redistributable Packages for Visual Studio 2015"
-or use the link https://www.microsoft.com/en-us/download/details.aspx?id=48145 
-
-Until version 1.30, binaries for Windows have been built by using Microsoft 
-Visual C++ 2013. In this case, you may need to install Visual C++ Redistributable 
-Packages 2013.
-To do this, search for "Visual C++ Redistributable Packages for Visual Studio 
-2013" or use the following link 
-http://www.microsoft.com/en-us/download/details.aspx?id=4078
-
-nubasic-<ver>-setup.zip (64 bit)
-This version has been built by using 64bit version of MinGW 
-MinGW DLL/runtime executables are installed as well via setup provided here. 
-You don't need to download or install additional third-party packages
-
 -------------------------------------------------------------------------------
 Windows Installation Prerequisites
 -------------------------------------------------------------------------------
-To install successfully nuBASIC (VC++ builds) Visual C++ Redistributable 
-Packages are required.
+nuBASIC relies on "Visual C++ Redistributable Packages for Visual Studio" so
+you may need to install them manually. 
+For more information search for "Visual C++ Redistributable Packages"
+on Microsoft website.
 
 
 -------------------------------------------------------------------------------

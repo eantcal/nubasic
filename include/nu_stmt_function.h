@@ -48,7 +48,7 @@ public:
     void define_ret_type(const std::string& type, prog_ctx_t& ctx, size_t array_size) {
         auto& fproto = ctx.proc_prototypes.data[_id].second;
         fproto.ret_type = type;
-		fproto.array_size = array_size;
+        fproto.array_size = array_size;
     }
 
     stmt_cl_t get_cl() const noexcept override;

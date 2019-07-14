@@ -1,10 +1,15 @@
 nuBASIC NEWS -- history of user-visible changes.
 http://www.nubasic.eu/
-Author - Antonino Calderone - antonino.calderone@gmail.com - (c) 2014-2018
+Author - Antonino Calderone - antonino.calderone@gmail.com - (c) 2014-2019
 
 Please send nuBASIC and nuBasic IDE bug reports to <antonino.calderone@gmail.com>.
 
 Win32/64 built with VS2017 needs "Visual C++ Redistributable Packages for Visual Studio 2017"
+
+Jul 13, 2019
+* Released nuBASIC 1.50
+- Added Read, Data and Restore statements
+
 
 Nov 11, 2018
 * Released nuBASIC 1.49 IDE 1.48 for Windows

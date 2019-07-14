@@ -8,15 +8,15 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __NU_STMT_READ_H__
-#define __NU_STMT_READ_H__
+#ifndef __NU_STMT_DATA_H__
+#define __NU_STMT_DATA_H__
 
 
 /* -------------------------------------------------------------------------- */
 
 #include "nu_expr_any.h"
 #include "nu_stmt.h"
-#include "nu_var_scope.h"
+#include <list>
 #include <string>
 
 
@@ -27,31 +27,35 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-class stmt_read_t : public stmt_t {
+class stmt_data_t : public stmt_t {
 public:
-    stmt_read_t() = delete;
-    stmt_read_t(stmt_read_t&) = delete;
-    stmt_read_t& operator=(stmt_read_t&) = delete;
+    stmt_data_t(const stmt_data_t&) = delete;
+    stmt_data_t& operator=(const stmt_data_t&) = delete;
 
-    stmt_read_t(
-        prog_ctx_t& ctx, const var_list_t& var)
+    stmt_data_t(prog_ctx_t& ctx, const std::string& data = "")
         : stmt_t(ctx)
-        , _vars(var)
+        , _data(data)
+    {
+    }
+
+    stmt_data_t(const arg_list_t& args, prog_ctx_t& ctx)
+        : stmt_t(ctx)
+        , _args(args)
     {
     }
 
     void run(rt_prog_ctx_t& ctx) override;
 
 protected:
-    var_list_t _vars;
+    arg_list_t _args;
+    std::string _data;
 };
 
 
 /* -------------------------------------------------------------------------- */
-
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-#endif
+#endif //__NU_STMT_DATA_H__

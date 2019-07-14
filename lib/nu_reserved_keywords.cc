@@ -20,7 +20,7 @@ namespace nu {
 
 const std::set<std::string> reserved_keywords_t::list = { "any", "and", "as", "band",
     "bor", "bshl", "bshr", "bxor", "chdir", "div", "mod", "or", "xor ", "beep",
-    "close", "cls", "conv", "const", "delay", "dim", "do", "ellipse", "else", "elif",
+    "close", "cls", "conv", "const", "data", "delay", "dim", "do", "ellipse", "else", "elif",
     "exit", "end", "fillellipse", "fillrect", "fopen", "for", "function",
     "gosub", "goto", "if", "input", "let", "line", "playsound", "locate",
     "mdelay", "movewindow", "next", "object", "on", "open", "print", "read", "redim",
@@ -28,7 +28,7 @@ const std::set<std::string> reserved_keywords_t::list = { "any", "and", "as", "b
     "while", "wend", "plotimage", "randomize", "rem", "loop", "abs", "acos",
     "asc", "asin", "atan", "bnot", "chr", "cos", "cosh", "eval", "eof", "errno",
     "getapppath", "getmousebtn", "getmousex", "getmousey", "exp", "ferror", 
-    "ftell", "fsize", "hset", "hget","hcnt","hchk","hdel",
+    "ftell", "fsize", "hset", "hget","hcnt","hchk","hdel","restore", 
     "hex", "getsheight", "getswidth", "getplatid", "getwindowx", "getwindowy", "getvkey",
     "getwindowdx", "getenv", "setenv", "unsetenv", "mkdir", "rmdir", "erase",
     "true", "false", "getwindowdy", "inkey", "input", "instr", "instrcs", "rgb",

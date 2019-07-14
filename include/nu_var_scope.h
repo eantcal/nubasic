@@ -41,7 +41,7 @@ public:
 
     var_scope_t() = default;
     var_scope_t(const var_scope_t&) = default;
-    var_scope_t& operator=(const var_scope_t&) = default;
+    var_scope_t& operator=(const var_scope_t&) = delete;
 
     bool define(const std::string& name, const var_value_t& value) override;
 

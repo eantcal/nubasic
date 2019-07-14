@@ -314,9 +314,9 @@ static help_content_t _help_content[] = {
         "Returns e (the base of natural logarithms) to the power of x",
         "Exp(x)" },
 
-	{ lang_item_t::FUNCTION, "conv",
-		"Returns a vector of double as result of convolution 2 given vectors of numbers",
-		"Conv( v1, v2 [, count1, count2 ] ))" },
+    { lang_item_t::FUNCTION, "conv",
+        "Returns a vector of double as result of convolution 2 given vectors of numbers",
+        "Conv( v1, v2 [, count1, count2 ] ))" },
 
     { lang_item_t::FUNCTION, "abs",
         "Returns the absolute value of the expression x", "Abs(x)" },
@@ -597,7 +597,7 @@ static help_content_t _help_content[] = {
         "While...Wend loops can be nested to any level.\n"
         "Each Wend matches the most recent While.\n"
         "The While...Wend statement syntax has these parts:\n"
-        "- condition  :	 Numeric expression or string expression "
+        "- condition  :     Numeric expression or string expression "
         "that evaluates to True or False.\n"
         "- statements : Optional. One or more statements executed while "
         "condition is True.\n"
@@ -616,7 +616,7 @@ static help_content_t _help_content[] = {
         "Do...Loop While loops can be nested to any level.\n"
         "Each Loop While matches the most recent Do.\n"
         "The Do...Loop While statement syntax has these parts:\n"
-        "- condition  :	 Numeric expression or string expression "
+        "- condition  :     Numeric expression or string expression "
         "that evaluates to True or False.\n"
         "- statements : Optional. One or more statements executed while "
         "condition is True.\n"
@@ -655,6 +655,24 @@ static help_content_t _help_content[] = {
         "following the most recent GoSub statement line (See also GoSub)",
         "Return" },
 
+    { lang_item_t::INSTRUCTION, "data",
+        "Stores the result of expressions (including constants and variables) that are "
+        "accessed later by Read statement. Data is added on statement Data execution. "
+        "Data can be removed from memory using special command Restore(-1).",
+        "Data [expression1][,][expression2][,]..." },
+
+    { lang_item_t::INSTRUCTION, "read",
+        "Reads values from a Data statement and assign them to variables. ",
+        "Read [variable1][,][variable2][,] ..." },
+
+    { lang_item_t::INSTRUCTION, "restore",
+        "Allows Data statements to be reread from a specified data index."
+        "If index < 0, data store is cleared and index set to 0. "
+        "Restore can be used as function and its returned value "
+        "will match the old index. If index is not specified "
+        " it will be assigned to zero by default.",
+        "Restore [index]" },
+
     { lang_item_t::INSTRUCTION, "locate",
         "Moves the cursor to the specified position on the active screen",
         "Locate row,col" },
@@ -690,7 +708,7 @@ static help_content_t _help_content[] = {
         "The list of variables must be separated by a comma",
         "Input# filenum, variable1[, variable2, ...]\n" },
 
-    { lang_item_t::INSTRUCTION, "read",
+    { lang_item_t::INSTRUCTION, "read#",
         "Reads data from file that will be placed into a variable.\n"
         "Read statement overwrites the destination variable content with data "
         "content.\n"
@@ -699,7 +717,7 @@ static help_content_t _help_content[] = {
         "any positive integer value.\n"
         "Using plain type variable like integer or float the size \n"
         "must be equal to this variable size\n",
-        "Read filenum, variable, size\n" },
+        "Read# filenum, variable, size\n" },
 
     { lang_item_t::INSTRUCTION, "delay",
         "Suspends the execution of the next statement in the application "

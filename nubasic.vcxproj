@@ -336,6 +336,9 @@
     <ClCompile Include="lib/nu_instrblock_metadata.cc" />
     <ClCompile Include="lib/nu_interpreter.cc" />
     <ClCompile Include="lib/nu_lxa.cc" />
+    <ClCompile Include="lib\nu_stmt_data.cc" />
+    <ClCompile Include="lib\nu_stmt_read.cc" />
+    <ClCompile Include="lib\nu_stmt_read_file.cc" />
     <ClCompile Include="main.cc" />
     <ClCompile Include="lib/nu_builtin_help.cc" />
     <ClCompile Include="lib/nu_os_gdi.cc" />
@@ -386,7 +389,6 @@
     <ClCompile Include="lib/nu_stmt_next.cc" />
     <ClCompile Include="lib/nu_stmt_parser.cc" />
     <ClCompile Include="lib/nu_stmt_print.cc" />
-    <ClCompile Include="lib/nu_stmt_read.cc" />
     <ClCompile Include="lib/nu_stmt_redim.cc" />
     <ClCompile Include="lib/nu_stmt_struct.cc" />
     <ClCompile Include="lib/nu_stmt_struct_element.cc" />
@@ -484,7 +486,6 @@
     <ClInclude Include="include/nu_stmt_parser.h" />
     <ClInclude Include="include/nu_stmt_print.h" />
     <ClInclude Include="include/nu_stmt_randomize.h" />
-    <ClInclude Include="include/nu_stmt_read.h" />
     <ClInclude Include="include/nu_stmt_redim.h" />
     <ClInclude Include="include/nu_stmt_return.h" />
     <ClInclude Include="include/nu_stmt_struct_element.h" />
@@ -500,6 +501,9 @@
     <ClInclude Include="include/nu_variable.h" />
     <ClInclude Include="include/nu_variant.h" />
     <ClInclude Include="include/nu_var_scope.h" />
+    <ClInclude Include="include\nu_stmt_data.h" />
+    <ClInclude Include="include\nu_stmt_read.h" />
+    <ClInclude Include="include\nu_stmt_read_file.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="nubasic.ico" />

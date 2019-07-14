@@ -100,7 +100,7 @@ void stmt_call_t::run(
         auto vtype_code
             = variable_t::type_by_typename(function_prototype.ret_type);
 
-		const auto vsize = function_prototype.array_size;
+        const auto vsize = function_prototype.array_size;
 
         switch (vtype_code) {
         case variable_t::type_t::STRING:
@@ -130,7 +130,7 @@ void stmt_call_t::run(
 
             auto value = it->second.second; // struct prototype
 
-			//TODO: extend to array of structures
+            //TODO: extend to array of structures
             sub_xscope->define(_name, var_value_t(value, VAR_ACCESS_RW));
             break;
         }

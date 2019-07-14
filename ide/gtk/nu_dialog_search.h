@@ -446,6 +446,7 @@ public:
 
     bool set_replace_mode(bool on) noexcept {
         _replace_controls = on;
+	return true;
     }
 
 private:
