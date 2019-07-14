@@ -61,3 +61,6 @@ add_executable(nubasicide ${SOURCES})
 add_dependencies(nubasicide scintilla)
 
 target_link_libraries(nubasicide nubasicinterpreter "${CMAKE_CURRENT_SOURCE_DIR}/../scintilla/bin/scintilla.a" mipjson ${X11_LIBRARIES} ${GTK2_LIBRARIES} -pthread)
+
+# add the install targets
+install (TARGETS nubasicide DESTINATION bin)

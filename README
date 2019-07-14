@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 nuBASIC - http://www.nubasic.eu
-(c) Antonino Calderone <antonino.calderone@gmail.com> - 2014 - 2018
+(c) Antonino Calderone <antonino.calderone@gmail.com> - 2014 - 2019
 -------------------------------------------------------------------------------
 
 nuBASIC is an implementation of an interpreter of the BASIC programming 
@@ -28,8 +28,7 @@ Features
 Released packages
 -------------------------------------------------------------------------------
 Linux Installers:
-RPM (Fedora) 64 bit Installer - nubasic-<ver>-1.fc21.x86_64.rpm
-Debian / Ubuntu 64 bit Installer - nubasic_<ver>-1_amd64.deb
+Debian / Ubuntu 64 bit Installer - nubasic_<ver>.deb
 
 Windows Installers:
 * Windows 64 bit Installer (VC++ build) - nubasic-ide-<ver>-setup_x64.zip
@@ -85,8 +84,7 @@ How to build nuBASIC on Ubuntu in 10 moves
 # mkdir build && cd build && cmake ..
 
 10) Make nubasic and nubasicide:
-make
-
+make && make install
 
 -------------------------------------------------------------------------------
 How to build nuBASIC on Visual Studio for Windows
