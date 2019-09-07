@@ -58,6 +58,11 @@ protected:
     static void reduce_brackets(token_list_t& rtl);
     static void convert_subscription_brackets(token_list_t& rtl);
     static void fix_real_numbers(token_list_t& rtl);
+
+    // There are expressions which begin with '-' operator (e.g. -<exp>)
+    // which need to be transformed into 0-<exp> in order to 
+    // be process correctly later
+    static void fix_minus_prefixed_expressions(token_list_t& rtl);
 };
 
 

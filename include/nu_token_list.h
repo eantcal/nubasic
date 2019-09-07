@@ -48,6 +48,17 @@ public:
     token_list_t(const token_list_t&) = default;
     token_list_t& operator=(const token_list_t&) = default;
 
+    token_list_t(token_list_t&& other) : 
+        _data(std::move(other._data)) 
+    {
+    }
+
+    token_list_t& operator=(token_list_t&& other) {
+        if (this != &other) {
+            _data = std::move(other._data);
+        }
+        return *this;
+    }
 
     //! Return a reference to standard internal data
     data_t& data() { 

@@ -6,6 +6,11 @@ Please send nuBASIC and nuBasic IDE bug reports to <antonino.calderone@gmail.com
 
 Win32/64 built with VS2017 needs "Visual C++ Redistributable Packages for Visual Studio 2017"
 
+Sep 8, 2019
+* Released nuBASIC 1.51
+- Bug fixing
+
+
 Jul 13, 2019
 * Released nuBASIC 1.50
 - Added Read, Data and Restore statements

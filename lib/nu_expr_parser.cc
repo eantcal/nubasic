@@ -38,6 +38,8 @@ expr_any_t::handle_t expr_parser_t::compile(expr_tknzr_t& tknzr)
     // Create a syntax tree
     expr_syntax_tree_t est;
 
+    fix_minus_prefixed_expressions(tl);
+
     // Finally parse the expression tree in order to generate
     // an executable object
     convert_subscription_brackets(tl);
@@ -53,6 +55,7 @@ expr_any_t::handle_t expr_parser_t::compile(token_list_t tl, size_t expr_pos)
 {
     expr_syntax_tree_t est;
 
+    fix_minus_prefixed_expressions(tl);
     convert_subscription_brackets(tl);
     tl = est(tl);
 
@@ -350,16 +353,14 @@ expr_any_t::handle_t expr_parser_t::parse(
 
 void expr_parser_t::fix_real_numbers(token_list_t& rtl)
 {
-    auto tl_size = rtl.size();
+    const auto tl_size = rtl.size();
 
-    if (tl_size < 3) {
+    if (tl_size < 3) 
         return;
-    }
 
     token_list_t tl(std::move(rtl));
-    rtl.clear();
 
-    for (decltype(tl_size) i = 0; i < tl_size; ++i) {
+    for (size_t i = 0; i < tl_size; ++i) {
         auto tk = tl[i];
 
         if (tk.type() == tkncl_t::REAL) {
@@ -390,6 +391,42 @@ void expr_parser_t::fix_real_numbers(token_list_t& rtl)
 
         rtl += tk;
     }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void expr_parser_t::fix_minus_prefixed_expressions(token_list_t& rtl)
+{
+    const auto tl_size = rtl.size();
+
+    if (tl_size < 2)
+        return;
+
+    token_list_t tl;
+
+    for (size_t i = 0; i < tl_size-1; ++i) {
+        auto & tk1 = rtl[i];
+        auto & tk2 = rtl[i+1];
+
+        tl += tk1;
+
+        if ((tk1.type() == tkncl_t::OPERATOR && tk1.identifier()!="-") &&
+            (tk2.type() == tkncl_t::OPERATOR && tk2.identifier()=="-"))
+        {
+            auto tkn(tk1);
+            tkn.set_identifier("0", token_t::case_t::NOCHANGE);
+            tkn.set_type(tkncl_t::INTEGRAL);
+            tl += tkn;
+        }
+
+        if (i == tl_size - 2) {
+            tl += tk2;
+        }
+       
+    }
+
+    rtl = std::move(tl);
 }
 
 
