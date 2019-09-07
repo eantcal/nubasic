@@ -25,6 +25,7 @@
 #include "nu_stmt_do.h"
 #include "nu_stmt_else.h"
 #include "nu_stmt_end.h"
+#include "nu_stmt_stop.h"
 #include "nu_stmt_endfunction.h"
 #include "nu_stmt_endif.h"
 #include "nu_stmt_endstruct.h"
@@ -722,9 +723,12 @@ stmt_t::handle_t stmt_parser_t::parse_branch_instr(
         }
     }
 
-    syntax_error_if(tl.empty() || (token.type() != tkncl_t::INTEGRAL
-                                      && token.type() != tkncl_t::IDENTIFIER),
-        token.expression(), token.position());
+    syntax_error_if(
+        tl.empty() || (
+            token.type() != tkncl_t::INTEGRAL && 
+            token.type() != tkncl_t::IDENTIFIER), 
+        token.expression(), token.position()
+    );
 
     std::string label = token.identifier();
 
@@ -1855,6 +1859,24 @@ stmt_t::handle_t stmt_parser_t::parse_end(
 
 /* -------------------------------------------------------------------------- */
 
+stmt_t::handle_t stmt_parser_t::parse_stop(
+    prog_ctx_t& ctx, token_t token, nu::token_list_t& tl)
+{
+    --tl;
+    remove_blank(tl);
+
+    if (!tl.empty()) {
+        token_t token = *tl.begin();
+       syntax_error(token.expression(), token.position());
+       
+    }
+
+    return stmt_t::handle_t(std::make_shared<stmt_stop_t>(ctx));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 stmt_t::handle_t stmt_parser_t::parse_stmt(
     prog_ctx_t& ctx, nu::token_list_t& tl)
 {
@@ -1986,6 +2008,10 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
 
     if (identifier == "end") {
         return parse_end(ctx, token, tl);
+    }
+
+    if (identifier == "stop") {
+        return parse_stop(ctx, token, tl);
     }
 
     if (identifier == "wend") {

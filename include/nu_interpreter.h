@@ -121,6 +121,7 @@ public:
         UPDATE_PROG,
         CMD_EXEC,
         BREAKPOINT,
+        STOP_REQ
     };
 
 
@@ -136,6 +137,13 @@ public:
     bool is_breakpoint_active() const noexcept {
         return _breakpoints.find(_prog_ctx.runtime_pc.get_line())
             != _breakpoints.end();
+    }
+
+    bool is_stop_stmt_line() const noexcept {
+        auto & stopmeta = _prog_ctx.stop_metadata.pc_stop_stmt;
+
+        return stopmeta.find(
+            _prog_ctx.runtime_pc.get_line()) != stopmeta.end();
     }
 
     void renum_prog(runnable_t::line_num_t step);

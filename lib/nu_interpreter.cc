@@ -1009,16 +1009,23 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
             return exec_res_t::CMD_EXEC;
         }
 
+        auto check_break_and_stop = [&]() {
+            if (is_stop_stmt_line())
+                return exec_res_t::STOP_REQ;
+
+            if (is_breakpoint_active())
+                return exec_res_t::BREAKPOINT;
+
+            return exec_res_t::CMD_EXEC;
+        };
+
         if (cmd == "run") {
             token = tknzr.next();
 
             if (tknzr.eol()) {
                 rebuild();
                 run(0);
-
-                return 
-                    is_breakpoint_active() ? exec_res_t::BREAKPOINT
-                                           : exec_res_t::CMD_EXEC;
+                return check_break_and_stop();
             }
 
             skip_blank(tknzr, token);
@@ -1027,8 +1034,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                 // Command "RUN <num>" does not clear the context
                 run(nu::stoi(token.identifier()));
 
-                return is_breakpoint_active() ? exec_res_t::BREAKPOINT
-                                              : exec_res_t::CMD_EXEC;
+                return check_break_and_stop();
             }
 
             return exec_res_t::SYNTAX_ERROR;

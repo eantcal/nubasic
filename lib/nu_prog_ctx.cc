@@ -46,6 +46,7 @@ void prog_ctx_t::clear_metadata()
     prog_label.clear();
     compiletime_pc.reset();
     compiling_struct_name.clear();
+    stop_metadata.pc_stop_stmt.clear();
 
     // Remove user-defined-functions
     auto& funcs = global_function_tbl_t::get_instance();
@@ -235,6 +236,7 @@ void prog_ctx_t::trace_metadata(std::stringstream& ss)
     }
 
     ss << "If-statement metadata:\n" << if_metadata;
+    ss << "stop-statement metadata:\n" << stop_metadata;
 }
 
 

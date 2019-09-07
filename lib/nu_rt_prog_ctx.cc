@@ -32,6 +32,7 @@ rt_prog_ctx_t::rt_prog_ctx_t(
     flag.define(FLG_RETURN_REQUEST);
     flag.define(FLG_JUMP_REQUEST);
     flag.define(FLG_SKIP_TILL_NEXT);
+    flag.define(FLG_STOP_REQUEST);
     step_mode_active = false;
 }
 
@@ -141,6 +142,8 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
        << std::endl;
     ss << "End request pending: "
        << (flag[rt_prog_ctx_t::FLG_END_REQUEST] ? "Y" : "N") << std::endl;
+    ss << "Stop request pending: "
+        << (flag[rt_prog_ctx_t::FLG_STOP_REQUEST] ? "Y" : "N") << std::endl;
     ss << "Return request pending: "
        << (flag[rt_prog_ctx_t::FLG_RETURN_REQUEST] ? "Y" : "N") << std::endl;
     ss << "Skip-till-NEXT request pending: "

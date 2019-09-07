@@ -353,6 +353,10 @@ protected:
     stmt_t::handle_t parse_end(
         prog_ctx_t& ctx, token_t token, nu::token_list_t& tl);
 
+    //! parse Stop statement
+    stmt_t::handle_t parse_stop(
+        prog_ctx_t& ctx, token_t token, nu::token_list_t& tl);
+
 
     //! parse instruction and its args
     template <class T, typename... E>

@@ -882,6 +882,12 @@ static help_content_t _help_content[] = {
         "   fieldn[as FieldTypeN]\n"
         "End Struct\n" },
 
+    { lang_item_t::INSTRUCTION, "stop",
+        "Breaks program execution, prints a Break message\n"
+        " on the console and returns control to the user.\n"
+        " It is possible to resume program \n"
+        " execution at the next statement using CONT command.\n",
+        "Stop\n"},
 
 #ifndef TINY_NUBASIC_VER
     { lang_item_t::FUNCTION, "getmousex",

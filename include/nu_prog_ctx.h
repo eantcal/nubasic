@@ -89,6 +89,9 @@ public:
     // Procedure metadata (created compiling BASIC source code)
     instrblock_metadata_t procedure_metadata;
 
+    // Stop instruction metadata
+    stop_instr_metadata_t stop_metadata;
+
     // Struct metadata (created compiling BASIC source code)
     instrblock_metadata_t struct_metadata;
     std::string compiling_struct_name;

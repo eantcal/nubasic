@@ -215,6 +215,13 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
     while (prog_ptr != _prog_line.end()) {
         _ctx.runtime_pc.set(prog_ptr->first, return_stmt_id);
 
+        if (_ctx.flag[rt_prog_ctx_t::FLG_STOP_REQUEST]) {
+            dbginfo_t dbg;
+            dbg.break_point = true;
+            set_dbg_info(prog_ptr->first, dbg);
+            _ctx.flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, false);
+        }
+
         if (prog_ptr->second.second.single_step_break_point
             && !_function_call) 
         {

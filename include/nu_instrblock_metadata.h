@@ -23,6 +23,7 @@
 #include <memory>
 #include <sstream>
 #include <stack>
+#include <set>
 
 
 /* -------------------------------------------------------------------------- */
@@ -112,6 +113,16 @@ struct if_instrblock_t {
 
     friend std::ostream& operator<<(
         std::ostream& os, const if_instrblock_t& ib);
+};
+
+
+/* -------------------------------------------------------------------------- */
+
+struct stop_instr_metadata_t {
+    std::set<prog_pointer_t> pc_stop_stmt;
+
+    friend std::ostream& operator<<(
+        std::ostream& os, const stop_instr_metadata_t& ib);
 };
 
 

@@ -224,4 +224,16 @@ std::ostream& operator<<(std::ostream& os, const if_instrblock_metadata_t& md)
 
 /* -------------------------------------------------------------------------- */
 
+std::ostream& operator<<(std::ostream& os, const stop_instr_metadata_t& md)
+{
+    os << "stop at:";
+
+    for (const auto& e : md.pc_stop_stmt) {
+        os << e.get_line();
+    }
+
+    return os;
+}
+
+
 } // namespace nu

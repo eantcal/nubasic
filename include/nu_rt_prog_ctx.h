@@ -41,7 +41,8 @@ public:
         FLG_END_REQUEST,
         FLG_RETURN_REQUEST,
         FLG_JUMP_REQUEST,
-        FLG_SKIP_TILL_NEXT
+        FLG_SKIP_TILL_NEXT,
+        FLG_STOP_REQUEST
     };
 
 

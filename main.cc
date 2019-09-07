@@ -42,7 +42,10 @@ static nu::interpreter_t::exec_res_t exec_command(
             printf("Execution stopped at breakpoint, line %i.\n"
                    "Type 'cont' to continue\n",
                 basic.get_cur_line_n());
-
+        else if (res == nu::interpreter_t::exec_res_t::STOP_REQ)
+            printf("Execution stopped at STOP instruction, line %i.\n"
+                "Type 'cont' to continue\n",
+                basic.get_cur_line_n());
         return res;
     }
 

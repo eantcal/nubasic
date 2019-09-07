@@ -339,6 +339,7 @@
     <ClCompile Include="lib\nu_stmt_data.cc" />
     <ClCompile Include="lib\nu_stmt_read.cc" />
     <ClCompile Include="lib\nu_stmt_read_file.cc" />
+    <ClCompile Include="lib\nu_stmt_stop.cc" />
     <ClCompile Include="main.cc" />
     <ClCompile Include="lib/nu_builtin_help.cc" />
     <ClCompile Include="lib/nu_os_gdi.cc" />
@@ -504,6 +505,7 @@
     <ClInclude Include="include\nu_stmt_data.h" />
     <ClInclude Include="include\nu_stmt_read.h" />
     <ClInclude Include="include\nu_stmt_read_file.h" />
+    <ClInclude Include="include\nu_stmt_stop.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="nubasic.ico" />

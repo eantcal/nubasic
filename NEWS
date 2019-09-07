@@ -8,7 +8,8 @@ Win32/64 built with VS2017 needs "Visual C++ Redistributable Packages for Visual
 
 Sep 8, 2019
 * Released nuBASIC 1.51
-- Bug fixing
+- Bug fixing of expression parser: unary minus operator could generate a false syntax error
+- Added Stop statement for compatibility with other BASIC interpreters
 
 
 Jul 13, 2019
