@@ -109,7 +109,7 @@ struct autocompl_t {
     std::string data;
 
     autocompl_t() {
-        for (auto& token : nu::reserved_keywords_t::list) {
+        for (auto& token : nu::reserved_keywords_t::list()) {
 	        data += token;
 	        data += " ";
         }
@@ -3008,7 +3008,7 @@ void nu::editor_t::init_editor(const std::string& fontname, int height)
     send_command(SCI_SETLEXER, SCLEX_VB);
 
     static std::string keywords;
-    for (const auto& keyword : nu::reserved_keywords_t::list) {
+    for (const auto& keyword : nu::reserved_keywords_t::list()) {
         keywords += keyword;
         keywords += " ";
     }
@@ -3496,6 +3496,8 @@ LRESULT CALLBACK HSplitterWndProc(
 int PASCAL WinMain(
     HINSTANCE hInstance, HINSTANCE, LPSTR lpszCmdLine, int nCmdShow)
 {
+    nu::reserved_keywords_t::list();
+
     g_editor.set_instance_handle(hInstance);
     g_editor.set_command_line(lpszCmdLine);
 

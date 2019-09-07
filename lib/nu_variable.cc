@@ -158,8 +158,8 @@ bool variable_t::is_valid_name(std::string name, bool ingnore_builtin)
     std::transform(name.begin(), name.end(), name.begin(), tolower);
 
     if (!ingnore_builtin
-        && reserved_keywords_t::list.find(name)
-        != reserved_keywords_t::list.cend())
+        && reserved_keywords_t::list().find(name)
+        != reserved_keywords_t::list().cend())
     {
         return false;
     }

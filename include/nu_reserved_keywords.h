@@ -16,7 +16,7 @@
 
 #include <set>
 #include <string>
-
+#include <memory>
 
 /* -------------------------------------------------------------------------- */
 
@@ -25,7 +25,8 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 struct reserved_keywords_t {
-    static const std::set<std::string> list;
+public:
+    static std::set<std::string>& list();
 };
 
 

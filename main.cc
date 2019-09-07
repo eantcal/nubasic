@@ -14,6 +14,8 @@
 #include "nu_os_console.h"
 #include "nu_os_std.h"
 #include "nu_terminal_frame.h"
+#include "nu_reserved_keywords.h"
+
 
 #include <cassert>
 #include <iostream>
@@ -196,6 +198,7 @@ static int nuBASIC_console(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
+    nu::reserved_keywords_t::list();
     nu::create_terminal_frame(argc, argv);
     return nuBASIC_console(argc, argv);
 }

@@ -236,7 +236,10 @@ void prog_ctx_t::trace_metadata(std::stringstream& ss)
     }
 
     ss << "If-statement metadata:\n" << if_metadata;
-    ss << "stop-statement metadata:\n" << stop_metadata;
+
+    if (!stop_metadata.pc_stop_stmt.empty()) {
+        ss << "stop-statement metadata:\n" << stop_metadata;
+    }
 }
 
 
