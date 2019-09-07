@@ -1333,13 +1333,33 @@ stmt_t::handle_t stmt_parser_t::parse_if_then_else(
         --tl;
         remove_blank(tl);
 
-        syntax_error_if(tl.empty(), "ELSE: expected a statement");
+        syntax_error_if(tl.empty(), "ELSE-statement expected");
     }
 
+    auto amend_token_list = [](token_list_t& etl) {
+
+        // amend the single 'if cond then line_num' inserting a goto statement 
+        // to allow to be interpreted as 'if cond then goto line_num'
+        // this is provided to allow additional compatilibility with other
+        // BASIC dialects
+        if (etl.size() == 1 && etl[0].type() == tkncl_t::INTEGRAL) {
+            token_t goto_stm(etl[0]);
+            goto_stm.set_identifier("goto", token_t::case_t::NOCHANGE);
+            goto_stm.set_type(tkncl_t::IDENTIFIER);
+
+            token_t goto_line(etl[0]);
+
+            etl[0] = std::move(goto_stm);
+            etl += goto_line;
+        }
+    };
+
+    amend_token_list(etl);
     stmt_t::handle_t then_stmt = parse_block(ctx, etl);
 
     remove_blank(tl);
 
+    amend_token_list(tl);
     stmt_t::handle_t else_stmt = parse_block(ctx, tl);
 
     return stmt_t::handle_t(std::make_shared<stmt_if_then_else_t>(

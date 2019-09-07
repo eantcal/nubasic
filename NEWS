@@ -10,6 +10,7 @@ Sep 8, 2019
 * Released nuBASIC 1.51
 - Bug fixing of expression parser: unary minus operator could generate a false syntax error
 - Added Stop statement for compatibility with other BASIC interpreters
+- Allow If statement to support implicit GOTO after THEN and ELSE statements
 
 
 Jul 13, 2019
