@@ -184,6 +184,7 @@ static int nuBASIC_console(int argc, char* argv[])
 
         case nu::interpreter_t::exec_res_t::NOP:
         case nu::interpreter_t::exec_res_t::BREAKPOINT:
+        case nu::interpreter_t::exec_res_t::STOP_REQ:
         case nu::interpreter_t::exec_res_t::RT_ERROR:
         case nu::interpreter_t::exec_res_t::UPDATE_PROG:
             break;
