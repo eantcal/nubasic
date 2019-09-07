@@ -9,13 +9,13 @@ Win32/64 built with VS2017 needs "Visual C++ Redistributable Packages for Visual
 Sep 8, 2019
 * Released nuBASIC 1.51
 - Bug fixing of expression parser: unary minus operator could generate a false syntax error
-- Added Stop statement for compatibility with other BASIC interpreters
-- Allow If statement to support implicit GOTO after THEN and ELSE statements
+- Add STOP statement for compatibility with other BASIC interpreters
+- Allow IF statement to support implicit GOTO after THEN and ELSE statements
 
 
 Jul 13, 2019
 * Released nuBASIC 1.50
-- Added Read, Data and Restore statements
+- Add Read, Data and Restore statements
 
 
 Nov 11, 2018
