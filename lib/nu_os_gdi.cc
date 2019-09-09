@@ -45,6 +45,8 @@ static struct gdi_plus_t {
     ULONG_PTR gdiplusToken;
 
     gdi_plus_t() {
+        SetProcessDPIAware();
+
         // Initialize GDI+.
         GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
     }
@@ -344,9 +346,8 @@ int _os_get_screen_height() noexcept
 int _os_get_mouse_x() noexcept
 {
     POINT pt = { 0 };
-    GetCursorPos(&pt);
-    ScreenToClient(GetConsoleWindow(), &pt);
-
+    GetPhysicalCursorPos(&pt);
+    MapWindowPoints(NULL, GetConsoleWindow(), &pt, 1);
     return pt.x;
 }
 
@@ -356,9 +357,8 @@ int _os_get_mouse_x() noexcept
 int _os_get_mouse_y() noexcept
 {
     POINT pt = { 0 };
-    GetCursorPos(&pt);
-    ScreenToClient(GetConsoleWindow(), &pt);
-
+    GetPhysicalCursorPos(&pt);
+    MapWindowPoints(NULL, GetConsoleWindow(), &pt, 1);
     return pt.y;
 }
 
