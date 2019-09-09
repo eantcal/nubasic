@@ -492,7 +492,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
         ed.cmd(SCI_SETLEXER, SCLEX_VB);
 
         static std::string keywords;
-        for (const auto& keyword : nu::reserved_keywords_t::list) {
+        for (const auto& keyword : nu::reserved_keywords_t::list()) {
             keywords += keyword;
             keywords += " ";
         }
