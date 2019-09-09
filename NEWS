@@ -6,11 +6,12 @@ Please send nuBASIC and nuBasic IDE bug reports to <antonino.calderone@gmail.com
 
 Win32/64 built with VS2017 needs "Visual C++ Redistributable Packages for Visual Studio 2017"
 
-Sep 8, 2019
+Sep tbd, 2019
 * Released nuBASIC 1.51
 - Bug fixing of expression parser: unary minus operator could generate a false syntax error
 - Add STOP statement for compatibility with other BASIC interpreters
 - Allow IF statement to support implicit GOTO after THEN and ELSE statements
+- Bug fixing of mouse position disalignment in Windows with some high res cfg
 
 
 Jul 13, 2019
