@@ -2,6 +2,14 @@ cmake_minimum_required(VERSION 2.8.12)
 
 project(nuBASIC)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
 if (NOT APPLE)
   option(WITH_X11 "X11 graphics/sound" ON)
   option(WITH_IDE "GTK+2 Integrated Development Environment (IDE)" ON)
