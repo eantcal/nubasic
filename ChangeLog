@@ -1,6 +1,9 @@
 nuBASIC ChangeLog
 Please send nuBASIC bug reports to <antonino.calderone@gmail.com>.
 
+No longer updated. 
+You can get updated data at https://github.com/eantcal/nubasic
+
 2018-11-10
 - Improvements and bug-fixing
 - Allow to overwrite an existing vector with the content using a simple assign operation
