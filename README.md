@@ -31,6 +31,10 @@ nuBASIC IDE (Integrated Development Environment, for Windows and Linux/GTK+2) in
 IDE provides comprehensive facilities to programmers for software development, like the syntax highlighting, which is the ability to recognize keywords and display them in different colors.
 Debugger lets you place breakpoints in your source code, add field watches, step through your code, run into procedures, take snapshots and monitor execution as it occurs.
 
+## Compiler C++
+To compile nuBASIC you will need a compiler supporting modern C++ 
+(C++17 extensions have been enabled and any further refactoring will be replace existing C++11/14 code using new language features where applicable).
+
 ## Windows Installation Prerequisites
 To install successfully nuBASIC (32/64 bit - packages including editor) the following software component is required on the installation computer:
 - Visual C++ Redistributable Packages are required.
