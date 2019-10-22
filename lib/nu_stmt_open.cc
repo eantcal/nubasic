@@ -26,7 +26,7 @@ void stmt_open_t::run(rt_prog_ctx_t& ctx)
         = [&](bool cond, rt_error_code_t::value_t err, const std::string desc) {
               rt_error_code_t::get_instance().throw_if(
                   cond, ctx.runtime_pc.get_line(), err, desc);
-          };
+    };
 
     ctx.go_to_next();
 
@@ -73,7 +73,7 @@ void stmt_open_t::run(rt_prog_ctx_t& ctx)
         mode += "b";
     }
 
-    bool res = ctx.file_tbl.open_fd(filename.to_str(), mode, _fd);
+    const bool res = ctx.file_tbl.open_fd(filename.to_str(), mode, _fd);
 
     ctx.set_errno(!res && !errno ? EBADF : errno);
 }

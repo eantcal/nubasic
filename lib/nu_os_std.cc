@@ -382,7 +382,7 @@ namespace nu {
 
 static int _kbhit()
 {
-    struct timeval tv = { 0 };
+    struct timeval tv{ 0, 0 };
 
     fd_set fds;
     FD_ZERO(&fds);
@@ -490,7 +490,7 @@ int _os_get_vkey()
 
 void _os_randomize()
 {
-    struct timeval t1 = { 0 };
+    struct timeval t1{ 0, 0 };
     gettimeofday(&t1, NULL);
     srand(t1.tv_usec * t1.tv_sec);
 }

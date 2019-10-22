@@ -161,6 +161,7 @@ namespace nu {
 
 static void _ctrl_c_handler(int dummy = 0)
 {
+    (void)dummy;
     _ev_dispatcher(nu::signal_handler_t::event_t::BREAK);
 }
 

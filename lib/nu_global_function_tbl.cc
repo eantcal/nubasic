@@ -499,6 +499,7 @@ variant_t conv_functor(
     const std::string& name,
     const nu::func_args_t& args) 
 {
+    (void)name;
     const auto args_num = args.size();
 
     rt_error_code_t::get_instance().throw_if(
@@ -1283,6 +1284,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx, const std::string& name,
                 const nu::func_args_t& args) 
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
 
             int ch = _os_kbhit();
@@ -1303,6 +1305,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx, const std::string& name,
                 const nu::func_args_t& args)
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
 
             return variant_t(_os_get_vkey());
@@ -1315,6 +1318,7 @@ fmap["sin"] = functor<float, _sin>;
                 [](rt_prog_ctx_t& ctx, const std::string& name,
                     const nu::func_args_t& args) 
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
 
             auto wd = _os_get_working_dir();
@@ -1406,6 +1410,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx,
                 const std::string& name, const nu::func_args_t& args) 
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_screen_height());
         };
@@ -1417,6 +1422,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx,
                 const std::string& name, const nu::func_args_t& args)
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_window_x());
         };
@@ -1428,6 +1434,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx,
                 const std::string& name, const nu::func_args_t& args) 
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_window_y());
         };
@@ -1439,6 +1446,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx,
                 const std::string& name, const nu::func_args_t& args) 
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_window_dx());
         };
@@ -1450,6 +1458,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx,
                 const std::string& name, const nu::func_args_t& args) 
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_window_dy());
         };
@@ -1461,6 +1470,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx, const std::string& name,
                 const nu::func_args_t& args) 
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_mouse_x());
         };
@@ -1472,6 +1482,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx, const std::string& name,
                 const nu::func_args_t& args) 
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_mouse_y());
         };
@@ -1483,6 +1494,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx,
                 const std::string& name, const nu::func_args_t& args) 
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_mouse_btn());
         };
@@ -1494,6 +1506,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx,
                 const std::string& name, const nu::func_args_t& args) 
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_set_topmost());
         };
@@ -1507,6 +1520,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx, const std::string& name,
                 const nu::func_args_t& args) 
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
             return nu::variant_t(3.1415926535897F);
         };
@@ -1518,6 +1532,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx, const std::string& name,
                 const nu::func_args_t& args) 
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
 #ifdef WIN32
             return 1;
@@ -1532,6 +1547,7 @@ fmap["sin"] = functor<float, _sin>;
             rt_prog_ctx_t& ctx, const std::string& name,
             const nu::func_args_t& args) 
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
             return _os_get_app_path();
         };
@@ -1539,7 +1555,9 @@ fmap["sin"] = functor<float, _sin>;
         fmap["getapppath"] = functor_get_app_path;
 
         auto functor_ver = [](rt_prog_ctx_t& ctx, const std::string& name,
-            const nu::func_args_t& args) {
+            const nu::func_args_t& args) 
+        {
+            (void)ctx;
             check_arg_num(args, 0, name);
             return nu::variant_t(about::version);
         };
@@ -1550,8 +1568,9 @@ fmap["sin"] = functor<float, _sin>;
 #define NUBASIC_DEF_FTIME(__item)                                              \
     auto functor_get_##__item = [](rt_prog_ctx_t& ctx,                         \
         const std::string& name, const nu::func_args_t& args) {                \
-        check_arg_num(args, 0, name);                                          \
-        return nu::variant_t(integer_t(nu::_os_get_##__item()));               \
+           (void) ctx;                                                         \
+           check_arg_num(args, 0, name);                                       \
+           return nu::variant_t(integer_t(nu::_os_get_##__item()));            \
     };
 
         NUBASIC_DEF_FTIME(day);
@@ -1578,6 +1597,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx, const std::string& name,
                 const nu::func_args_t& args) 
         {
+            (void)ctx;
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_systime());
         };

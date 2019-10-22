@@ -28,9 +28,8 @@ void stmt_redim_t::run(rt_prog_ctx_t& ctx)
                   cond, ctx.runtime_pc.get_line(), err, desc);
           };
 
-    for (const auto& v : _vars) {
-        int vsize = v.second.second->eval(ctx).to_int();
-        const std::string& name = v.first;
+    for (const auto& [name, value] : _vars) {
+        int vsize = value.second->eval(ctx).to_int();
 
         rt_error_if(vsize <= 0, rt_error_code_t::E_INV_VECT_SIZE,
             "ReDim '" + name + "'");
@@ -41,7 +40,7 @@ void stmt_redim_t::run(rt_prog_ctx_t& ctx)
         rt_error_if(!scope->is_defined(name), rt_error_code_t::E_VAR_UNDEF,
             "ReDim '" + name + "'");
 
-        auto vtype = v.second.first;
+        auto vtype = value.first;
         std::string init_val = "0";
 
         auto vtype_code = variable_t::type_by_name(vtype); // TODO Struct

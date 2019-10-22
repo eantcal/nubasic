@@ -23,6 +23,8 @@ variant_t hash_set(
     const std::string& fname,
     const func_args_t& args)
 {
+    (void)fname;
+
     const auto n_of_p = args.size();
 
     if (n_of_p != 3 && n_of_p != 2) {
@@ -53,6 +55,8 @@ variant_t hash_get(
     const std::string& fname,
     const func_args_t& args)
 {
+    (void)fname;
+
     if (args.size() != 2) {
         throw exception_t(
             std::string("Syntax error: expected 2 parameters: hash, key"));
@@ -84,6 +88,8 @@ variant_t hash_chk(
     const std::string& fname,
     const func_args_t& args)
 {
+    (void)fname;
+
     const auto n_of_p = args.size();
 
     if (n_of_p > 2 || n_of_p < 1) {
@@ -122,6 +128,8 @@ variant_t hash_cnt(
     const std::string& fname,
     const func_args_t& args)
 {
+    (void)fname;
+
     const auto n_of_p = args.size();
 
     if (n_of_p != 1) {
@@ -150,6 +158,8 @@ variant_t hash_del(
     const std::string& fname,
     const func_args_t& args)
 {
+    (void)fname;
+
     const auto n_of_p = args.size();
     
     if (args.size() != 1 && args.size() != 2) {

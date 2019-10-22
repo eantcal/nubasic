@@ -22,8 +22,6 @@ namespace nu {
 
     void stmt_data_t::run(rt_prog_ctx_t& ctx)
     {
-        int ret = 0;
-
         for (auto arg : _args) {
             variant_t val;
 

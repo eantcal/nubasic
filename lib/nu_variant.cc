@@ -102,8 +102,9 @@ variant_t::variant_t(const double_t& value, size_t vect_size)
     , _vect_size(vect_size)
     , _vector_type(vect_size >= 1)
 {
-    if (vect_size < 1)
+    if (vect_size < 1) {
         vect_size = 1;
+    }
 
     _f_data.resize(vect_size, value);
 }
@@ -148,8 +149,9 @@ variant_t::variant_t(const integer_t& value, size_t vect_size)
     , _vect_size(vect_size)
     , _vector_type(vect_size >= 1)
 {
-    if (vect_size < 1)
+    if (vect_size < 1) {
         vect_size = 1;
+    }
 
     _i_data.resize(vect_size, value);
 }
@@ -162,8 +164,9 @@ variant_t::variant_t(const bool_t& value, size_t vect_size)
     , _vect_size(vect_size)
     , _vector_type(vect_size >= 1)
 {
-    if (vect_size < 1)
+    if (vect_size < 1) {
         vect_size = 1;
+    }
 
     _i_data.resize(vect_size, value);
 }
@@ -176,8 +179,9 @@ variant_t::variant_t(const long64_t& value, size_t vect_size)
     , _vect_size(vect_size)
     , _vector_type(vect_size >= 1)
 {
-    if (vect_size < 1)
+    if (vect_size < 1) {
         vect_size = 1;
+    }
 
     _i_data.resize(vect_size, value);
 }
@@ -188,8 +192,9 @@ variant_t::variant_t(const long64_t& value, size_t vect_size)
 variant_t::variant_t(const std::vector<byte_t>& value)
     : variant_t(0, type_t::BYTEVECTOR, value.size())
 {
-    for (const auto& e : value)
+    for (const auto& e : value) {
         _s_data[0].push_back(e);
+    }
 }
 
 
@@ -403,34 +408,11 @@ static variant_t binary_operation(std::function<T(long64_t, long64_t)> fint,
 /* -------------------------------------------------------------------------- */
 
 template <class T> static inline bool gteq(T a, T b) noexcept { return a >= b; }
-
-
-/* -------------------------------------------------------------------------- */
-
 template <class T> static inline bool lteq(T a, T b) noexcept { return a <= b; }
-
-
-/* -------------------------------------------------------------------------- */
-
 template <class T> static inline bool neq(T a, T b) noexcept { return a != b; }
-
-
-/* -------------------------------------------------------------------------- */
-
 template <class T> static inline bool eq(T a, T b) noexcept { return a == b; }
-
-
-/* -------------------------------------------------------------------------- */
-
 template <class T> static inline bool gt(T a, T b) noexcept { return a > b; }
-
-/* -------------------------------------------------------------------------- */
-
 template <class T> static inline bool lt(T a, T b) noexcept { return a < b; }
-
-
-/* -------------------------------------------------------------------------- */
-
 template <class T> static inline T sum(T a, T b) noexcept { return a + b; }
 
 
@@ -549,17 +531,20 @@ variant_t operator-(const variant_t& a, const variant_t& b)
     }
 
     if (a.get_type() == variant_t::type_t::FLOAT
-        || b.get_type() == variant_t::type_t::FLOAT) {
+        || b.get_type() == variant_t::type_t::FLOAT) 
+    {
         return variant_t(real_t(a.to_real() - b.to_real()));
     }
 
     if (a.get_type() == variant_t::type_t::LONG64
-        || b.get_type() == variant_t::type_t::LONG64) {
+        || b.get_type() == variant_t::type_t::LONG64) 
+    {
         return variant_t(long64_t(a.to_long64() - b.to_long64()));
     }
 
     if (a.get_type() == variant_t::type_t::INTEGER
-        || b.get_type() == variant_t::type_t::INTEGER) {
+        || b.get_type() == variant_t::type_t::INTEGER) 
+    {
         return variant_t(integer_t(a.to_int() - b.to_int()));
     }
 
@@ -572,7 +557,8 @@ variant_t operator-(const variant_t& a, const variant_t& b)
 variant_t operator/(const variant_t& a, const variant_t& b)
 {
     if (variable_t::is_number(a.get_type())
-        || variable_t::is_number(a.get_type())) {
+        || variable_t::is_number(a.get_type())) 
+    {
         rt_error_code_t::get_instance().throw_if(
             b.to_double() == 0.0, 0, rt_error_code_t::E_DIV_BY_ZERO, "");
 
@@ -596,7 +582,8 @@ variant_t variant_t::int_div(const variant_t& b) const
     }
 
     if (get_type() == variant_t::type_t::LONG64
-        || b.get_type() == variant_t::type_t::LONG64) {
+        || b.get_type() == variant_t::type_t::LONG64) 
+    {
         rt_error_code_t::get_instance().throw_if(
             b.to_long64() == 0, 0, rt_error_code_t::E_DIV_BY_ZERO, "");
 
@@ -604,7 +591,8 @@ variant_t variant_t::int_div(const variant_t& b) const
     }
 
     if (get_type() == variant_t::type_t::INTEGER
-        || b.get_type() == variant_t::type_t::INTEGER) {
+        || b.get_type() == variant_t::type_t::INTEGER) 
+    {
         rt_error_code_t::get_instance().throw_if(
             b.to_int() == 0, 0, rt_error_code_t::E_DIV_BY_ZERO, "");
 
@@ -630,12 +618,14 @@ variant_t variant_t::int_mod(const variant_t& b) const
     }
 
     if (get_type() == variant_t::type_t::LONG64
-        || b.get_type() == variant_t::type_t::LONG64) {
+        || b.get_type() == variant_t::type_t::LONG64) 
+    {
         return variant_t(long64_t(to_long64() % b.to_long64()));
     }
 
     if (get_type() == variant_t::type_t::INTEGER
-        || b.get_type() == variant_t::type_t::INTEGER) {
+        || b.get_type() == variant_t::type_t::INTEGER) 
+    {
         return variant_t(integer_t(to_int() % b.to_int()));
     }
 
@@ -675,8 +665,9 @@ std::ostream& operator<<(std::ostream& os, const variant_t& val)
 
     os << variant_t::get_type_desc(val.get_type()) << " ";
 
-    if (val.is_vector())
+    if (val.is_vector()) {
         os << "[" << val.vector_size() << "] ";
+    }
 
     os << "=";
 
@@ -723,69 +714,73 @@ std::ostream& operator<<(std::ostream& os, const variant_t& val)
         }
 
         os << "\n\t";
-    } else
-        for (size_t vidx = 0; vidx < vect_size; ++vidx) {
-            if (bigvect)
-                vect_size = 10;
-
-            if (bvector)
-                os << "[" << vidx << "]:";
-
-            switch (val.get_type()) {
-            case variant_t::type_t::DOUBLE:
-                os << val.to_double(vidx);
-                break;
-
-            case variant_t::type_t::FLOAT:
-                os << val.to_real(vidx);
-                break;
-
-            case variant_t::type_t::INTEGER:
-                os << val.to_int(vidx);
-                break;
-
-            case variant_t::type_t::LONG64:
-                os << val.to_long64(vidx);
-                break;
-
-            case variant_t::type_t::BOOLEAN:
-                os << val.to_bool(vidx);
-                break;
-
-            case variant_t::type_t::STRING:
-                os << "\"" << val.to_str(vidx) << "\"";
-                break;
-
-            case variant_t::type_t::STRUCT: {
-                os << " " << val._struct_data_type_name << "\n";
-
-                os << "\t\t{\n";
-
-                if (val._struct_data.size() > vidx)
-                    for (const auto& e : val._struct_data[vidx]) {
-                        os << "\t\t  " << e.first << " : ";
-                        if (e.second)
-                            os << *e.second << "\n";
-                    }
-
-                os << "\t\t}";
-                break;
-            }
-
-            default:
-                os << val.to_str(vidx);
-                break;
-            }
-
-            if (bvector && vidx < (vect_size - 1))
-                os << ", ";
-
-            else if (bvector)
-                os << " ";
+    } 
+    else for (size_t vidx = 0; vidx < vect_size; ++vidx) {
+        if (bigvect) {
+            vect_size = 10;
         }
 
-    if (bigvect)
+        if (bvector) {
+            os << "[" << vidx << "]:";
+        }
+
+        switch (val.get_type()) {
+        case variant_t::type_t::DOUBLE:
+            os << val.to_double(vidx);
+            break;
+
+        case variant_t::type_t::FLOAT:
+            os << val.to_real(vidx);
+            break;
+
+        case variant_t::type_t::INTEGER:
+            os << val.to_int(vidx);
+            break;
+
+        case variant_t::type_t::LONG64:
+            os << val.to_long64(vidx);
+            break;
+
+        case variant_t::type_t::BOOLEAN:
+            os << val.to_bool(vidx);
+            break;
+
+        case variant_t::type_t::STRING:
+            os << "\"" << val.to_str(vidx) << "\"";
+            break;
+
+        case variant_t::type_t::STRUCT: {
+            os << " " << val._struct_data_type_name << "\n";
+
+            os << "\t\t{\n";
+
+            if (val._struct_data.size() > vidx)
+                for (const auto& e : val._struct_data[vidx]) {
+                    os << "\t\t  " << e.first << " : ";
+                    if (e.second)
+                        os << *e.second << "\n";
+                }
+
+            os << "\t\t}";
+            break;
+        }
+
+        default:
+            os << val.to_str(vidx);
+            break;
+        }
+
+        if (bvector) {
+            if (vidx < (vect_size - 1)) {
+                os << ",";
+            }
+            os << " ";
+        }
+    }
+
+    if (bigvect) {
         os << "...";
+    }
 
     return os;
 }
@@ -798,9 +793,11 @@ bool variant_t::is_integer(const std::string& value)
     if (value.empty())
         return false;
 
-    auto is_intexpr = [](char c) { return (c >= '0' && c <= '9'); };
+    auto is_intexpr = [](char c) { 
+        return (c >= '0' && c <= '9'); 
+    };
 
-    char first_char = value.c_str()[0];
+    const char first_char = value.c_str()[0];
 
     if (!is_intexpr(first_char) && first_char != '-')
         return false;
@@ -823,19 +820,23 @@ bool variant_t::is_integer(const std::string& value)
 
 bool variant_t::is_real(const std::string& value)
 {
-    if (value.empty())
+    if (value.empty()) {
         return false;
+    }
 
-    auto is_intexpr = [](char c) { return (c >= '0' && c <= '9'); };
+    auto is_intexpr = [](char c) { 
+        return (c >= '0' && c <= '9'); 
+    };
 
-    char first_char = value.c_str()[0];
+    const char first_char = value.c_str()[0];
 
     if (!is_intexpr(first_char) && first_char != '-' && first_char != '.') {
         return false;
     }
 
-    if (value.size() == 1)
+    if (value.size() == 1) {
         return first_char != '-' && first_char != '.';
+    }
 
     char old_c = 0;
     int point_cnt = 0;
@@ -844,21 +845,23 @@ bool variant_t::is_real(const std::string& value)
     for (size_t i = 0; i < value.size(); ++i) {
         const char c = value.c_str()[i];
 
-        bool is_valid = (c == '-' && i == 0) || is_intexpr(c)
+        const bool is_valid = (c == '-' && i == 0) || is_intexpr(c)
             || (c == '.' && point_cnt++ < 1)
             || (::toupper(c) == 'E' && E_cnt++ < 1 && is_intexpr(old_c))
             || ((c == '+' || c == '-') && (::toupper(old_c) == 'E'));
 
-        if (!is_valid)
+        if (!is_valid) {
             return false;
+        }
 
         old_c = c;
     }
 
     // we accept also expression like 1E (it is incomplete floating expression
     // parser will verify if next token match with +/- and an integer exponent)
-    if (!is_intexpr(old_c) && ::toupper(old_c) != 'E')
+    if (!is_intexpr(old_c) && ::toupper(old_c) != 'E') {
         return false;
+    }
 
     return true;
 }
@@ -888,11 +891,13 @@ variant_t::variant_t(const variant_t& v)
     , _f_data(v._f_data)
     , _struct_data_type_name(v._struct_data_type_name)
 {
-    if (_struct_data.size() != v._struct_data.size())
+    if (_struct_data.size() != v._struct_data.size()) {
         _struct_data.resize(v._struct_data.size());
+    }
 
-    for (size_t i = 0; i < v._struct_data.size(); ++i)
+    for (size_t i = 0; i < v._struct_data.size(); ++i) {
         copy_struct_data(_struct_data[i], v._struct_data[i]);
+    }
 }
 
 
@@ -952,8 +957,9 @@ void variant_t::define_struct_member(
 
     auto hvalue = std::make_shared<variant_t>(value);
 
-    if (_struct_data.empty())
+    if (_struct_data.empty()) {
         _struct_data.resize(1);
+    }
 
     _struct_data[0].insert(std::make_pair(field_name, hvalue));
 }
@@ -1043,8 +1049,9 @@ double_t variant_t::to_double(size_t idx) const
     rt_error_code_t::get_instance().throw_if(
         _type == type_t::STRUCT, 0, rt_error_code_t::E_TYPE_ILLEGAL, "");
 
-    if (is_number())
+    if (is_number()) {
         return is_integral() ? double_t(_at_i(idx)) : _at_f(idx);
+    }
 
     return nu::stod(_at_s(idx));
 }
@@ -1057,8 +1064,9 @@ long64_t variant_t::to_long64(size_t idx) const
     rt_error_code_t::get_instance().throw_if(
         _type == type_t::STRUCT, 0, rt_error_code_t::E_TYPE_ILLEGAL, "");
 
-    if (is_number())
+    if (is_number()) {
         return is_integral() ? _at_i(idx) : long64_t(_at_f(idx));
+    }
 
     return nu::stoll(_at_s(idx));
 }
@@ -1100,9 +1108,10 @@ variant_t variant_t::operator[](size_t idx) const
 void variant_t::copy_struct_data(struct_data_t& dst, const struct_data_t& src)
 {
     dst = src;
-    for (auto& e : dst) {
-        if (e.second)
-            e.second = std::make_shared<variant_t>(*e.second);
+    for (auto& [key, value] : dst) {
+        if (value) {
+            value = std::make_shared<variant_t>(*value);
+        }
     }
 }
 

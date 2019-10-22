@@ -73,7 +73,7 @@ expr_tknzr_t::expr_tknzr_t(const std::string& data, size_t pos,
 
 /* -------------------------------------------------------------------------- */
 
-void expr_tknzr_t::get_tknlst(token_list_t& tl, bool strip_comment)
+void expr_tknzr_t::get_tknlst(token_list_t& tl/*, bool strip_comment*/)
 {
     tl.clear();
 
@@ -189,9 +189,7 @@ token_t expr_tknzr_t::_next()
     auto extract_comment = [&](token_t & token, std::string& comment) {
 
         while (!eol()) {
-            auto symbol = get_symbol();
-
-            if (_newl.accept(symbol))
+            if (const auto symbol = get_symbol(); _newl.accept(symbol))
                 break;
 
             comment += get_symbol();

@@ -37,6 +37,9 @@ namespace nu {
 
 int create_terminal_frame(int argc, char* argv[])
 {
+    (void)argc;
+    (void)argv;
+
     SetConsoleTitle(nu::about::progname);
     return 0;
 }
@@ -81,7 +84,9 @@ int create_terminal_frame(int argc, char* argv[])
 
         execvp(xterm_prog, execvp_args);
     }
-
+#else
+    (void)argc;
+    (void)argv;
 #endif // ! TINY_NUBASIC_VER
     return 0;
 }

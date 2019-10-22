@@ -53,6 +53,8 @@ expr_any_t::handle_t expr_parser_t::compile(expr_tknzr_t& tknzr)
 
 expr_any_t::handle_t expr_parser_t::compile(token_list_t tl, size_t expr_pos)
 {
+    (void)expr_pos;
+
     expr_syntax_tree_t est;
 
     fix_minus_prefixed_expressions(tl);

@@ -67,7 +67,7 @@ public:
     token_t next() override;
     
     //! Split expression in token and copy them into a token list
-    void get_tknlst(token_list_t& tl, bool strip_comment = true) override;
+    void get_tknlst(token_list_t& tl/*, bool strip_comment = true*/) override;
 
 
     using typed_token_id_t = std::pair<std::string, tkncl_t>;

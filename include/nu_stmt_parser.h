@@ -36,10 +36,11 @@ public:
     static void remove_blank(nu::token_list_t& tl);
 
     static void extract_next_token(token_list_t& tl, token_t& token,
-        std::function<bool(const token_list_t& tl, const token_t& token)> check
-        = [](const token_list_t& tl, const token_t& token) {
-              return tl.empty();
-          });
+        std::function<bool(const token_list_t& tl, const token_t& token)> 
+            check = [](const token_list_t& tl, const token_t& token) {
+                (void)token;
+                return tl.empty();
+            });
 
 
     static void move_sub_expression(token_list_t& source_tl,
@@ -106,16 +107,12 @@ protected:
     stmt_t::handle_t parse_const(
         prog_ctx_t& ctx, token_t token, token_list_t& tl);
 
-
-    //! parse explicit typename
-    bool search_for__as_type(const token_list_t& tl, std::string& tname);
-
-
     //! parse instruction parameter list
     template <class T, typename... E>
     stmt_t::handle_t parse_parameter_list(prog_ctx_t& ctx, token_t token,
         token_list_t& tl, const std::string& end_token, E&&... xprms)
     {
+        (void)ctx;
         --tl;
 
         remove_blank(tl);
@@ -384,6 +381,7 @@ protected:
         token_list_t& tl, std::function<bool(const token_t&)> is_separator,
         E&&... xargs)
     {
+        (void)ctx;
         expr_parser_t ep;
         arg_list_t args;
         auto pos = token.position();

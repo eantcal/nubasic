@@ -34,7 +34,10 @@ public:
     symbol_map_t(const symbol_map_t&) = default;
     symbol_map_t& operator=(const symbol_map_t&) = delete;
     virtual ~symbol_map_t() {}
-    symbol_map_t(symbol_map_t&& obj) { _symbols = std::move(obj); }
+
+    symbol_map_t(symbol_map_t&& obj) { 
+        _symbols = std::move(obj); 
+    }
 
     symbol_map_t& operator=(symbol_map_t&& obj) {
         if (this != &obj) {
@@ -57,7 +60,9 @@ public:
         return _symbols.find(name) != _symbols.end();
     }
 
-    Symb& operator[](const std::string& name) { return _symbols[name]; }
+    Symb& operator[](const std::string& name) { 
+        return _symbols[name]; 
+    }
 
     const Symb& operator[](const std::string& name) const {
         auto i = map().find(name);
@@ -71,10 +76,21 @@ public:
         return i->second;
     }
 
-    bool empty() const noexcept { return _symbols.empty(); }
-    size_t size() const noexcept { return _symbols.size(); }
-    const std::map<Key, Symb>& map() const noexcept { return _symbols; }
-    virtual void clear() { _symbols.clear(); }
+    bool empty() const noexcept { 
+        return _symbols.empty(); 
+    }
+
+    size_t size() const noexcept { 
+        return _symbols.size(); 
+    }
+
+    const std::map<Key, Symb>& map() const noexcept { 
+        return _symbols; 
+    }
+
+    virtual void clear() { 
+        _symbols.clear(); 
+    }
 
     friend std::stringstream& operator<<(
         std::stringstream& ss, symbol_map_t<Key, Symb>& obj)
@@ -86,7 +102,9 @@ public:
     }
 
 protected:
-    std::map<Key, Symb>& map() noexcept { return _symbols; }
+    std::map<Key, Symb>& map() noexcept { 
+        return _symbols; 
+    }
     
     virtual void get_err_msg(
         const std::string& key, std::string& err) const = 0;

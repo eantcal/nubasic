@@ -36,6 +36,7 @@ public:
     stmt_randomize_t& operator=(const stmt_randomize_t&) = delete;
 
     void run(rt_prog_ctx_t& ctx) override { 
+        (void)ctx;
         _os_randomize(); 
     }
 };

@@ -92,11 +92,12 @@ void nu::token_t::set_identifier(const std::string& id, case_t casemode)
 /* -------------------------------------------------------------------------- */
 
 nu::token_t::token_t(const std::string& id, tkncl_t t, size_t pos,
-    data_ptr_t expr_ptr) noexcept : _identifier(id),
-                                    _org_id(id),
-                                    _type(t),
-                                    _position(pos),
-                                    _expression_ptr(expr_ptr)
+    data_ptr_t expr_ptr) noexcept : 
+        _identifier(id),
+        _org_id(id),
+        _type(t),
+        _position(pos),
+        _expression_ptr(expr_ptr)
 {
     _set_id_lowercase();
 }

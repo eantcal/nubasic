@@ -55,7 +55,7 @@ public:
     virtual token_t next() = 0;
 
     //! Get a token list
-    virtual void get_tknlst(token_list_t& tl, bool strip_comment) = 0;
+    virtual void get_tknlst(token_list_t& tl/*, bool strip_comment*/) = 0;
 
 
     //! Get buffer pointer (cptr)

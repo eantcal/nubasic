@@ -28,7 +28,7 @@ void var_scope_t::get_err_msg(const std::string& key, std::string& err) const
 
 bool var_scope_t::define(const std::string& name, const var_value_t& value)
 {
-    map()[name]=value; //TODO
+    map()[name]=value;
     return true;
 }
 

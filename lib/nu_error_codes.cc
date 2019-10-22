@@ -28,17 +28,18 @@ rt_error_code_t* rt_error_code_t::_instance_ptr = nullptr;
 void rt_error_code_t::throw_exc(
     int line, value_t errcode, const std::string& stmt)
 {
-    struct err_t : public error_code_t {
+    class err_t : public error_code_t {
         int _err = 0;
 
-        err_t(int err)
-            : _err(err)
-        {
-        }
+        public:
+            err_t(int err)
+                : _err(err)
+            {
+            }
 
-        int get() const noexcept { 
-            return _err; 
-        }
+            int get() const noexcept { 
+                return _err; 
+            }
     };
 
     std::string errmsg = stmt.empty() ? "" : stmt + " ";

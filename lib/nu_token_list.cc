@@ -27,7 +27,6 @@ token_list_t& token_list_t::operator--()
     assert(!empty());
 
     data().erase(begin());
-
     return *this;
 }
 
@@ -40,7 +39,6 @@ token_list_t& token_list_t::operator--(int)
     assert(!empty());
 
     data().erase(end() - 1);
-
     return *this;
 }
 

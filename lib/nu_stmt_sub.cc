@@ -26,12 +26,13 @@ stmt_sub_t::stmt_sub_t(prog_ctx_t& ctx, const std::string& id)
 {
     auto i = ctx.proc_prototypes.data.find(id);
 
-    syntax_error_if(i != ctx.proc_prototypes.data.end()
-            && i->second.first.get_line() != ctx.compiletime_pc.get_line(),
+    const auto found = i != ctx.proc_prototypes.data.end();
+
+    syntax_error_if(found && i->second.first.get_line() != ctx.compiletime_pc.get_line(),
         "Sub-routine " + id + " already defined");
 
     // Remove old declaration for replacing its prototype
-    if (i != ctx.proc_prototypes.data.end()) {
+    if (found) {
         ctx.proc_prototypes.data.erase(i);
     }
 

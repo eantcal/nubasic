@@ -25,17 +25,17 @@ stmt_struct_t::stmt_struct_t(prog_ctx_t& ctx, const std::string& id)
 {
 
     // Search function prototype by name
-    //
+
     auto i = ctx.struct_prototypes.data.find(id);
+    const auto found = i != ctx.struct_prototypes.data.end();
 
     syntax_error_if(
-        (i != ctx.struct_prototypes.data.end()
-            && i->second.first.get_line() != ctx.compiletime_pc.get_line()),
+        found && i->second.first.get_line() != ctx.compiletime_pc.get_line(),
         "Struct " + id + " already defined");
-    //
+    
 
     // Remove an old declaration for replacing its prototype
-    if (i != ctx.struct_prototypes.data.end()) {
+    if (found) {
         ctx.struct_prototypes.data.erase(i);
     }
 

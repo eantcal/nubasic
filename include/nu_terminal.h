@@ -90,9 +90,6 @@ public:
  * based on Unix General Terminal Interface (termios)
  */
 class terminal_input_t {
-private:
-    bool _disable_stdin_echo;
-
 public:
     enum vkey_t {
         CTRL_A = 1,
@@ -146,11 +143,6 @@ public:
     };
 
 
-    inline terminal_input_t(bool disable_stdin_echo = true)
-        : _disable_stdin_echo(disable_stdin_echo)
-    {
-    }
-
     virtual ~terminal_input_t() noexcept;
     virtual int getch() const noexcept;
 
@@ -177,9 +169,9 @@ public:
  */
 struct history_list_t : protected std::vector<std::string> {
 public:
-    typedef std::vector<std::string> svec_t;
+    using svec_t = std::vector<std::string>;
 
-    history_list_t(const svec_t& init_state = svec_t())
+    history_list_t(/*const svec_t& init_state = svec_t()*/)
         : _cursor(0)
     {
     }

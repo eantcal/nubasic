@@ -314,7 +314,7 @@ std::string _os_input_str(int n)
     std::string line;
 
     while (n > 0) {
-        terminal_input_t ti(true);
+        terminal_input_t ti;
         terminal_t terminal(ti);
         terminal.set_max_line_length(n);
         terminal.register_eol_ch(nu::terminal_input_t::CR);
@@ -350,7 +350,7 @@ std::string _os_input(FILE* finput_ptr)
             terminal_t terminal;
 
             _term()
-                : ti(true)
+                : ti()
                 , terminal(ti)
             {
                 terminal.register_eol_ch(nu::terminal_input_t::CR);
@@ -390,7 +390,7 @@ std::string _os_input(FILE* finput_ptr)
 
 int _os_kbhit()
 {
-    terminal_input_t ti(true);
+    terminal_input_t ti;
     int c = 0;
 
     while (ti.keybhit()) {
