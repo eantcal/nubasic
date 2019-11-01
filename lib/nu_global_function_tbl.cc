@@ -1399,6 +1399,7 @@ fmap["sin"] = functor<float, _sin>;
             [](rt_prog_ctx_t& ctx, const std::string& name,
                 const nu::func_args_t& args) 
         {
+	    (void) ctx;
             check_arg_num(args, 0, name);
             return nu::variant_t(_os_get_screen_width());
         };

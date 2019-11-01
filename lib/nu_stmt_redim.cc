@@ -41,14 +41,13 @@ void stmt_redim_t::run(rt_prog_ctx_t& ctx)
             "ReDim '" + name + "'");
 
         auto vtype = value.first;
-        std::string init_val = "0";
-
         auto vtype_code = variable_t::type_by_name(vtype); // TODO Struct
+
+        std::string init_val = 
+            vtype_code == variable_t::type_t::STRING ? "" : "0";
 
         switch (vtype_code) {
         case variable_t::type_t::STRING:
-            init_val = "";
-
         case variable_t::type_t::FLOAT:
         case variable_t::type_t::DOUBLE:
         case variable_t::type_t::INTEGER:
@@ -66,6 +65,7 @@ void stmt_redim_t::run(rt_prog_ctx_t& ctx)
         default:
             rt_error_if(
                 true, rt_error_code_t::E_INV_IDENTIF, "ReDim '" + name + "'");
+            break;
         }
     }
 

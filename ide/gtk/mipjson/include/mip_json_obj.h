@@ -134,13 +134,16 @@ public:
         _value.ptr = value;
     }
 
+#if 0 // FIX ME
     //! Constructs a json object from an object value
     explicit json_obj_t(data_t&& value) noexcept : _type(type_t::OBJECT) {
+        (void) value;
         auto obj_ptr = new data_t;
         assert(obj_ptr);
 
         _value.ptr = obj_ptr;
     }
+#endif
 
     /** Constructs a json object from an array pointer
      * Array will be freed by the dtor

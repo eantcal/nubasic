@@ -53,6 +53,7 @@ void stmt_const_t::run(rt_prog_ctx_t& ctx)
             value_type != variable_t::type_t::STRING, ctx.runtime_pc.get_line(),
             rt_error_code_t::E_TYPE_ILLEGAL, "'" + name + "'");
         init_val = value.to_str();
+	break;
 
     case variable_t::type_t::FLOAT:
     case variable_t::type_t::DOUBLE:

@@ -566,7 +566,8 @@ public:
                 _gc = create_gc(_pen_width);
                 create_rgb_color(_pen_color);
                 XSetForeground(_display, _gc, _xcolor.pixel);
-                XWindowAttributes attr = { 0 };
+                XWindowAttributes attr;
+		memset(&attr, 0, sizeof attr);
                 XGetWindowAttributes(_display, _xterm_win, &attr);
                 _win_width = attr.width;
                 _win_height = attr.height;
@@ -580,7 +581,8 @@ public:
 protected:
     GC create_gc(int line_width)
     {
-        XGCValues gc_val = { 0 };
+        XGCValues gc_val;
+	memset( &gc_val, 0, sizeof gc_val );
 
         gc_val.function = GXcopy;
         gc_val.plane_mask = AllPlanes;
@@ -1053,6 +1055,8 @@ int os_fillellipse_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
 int os_plotimage_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
 {
+    (void) ctx;
+    
     enum { FNAME, X, Y, NARGS };
 
     if (args.size() != NARGS) {

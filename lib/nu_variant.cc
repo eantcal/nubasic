@@ -706,7 +706,7 @@ std::ostream& operator<<(std::ostream& os, const variant_t& val)
                 }
 
                 char c = val.to_int(index);
-                os << (int(c) >= 0x20 && int(c) <= 127 ? c : '.');
+                os << (int(c) >= 0x20 /* && int(c) <= 127 (implicit) */ ? c : '.');
             }
 
             if (break_loop)

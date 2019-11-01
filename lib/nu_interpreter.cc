@@ -433,7 +433,7 @@ std::string interpreter_t::read_line(FILE* f)
     while (!feof(f) && ferror(f) == 0) {
         char c = fgetc(f);
 
-        if (int(c >= 32) && int(c <= 127)) {
+        if (int(c) >= 32 /*&& int(c) <= 127 (implicit) */) {
             line.push_back(c);
         }
 
@@ -457,7 +457,7 @@ std::string interpreter_t::read_line(std::stringstream & ss)
         
         ss >> std::noskipws >> c;
 
-        if (int(c >= 32) && int(c <= 127)) {
+        if (int(c) >= 32 /* && int(c) <= 127 (implicit) */ ) {
             line.push_back(c);
         }
 
