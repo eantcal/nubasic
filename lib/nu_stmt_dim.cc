@@ -65,6 +65,10 @@ void stmt_dim_t::run(rt_prog_ctx_t& ctx)
         case variable_t::type_t::STRING:
         case variable_t::type_t::ANY:
             init_val = "";
+            scope->define(
+                name, var_value_t(variant_t(init_val, vtype_code, vsize),
+                          VAR_ACCESS_RW));
+            break;
 
         case variable_t::type_t::FLOAT:
         case variable_t::type_t::DOUBLE:

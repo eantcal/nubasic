@@ -86,6 +86,8 @@ json_parser_t::result_t json_parser_t::parse_number(
     _istream & is, 
     _ostream & err)
 {
+    (void) is;
+
     json_obj_t::handle_t ret;
 
     auto tt = tkn.type();
