@@ -189,14 +189,17 @@ void stmt_print_t::run(rt_prog_ctx_t& ctx)
                 default:
                     if (val.get_type() != variant_t::type_t::UNDEFINED) {
                        if (_unicode) {
-                          auto data = unicode_unescape(val.to_str());
+                          auto s = val.to_str();
+                          s += separator;
+                          auto data = unicode_unescape(s);
 
                           if (sout == stdout) {
-                             data.push_back('\n');
                              _os_u16write(data);
                           }
                           else {
-                             ret = fwprintf(sout, L"%ls\n", data.c_str());
+                             ret = fwprintf(sout, L"%ls%s", 
+                                data.c_str(), 
+                                separator.c_str());
                           }
                        }
                        else {
