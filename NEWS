@@ -1,12 +1,16 @@
 nuBASIC NEWS -- history of user-visible changes.
 http://www.nubasic.eu/
-Author - Antonino Calderone - antonino.calderone@gmail.com - (c) 2014-2019
+Author - Antonino Calderone - antonino.calderone@gmail.com - (c) 2014-2020
 
 Please send nuBASIC and nuBasic IDE bug reports to <antonino.calderone@gmail.com>.
 
 Win32/64 built with VS2017 needs "Visual C++ Redistributable Packages for Visual Studio 2017"
 
-Sep tbd, 2019
+TBD 2020
+* Released nuBASIC 1.52
+- Allow PRINT to print out sequence of escaped unicode characters
+
+Sep 2019
 * Released nuBASIC 1.51
 - Bug fixing of expression parser: unary minus operator could generate a false syntax error
 - Add STOP statement for compatibility with other BASIC interpreters
