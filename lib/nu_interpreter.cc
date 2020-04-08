@@ -175,11 +175,11 @@ void interpreter_t::renum_line(std::string& line, const renum_tbl_t& renum_tbl)
     std::string new_line;
     tokenizer_t tknzr(line);
 
-    enum {
+    enum class st_t {
         EXPECTED_GOXX,
         EXPECTED_TO_OR_SUB,
         EXPECTED_LINENUM,
-    } state = EXPECTED_GOXX;
+    } state = st_t::EXPECTED_GOXX;
 
     while (!tknzr.eol()) {
         token_t t = tknzr.next();
@@ -210,20 +210,20 @@ void interpreter_t::renum_line(std::string& line, const renum_tbl_t& renum_tbl)
         }
 
         switch (state) {
-        case EXPECTED_GOXX:
+        case st_t::EXPECTED_GOXX:
             if (t.type() == tkncl_t::IDENTIFIER) {
 
                 if (t.identifier() == "goto") {
-                    state = EXPECTED_LINENUM;
+                    state = st_t::EXPECTED_LINENUM;
                 }
                 else if (t.identifier() == "gosub") {
-                    state = EXPECTED_LINENUM;
+                    state = st_t::EXPECTED_LINENUM;
                 }
                 else if (t.identifier() == "go") {
-                    state = EXPECTED_TO_OR_SUB;
+                    state = st_t::EXPECTED_TO_OR_SUB;
                 }
                 else {
-                    state = EXPECTED_GOXX;
+                    state = st_t::EXPECTED_GOXX;
                 }
             }
 
@@ -231,17 +231,17 @@ void interpreter_t::renum_line(std::string& line, const renum_tbl_t& renum_tbl)
 
             break;
 
-        case EXPECTED_TO_OR_SUB:
+        case st_t::EXPECTED_TO_OR_SUB:
             state = t.identifier() == "to" || t.identifier() == "sub"
-                ? EXPECTED_LINENUM
-                : EXPECTED_GOXX;
+                ? st_t::EXPECTED_LINENUM
+                : st_t::EXPECTED_GOXX;
 
             new_line += t.org_id();
 
             break;
 
-        case EXPECTED_LINENUM:
-            state = EXPECTED_GOXX;
+        case st_t::EXPECTED_LINENUM:
+            state = st_t::EXPECTED_GOXX;
 
             if (t.type() == tkncl_t::INTEGRAL) {
                 prog_pointer_t::line_number_t ln = 0;

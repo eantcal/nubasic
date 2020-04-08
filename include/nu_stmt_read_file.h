@@ -55,7 +55,7 @@ public:
 
 protected:
     arg_list_t _args;
-    int _fd;
+    int _fd = 0;
     var_arg_t _var;
 };
 

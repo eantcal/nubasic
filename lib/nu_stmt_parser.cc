@@ -158,6 +158,7 @@ stmt_t::handle_t stmt_parser_t::parse_print(
     --tl;
     remove_blank(tl);
     int fd = 0;
+    bool unicode_output = false;
 
     // print# filenum
     if (token.identifier() == "print#" || token.identifier() == "write#") {
@@ -215,12 +216,46 @@ stmt_t::handle_t stmt_parser_t::parse_print(
                 }
             }
         }
+
+       
     }
 
     syntax_error_if(fd < 0, token.expression(), token.position());
 
+    // Unicode output
+    if (!tl.empty()) {
+       token = *tl.begin();
+
+       if (token.type() == tkncl_t::IDENTIFIER) {
+          std::string id = token.identifier();
+          if (id == "$u" || id == "$U") {
+             try {
+                unicode_output = true;
+             }
+             catch (...) {
+                syntax_error(token.expression(), token.position());
+             }
+
+             --tl;
+             remove_blank(tl);
+
+             if (!tl.empty()) {
+                token = *tl.begin();
+
+                syntax_error_if(token.type() != tkncl_t::OPERATOR
+                   || token.identifier() != ",",
+                   token.expression(), token.position());
+
+                --tl; // remove comma from tl
+             }
+          }
+       }
+    }
+
+    
     if (tl.empty()) {
-        return stmt_t::handle_t(std::make_shared<stmt_print_t>(ctx, fd));
+        return stmt_t::handle_t(
+           std::make_shared<stmt_print_t>(ctx, fd, unicode_output));
     }
 
 
@@ -229,7 +264,8 @@ stmt_t::handle_t stmt_parser_t::parse_print(
 
         // Create statement to print out a literal string
         return stmt_t::handle_t(
-            std::make_shared<stmt_print_t>(ctx, fd, token.identifier()));
+            std::make_shared<stmt_print_t>(
+               ctx, fd, unicode_output, token.identifier()));
     }
 
     return parse_arg_list<stmt_print_t, 0>(ctx, token, tl,
@@ -237,7 +273,7 @@ stmt_t::handle_t stmt_parser_t::parse_print(
             return t.type() == tkncl_t::OPERATOR
                 && (t.identifier() == "," || t.identifier() == ";");
         },
-        ctx, fd);
+        ctx, fd, unicode_output);
 }
 
 
@@ -2207,7 +2243,7 @@ stmt_t::handle_t stmt_parser_t::compile_line(
 
         case tkncl_t::OPERATOR:
             syntax_error_if(token.identifier() != NU_BASIC_OP_INC
-                    && token.identifier() != NU_BASIC_OP_INC,
+                    && token.identifier() != NU_BASIC_OP_DEC,
                 token.expression(), token.position());
             break;
 

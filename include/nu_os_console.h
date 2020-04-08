@@ -31,7 +31,7 @@ std::string _os_input(FILE* finput_ptr);
 int _os_kbhit();
 void _os_cursor_visible(bool on);
 void _os_config_term(bool on);
-
+void _os_u16write(const std::u16string& output);
 
 /* -------------------------------------------------------------------------- */
 }

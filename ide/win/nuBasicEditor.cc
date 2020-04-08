@@ -1,4 +1,4 @@
-//  
+﻿//  
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.  
@@ -17,6 +17,7 @@
 #include "nu_exception.h"
 #include "nu_interpreter.h"
 #include "nu_reserved_keywords.h"
+#include "nu_os_console.h"
 
 #include "textinfobox.h"
 #include "toolbar.h"
@@ -1691,6 +1692,8 @@ void nu::editor_t::alloc_console()
     }
 
     AllocConsole();
+    SetConsoleOutputCP(CP_UTF8);
+
     SetConsoleTitle("nuBASIC - Press CTRL+C to break execution");
 
     hwnd = ::GetConsoleWindow();

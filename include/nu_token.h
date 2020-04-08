@@ -104,7 +104,7 @@ public:
         return _expression_ptr; 
     }
 
-    token_t(token_t&& other)
+    token_t(token_t&& other) noexcept
         : _identifier(std::move(other._identifier))
         , _org_id(std::move(other._org_id))
         , _type(std::move(other._type))
@@ -113,7 +113,7 @@ public:
     {
     }
 
-    token_t& operator=(token_t&& other) {
+    token_t& operator=(token_t&& other) noexcept {
         if (this != &other) {
             _identifier = std::move(other._identifier);
             _org_id = std::move(other._org_id);

@@ -29,7 +29,9 @@ namespace nu {
 struct tokenizer_t : public expr_tknzr_t 
 {
     tokenizer_t(const std::string& data, size_t pos = 0)
-        : expr_tknzr_t(data, pos, NU_BASIC_BLANKS, NU_BASIC_NEWLINES,
+        : expr_tknzr_t(data, pos, 
+              NU_BASIC_BLANKS, 
+              NU_BASIC_NEWLINES,
               NU_BASIC_SINGLE_CHAR_OPS, 
               NU_BASIC_WORD_OPS,
               NU_BASIC_BEGIN_SUBEXPR, 

@@ -109,6 +109,10 @@ bool lxa_str_t::accept(char c)
                 _data += '\a';
                 break;
 
+            case 'u':
+               _data += "\\u";
+               break;
+
             default:
                 _data += c;
             }

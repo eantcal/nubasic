@@ -36,13 +36,13 @@ public:
     expr_literal_t& operator=(const expr_literal_t&) = default;
 
     //! move ctor
-    expr_literal_t(expr_literal_t&& obj)
+    expr_literal_t(expr_literal_t&& obj) noexcept
         : _val(std::move(obj._val))
     {
     }
 
     //! move operator
-    expr_literal_t& operator=(expr_literal_t&& obj) {
+    expr_literal_t& operator=(expr_literal_t&& obj) noexcept {
         if (this != &obj)
             _val = std::move(obj._val);
 

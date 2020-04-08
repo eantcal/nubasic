@@ -82,12 +82,12 @@ public:
         {
         }
 
-        breakpoint_cond_t(breakpoint_cond_t&& other) {
+        breakpoint_cond_t(breakpoint_cond_t&& other) noexcept {
             condition_str = std::move(other.condition_str);
             condition_stmt = std::move(other.condition_stmt);
         }
 
-        breakpoint_cond_t& operator=(breakpoint_cond_t&& other) {
+        breakpoint_cond_t& operator=(breakpoint_cond_t&& other) noexcept {
             if (this != &other) {
                 condition_str = std::move(other.condition_str);
                 condition_stmt = std::move(other.condition_stmt);

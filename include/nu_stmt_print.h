@@ -32,17 +32,23 @@ public:
     stmt_print_t(const stmt_print_t&) = delete;
     stmt_print_t& operator=(const stmt_print_t&) = delete;
 
-    stmt_print_t(prog_ctx_t& ctx, int fd = 0, const std::string& data = "")
+    stmt_print_t(
+       prog_ctx_t& ctx, 
+       int fd = 0, 
+       bool unicode = false, 
+       const std::string& data = "")
         : stmt_t(ctx)
         , _fd(fd)
+        , _unicode(unicode)
         , _data(data)
     {
     }
 
-    stmt_print_t(const arg_list_t& args, prog_ctx_t& ctx, int fd)
+    stmt_print_t(const arg_list_t& args, prog_ctx_t& ctx, int fd, bool unicode)
         : stmt_t(ctx)
         , _args(args)
         , _fd(fd)
+        , _unicode(unicode)
     {
     }
 
@@ -51,6 +57,7 @@ public:
 protected:
     arg_list_t _args;
     int _fd = 0; /* 0 means 'use stdout' */
+    bool _unicode = false;
     std::string _data;
 };
 

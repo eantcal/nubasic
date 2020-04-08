@@ -685,14 +685,16 @@ static help_content_t _help_content[] = {
         "expressions, separated by commas or semicolons.\n"
         "A question mark (?) may be used in place of the word Print when it is "
         "the first statement in the immediate-mode editing.\n"
-        "Literal strings in the list must be enclosed in double quotation "
-        "marks",
-        "Print [list of expressions][;]" },
+        "Literal strings in the list must be enclosed in double quotation"
+        "marks. If the optional prefix $u is specified, you can insert "
+        " sequence of \\u0000-\\uffff which will interpreted as unicode symbols.\n"
+        "How they are rendered depends on console configuration (e.g. Font)",
+        "Print [$u,][list of expressions][;]" },
 
     { lang_item_t::INSTRUCTION, "print#",
         "Prints list of expressions to file (0-standard output)\n"
         "\nSee also Print, Write, Open, Close",
-        "Write[#]|Print[#] filenumber, [list of expressions][;]" },
+        "Write#|Print#  filenumber, [$u,] [list of expressions][;]" },
 
     { lang_item_t::INSTRUCTION, "input",
         "Prompts the user to input data that be will placed into a list of "

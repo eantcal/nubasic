@@ -11,6 +11,7 @@
 #include "nu_stmt_print.h"
 #include "nu_os_console.h"
 #include "nu_rt_prog_ctx.h"
+#include "nu_unicode.h"
 
 
 /* -------------------------------------------------------------------------- */
@@ -44,10 +45,14 @@ void stmt_print_t::run(rt_prog_ctx_t& ctx)
         }
     };
 
-    if (_fd != 0) {
-        sout = ctx.file_tbl.resolve_fd(_fd);
+    if (_fd >= 0) {
+        sout = _fd == 0 ? stdout : ctx.file_tbl.resolve_fd(_fd);
         hide_cursor = false;
     }
+    
+    //if (sout == stdout && _unicode) {
+    //   sout = stderr;
+    //}
 
     if (sout == nullptr) {
         ctx.set_errno(EBADF);
@@ -59,7 +64,19 @@ void stmt_print_t::run(rt_prog_ctx_t& ctx)
 
     if (_args.empty()) {
         _hide_cursor_guard_t guard(hide_cursor);
-        ret = ::fprintf(sout, "%s\n", _data.c_str());
+        if (_unicode) {
+           auto data = unicode_unescape(_data);
+           if (sout == stdout) {
+              data.push_back('\n');
+              _os_u16write(data);
+           }
+           else {
+              ret = ::fwprintf_s(sout, L"%ls\n", data.c_str());
+           }
+        }
+        else {
+           ret = ::fprintf(sout, "%s\n", _data.c_str());
+        }
         ::fflush(sout);
     }
 
@@ -171,8 +188,21 @@ void stmt_print_t::run(rt_prog_ctx_t& ctx)
                 case variant_t::type_t::UNDEFINED:
                 default:
                     if (val.get_type() != variant_t::type_t::UNDEFINED) {
-                        ret = ::fprintf(sout, "%s%s", val.to_str().c_str(),
-                            separator.c_str());
+                       if (_unicode) {
+                          auto data = unicode_unescape(val.to_str());
+
+                          if (sout == stdout) {
+                             data.push_back('\n');
+                             _os_u16write(data);
+                          }
+                          else {
+                             ret = ::fwprintf_s(sout, L"%ls\n", data.c_str());
+                          }
+                       }
+                       else {
+                          ret = ::fprintf(sout, "%s%s", val.to_str().c_str(),
+                             separator.c_str());
+                       }
                         ::fflush(sout);
                     }
 

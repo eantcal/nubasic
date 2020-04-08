@@ -48,12 +48,12 @@ public:
     token_list_t(const token_list_t&) = default;
     token_list_t& operator=(const token_list_t&) = default;
 
-    token_list_t(token_list_t&& other) : 
+    token_list_t(token_list_t&& other) noexcept : 
         _data(std::move(other._data)) 
     {
     }
 
-    token_list_t& operator=(token_list_t&& other) {
+    token_list_t& operator=(token_list_t&& other) noexcept {
         if (this != &other) {
             _data = std::move(other._data);
         }
@@ -61,12 +61,12 @@ public:
     }
 
     //! Return a reference to standard internal data
-    data_t& data() { 
+    data_t& data() noexcept { 
         return _data; 
     }
 
     //! Return a constant reference to standard internal data
-    const data_t& data() const { 
+    const data_t& data() const noexcept { 
         return _data; 
     }
 

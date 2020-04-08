@@ -41,12 +41,12 @@ public:
     }
 
     //! move ctor
-    exception_t(exception_t&& e) { 
+    exception_t(exception_t&& e) noexcept { 
         _msg = std::move(e._msg); 
     }
 
     //! move assign operator
-    exception_t& operator=(exception_t&& e) {
+    exception_t& operator=(exception_t&& e) noexcept {
         if (&e != this)
             _msg = std::move(e._msg);
 

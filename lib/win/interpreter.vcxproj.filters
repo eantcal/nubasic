@@ -324,6 +324,9 @@
     <ClInclude Include="..\..\config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\nu_unicode.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\nu_builtin_help.cc">
@@ -573,6 +576,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\nu_variant.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\nu_unicode.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

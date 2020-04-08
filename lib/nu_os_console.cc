@@ -22,6 +22,9 @@
 #include <conio.h>
 #include <windows.h>
 
+#include <io.h>
+#include <fcntl.h>
+#include <locale.h>
 
 /* -------------------------------------------------------------------------- */
 
@@ -56,6 +59,20 @@ static std::string _input_str(int n, std::function<int()> _getch_f)
 void _os_init()
 {
     // do nothing
+   //_setmode(_fileno(stderr), _O_U16TEXT);
+   setlocale(LC_CTYPE, ".932");
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void _os_u16write(const std::u16string& output)
+{
+   WriteConsoleW(
+      GetStdHandle(STD_OUTPUT_HANDLE), 
+      output.c_str(), 
+      (DWORD) output.length(), 
+      NULL, NULL);
 }
 
 
@@ -277,6 +294,14 @@ public:
 void _os_init() 
 { 
     static save_tty_settings_t _init_terminal; 
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void _os_u16write(const std::u16string& output)
+{
+   printf("%ls", (wchar_t*) output.c_str());
 }
 
 

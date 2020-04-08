@@ -9,6 +9,7 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_basic_defs.h"
+#include "nu_os_console.h"
 
 #ifndef _WIN32
 #ifdef __linux__
@@ -40,6 +41,7 @@ int create_terminal_frame(int argc, char* argv[])
     (void)argc;
     (void)argv;
 
+    _os_init();
     SetConsoleTitle(nu::about::progname);
     return 0;
 }
