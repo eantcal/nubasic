@@ -12,6 +12,11 @@
 #include <cstdio>
 #include <functional>
 
+#include <locale>
+#include <codecvt>
+#include <string>
+#include <iostream>
+
 /* -------------------------------------------------------------------------- */
 
 #ifdef _WIN32
@@ -293,7 +298,8 @@ public:
 
 void _os_init() 
 { 
-    static save_tty_settings_t _init_terminal; 
+    static save_tty_settings_t _init_terminal;
+    setlocale(LC_CTYPE, ""); 
 }
 
 
@@ -301,7 +307,9 @@ void _os_init()
 
 void _os_u16write(const std::u16string& output)
 {
-   printf("%ls", (wchar_t*) output.c_str());
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert;
+    std::string bs = convert.to_bytes(output);
+    printf("%s", bs.c_str());
 }
 
 

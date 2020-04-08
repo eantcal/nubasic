@@ -41,7 +41,7 @@ add_custom_target(
 )
 
 
-set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GTK2_DEFINITIONS} -std=c++14" )
+set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GTK2_DEFINITIONS} -std=c++14 -Wmissing-field-initializers" )
 
 include_directories(
     ../../ 
