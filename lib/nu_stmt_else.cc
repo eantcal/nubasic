@@ -48,7 +48,7 @@ void stmt_elif_t::run(rt_prog_ctx_t& ctx)
     const auto& metadata_it = ifctxs.data.find(ifstmt_pc);
 
     rt_error_code_t::get_instance().throw_if(metadata_it == ifctxs.data.end(),
-        ctx.runtime_pc.get_line(), rt_error_code_t::E_INTERNAL, "Elif");
+        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INTERNAL, "Elif");
 
     if (metadata_it->second.condition) {
         ctx.go_to(metadata_it->second.pc_endif_stmt);

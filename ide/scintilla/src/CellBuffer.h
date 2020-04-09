@@ -45,7 +45,7 @@ public:
 	// Move constructor allows vector to be resized without reallocating.
 	Action(Action &&other) noexcept = default;
 	~Action();
-	void Create(actionType at_, Sci::Position position_=0, const char *data_=0, Sci::Position lenData_=0, bool mayCoalesce_=true);
+	void Create(actionType at_, Sci::Position position_=0, const char *data_=nullptr, Sci::Position lenData_=0, bool mayCoalesce_=true);
 	void Clear();
 };
 
@@ -81,21 +81,21 @@ public:
 	/// The save point is a marker in the undo stack where the container has stated that
 	/// the buffer was saved. Undo and redo can move over the save point.
 	void SetSavePoint();
-	bool IsSavePoint() const;
+	bool IsSavePoint() const noexcept;
 
 	// Tentative actions are used for input composition so that it can be undone cleanly
 	void TentativeStart();
 	void TentativeCommit();
-	bool TentativeActive() const { return tentativePoint >= 0; }
+	bool TentativeActive() const noexcept { return tentativePoint >= 0; }
 	int TentativeSteps();
 
 	/// To perform an undo, StartUndo is called to retrieve the number of steps, then UndoStep is
 	/// called that many times. Similarly for redo.
-	bool CanUndo() const;
+	bool CanUndo() const noexcept;
 	int StartUndo();
 	const Action &GetUndoStep() const;
 	void CompletedUndoStep();
-	bool CanRedo() const;
+	bool CanRedo() const noexcept;
 	int StartRedo();
 	const Action &GetRedoStep() const;
 	void CompletedRedoStep();
@@ -113,6 +113,7 @@ private:
 	SplitVector<char> substance;
 	SplitVector<char> style;
 	bool readOnly;
+	bool utf8Substance;
 	int utf8LineEnds;
 
 	bool collectingUndo;
@@ -120,8 +121,11 @@ private:
 
 	std::unique_ptr<ILineVector> plv;
 
-	bool UTF8LineEndOverlaps(Sci::Position position) const;
+	bool UTF8LineEndOverlaps(Sci::Position position) const noexcept;
+	bool UTF8IsCharacterBoundary(Sci::Position position) const;
 	void ResetLineEnds();
+	void RecalculateIndexLineStarts(Sci::Line lineFirst, Sci::Line lineLast);
+	bool MaintainingLineCharacterIndex() const noexcept;
 	/// Actions without undo
 	void BasicInsertString(Sci::Position position, const char *s, Sci::Position insertLength);
 	void BasicDeleteChars(Sci::Position position, Sci::Position deleteLength);
@@ -144,17 +148,23 @@ public:
 	void GetStyleRange(unsigned char *buffer, Sci::Position position, Sci::Position lengthRetrieve) const;
 	const char *BufferPointer();
 	const char *RangePointer(Sci::Position position, Sci::Position rangeLength);
-	Sci::Position GapPosition() const;
+	Sci::Position GapPosition() const noexcept;
 
 	Sci::Position Length() const noexcept;
 	void Allocate(Sci::Position newSize);
-	int GetLineEndTypes() const { return utf8LineEnds; }
+	void SetUTF8Substance(bool utf8Substance_);
+	int GetLineEndTypes() const noexcept { return utf8LineEnds; }
 	void SetLineEndTypes(int utf8LineEnds_);
-	bool ContainsLineEnd(const char *s, Sci::Position length) const;
+	bool ContainsLineEnd(const char *s, Sci::Position length) const noexcept;
 	void SetPerLine(PerLine *pl);
+	int LineCharacterIndex() const noexcept;
+	void AllocateLineCharacterIndex(int lineCharacterIndex);
+	void ReleaseLineCharacterIndex(int lineCharacterIndex);
 	Sci::Line Lines() const noexcept;
 	Sci::Position LineStart(Sci::Line line) const noexcept;
+	Sci::Position IndexLineStart(Sci::Line line, int lineCharacterIndex) const noexcept;
 	Sci::Line LineFromPosition(Sci::Position pos) const noexcept;
+	Sci::Line LineFromPositionIndex(Sci::Position pos, int lineCharacterIndex) const noexcept;
 	void InsertLine(Sci::Line line, Sci::Position position, bool lineStart);
 	void RemoveLine(Sci::Line line);
 	const char *InsertString(Sci::Position position, const char *s, Sci::Position insertLength, bool &startSequence);
@@ -166,23 +176,23 @@ public:
 
 	const char *DeleteChars(Sci::Position position, Sci::Position deleteLength, bool &startSequence);
 
-	bool IsReadOnly() const;
+	bool IsReadOnly() const noexcept;
 	void SetReadOnly(bool set);
-	bool IsLarge() const;
-	bool HasStyles() const;
+	bool IsLarge() const noexcept;
+	bool HasStyles() const noexcept;
 
 	/// The save point is a marker in the undo stack where the container has stated that
 	/// the buffer was saved. Undo and redo can move over the save point.
 	void SetSavePoint();
-	bool IsSavePoint() const;
+	bool IsSavePoint() const noexcept;
 
 	void TentativeStart();
 	void TentativeCommit();
-	bool TentativeActive() const;
+	bool TentativeActive() const noexcept;
 	int TentativeSteps();
 
 	bool SetUndoCollection(bool collectUndo);
-	bool IsCollectingUndo() const;
+	bool IsCollectingUndo() const noexcept;
 	void BeginUndoAction();
 	void EndUndoAction();
 	void AddUndoAction(Sci::Position token, bool mayCoalesce);
@@ -190,11 +200,11 @@ public:
 
 	/// To perform an undo, StartUndo is called to retrieve the number of steps, then UndoStep is
 	/// called that many times. Similarly for redo.
-	bool CanUndo() const;
+	bool CanUndo() const noexcept;
 	int StartUndo();
 	const Action &GetUndoStep() const;
 	void PerformUndoStep();
-	bool CanRedo() const;
+	bool CanRedo() const noexcept;
 	int StartRedo();
 	const Action &GetRedoStep() const;
 	void PerformRedoStep();

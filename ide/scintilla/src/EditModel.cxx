@@ -13,6 +13,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -24,7 +25,8 @@
 #include "ILexer.h"
 #include "Scintilla.h"
 
-#include "StringCopy.h"
+#include "CharacterCategory.h"
+
 #include "Position.h"
 #include "UniqueString.h"
 #include "SplitVector.h"
@@ -75,5 +77,31 @@ EditModel::EditModel() : braces{} {
 
 EditModel::~EditModel() {
 	pdoc->Release();
-	pdoc = 0;
+	pdoc = nullptr;
+}
+
+bool EditModel::BidirectionalEnabled() const {
+	return (bidirectional != Bidirectional::bidiDisabled) &&
+		(SC_CP_UTF8 == pdoc->dbcsCodePage);
+}
+
+bool EditModel::BidirectionalR2L() const {
+	return bidirectional == Bidirectional::bidiR2L;
+}
+
+void EditModel::SetDefaultFoldDisplayText(const char *text) {
+	defaultFoldDisplayText = IsNullOrEmpty(text) ? UniqueString() : UniqueStringCopy(text);
+}
+
+const char *EditModel::GetDefaultFoldDisplayText() const noexcept {
+	return defaultFoldDisplayText.get();
+}
+
+const char *EditModel::GetFoldDisplayText(Sci::Line lineDoc) const {
+	if (foldDisplayTextStyle == SC_FOLDDISPLAYTEXT_HIDDEN || pcs->GetExpanded(lineDoc)) {
+		return nullptr;
+	}
+
+	const char *text = pcs->GetFoldDisplayText(lineDoc);
+	return text ? text : defaultFoldDisplayText.get();
 }

@@ -14,7 +14,7 @@ struct PrintParameters {
 	int magnification;
 	int colourMode;
 	WrapMode wrapState;
-	PrintParameters();
+	PrintParameters() noexcept;
 };
 
 /**
@@ -36,7 +36,7 @@ enum DrawPhase {
 bool ValidStyledText(const ViewStyle &vs, size_t styleOffset, const StyledText &st);
 int WidestLineWidth(Surface *surface, const ViewStyle &vs, int styleOffset, const StyledText &st);
 void DrawTextNoClipPhase(Surface *surface, PRectangle rc, const Style &style, XYPOSITION ybase,
-	const char *s, int len, DrawPhase phase);
+	std::string_view text, DrawPhase phase);
 void DrawStyledText(Surface *surface, const ViewStyle &vs, int styleOffset, PRectangle rcText,
 	const StyledText &st, size_t start, size_t length, DrawPhase phase);
 
@@ -54,7 +54,7 @@ public:
 	int tabWidthMinimumPixels;
 
 	bool hideSelection;
-	bool drawOverstrikeCaret;
+	bool drawOverstrikeCaret; // used by the curses platform
 
 	/** In bufferedDraw mode, graphics operations are drawn to a pixmap and then copied to
 	* the screen. This avoids flashing but is about 30% slower. */
@@ -97,11 +97,11 @@ public:
 	void operator=(EditView &&) = delete;
 	virtual ~EditView();
 
-	bool SetTwoPhaseDraw(bool twoPhaseDraw);
-	bool SetPhasesDraw(int phases);
-	bool LinesOverlap() const;
+	bool SetTwoPhaseDraw(bool twoPhaseDraw) noexcept;
+	bool SetPhasesDraw(int phases) noexcept;
+	bool LinesOverlap() const noexcept;
 
-	void ClearAllTabstops();
+	void ClearAllTabstops() noexcept;
 	XYPOSITION NextTabstopPos(Sci::Line line, XYPOSITION x, XYPOSITION tabWidth) const;
 	bool ClearTabstops(Sci::Line line);
 	bool AddTabstop(Sci::Line line, int x);
@@ -116,11 +116,13 @@ public:
 	void LayoutLine(const EditModel &model, Sci::Line line, Surface *surface, const ViewStyle &vstyle,
 		LineLayout *ll, int width = LineLayout::wrapWidthInfinite);
 
+	static void UpdateBidiData(const EditModel &model, const ViewStyle &vstyle, LineLayout *ll);
+
 	Point LocationFromPosition(Surface *surface, const EditModel &model, SelectionPosition pos, Sci::Line topLine,
-				   const ViewStyle &vs, PointEnd pe);
+		const ViewStyle &vs, PointEnd pe, const PRectangle rcClient);
 	Range RangeDisplayLine(Surface *surface, const EditModel &model, Sci::Line lineVisible, const ViewStyle &vs);
 	SelectionPosition SPositionFromLocation(Surface *surface, const EditModel &model, PointDocument pt, bool canReturnInvalid,
-		bool charPosition, bool virtualSpace, const ViewStyle &vs);
+		bool charPosition, bool virtualSpace, const ViewStyle &vs, const PRectangle rcClient);
 	SelectionPosition SPositionFromLineX(Surface *surface, const EditModel &model, Sci::Line lineDoc, int x, const ViewStyle &vs);
 	Sci::Line DisplayFromPosition(Surface *surface, const EditModel &model, Sci::Position pos, const ViewStyle &vs);
 	Sci::Position StartEndDisplayLine(Surface *surface, const EditModel &model, Sci::Position pos, bool start, const ViewStyle &vs);
@@ -165,7 +167,7 @@ public:
 	AutoLineLayout(AutoLineLayout &&) = delete;
 	AutoLineLayout &operator=(const AutoLineLayout &) = delete;
 	AutoLineLayout &operator=(AutoLineLayout &&) = delete;
-	~AutoLineLayout() {
+	~AutoLineLayout() noexcept {
 		llc.Dispose(ll);
 		ll = nullptr;
 	}
@@ -175,7 +177,7 @@ public:
 	operator LineLayout *() const noexcept {
 		return ll;
 	}
-	void Set(LineLayout *ll_) {
+	void Set(LineLayout *ll_) noexcept {
 		llc.Dispose(ll);
 		ll = ll_;
 	}

@@ -38,7 +38,7 @@ int os_shell_t::apply(rt_prog_ctx_t& ctx, args_t args)
 
     rt_error_code_t::get_instance().throw_if(args.size() != NARGS
             || args[CMD].get_type() != variant_t::type_t::STRING,
-        ctx.runtime_pc.get_line(), rt_error_code_t::E_INVALID_ARGS, "SHELL");
+        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "SHELL");
 
     auto c = args[CMD].to_str();
 
@@ -55,7 +55,7 @@ int os_chdir_t::apply(rt_prog_ctx_t& ctx, args_t args)
 
     rt_error_code_t::get_instance().throw_if(args.size() != NARGS
             || args[CMD].get_type() != variant_t::type_t::STRING,
-        ctx.runtime_pc.get_line(), rt_error_code_t::E_INVALID_ARGS, "CHDIR");
+        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "CHDIR");
 
     auto dir = args[CMD].to_str();
 
@@ -73,7 +73,7 @@ int os_fopen_t::apply(rt_prog_ctx_t& ctx, args_t args)
             || args[FILENAME].get_type() != variant_t::type_t::STRING
             || args[MODE].get_type() != variant_t::type_t::STRING
             || !variable_t::is_integral(args[FILENUMBER].get_type()),
-        ctx.runtime_pc.get_line(), rt_error_code_t::E_INVALID_ARGS, "FOPEN");
+        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "FOPEN");
 
     auto filename = args[FILENAME].to_str();
     auto mode = args[MODE].to_str();
@@ -93,7 +93,7 @@ int os_fflush_t::apply(rt_prog_ctx_t& ctx, args_t args)
 
     rt_error_code_t::get_instance().throw_if(args.size() != NARGS
             || !variable_t::is_integral(args[FILENUMBER].get_type()),
-        ctx.runtime_pc.get_line(), rt_error_code_t::E_INVALID_ARGS, "FLUSH");
+        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "FLUSH");
 
     auto filenumber = args[FILENUMBER].to_int();
 
@@ -113,7 +113,7 @@ int os_fseek_t::apply(rt_prog_ctx_t& ctx, args_t args)
             || !variable_t::is_integral(args[SEEKPTR].get_type())
             || !variable_t::is_integral(args[SEEKORIGIN].get_type())
             || !variable_t::is_integral(args[FILENUMBER].get_type()),
-        ctx.runtime_pc.get_line(), rt_error_code_t::E_INVALID_ARGS, "SEEK");
+        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "SEEK");
 
     auto filenumber = args[FILENUMBER].to_int();
     auto seekptr = args[SEEKPTR].to_int();

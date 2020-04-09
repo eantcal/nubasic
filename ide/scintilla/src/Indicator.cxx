@@ -8,6 +8,7 @@
 #include <cmath>
 
 #include <stdexcept>
+#include <string_view>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -22,10 +23,10 @@
 
 using namespace Scintilla;
 
-static PRectangle PixelGridAlign(const PRectangle &rc) {
+static PRectangle PixelGridAlign(const PRectangle &rc) noexcept {
 	// Move left and right side to nearest pixel to avoid blurry visuals
-	return PRectangle(round(rc.left), floor(rc.top),
-		round(rc.right), floor(rc.bottom));
+	return PRectangle(std::round(rc.left), std::floor(rc.top),
+		std::round(rc.right), std::floor(rc.bottom));
 }
 
 void Indicator::Draw(Surface *surface, const PRectangle &rc, const PRectangle &rcLine, const PRectangle &rcCharacter, DrawState drawState, int value) const {
@@ -47,8 +48,7 @@ void Indicator::Draw(Surface *surface, const PRectangle &rc, const PRectangle &r
 		surface->MoveTo(x, irc.top + y);
 		while (x < xLast) {
 			if ((x + 2) > xLast) {
-				if (xLast > x)
-					y = 1;
+				y = 1;
 				x = xLast;
 			} else {
 				x += 2;
@@ -60,7 +60,7 @@ void Indicator::Draw(Surface *surface, const PRectangle &rc, const PRectangle &r
 		const PRectangle rcSquiggle = PixelGridAlign(rc);
 
 		const int width = std::min(4000, static_cast<int>(rcSquiggle.Width()));
-		RGBAImage image(width, 3, 1.0, 0);
+		RGBAImage image(width, 3, 1.0, nullptr);
 		enum { alphaFull = 0xff, alphaSide = 0x2f, alphaSide2=0x5f };
 		for (int x = 0; x < width; x++) {
 			if (x%2) {
@@ -137,6 +137,27 @@ void Indicator::Draw(Surface *surface, const PRectangle &rc, const PRectangle &r
 		rcBox.right = rc.right;
 		surface->AlphaRectangle(rcBox, (sacDraw.style == INDIC_ROUNDBOX) ? 1 : 0,
 			sacDraw.fore, fillAlpha, sacDraw.fore, outlineAlpha, 0);
+	} else if (sacDraw.style == INDIC_GRADIENT ||
+		sacDraw.style == INDIC_GRADIENTCENTRE) {
+		PRectangle rcBox = rc;
+		rcBox.top = rcLine.top + 1;
+		rcBox.bottom = rcLine.bottom;
+		const Surface::GradientOptions options = Surface::GradientOptions::topToBottom;
+		const ColourAlpha start(sacNormal.fore, fillAlpha);
+		const ColourAlpha end(sacNormal.fore, 0);
+		std::vector<ColourStop> stops;
+		switch (sacDraw.style) {
+		case INDIC_GRADIENT:
+			stops.push_back(ColourStop(0.0, start));
+			stops.push_back(ColourStop(1.0, end));
+			break;
+		case INDIC_GRADIENTCENTRE:
+			stops.push_back(ColourStop(0.0, end));
+			stops.push_back(ColourStop(0.5, start));
+			stops.push_back(ColourStop(1.0, end));
+			break;
+		}
+		surface->GradientRectangle(rcBox, stops, options);
 	} else if (sacDraw.style == INDIC_DOTBOX) {
 		PRectangle rcBox = PixelGridAlign(rc);
 		rcBox.top = rcLine.top + 1;
@@ -144,7 +165,7 @@ void Indicator::Draw(Surface *surface, const PRectangle &rc, const PRectangle &r
 		IntegerRectangle ircBox(rcBox);
 		// Cap width at 4000 to avoid large allocations when mistakes made
 		const int width = std::min(ircBox.Width(), 4000);
-		RGBAImage image(width, ircBox.Height(), 1.0, 0);
+		RGBAImage image(width, ircBox.Height(), 1.0, nullptr);
 		// Draw horizontal lines top and bottom
 		for (int x=0; x<width; x++) {
 			for (int y = 0; y<ircBox.Height(); y += ircBox.Height() - 1) {
@@ -180,16 +201,16 @@ void Indicator::Draw(Surface *surface, const PRectangle &rc, const PRectangle &r
 		surface->FillRectangle(rcComposition, sacDraw.fore);
 	} else if (sacDraw.style == INDIC_POINT || sacDraw.style == INDIC_POINTCHARACTER) {
 		if (rcCharacter.Width() >= 0.1) {
-			const XYPOSITION pixelHeight = floor(rc.Height() - 1.0f);	// 1 pixel onto next line if multiphase
+			const XYPOSITION pixelHeight = std::floor(rc.Height() - 1.0f);	// 1 pixel onto next line if multiphase
 			const XYPOSITION x = (sacDraw.style == INDIC_POINT) ? (rcCharacter.left) : ((rcCharacter.right + rcCharacter.left) / 2);
-			const XYPOSITION ix = round(x);
-			const XYPOSITION iy = floor(rc.top + 1.0f);
+			const XYPOSITION ix = std::round(x);
+			const XYPOSITION iy = std::floor(rc.top + 1.0f);
 			Point pts[] = {
 				Point(ix - pixelHeight, iy + pixelHeight),	// Left
 				Point(ix + pixelHeight, iy + pixelHeight),	// Right
 				Point(ix, iy)								// Top
 			};
-			surface->Polygon(pts, 3, sacDraw.fore, sacDraw.fore);
+			surface->Polygon(pts, std::size(pts), sacDraw.fore, sacDraw.fore);
 		}
 	} else {	// Either INDIC_PLAIN or unknown
 		surface->MoveTo(irc.left, ymid);

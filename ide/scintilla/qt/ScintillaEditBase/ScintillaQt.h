@@ -21,6 +21,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -30,6 +31,7 @@
 #include "Platform.h"
 #include "ILoader.h"
 #include "ILexer.h"
+#include "CharacterCategory.h"
 #include "Position.h"
 #include "UniqueString.h"
 #include "SplitVector.h"
@@ -56,11 +58,6 @@
 #include "Editor.h"
 #include "ScintillaBase.h"
 #include "CaseConvert.h"
-
-#ifdef SCI_LEXER
-#include "SciLexer.h"
-#include "PropSetSimple.h"
-#endif
 
 #include <QObject>
 #include <QAbstractScrollArea>
@@ -124,7 +121,9 @@ private:
 	int timers[tickDwell+1];
 	bool FineTickerRunning(TickReason reason) override;
 	void FineTickerStart(TickReason reason, int millis, int tolerance) override;
+	void CancelTimers();
 	void FineTickerCancel(TickReason reason) override;
+	bool ChangeIdle(bool on);
 	bool SetIdle(bool on) override;
 	void SetMouseCapture(bool on) override;
 	bool HaveMouseCapture() override;

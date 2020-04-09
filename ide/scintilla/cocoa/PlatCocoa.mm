@@ -1,6 +1,6 @@
 /**
  * Scintilla source code edit control
- * PlatCocoa.mm - implementation of platform facilities on MacOS X/Cocoa
+ * @file PlatCocoa.mm - implementation of platform facilities on MacOS X/Cocoa
  *
  * Written by Mike Lischke
  * Based on PlatMacOSX.cxx
@@ -17,12 +17,17 @@
 #include <cassert>
 #include <cstring>
 #include <cstdio>
+#include <cmath>
 
 #include <stdexcept>
+#include <string_view>
 #include <vector>
 #include <map>
+#include <functional>
 #include <memory>
+#include <numeric>
 
+#include <dlfcn.h>
 #include <sys/time.h>
 
 #import <Foundation/NSGeometry.h>
@@ -72,7 +77,7 @@ inline CGRect PRectangleToCGRect(PRectangle &rc) {
 
 //----------------- Font ---------------------------------------------------------------------------
 
-Font::Font(): fid(0) {
+Font::Font() noexcept : fid(0) {
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -83,7 +88,7 @@ Font::~Font() {
 
 //--------------------------------------------------------------------------------------------------
 
-static QuartzTextStyle *TextStyleFromFont(Font &f) {
+static QuartzTextStyle *TextStyleFromFont(const Font &f) {
 	return static_cast<QuartzTextStyle *>(f.GetID());
 }
 
@@ -118,6 +123,212 @@ void Font::Release() {
 	fid = 0;
 }
 
+//--------------------------------------------------------------------------------------------------
+
+// Bidirectional text support for Arabic and Hebrew.
+
+namespace {
+
+CFIndex IndexFromPosition(std::string_view text, size_t position) {
+	const std::string_view textUptoPosition = text.substr(0, position);
+	return UTF16Length(textUptoPosition);
+}
+
+// Handling representations and tabs
+
+struct Blob {
+	XYPOSITION width;
+	Blob(XYPOSITION width_) : width(width_) {
+	}
+};
+
+static void BlobDealloc(void *refCon) {
+	Blob *blob = static_cast<Blob *>(refCon);
+	delete blob;
+}
+
+static CGFloat BlobGetWidth(void *refCon) {
+	Blob *blob = static_cast<Blob *>(refCon);
+	return blob->width;
+}
+
+class ScreenLineLayout : public IScreenLineLayout {
+	CTLineRef line = NULL;
+	const std::string text;
+public:
+	ScreenLineLayout(const IScreenLine *screenLine);
+	~ScreenLineLayout();
+	// IScreenLineLayout implementation
+	size_t PositionFromX(XYPOSITION xDistance, bool charPosition) override;
+	XYPOSITION XFromPosition(size_t caretPosition) override;
+	std::vector<Interval> FindRangeIntervals(size_t start, size_t end) override;
+};
+
+ScreenLineLayout::ScreenLineLayout(const IScreenLine *screenLine) : text(screenLine->Text()) {
+	const UInt8 *puiBuffer = reinterpret_cast<const UInt8 *>(text.data());
+	std::string_view sv = text;
+
+	// Start with an empty mutable attributed string and add each character to it.
+	CFMutableAttributedStringRef mas = CFAttributedStringCreateMutable(NULL, 0);
+
+	for (size_t bp=0; bp<text.length();) {
+		const unsigned char uch = text[bp];
+		const int utf8Status = UTF8Classify(sv);
+		const unsigned int byteCount = utf8Status & UTF8MaskWidth;
+		XYPOSITION repWidth = screenLine->RepresentationWidth(bp);
+		if (uch == '\t') {
+			// Find the size up to the tab
+			NSMutableAttributedString *nas = (__bridge NSMutableAttributedString *)mas;
+			const NSSize sizeUpTo = [nas size];
+			const XYPOSITION nextTab = screenLine->TabPositionAfter(sizeUpTo.width);
+			repWidth = nextTab - sizeUpTo.width;
+		}
+		CFAttributedStringRef as = NULL;
+		if (repWidth > 0.0f) {
+			CTRunDelegateCallbacks callbacks = {
+				.version = kCTRunDelegateVersion1,
+				.dealloc = BlobDealloc,
+				.getWidth = BlobGetWidth
+			};
+			CTRunDelegateRef runDelegate = CTRunDelegateCreate(&callbacks, new Blob(repWidth));
+			NSMutableAttributedString *masBlob = [[NSMutableAttributedString alloc] initWithString:@"X"];
+			NSRange rangeX = NSMakeRange(0, 1);
+			[masBlob addAttribute: (NSString *)kCTRunDelegateAttributeName value: (__bridge id)runDelegate range:rangeX];
+			CFRelease(runDelegate);
+			as = (CFAttributedStringRef)CFBridgingRetain(masBlob);
+		} else {
+			CFStringRef piece = CFStringCreateWithBytes(NULL,
+								    &puiBuffer[bp],
+								    byteCount,
+								    kCFStringEncodingUTF8,
+								    false);
+			QuartzTextStyle *qts = static_cast<QuartzTextStyle *>(screenLine->FontOfPosition(bp)->GetID());
+			CFMutableDictionaryRef pieceAttributes = qts->getCTStyle();
+			as = CFAttributedStringCreate(NULL, piece, pieceAttributes);
+			CFRelease(piece);
+		}
+		CFAttributedStringReplaceAttributedString(mas,
+							  CFRangeMake(CFAttributedStringGetLength(mas), 0),
+							  as);
+		bp += byteCount;
+		sv.remove_prefix(byteCount);
+		CFRelease(as);
+	}
+
+	line = CTLineCreateWithAttributedString(mas);
+	CFRelease(mas);
+}
+
+ScreenLineLayout::~ScreenLineLayout() {
+	CFRelease(line);
+}
+
+size_t ScreenLineLayout::PositionFromX(XYPOSITION xDistance, bool charPosition) {
+	if (!line) {
+		return 0;
+	}
+	const CGPoint ptDistance = CGPointMake(xDistance, 0);
+	const CFIndex offset = CTLineGetStringIndexForPosition(line, ptDistance);
+	if (offset == kCFNotFound) {
+		return 0;
+	}
+	// Convert back to UTF-8 positions
+	return UTF8PositionFromUTF16Position(text, offset);
+}
+
+XYPOSITION ScreenLineLayout::XFromPosition(size_t caretPosition) {
+	if (!line) {
+		return 0.0;
+	}
+	// Convert from UTF-8 position
+	const CFIndex caretIndex = IndexFromPosition(text, caretPosition);
+
+	const CGFloat distance = CTLineGetOffsetForStringIndex(line, caretIndex, nullptr);
+	return distance;
+}
+
+void AddToIntervalVector(std::vector<Interval> &vi, XYPOSITION left, XYPOSITION right) {
+	const Interval interval = {left, right};
+	if (vi.empty()) {
+		vi.push_back(interval);
+	} else {
+		Interval &last = vi.back();
+		if (std::abs(last.right-interval.left) < 0.01) {
+			// If new left is very close to previous right then extend last item
+			last.right = interval.right;
+		} else {
+			vi.push_back(interval);
+		}
+	}
+}
+
+std::vector<Interval> ScreenLineLayout::FindRangeIntervals(size_t start, size_t end) {
+	if (!line) {
+		return {};
+	}
+
+	std::vector<Interval> ret;
+
+	// Convert from UTF-8 position
+	const CFIndex startIndex = IndexFromPosition(text, start);
+	const CFIndex endIndex = IndexFromPosition(text, end);
+
+	CFArrayRef runs = CTLineGetGlyphRuns(line);
+	const CFIndex runCount = CFArrayGetCount(runs);
+	for (CFIndex run=0; run<runCount; run++) {
+		CTRunRef aRun = static_cast<CTRunRef>(CFArrayGetValueAtIndex(runs, run));
+		const CFIndex glyphCount = CTRunGetGlyphCount(aRun);
+		const CFRange rangeAll = CFRangeMake(0, glyphCount);
+		std::vector<CFIndex> indices(glyphCount);
+		CTRunGetStringIndices(aRun, rangeAll, indices.data());
+		std::vector<CGPoint> positions(glyphCount);
+		CTRunGetPositions(aRun, rangeAll, positions.data());
+		std::vector<CGSize> advances(glyphCount);
+		CTRunGetAdvances(aRun, rangeAll, advances.data());
+		for (CFIndex glyph=0; glyph<glyphCount; glyph++) {
+			const CFIndex glyphIndex = indices[glyph];
+			const XYPOSITION xPosition = positions[glyph].x;
+			const XYPOSITION width = advances[glyph].width;
+			if ((glyphIndex >= startIndex) && (glyphIndex < endIndex)) {
+				AddToIntervalVector(ret, xPosition, xPosition + width);
+			}
+		}
+	}
+	return ret;
+}
+
+// Helper for SurfaceImpl::MeasureWidths that examines the glyph runs in a layout
+
+void GetPositions(CTLineRef line, std::vector<CGFloat> &positions) {
+
+	// Find the advances of the text
+	std::vector<CGFloat> lineAdvances(positions.size());
+	CFArrayRef runs = CTLineGetGlyphRuns(line);
+	const CFIndex runCount = CFArrayGetCount(runs);
+	for (CFIndex run=0; run<runCount; run++) {
+		CTRunRef aRun = static_cast<CTRunRef>(CFArrayGetValueAtIndex(runs, run));
+		const CFIndex glyphCount = CTRunGetGlyphCount(aRun);
+		const CFRange rangeAll = CFRangeMake(0, glyphCount);
+		std::vector<CFIndex> indices(glyphCount);
+		CTRunGetStringIndices(aRun, rangeAll, indices.data());
+		std::vector<CGSize> advances(glyphCount);
+		CTRunGetAdvances(aRun, rangeAll, advances.data());
+		for (CFIndex glyph=0; glyph<glyphCount; glyph++) {
+			const CFIndex glyphIndex = indices[glyph];
+			if (glyphIndex >= positions.size()) {
+				return;
+			}
+			lineAdvances[glyphIndex] = advances[glyph].width;
+		}
+	}
+
+	// Accumulate advances into positions
+	std::partial_sum(lineAdvances.begin(), lineAdvances.end(),
+			 positions.begin(), std::plus<CGFloat>());
+}
+
+}
+
 //----------------- SurfaceImpl --------------------------------------------------------------------
 
 SurfaceImpl::SurfaceImpl() {
@@ -126,7 +337,7 @@ SurfaceImpl::SurfaceImpl() {
 	y = 0;
 	gc = NULL;
 
-	textLayout.reset(new QuartzTextLayout(nullptr));
+	textLayout.reset(new QuartzTextLayout());
 	codePage = 0;
 	verticalDeviceResolution = 0;
 
@@ -146,7 +357,6 @@ SurfaceImpl::~SurfaceImpl() {
 //--------------------------------------------------------------------------------------------------
 
 void SurfaceImpl::Clear() {
-	textLayout->setContext(nullptr);
 	if (bitmapData) {
 		bitmapData.reset();
 		// We only "own" the graphics context if we are a bitmap context
@@ -192,7 +402,6 @@ void SurfaceImpl::Init(SurfaceID sid, WindowID) {
 	Release();
 	gc = static_cast<CGContextRef>(sid);
 	CGContextSetLineWidth(gc, 1.0);
-	textLayout->setContext(gc);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -228,7 +437,6 @@ void SurfaceImpl::InitPixMap(int width, int height, Surface *surface_, WindowID 
 		// and we have no use for the bitmap without the context
 		bitmapData.reset();
 	}
-	textLayout->setContext(gc);
 
 	// the context retains the color space, so we can release it
 	CGColorSpaceRelease(colorSpace);
@@ -254,7 +462,7 @@ void SurfaceImpl::InitPixMap(int width, int height, Surface *surface_, WindowID 
 
 void SurfaceImpl::PenColour(ColourDesired fore) {
 	if (gc) {
-		ColourDesired colour(fore.AsLong());
+		ColourDesired colour(fore.AsInteger());
 
 		// Set the Stroke color to match
 		CGContextSetRGBStrokeColor(gc, colour.GetRed() / 255.0, colour.GetGreen() / 255.0,
@@ -266,7 +474,7 @@ void SurfaceImpl::PenColour(ColourDesired fore) {
 
 void SurfaceImpl::FillColour(const ColourDesired &back) {
 	if (gc) {
-		ColourDesired colour(back.AsLong());
+		ColourDesired colour(back.AsInteger());
 
 		// Set the Fill color to match
 		CGContextSetRGBFillColor(gc, colour.GetRed() / 255.0, colour.GetGreen() / 255.0,
@@ -276,8 +484,8 @@ void SurfaceImpl::FillColour(const ColourDesired &back) {
 
 //--------------------------------------------------------------------------------------------------
 
-CGImageRef SurfaceImpl::GetImage() {
-	// For now, assume that GetImage can only be called on PixMap surfaces.
+CGImageRef SurfaceImpl::CreateImage() {
+	// For now, assume that CreateImage can only be called on PixMap surfaces.
 	if (!bitmapData)
 		return NULL;
 
@@ -375,12 +583,12 @@ void SurfaceImpl::LineTo(int x_, int y_) {
 
 //--------------------------------------------------------------------------------------------------
 
-void SurfaceImpl::Polygon(Scintilla::Point *pts, int npts, ColourDesired fore,
+void SurfaceImpl::Polygon(Scintilla::Point *pts, size_t npts, ColourDesired fore,
 			  ColourDesired back) {
 	// Allocate memory for the array of points.
 	std::vector<CGPoint> points(npts);
 
-	for (int i = 0; i < npts; i++) {
+	for (size_t i = 0; i < npts; i++) {
 		// Quartz floating point issues: plot the MIDDLE of the pixels
 		points[i].x = pts[i].x + 0.5;
 		points[i].y = pts[i].y + 0.5;
@@ -422,8 +630,8 @@ void SurfaceImpl::FillRectangle(PRectangle rc, ColourDesired back) {
 	if (gc) {
 		FillColour(back);
 		// Snap rectangle boundaries to nearest int
-		rc.left = lround(rc.left);
-		rc.right = lround(rc.right);
+		rc.left = std::round(rc.left);
+		rc.right = std::round(rc.right);
 		CGRect rect = PRectangleToCGRect(rc);
 		CGContextFillRect(gc, rect);
 	}
@@ -448,7 +656,7 @@ void SurfaceImpl::FillRectangle(PRectangle rc, Surface &surfacePattern) {
 	SurfaceImpl &patternSurface = static_cast<SurfaceImpl &>(surfacePattern);
 
 	// For now, assume that copy can only be called on PixMap surfaces. Shows up black.
-	CGImageRef image = patternSurface.GetImage();
+	CGImageRef image = patternSurface.CreateImage();
 	if (image == NULL) {
 		FillRectangle(rc, ColourDesired(0));
 		return;
@@ -599,8 +807,8 @@ void Scintilla::SurfaceImpl::AlphaRectangle(PRectangle rc, int cornerSize, Colou
 		ColourDesired outline, int alphaOutline, int /*flags*/) {
 	if (gc) {
 		// Snap rectangle boundaries to nearest int
-		rc.left = lround(rc.left);
-		rc.right = lround(rc.right);
+		rc.left = std::round(rc.left);
+		rc.right = std::round(rc.right);
 		// Set the Fill color to match
 		CGContextSetRGBFillColor(gc, fill.GetRed() / 255.0, fill.GetGreen() / 255.0, fill.GetBlue() / 255.0, alphaFill / 255.0);
 		CGContextSetRGBStrokeColor(gc, outline.GetRed() / 255.0, outline.GetGreen() / 255.0, outline.GetBlue() / 255.0, alphaOutline / 255.0);
@@ -641,6 +849,50 @@ void Scintilla::SurfaceImpl::AlphaRectangle(PRectangle rc, int cornerSize, Colou
 			}
 		}
 	}
+}
+
+void Scintilla::SurfaceImpl::GradientRectangle(PRectangle rc, const std::vector<ColourStop> &stops, GradientOptions options) {
+	if (!gc) {
+		return;
+	}
+
+	CGPoint ptStart = CGPointMake(rc.left, rc.top);
+	CGPoint ptEnd = CGPointMake(rc.left, rc.bottom);
+	if (options == GradientOptions::leftToRight) {
+		ptEnd = CGPointMake(rc.right, rc.top);
+	}
+
+	std::vector<CGFloat> components;
+	std::vector<CGFloat> locations;
+	for (const ColourStop &stop : stops) {
+		locations.push_back(stop.position);
+		components.push_back(stop.colour.GetRedComponent());
+		components.push_back(stop.colour.GetGreenComponent());
+		components.push_back(stop.colour.GetBlueComponent());
+		components.push_back(stop.colour.GetAlphaComponent());
+	}
+
+	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+	if (!colorSpace) {
+		return;
+	}
+
+	CGGradientRef gradiantRef = CGGradientCreateWithColorComponents(colorSpace,
+									components.data(),
+									locations.data(),
+									locations.size());
+	if (gradiantRef) {
+		CGContextSaveGState(gc);
+		CGRect rect = PRectangleToCGRect(rc);
+		CGContextClipToRect(gc, rect);
+		CGContextBeginPath(gc);
+		CGContextAddRect(gc, rect);
+		CGContextClosePath(gc);
+		CGContextDrawLinearGradient(gc, gradiantRef, ptStart, ptEnd, 0);
+		CGGradientRelease(gradiantRef);
+		CGContextRestoreGState(gc);
+	}
+	CGColorSpaceRelease(colorSpace);
 }
 
 static void ProviderReleaseData(void *, const void *data, size_t) {
@@ -719,7 +971,7 @@ void SurfaceImpl::Ellipse(PRectangle rc, ColourDesired fore, ColourDesired back)
 
 void SurfaceImpl::CopyImageRectangle(Surface &surfaceSource, PRectangle srcRect, PRectangle dstRect) {
 	SurfaceImpl &source = static_cast<SurfaceImpl &>(surfaceSource);
-	CGImageRef image = source.GetImage();
+	CGImageRef image = source.CreateImage();
 
 	CGRect src = PRectangleToCGRect(srcRect);
 	CGRect dst = PRectangleToCGRect(dstRect);
@@ -751,7 +1003,7 @@ void SurfaceImpl::Copy(PRectangle rc, Scintilla::Point from, Surface &surfaceSou
 	SurfaceImpl &source = static_cast<SurfaceImpl &>(surfaceSource);
 
 	// Get the CGImageRef
-	CGImageRef image = source.GetImage();
+	CGImageRef image = source.CreateImage();
 	// If we could not get an image reference, fill the rectangle black
 	if (image == NULL) {
 		FillRectangle(rc, ColourDesired(0));
@@ -777,19 +1029,27 @@ void SurfaceImpl::Copy(PRectangle rc, Scintilla::Point from, Surface &surfaceSou
 
 //--------------------------------------------------------------------------------------------------
 
-void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len,
-				 ColourDesired fore, ColourDesired back) {
-	FillRectangle(rc, back);
-	DrawTextTransparent(rc, font_, ybase, s, len, fore);
+// Bidirectional text support for Arabic and Hebrew.
+
+std::unique_ptr<IScreenLineLayout> SurfaceImpl::Layout(const IScreenLine *screenLine) {
+	return std::make_unique<ScreenLineLayout>(screenLine);
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void SurfaceImpl::DrawTextClipped(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len,
+void SurfaceImpl::DrawTextNoClip(PRectangle rc, Font &font_, XYPOSITION ybase, std::string_view text,
+				 ColourDesired fore, ColourDesired back) {
+	FillRectangle(rc, back);
+	DrawTextTransparent(rc, font_, ybase, text, fore);
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void SurfaceImpl::DrawTextClipped(PRectangle rc, Font &font_, XYPOSITION ybase, std::string_view text,
 				  ColourDesired fore, ColourDesired back) {
 	CGContextSaveGState(gc);
 	CGContextClipToRect(gc, PRectangleToCGRect(rc));
-	DrawTextNoClip(rc, font_, ybase, s, len, fore, back);
+	DrawTextNoClip(rc, font_, ybase, text, fore, back);
 	CGContextRestoreGState(gc);
 }
 
@@ -850,41 +1110,53 @@ CFStringEncoding EncodingFromCharacterSet(bool unicode, int characterSet) {
 	}
 }
 
-void SurfaceImpl::DrawTextTransparent(PRectangle rc, Font &font_, XYPOSITION ybase, const char *s, int len,
+void SurfaceImpl::DrawTextTransparent(PRectangle rc, Font &font_, XYPOSITION ybase, std::string_view text,
 				      ColourDesired fore) {
 	CFStringEncoding encoding = EncodingFromCharacterSet(unicodeMode, FontCharacterSet(font_));
-	ColourDesired colour(fore.AsLong());
+	ColourDesired colour(fore.AsInteger());
 	CGColorRef color = CGColorCreateGenericRGB(colour.GetRed()/255.0, colour.GetGreen()/255.0, colour.GetBlue()/255.0, 1.0);
 
 	QuartzTextStyle *style = TextStyleFromFont(font_);
-	style->setCTStyleColor(color);
+	style->setCTStyleColour(color);
 
 	CGColorRelease(color);
 
-	textLayout->setText(s, len, encoding, *style);
-	textLayout->draw(rc.left, ybase);
+	textLayout->setText(text, encoding, *style);
+	textLayout->draw(gc, rc.left, ybase);
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, XYPOSITION *positions) {
+void SurfaceImpl::MeasureWidths(Font &font_, std::string_view text, XYPOSITION *positions) {
 	CFStringEncoding encoding = EncodingFromCharacterSet(unicodeMode, FontCharacterSet(font_));
-	textLayout->setText(s, len, encoding, *TextStyleFromFont(font_));
+	const CFStringEncoding encodingUsed =
+		textLayout->setText(text, encoding, *TextStyleFromFont(font_));
 
 	CTLineRef mLine = textLayout->getCTLine();
-	assert(mLine != NULL);
+	assert(mLine);
+
+	if (encodingUsed != encoding) {
+		// Switched to MacRoman to make work so treat as single byte encoding.
+		for (int i=0; i<text.length(); i++) {
+			CGFloat xPosition = CTLineGetOffsetForStringIndex(mLine, i+1, nullptr);
+			positions[i] = static_cast<XYPOSITION>(xPosition);
+		}
+		return;
+	}
 
 	if (unicodeMode) {
 		// Map the widths given for UTF-16 characters back onto the UTF-8 input string
 		CFIndex fit = textLayout->getStringLength();
 		int ui=0;
 		int i=0;
+		std::vector<CGFloat> linePositions(fit);
+		GetPositions(mLine, linePositions);
 		while (ui<fit) {
-			const unsigned char uch = s[i];
+			const unsigned char uch = text[i];
 			const unsigned int byteCount = UTF8BytesOfLead[uch];
 			const int codeUnits = UTF16LengthFromUTF8ByteCount(byteCount);
-			CGFloat xPosition = CTLineGetOffsetForStringIndex(mLine, ui+codeUnits, NULL);
-			for (unsigned int bytePos=0; (bytePos<byteCount) && (i<len); bytePos++) {
+			const CGFloat xPosition = linePositions[ui];
+			for (unsigned int bytePos=0; (bytePos<byteCount) && (i<text.length()); bytePos++) {
 				positions[i++] = static_cast<XYPOSITION>(xPosition);
 			}
 			ui += codeUnits;
@@ -892,21 +1164,21 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, XYPOSITION 
 		XYPOSITION lastPos = 0.0f;
 		if (i > 0)
 			lastPos = positions[i-1];
-		while (i<len) {
+		while (i<text.length()) {
 			positions[i++] = lastPos;
 		}
 	} else if (codePage) {
 		int ui = 0;
-		for (int i=0; i<len;) {
-			size_t lenChar = DBCSIsLeadByte(codePage, s[i]) ? 2 : 1;
+		for (int i=0; i<text.length();) {
+			size_t lenChar = DBCSIsLeadByte(codePage, text[i]) ? 2 : 1;
 			CGFloat xPosition = CTLineGetOffsetForStringIndex(mLine, ui+1, NULL);
-			for (unsigned int bytePos=0; (bytePos<lenChar) && (i<len); bytePos++) {
+			for (unsigned int bytePos=0; (bytePos<lenChar) && (i<text.length()); bytePos++) {
 				positions[i++] = static_cast<XYPOSITION>(xPosition);
 			}
 			ui++;
 		}
 	} else {	// Single byte encoding
-		for (int i=0; i<len; i++) {
+		for (int i=0; i<text.length(); i++) {
 			CGFloat xPosition = CTLineGetOffsetForStringIndex(mLine, i+1, NULL);
 			positions[i] = static_cast<XYPOSITION>(xPosition);
 		}
@@ -914,25 +1186,14 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, XYPOSITION 
 
 }
 
-XYPOSITION SurfaceImpl::WidthText(Font &font_, const char *s, int len) {
+XYPOSITION SurfaceImpl::WidthText(Font &font_, std::string_view text) {
 	if (font_.GetID()) {
 		CFStringEncoding encoding = EncodingFromCharacterSet(unicodeMode, FontCharacterSet(font_));
-		textLayout->setText(s, len, encoding, *TextStyleFromFont(font_));
+		textLayout->setText(text, encoding, *TextStyleFromFont(font_));
 
 		return static_cast<XYPOSITION>(textLayout->MeasureStringWidth());
 	}
 	return 1;
-}
-
-XYPOSITION SurfaceImpl::WidthChar(Font &font_, char ch) {
-	char str[2] = { ch, '\0' };
-	if (font_.GetID()) {
-		CFStringEncoding encoding = EncodingFromCharacterSet(unicodeMode, FontCharacterSet(font_));
-		textLayout->setText(str, 1, encoding, *TextStyleFromFont(font_));
-
-		return textLayout->MeasureStringWidth();
-	} else
-		return 1;
 }
 
 // This string contains a good range of characters to test for size.
@@ -971,10 +1232,9 @@ XYPOSITION SurfaceImpl::AverageCharWidth(Font &font_) {
 	if (!font_.GetID())
 		return 1;
 
-	const int sizeStringLength = ELEMENTS(sizeString);
-	XYPOSITION width = WidthText(font_, sizeString, sizeStringLength);
+	XYPOSITION width = WidthText(font_, sizeString);
 
-	return round(width / sizeStringLength);
+	return std::round(width / strlen(sizeString));
 }
 
 void SurfaceImpl::SetClip(PRectangle rc) {
@@ -992,6 +1252,9 @@ void SurfaceImpl::SetUnicodeMode(bool unicodeMode_) {
 void SurfaceImpl::SetDBCSMode(int codePage_) {
 	if (codePage_ && (codePage_ != SC_CP_UTF8))
 		codePage = codePage_;
+}
+
+void SurfaceImpl::SetBidiR2L(bool) {
 }
 
 Surface *Surface::Allocate(int) {
@@ -1017,7 +1280,7 @@ static CGFloat ScreenMax() {
 
 //--------------------------------------------------------------------------------------------------
 
-PRectangle Window::GetPosition() {
+PRectangle Window::GetPosition() const {
 	if (wid) {
 		NSRect rect;
 		id idWin = (__bridge id)(wid);
@@ -1069,8 +1332,8 @@ void Window::SetPosition(PRectangle rc) {
 
 //--------------------------------------------------------------------------------------------------
 
-void Window::SetPositionRelative(PRectangle rc, Window window) {
-	PRectangle rcOther = window.GetPosition();
+void Window::SetPositionRelative(PRectangle rc, const Window *window) {
+	PRectangle rcOther = window->GetPosition();
 	rc.left += rcOther.left;
 	rc.right += rcOther.left;
 	rc.top += rcOther.top;
@@ -1080,7 +1343,7 @@ void Window::SetPositionRelative(PRectangle rc, Window window) {
 
 //--------------------------------------------------------------------------------------------------
 
-PRectangle Window::GetClientPosition() {
+PRectangle Window::GetClientPosition() const {
 	// This means, in MacOS X terms, get the "frame bounds". Call GetPosition, just like on Win32.
 	return GetPosition();
 }
@@ -1209,7 +1472,7 @@ static NSImage *ImageFromXPM(XPM *pxpm) {
 		SurfaceImpl *surfaceIXPM = static_cast<SurfaceImpl *>(surfaceXPM.get());
 		CGContextClearRect(surfaceIXPM->GetContext(), CGRectMake(0, 0, width, height));
 		pxpm->Draw(surfaceXPM.get(), rcxpm);
-		CGImageRef imageRef = surfaceIXPM->GetImage();
+		CGImageRef imageRef = surfaceIXPM->CreateImage();
 		img = [[NSImage alloc] initWithCGImage: imageRef size: NSZeroSize];
 		CGImageRelease(imageRef);
 	}
@@ -1444,7 +1707,7 @@ void ListBoxImpl::Create(Window & /*parent*/, int /*ctrlID*/, Scintilla::Point p
 
 	NSRect lbRect = NSMakeRect(pt.x, pt.y, 120, lineHeight * desiredVisibleRows);
 	NSWindow *winLB = [[NSWindow alloc] initWithContentRect: lbRect
-						      styleMask: NSBorderlessWindowMask
+						      styleMask: NSWindowStyleMaskBorderless
 							backing: NSBackingStoreBuffered
 							  defer: NO];
 	[winLB setLevel: NSFloatingWindowLevel];
@@ -1489,7 +1752,7 @@ void ListBoxImpl::SetFont(Font &font_) {
 	font.SetID(new QuartzTextStyle(*style));
 	NSFont *pfont = (__bridge NSFont *)style->getFontRef();
 	[colText.dataCell setFont: pfont];
-	CGFloat itemHeight = ceil(pfont.boundingRectForFont.size.height);
+	CGFloat itemHeight = std::ceil(pfont.boundingRectForFont.size.height);
 	table.rowHeight = itemHeight;
 }
 
@@ -1522,7 +1785,7 @@ PRectangle ListBoxImpl::GetDesiredRect() {
 
 	if (Length() > rows) {
 		[scroller setHasVerticalScroller: YES];
-		rcDesired.right += [NSScroller scrollerWidthForControlSize: NSRegularControlSize
+		rcDesired.right += [NSScroller scrollerWidthForControlSize: NSControlSizeRegular
 							     scrollerStyle: NSScrollerStyleLegacy];
 	} else {
 		[scroller setHasVerticalScroller: NO];
@@ -1561,7 +1824,7 @@ void ListBoxImpl::Append(char *s, int type) {
 	ld.Add(count, type, s);
 
 	Scintilla::SurfaceImpl surface;
-	XYPOSITION width = surface.WidthText(font, s, static_cast<int>(strlen(s)));
+	XYPOSITION width = surface.WidthText(font, s);
 	if (width > maxItemWidth) {
 		maxItemWidth = width;
 		colText.width = maxItemWidth;
@@ -1692,7 +1955,7 @@ void ListBoxImpl::SelectionChange() {
 
 // ListBox is implemented by the ListBoxImpl class.
 
-ListBox::ListBox() {
+ListBox::ListBox() noexcept {
 }
 
 ListBox::~ListBox() {
@@ -1742,7 +2005,7 @@ NSMenu
 
 //----------------- Menu ---------------------------------------------------------------------------
 
-Menu::Menu()
+Menu::Menu() noexcept
 	: mid(0) {
 }
 
@@ -1870,14 +2133,51 @@ void Platform::Assert(const char *c, const char *file, int line) {
 //----------------- DynamicLibrary -----------------------------------------------------------------
 
 /**
- * Implements the platform specific part of library loading.
- *
- * @param modulePath The path to the module to load.
- * @return A library instance or nullptr if the module could not be found or another problem occurred.
+ * Platform-specific module loading and access.
+ * Uses POSIX calls dlopen, dlsym, dlclose.
  */
-DynamicLibrary *DynamicLibrary::Load(const char * /* modulePath */) {
-	// Not implemented.
-	return nullptr;
+
+class DynamicLibraryImpl : public DynamicLibrary {
+protected:
+	void *m;
+public:
+	explicit DynamicLibraryImpl(const char *modulePath) noexcept {
+		m = dlopen(modulePath, RTLD_LAZY);
+	}
+	// Deleted so DynamicLibraryImpl objects can not be copied.
+	DynamicLibraryImpl(const DynamicLibraryImpl&) = delete;
+	DynamicLibraryImpl(DynamicLibraryImpl&&) = delete;
+	DynamicLibraryImpl&operator=(const DynamicLibraryImpl&) = delete;
+	DynamicLibraryImpl&operator=(DynamicLibraryImpl&&) = delete;
+
+	~DynamicLibraryImpl() override {
+		if (m)
+			dlclose(m);
+	}
+
+	// Use dlsym to get a pointer to the relevant function.
+	Function FindFunction(const char *name) override {
+		if (m) {
+			return dlsym(m, name);
+		} else {
+			return nullptr;
+		}
+	}
+
+	bool IsValid() override {
+		return m != nullptr;
+	}
+};
+
+/**
+* Implements the platform specific part of library loading.
+*
+* @param modulePath The path to the module to load.
+* @return A library instance or nullptr if the module could not be found or another problem occurred.
+*/
+
+DynamicLibrary *DynamicLibrary::Load(const char *modulePath) {
+	return static_cast<DynamicLibrary *>(new DynamicLibraryImpl(modulePath));
 }
 
 //--------------------------------------------------------------------------------------------------

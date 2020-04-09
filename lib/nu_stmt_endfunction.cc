@@ -34,7 +34,7 @@ void stmt_endfunction_t::run(rt_prog_ctx_t& ctx)
 
     if (!handle || handle->identifier.empty()) {
         rt_error_code_t::get_instance().throw_if(true,
-            ctx.runtime_pc.get_line(), rt_error_code_t::E_NO_MATCH_FUNC, "");
+            ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_NO_MATCH_FUNC, "");
     }
 
     if (!handle->flag[instrblock_t::EXIT]) {
@@ -48,7 +48,7 @@ void stmt_endfunction_t::run(rt_prog_ctx_t& ctx)
         // The return-value (same function name) must be defined
         if (scope_type != proc_scope_t::type_t::LOCAL)
             rt_error_code_t::get_instance().throw_if(true,
-                ctx.runtime_pc.get_line(), rt_error_code_t::E_NO_RET_VAL,
+                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_NO_RET_VAL,
                 " '" + identifier + "' not defined. ");
 
         const bool expected_retval = ctx.proc_scope.is_func_call(identifier);

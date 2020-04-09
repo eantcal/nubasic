@@ -9,6 +9,7 @@
 #include <cstring>
 
 #include <stdexcept>
+#include <string_view>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -21,7 +22,9 @@
 
 using namespace Scintilla;
 
-static const char *NextField(const char *s) {
+namespace {
+
+const char *NextField(const char *s) {
 	// In case there are leading spaces in the string
 	while (*s == ' ') {
 		s++;
@@ -36,12 +39,33 @@ static const char *NextField(const char *s) {
 }
 
 // Data lines in XPM can be terminated either with NUL or "
-static size_t MeasureLength(const char *s) {
+size_t MeasureLength(const char *s) {
 	size_t i = 0;
 	while (s[i] && (s[i] != '\"'))
 		i++;
 	return i;
 }
+
+unsigned int ValueOfHex(const char ch) noexcept {
+	if (ch >= '0' && ch <= '9')
+		return ch - '0';
+	else if (ch >= 'A' && ch <= 'F')
+		return ch - 'A' + 10;
+	else if (ch >= 'a' && ch <= 'f')
+		return ch - 'a' + 10;
+	else
+		return 0;
+}
+
+ColourDesired ColourFromHex(const char *val) noexcept {
+	const unsigned int r = ValueOfHex(val[0]) * 16 + ValueOfHex(val[1]);
+	const unsigned int g = ValueOfHex(val[2]) * 16 + ValueOfHex(val[3]);
+	const unsigned int b = ValueOfHex(val[4]) * 16 + ValueOfHex(val[5]);
+	return ColourDesired(r, g, b);
+}
+
+}
+
 
 ColourDesired XPM::ColourFromCode(int ch) const {
 	return colourCodeTable[ch];
@@ -109,7 +133,7 @@ void XPM::Init(const char *const *linesForm) {
 		colourDef += 4;
 		ColourDesired colour(0xff, 0xff, 0xff);
 		if (*colourDef == '#') {
-			colour.Set(colourDef);
+			colour = ColourFromHex(colourDef+1);
 		} else {
 			codeTransparent = code;
 		}
@@ -170,7 +194,7 @@ std::vector<const char *> XPM::LinesFormFromTextForm(const char *textForm) {
 	for (; countQuotes < (2*strings) && textForm[j] != '\0'; j++) {
 		if (textForm[j] == '\"') {
 			if (countQuotes == 0) {
-				// First field: width, height, number of colors, chars per pixel
+				// First field: width, height, number of colours, chars per pixel
 				const char *line0 = textForm + j + 1;
 				// Skip width
 				line0 = NextField(line0);
@@ -181,7 +205,7 @@ std::vector<const char *> XPM::LinesFormFromTextForm(const char *textForm) {
 				strings += atoi(line0);
 			}
 			if (countQuotes / 2 >= strings) {
-				break;	// Bad height or number of colors!
+				break;	// Bad height or number of colours!
 			}
 			if ((countQuotes & 1) == 0) {
 				linesForm.push_back(textForm + j + 1);
@@ -190,7 +214,7 @@ std::vector<const char *> XPM::LinesFormFromTextForm(const char *textForm) {
 		}
 	}
 	if (textForm[j] == '\0' || countQuotes / 2 > strings) {
-		// Malformed XPM! Height + number of colors too high or too low
+		// Malformed XPM! Height + number of colours too high or too low
 		linesForm.clear();
 	}
 	return linesForm;
@@ -238,6 +262,21 @@ void RGBAImage::SetPixel(int x, int y, ColourDesired colour, int alpha) {
 	pixel[1] = colour.GetGreen();
 	pixel[2] = colour.GetBlue();
 	pixel[3] = static_cast<unsigned char>(alpha);
+}
+
+// Transform a block of pixels from RGBA to BGRA with premultiplied alpha.
+// Used for DrawRGBAImage on some platforms.
+void RGBAImage::BGRAFromRGBA(unsigned char *pixelsBGRA, const unsigned char *pixelsRGBA, size_t count) noexcept {
+	for (size_t i = 0; i < count; i++) {
+		const unsigned char alpha = pixelsRGBA[3];
+		// Input is RGBA, output is BGRA with premultiplied alpha
+		pixelsBGRA[2] = pixelsRGBA[0] * alpha / 255;
+		pixelsBGRA[1] = pixelsRGBA[1] * alpha / 255;
+		pixelsBGRA[0] = pixelsRGBA[2] * alpha / 255;
+		pixelsBGRA[3] = alpha;
+		pixelsRGBA += bytesPerPixel;
+		pixelsBGRA += bytesPerPixel;
+	}
 }
 
 RGBAImageSet::RGBAImageSet() : height(-1), width(-1) {

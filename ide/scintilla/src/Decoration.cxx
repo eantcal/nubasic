@@ -11,6 +11,7 @@
 #include <cstdarg>
 
 #include <stdexcept>
+#include <string_view>
 #include <vector>
 #include <algorithm>
 #include <memory>
@@ -162,7 +163,7 @@ Decoration<POS> *DecorationList<POS>::Create(int indicator, Sci::Position length
 template <typename POS>
 void DecorationList<POS>::Delete(int indicator) {
 	decorationList.erase(std::remove_if(decorationList.begin(), decorationList.end(),
-		[=](const std::unique_ptr<Decoration<POS>> &deco) {
+		[indicator](const std::unique_ptr<Decoration<POS>> &deco) {
 		return deco->Indicator() == indicator;
 	}), decorationList.end());
 	current = nullptr;
@@ -227,8 +228,8 @@ void DecorationList<POS>::DeleteRange(Sci::Position position, Sci::Position dele
 template <typename POS>
 void DecorationList<POS>::DeleteLexerDecorations() {
 	decorationList.erase(std::remove_if(decorationList.begin(), decorationList.end(),
-		[=](const std::unique_ptr<Decoration<POS>> &deco) {
-		return deco->Indicator() < INDIC_CONTAINER;
+		[](const std::unique_ptr<Decoration<POS>> &deco) {
+		return deco->Indicator() < INDICATOR_CONTAINER ;
 	}), decorationList.end());
 	current = nullptr;
 	SetView();
@@ -240,7 +241,7 @@ void DecorationList<POS>::DeleteAnyEmpty() {
 		decorationList.clear();
 	} else {
 		decorationList.erase(std::remove_if(decorationList.begin(), decorationList.end(),
-			[=](const std::unique_ptr<Decoration<POS>> &deco) {
+			[](const std::unique_ptr<Decoration<POS>> &deco) {
 			return deco->Empty();
 		}), decorationList.end());
 	}
@@ -259,7 +260,7 @@ int DecorationList<POS>::AllOnFor(Sci::Position position) const {
 	int mask = 0;
 	for (const std::unique_ptr<Decoration<POS>> &deco : decorationList) {
 		if (deco->rs.ValueAt(static_cast<POS>(position))) {
-			if (deco->Indicator() < INDIC_IME) {
+			if (deco->Indicator() < INDICATOR_IME) {
 				mask |= 1 << deco->Indicator();
 			}
 		}

@@ -166,7 +166,7 @@ public:
                 || _struct_data_type_name != v._struct_data_type_name
                 || vector_idx >= _struct_data.size()
                 || v._struct_data.size() != 1,
-            0, rt_error_code_t::E_TYPE_ILLEGAL, "");
+            0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
         _struct_data[vector_idx] = v._struct_data[0];
     }
@@ -292,42 +292,42 @@ protected:
 
     const std::string& _at_s(size_t idx) const {
         rt_error_code_t::get_instance().throw_if(
-            idx >= _s_data.size(), 0, rt_error_code_t::E_VAL_OUT_OF_RANGE, "");
+            idx >= _s_data.size(), 0, rt_error_code_t::value_t::E_VAL_OUT_OF_RANGE, "");
 
         return _s_data[idx];
     }
 
     std::string& _at_s(size_t idx) {
         rt_error_code_t::get_instance().throw_if(
-            idx >= _s_data.size(), 0, rt_error_code_t::E_VAL_OUT_OF_RANGE, "");
+            idx >= _s_data.size(), 0, rt_error_code_t::value_t::E_VAL_OUT_OF_RANGE, "");
 
         return _s_data[idx];
     }
 
     const long64_t& _at_i(size_t idx) const {
         rt_error_code_t::get_instance().throw_if(
-            idx >= _i_data.size(), 0, rt_error_code_t::E_VAL_OUT_OF_RANGE, "");
+            idx >= _i_data.size(), 0, rt_error_code_t::value_t::E_VAL_OUT_OF_RANGE, "");
 
         return _i_data[idx];
     }
 
     long64_t& _at_i(size_t idx) {
         rt_error_code_t::get_instance().throw_if(
-            idx >= _i_data.size(), 0, rt_error_code_t::E_VAL_OUT_OF_RANGE, "");
+            idx >= _i_data.size(), 0, rt_error_code_t::value_t::E_VAL_OUT_OF_RANGE, "");
 
         return _i_data[idx];
     }
 
     const double_t& _at_f(size_t idx) const {
         rt_error_code_t::get_instance().throw_if(
-            idx >= _f_data.size(), 0, rt_error_code_t::E_VAL_OUT_OF_RANGE, "");
+            idx >= _f_data.size(), 0, rt_error_code_t::value_t::E_VAL_OUT_OF_RANGE, "");
 
         return _f_data[idx];
     }
 
     double_t& _at_f(size_t idx) {
         rt_error_code_t::get_instance().throw_if(
-            idx >= _f_data.size(), 0, rt_error_code_t::E_VAL_OUT_OF_RANGE, "");
+            idx >= _f_data.size(), 0, rt_error_code_t::value_t::E_VAL_OUT_OF_RANGE, "");
 
         return _f_data[idx];
     }

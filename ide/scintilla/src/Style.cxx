@@ -6,6 +6,9 @@
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <stdexcept>
+#include <string_view>
+#include <vector>
+#include <memory>
 
 #include "Platform.h"
 
@@ -14,27 +17,27 @@
 
 using namespace Scintilla;
 
-FontAlias::FontAlias() {
+FontAlias::FontAlias() noexcept {
 }
 
-FontAlias::FontAlias(const FontAlias &other) : Font() {
+FontAlias::FontAlias(const FontAlias &other) noexcept : Font() {
 	SetID(other.fid);
 }
 
 FontAlias::~FontAlias() {
-	SetID(0);
+	SetID(FontID{});
 	// ~Font will not release the actual font resource since it is now 0
 }
 
-void FontAlias::MakeAlias(Font &fontOrigin) {
+void FontAlias::MakeAlias(const Font &fontOrigin) noexcept {
 	SetID(fontOrigin.GetID());
 }
 
-void FontAlias::ClearFont() {
-	SetID(0);
+void FontAlias::ClearFont() noexcept {
+	SetID(FontID{});
 }
 
-bool FontSpecification::operator==(const FontSpecification &other) const {
+bool FontSpecification::operator==(const FontSpecification &other) const noexcept {
 	return fontName == other.fontName &&
 	       weight == other.weight &&
 	       italic == other.italic &&
@@ -43,7 +46,7 @@ bool FontSpecification::operator==(const FontSpecification &other) const {
 	       extraFontFlag == other.extraFontFlag;
 }
 
-bool FontSpecification::operator<(const FontSpecification &other) const {
+bool FontSpecification::operator<(const FontSpecification &other) const noexcept {
 	if (fontName != other.fontName)
 		return fontName < other.fontName;
 	if (weight != other.weight)
@@ -59,11 +62,11 @@ bool FontSpecification::operator<(const FontSpecification &other) const {
 	return false;
 }
 
-FontMeasurements::FontMeasurements() {
+FontMeasurements::FontMeasurements() noexcept {
 	ClearMeasurements();
 }
 
-void FontMeasurements::ClearMeasurements() {
+void FontMeasurements::ClearMeasurements() noexcept {
 	ascent = 1;
 	descent = 1;
 	capitalHeight = 1;
@@ -74,13 +77,13 @@ void FontMeasurements::ClearMeasurements() {
 
 Style::Style() : FontSpecification() {
 	Clear(ColourDesired(0, 0, 0), ColourDesired(0xff, 0xff, 0xff),
-	      Platform::DefaultFontSize() * SC_FONT_SIZE_MULTIPLIER, 0, SC_CHARSET_DEFAULT,
+	      Platform::DefaultFontSize() * SC_FONT_SIZE_MULTIPLIER, nullptr, SC_CHARSET_DEFAULT,
 	      SC_WEIGHT_NORMAL, false, false, false, caseMixed, true, true, false);
 }
 
 Style::Style(const Style &source) : FontSpecification(), FontMeasurements() {
 	Clear(ColourDesired(0, 0, 0), ColourDesired(0xff, 0xff, 0xff),
-	      0, 0, 0,
+	      0, nullptr, 0,
 	      SC_WEIGHT_NORMAL, false, false, false, caseMixed, true, true, false);
 	fore = source.fore;
 	back = source.back;
@@ -104,7 +107,7 @@ Style &Style::operator=(const Style &source) {
 	if (this == &source)
 		return * this;
 	Clear(ColourDesired(0, 0, 0), ColourDesired(0xff, 0xff, 0xff),
-	      0, 0, SC_CHARSET_DEFAULT,
+	      0, nullptr, SC_CHARSET_DEFAULT,
 	      SC_WEIGHT_NORMAL, false, false, false, caseMixed, true, true, false);
 	fore = source.fore;
 	back = source.back;

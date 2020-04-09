@@ -32,7 +32,7 @@ void stmt_locate_t::run(rt_prog_ctx_t& ctx)
     enum { ARGS_NUM = 2 };
 
     rt_error_if(
-        _args.size() != ARGS_NUM, rt_error_code_t::E_WRG_NUM_ARGS, "LOCATE");
+        _args.size() != ARGS_NUM, rt_error_code_t::value_t::E_WRG_NUM_ARGS, "LOCATE");
 
     variant_t val[2];
     int i = 0;
@@ -42,7 +42,7 @@ void stmt_locate_t::run(rt_prog_ctx_t& ctx)
             val[i] = arg.first->eval(ctx);
 
         rt_error_if(!variable_t::is_integral(val[i].get_type()),
-            rt_error_code_t::E_INVALID_ARGS, "Locate");
+            rt_error_code_t::value_t::E_INVALID_ARGS, "Locate");
 
         ++i;
 

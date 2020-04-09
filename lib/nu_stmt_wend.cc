@@ -45,7 +45,7 @@ void stmt_wend_t::run(rt_prog_ctx_t& ctx)
     auto handle = ctx.while_metadata.end_find(ctx.runtime_pc);
 
     rt_error_code_t::get_instance().throw_if(!handle, ctx.runtime_pc.get_line(),
-        rt_error_code_t::E_NO_MATCH_WHILE, "Wend / While End");
+        rt_error_code_t::value_t::E_NO_MATCH_WHILE, "Wend / While End");
 
     // Loop condition check
     if (!handle->flag[instrblock_t::EXIT]) {

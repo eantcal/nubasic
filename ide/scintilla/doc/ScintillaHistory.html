@@ -524,16 +524,697 @@
       </tr><tr>
 	<td>Gunter Königsmann</td>
 	<td>Nicholai Benalal</td>
+	<td>Uniface</td>
+	<td>Raghda Morsy</td>
+      </tr><tr>
+	<td>Giuseppe Corbelli</td>
+	<td>Andreas Rönnquist</td>
+	<td>Henrik Hank</td>
+	<td>Luke Rasmussen</td>
+      </tr><tr>
+	<td>Philipp</td>
+	<td>maboroshin</td>
+	<td>Gokul Krishnan</td>
+	<td>John Horigan</td>
+      </tr><tr>
+	<td>jj5</td>
+	<td>Jad Altahan</td>
+	<td>Andrea Ricchi</td>
+	<td>Juarez Rudsatz</td>
+      </tr><tr>
+	<td>Wil van Antwerpen</td>
+	<td>Hodong Kim</td>
+	<td>Michael Conrad</td>
+	<td>Dejan Budimir</td>
+      </tr><tr>
+	<td>Andreas Falkenhahn</td>
+	<td>Mark Reay</td>
+	<td>David Shuman</td>
+	<td>McLoo</td>
     </tr>
     </table>
     <p>
-       Images used in GTK+ version
+       Images used in GTK version
     </p>
     <ul>
       <li>
         <a href="http://sourceforge.net/projects/icon-collection/">
         Icons</a> Copyright(C) 1998 by Dean S. Jones<br />
       </li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite432.zip">Release 4.3.2</a>
+    </h3>
+    <ul>
+	<li>
+	Released 6 March 2020.
+	</li>
+	<li>
+	On Win32 fix new bug that treated all dropped text as rectangular.
+	</li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite431.zip">Release 4.3.1</a>
+    </h3>
+    <ul>
+	<li>
+	Released 4 March 2020.
+	</li>
+	<li>
+	Add default argument for StyleContext::GetRelative.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1336/">Feature #1336</a>.
+	</li>
+	<li>
+	Fix drag and drop between different encodings on Win32 by always providing CF_UNICODETEXT only.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2151/">Bug #2151</a>.
+	</li>
+	<li>
+	Automatically scroll while dragging text.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/497/">Feature #497</a>.
+	</li>
+	<li>
+	On Win32, the numeric keypad with Alt pressed can be used to enter characters by number.
+	This can produce unexpected results in non-numlock mode when function keys are assigned.
+	Potentially problematic keys like Alt+KeypadUp are now ignored.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2152/">Bug #2152</a>.
+	</li>
+	<li>
+	Crash fixed with Direct2D on Win32 when updating driver.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2138/">Bug #2138</a>.
+	</li>
+	<li>
+	For SciTE on Win32, fix crashes when Lua script closes application.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2155/">Bug #2155</a>.
+	</li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite430.zip">Release 4.3.0</a>
+    </h3>
+    <ul>
+	<li>
+	Released 16 January 2020.
+	</li>
+	<li>
+	Lexers made available as Lexilla library.
+	TestLexers program with tests for Lexilla and lexers added in lexilla/test.
+	</li>
+	<li>
+	SCI_SETILEXER implemented to use lexers from Lexilla or other sources.
+	</li>
+	<li>
+	ILexer5 interface defined provisionally to support use of Lexilla.
+	The details of this interface may change before being stabilised in Scintilla 5.0.
+	</li>
+	<li>
+	SCI_LOADLEXERLIBRARY implemented on Cocoa.
+	</li>
+	<li>
+	Build Scintilla with SCI_EMPTYCATALOGUE to avoid making lexers available.
+	</li>
+	<li>
+	Lexer and folder added for Raku language.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1328/">Feature #1328</a>.
+	</li>
+	<li>
+	Don't clear clipboard before copying text with Qt.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2147/">Bug #2147</a>.
+	</li>
+	<li>
+	On Win32, remove support for CF_TEXT clipboard format as Windows will convert to
+	CF_UNICODETEXT.
+	</li>
+	<li>
+	Improve IME behaviour on GTK.
+	Set candidate position for windowed IME.
+	Improve location of candidate window.
+	Prevent movement of candidate window while typing.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2135/">Bug #2135</a>.
+	</li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite423.zip">Release 4.2.3</a>
+    </h3>
+    <ul>
+	<li>
+	Released 11 December 2019.
+	</li>
+	<li>
+	Fix failure in SciTE's Complete Symbol command.
+	</li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite422.zip">Release 4.2.2</a>
+    </h3>
+    <ul>
+	<li>
+	Released 7 December 2019.
+	</li>
+	<li>
+	Move rather than grow selection when insertion at start.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2140/">Bug #2140</a>.
+	</li>
+	<li>
+	Allow target to have virtual space.
+	Add methods for finding the virtual space at start and end of multiple selections.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1316/">Feature #1316</a>.
+	</li>
+	<li>
+	SciTE on Win32 adds mouse button "Forward" and "Backward" key definitions for use in
+	properties like user.shortcuts.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1317/">Feature #1317</a>.
+	</li>
+	<li>
+	Lexer and folder added for Hollywood language.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1324/">Feature #1324</a>.
+	</li>
+	<li>
+	HTML lexer treats custom tags from HTML5 as known tags. These contain "-" like "custom-tag".
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1299/">Feature #1299</a>.
+	</li>
+	<li>
+	HTML lexer fixes bug with some non-alphabetic characters in unknown tags.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1320/">Feature #1320</a>.
+	</li>
+	<li>
+	Fix bug in properties file lexer where long lines were only styled for the first 1024 characters.
+	<a href="https://sourceforge.net/p/scintilla/bugs/1933/">Bug #1933</a>.
+	</li>
+	<li>
+	Ruby lexer recognizes squiggly heredocs.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1326/">Feature #1326</a>.
+	</li>
+	<li>
+	Avoid unnecessary IME caret movement on Win32.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1304/">Feature #1304</a>.
+	</li>
+	<li>
+	Clear IME state when switching language on Win32.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2137/">Bug #2137</a>.
+	</li>
+	<li>
+	Fixed drawing of translucent rounded rectangles on Win32 with Direct2D.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2144/">Bug #2144</a>.
+	</li>
+	<li>
+	Setting rectangular selection made faster.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2130/">Bug #2130</a>.
+	</li>
+	<li>
+	SciTE reassigns *.s extension to the GNU Assembler language from the S+ statistical language.
+	</li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite421.zip">Release 4.2.1</a>
+    </h3>
+    <ul>
+	<li>
+	Released 24 October 2019.
+	</li>
+	<li>
+	Add SCI_SETTABMINIMUMWIDTH to set the minimum width of tabs.
+	This allows minimaps or overviews to be layed out to match the full size editing view.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2118/">Bug #2118</a>.
+	</li>
+	<li>
+	SciTE enables use of SCI_ commands in user.context.menu.
+	</li>
+ 	<li>
+	XML folder adds fold.xml.at.tag.open option to fold tags at the start of the tag "&lt;" instead of the end "&gt;".
+	<a href="https://sourceforge.net/p/scintilla/bugs/2128/">Bug #2128</a>.
+	</li>
+ 	<li>
+	Metapost lexer fixes crash with 'interface=none' comment.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2129/">Bug #2129</a>.
+	</li>
+ 	<li>
+	Perl lexer supports indented here-docs.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2121/">Bug #2121</a>.
+	</li>
+ 	<li>
+	Perl folder folds qw arrays.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1306/">Feature #1306</a>.
+	</li>
+ 	<li>
+	TCL folder can turn off whitespace flag by setting fold.compact property to 0.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2131/">Bug #2131</a>.
+	</li>
+ 	<li>
+	Optimize setting up keyword lists in lexers.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1305/">Feature #1305</a>.
+	</li>
+	<li>
+	Updated case conversion and character categories to Unicode 12.1.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1315/">Feature #1315</a>.
+	</li>
+ 	<li>
+	On Win32, stop the IME candidate window moving unnecessarily and position it better.<br />
+	Stop candidate window overlapping composition text and taskbar.<br />
+	Position candidate window closer to composition text.<br />
+	Stop candidate window moving while typing.<br />
+	Align candidate window to target part of composition text.<br />
+	Stop Google IME on Windows 7 moving while typing.<br />
+	<a href="https://sourceforge.net/p/scintilla/bugs/2120/">Bug #2120</a>.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1300/">Feature #1300</a>.
+	</li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite420.zip">Release 4.2.0</a>
+    </h3>
+    <ul>
+	<li>
+	Released 5 July 2019.
+	</li>
+ 	<li>
+	Scintilla.iface adds line and pointer types, increases use of the position type, uses enumeration
+	types in methods and properties, and adds enumeration aliases to produce better CamelCase
+	identifiers.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1297/">Feature #1297</a>.
+	</li>
+ 	<li>
+	Source of input (direct / IME composition / IME result) reported in SCN_CHARADDED so applications
+	can treat temporary IME composition input differently.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2038/">Bug #2038</a>.
+	</li>
+ 	<li>
+	Lexer added for DataFlex.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1295/">Feature #1295</a>.
+	</li>
+ 	<li>
+	Matlab lexer now treats keywords as case-sensitive.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2112/">Bug #2112</a>.
+	</li>
+ 	<li>
+	SQL lexer fixes single quoted strings where '" (quote, double quote) was seen as continuing the string.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2098/">Bug #2098</a>.
+	</li>
+ 	<li>
+	Platform layers should use InsertCharacter method to perform keyboard and IME input, replacing
+	AddCharUTF method.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1293/">Feature #1293</a>.
+	</li>
+ 	<li>
+	Add CARETSTYLE_BLOCK_AFTER option to always display block caret after selection.
+	<a href="https://sourceforge.net/p/scintilla/bugs/1924/">Bug #1924</a>.
+	</li>
+ 	<li>
+	On Win32, limit text returned from WM_GETTEXT to the length specified in wParam.
+	This could cause failures when using assistive technologies like NVDA.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2110/">Bug #2110</a>,
+	<a href="https://sourceforge.net/p/scintilla/bugs/2114/">Bug #2114</a>.
+	</li>
+ 	<li>
+	Fix deletion of isolated invalid bytes.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2116/">Bug #2116</a>.
+	</li>
+ 	<li>
+	Fix position of line caret when overstrike caret set to block.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2106/">Bug #2106</a>.
+	</li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite417.zip">Release 4.1.7</a>
+    </h3>
+    <ul>
+	<li>
+	Released 13 June 2019.
+	</li>
+	<li>
+	Fixes an incorrect default setting in SciTE which caused multiple visual features to fail to display.
+	</li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite416.zip">Release 4.1.6</a>
+    </h3>
+    <ul>
+	<li>
+	Released 10 June 2019.
+	</li>
+	<li>
+	For Visual C++ 2019, /std:c++latest now includes some C++20 features so switch to /std:c++17.
+	</li>
+	<li>
+	SciTE supports editing files larger than 2 gigabytes when built as a 64-bit application.
+	</li>
+ 	<li>
+	Lexer added for X12.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1280/">Feature #1280</a>.
+	</li>
+ 	<li>
+	CMake folder folds function - endfunction.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1289/">Feature #1289</a>.
+	</li>
+ 	<li>
+	VB lexer adds support for VB2017 binary literal &amp;B and digit separators 123_456.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1288/">Feature #1288</a>.
+	</li>
+	<li>
+	Improved performance of line folding code on large files when no folds are contracted.
+	This improves the time taken to open or close large files.
+	</li>
+	<li>
+	Fix bug where changing identifier sets in lexers preserved previous identifiers.
+	</li>
+	<li>
+	Fixed bug where changing to Unicode would rediscover line end positions even if still
+	sticking to ASCII (not Unicode NEL, LS, PS) line ends.
+	Only noticeable on huge files with over 100,000 lines.
+	</li>
+ 	<li>
+	Changed behaviour of SCI_STYLESETCASE(*,SC_CASE_CAMEL) so that it only treats 'a-zA-Z'
+	as word characters because this covers the feature's intended use (viewing case-insensitive ASCII-only
+	keywords in a specified casing style) and simplifies the behaviour and code.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1238/">Feature #1238</a>.
+	</li>
+ 	<li>
+	In SciTE added Camel case option "case:c" for styles to show keywords with initial capital.
+	</li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite415.zip">Release 4.1.5</a>
+    </h3>
+    <ul>
+	<li>
+	Released 17 April 2019.
+	</li>
+ 	<li>
+	On Win32, removed special handling of non-0 wParam to WM_PAINT.
+	</li>
+ 	<li>
+	Implement high-priority idle on Win32 to make redraw smoother and more efficient.
+	</li>
+	<li>
+	Add vertical bookmark symbol SC_MARK_VERTICALBOOKMARK.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1276/">Feature #1276</a>.
+	</li>
+ 	<li>
+	Set default fold display text SCI_SETDEFAULTFOLDDISPLAYTEXT(text).
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1272/">Feature #1272</a>.
+	</li>
+ 	<li>
+	Add SCI_SETCHARACTERCATEGORYOPTIMIZATION API to optimize speed
+	of character category features like determining whether a character is a space or number
+	at the expense of memory.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1259/">Feature #1259</a>.
+	</li>
+ 	<li>
+	Improve the styling of numbers in Nim.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1268/">Feature #1268</a>.
+	</li>
+ 	<li>
+	Fix exception when inserting DBCS text.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2093/">Bug #2093</a>.
+	</li>
+	<li>
+	Improve performance of accessibility on GTK.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2094/">Bug #2094</a>.
+	</li>
+ 	<li>
+	Fix text reported for deletion with accessibility on GTK.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2095/">Bug #2095</a>.
+	</li>
+ 	<li>
+	Fix flicker when inserting primary selection on GTK.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2087/">Bug #2087</a>.
+	</li>
+ 	<li>
+	Support coloured text in Windows 8.1+.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1277/">Feature #1277</a>.
+	</li>
+ 	<li>
+	Avoid potential long hangs with idle styling for huge documents on Cocoa and GTK.
+	</li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite414.zip">Release 4.1.4</a>
+    </h3>
+    <ul>
+	<li>
+	Released 7 March 2019.
+	</li>
+	<li>
+	Calltips implemented on Qt.
+	<a href="https://sourceforge.net/p/scintilla/bugs/1548/">Bug #1548</a>.
+	</li>
+ 	<li>
+	Block caret in overtype mode SCI_SETCARETSTYLE(caretStyle | CARETSTYLE_OVERSTRIKE_BLOCK).
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1217/">Feature #1217</a>.
+	</li>
+ 	<li>
+	SciTE supports changing caret style via caret.style property.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1264/">Feature #1624</a>.
+	</li>
+ 	<li>
+	Lexer added for .NET's Common Intermediate Language CIL.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1265/">Feature #1265</a>.
+	</li>
+ 	<li>
+	The C++ lexer, with styling.within.preprocessor on, now interprets "(" in preprocessor "#if("
+	as an operator instead of part of the directive. This improves folding as well which could become
+	unbalanced.
+	</li>
+ 	<li>
+	Fix raw strings in Nim.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1253/">Feature #1253</a>.
+	</li>
+ 	<li>
+	Fix inconsistency with dot styling in Nim.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1260/">Feature #1260</a>.
+	</li>
+ 	<li>
+	Enhance the styling of backticks in Nim.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1261/">Feature #1261</a>.
+	</li>
+ 	<li>
+	Enhance raw string identifier styling in Nim.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1262/">Feature #1262</a>.
+	</li>
+ 	<li>
+	Fix fold behaviour with comments in Nim.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1254/">Feature #1254</a>.
+	</li>
+ 	<li>
+	Fix TCL lexer recognizing '"' after "," inside a bracketed substitution.
+	<a href="https://sourceforge.net/p/scintilla/bugs/1947/">Bug #1947</a>.
+	</li>
+ 	<li>
+	Fix garbage text from SCI_MOVESELECTEDLINESUP and SCI_MOVESELECTEDLINESDOWN
+	for rectangular or thin selection by performing no action.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2078/">Bug #2078</a>.
+	</li>
+ 	<li>
+	Ensure container notified if Insert pressed when caret off-screen.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2083/">Bug #2083</a>.
+	</li>
+ 	<li>
+	Fix memory leak when checking running instance on GTK.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1267/">Feature #1267</a>.
+	</li>
+	<li>
+	Platform layer font cache removed on Win32 as there is a platform-independent cache.
+	</li>
+	<li>
+	SciTE for GTK easier to build on macOS.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2084/">Bug #2084</a>.
+	</li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite413.zip">Release 4.1.3</a>
+    </h3>
+    <ul>
+	<li>
+	Released 10 January 2019.
+	</li>
+	<li>
+	Add SCI_SETCOMMANDEVENTS API to allow turning off command events as they
+	can be a significant performance cost.
+	</li>
+	<li>
+	Improve efficiency of idle wrapping by wrapping in blocks as large as possible while
+	still remaining responsive.
+	</li>
+	<li>
+	Updated case conversion and character categories to Unicode 11.
+	</li>
+	<li>
+	Errorlist lexer recognizes negative line numbers as some programs show whole-file
+	errors occurring on line -1.
+	SciTE's parsing of diagnostics also updated to handle this case.
+	</li>
+ 	<li>
+	Added "nim" lexer (SCLEX_NIM) for the Nim language which was previously called Nimrod.
+	For compatibility, the old "nimrod" lexer is still present but is deprecated and will be removed at the
+	next major version.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1242/">Feature #1242</a>.
+	</li>
+ 	<li>
+	The Bash lexer implements substyles for multiple sets of keywords and supports SCI_PROPERTYNAMES.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2054/">Bug #2054</a>.
+	</li>
+ 	<li>
+	The C++ lexer interprets continued preprocessor lines correctly by reading all of
+	the logical line.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2062/">Bug #2062</a>.
+	</li>
+ 	<li>
+	The C++ lexer interprets preprocessor arithmetic expressions containing multiplicative and additive
+	operators correctly by following operator precedence rules.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2069/">Bug #2069</a>.
+	</li>
+ 	<li>
+	The EDIFACT lexer handles message groups as well as messages.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1247/">Feature #1247</a>.
+	</li>
+ 	<li>
+	For SciTE's Find in Files, allow case-sensitivity and whole-word options when running
+	a user defined command.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2053/">Bug #2053</a>.
+	</li>
+	<li>
+	Notify with SC_UPDATE_SELECTION when user performs a multiple selection add.
+	</li>
+	<li>
+	On macOS 10.14 Cocoa, fix incorrect horizontal offset.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2022/">Bug #2022</a>.
+	</li>
+	<li>
+	On Cocoa, fix a crash that occurred when entering a dead key diacritic then a character
+	that can not take that diacritic, such as option+e (acute accent) followed by g.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2061/">Bug #2061</a>.
+	</li>
+	<li>
+	On Cocoa, use dark info bar background when system is set to Dark Appearance.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2055/">Bug #2055</a>.
+	</li>
+	<li>
+	Fixed a crash on Cocoa in bidirectional mode where some patterns of invalid UTF-8
+	caused failures to create Unicode strings.
+	</li>
+	<li>
+	SCI_MARKERADD returns -1 for invalid lines as documented instead of 0.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2051/">Bug #2051</a>.
+	</li>
+	<li>
+	Improve performance of text insertion when Unicode line indexing off.
+	</li>
+	<li>
+	For Qt on Windows, stop specifying -std:c++latest as that is no longer needed
+	to enable C++17 with MSVC 2017 and Qt 5.12 and it caused duplicate flag warnings.
+	</li>
+	<li>
+	On Linux, enable Lua to access dynamic libraries.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2058/">Bug #2058</a>.
+	</li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite412.zip">Release 4.1.2</a>
+    </h3>
+    <ul>
+	<li>
+	Released 2 October 2018.
+	</li>
+	<li>
+	C++ lexer fixes evaluation of "#elif".
+	<a href="https://sourceforge.net/p/scintilla/bugs/2045/">Bug #2045</a>.
+	</li>
+	<li>
+	Markdown lexer fixes highlighting of non-ASCII characters in links.
+	</li>
+	<li>
+	SciTE on Win32 drops menukey feature, makes Del key work again in find and replace strips
+	and disables F5 while command running.
+	<a href="https://sourceforge.net/p/scintilla/bugs/2044/">Bug #2044</a>.
+	</li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite411.zip">Release 4.1.1</a>
+    </h3>
+    <ul>
+	<li>
+	Released 9 September 2018.
+	</li>
+	<li>
+	Optional indexing of line starts in UTF-8 documents by UTF-32 code points and UTF-16 code units added.
+	This can improve performance for clients that provide UTF-32 or UTF-16 interfaces or that need to interoperate
+	with UTF-32 or UTF-16 components.
+	</li>
+	<li>
+	Lexers added for SAS and Stata.
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1185/">Feature #1185.</a>
+	</li>
+	<li>
+	Shell folder folds "if", "do", and "case".
+	<a href="https://sourceforge.net/p/scintilla/feature-requests/1144/">Feature #1144.</a>
+	</li>
+	<li>
+	SciTE's menukey feature implemented on Windows.
+	</li>
+	<li>
+	For SciTE on Windows, user defined strip lists are now scrollable.
+	Cursor no longer flickers in edit and combo boxes.
+	Focus in and out events occur for combo boxes.
+	</li>
+	<li>
+	Fix a leak in the bidirectional code on Win32.
+	</li>
+	<li>
+	Fix crash on Win32 when switching technology to default after setting bidirectional mode.
+	</li>
+	<li>
+	Fix margin cursor on Cocoa to point more accurately.
+	</li>
+	<li>
+	Fix SciTE crash on GTK+ when using director interface.
+	</li>
+    </ul>
+    <h3>
+       <a href="https://www.scintilla.org/scite410.zip">Release 4.1.0</a>
+    </h3>
+    <ul>
+	<li>
+	Released 19 June 2018.
+	</li>
+	<li>
+	Experimental and incomplete support added for bidirectional text on Windows using DirectWrite and Cocoa for
+	UTF-8 documents by calling SCI_SETBIDIRECTIONAL(SC_BIDIRECTIONAL_L2R).
+	This allows documents that contain Arabic or Hebrew to be edited more easily in a way that is similar
+	to other editors.
+	</li>
+	<li>
+	INDIC_GRADIENT and INDIC_GRADIENTCENTRE indicator types added.
+	INDIC_GRADIENT starts with a specified colour and alpha at top of line and fades
+	to fully transparent at bottom.
+	INDIC_GRADIENTCENTRE starts with a specified colour and alpha at centre of line and fades
+	to fully transparent at top and bottom.
+	</li>
+	<li>
+	Wrap indent mode SC_WRAPINDENT_DEEPINDENT added which indents two tabs from previous line.
+	</li>
+	<li>
+	Indicators are drawn for line end characters when displayed.
+	</li>
+	<li>
+	Most invalid bytes in DBCS encodings are displayed as blobs to make problems clear
+	and ensure something is shown.
+	</li>
+	<li>
+	On Cocoa, invalid text in DBCS encodings will be interpreted through the
+	single-byte MacRoman encoding as that will accept any byte.
+	</li>
+	<li>
+	Diff lexer adds styles for diffs containing patches.
+	</li>
+	<li>
+	Crashes fixed on macOS for invalid DBCS characters when dragging text,
+	changing case of text, case-insensitive searching, and retrieving text as UTF-8.
+	</li>
+	<li>
+	Regular expression crash fixed on macOS when linking to libstdc++.
+	</li>
+	<li>
+	SciTE on GTK+, when running in single-instance mode, now forwards all command line arguments
+	to the already running instance.
+	This allows "SciTE filename -goto:line" to work.
+	</li>
     </ul>
     <h3>
        <a href="https://www.scintilla.org/scite405.zip">Release 4.0.5</a>
@@ -928,7 +1609,7 @@
 	</li>
 	<li>
 	This is the first release of the
-	<a href="https://www.scintilla.org/LongTermDownload.html">long term branch</a>
+	<a href="https://scintilla.sourceforge.io/LongTermDownload.html">long term branch</a>
 	which avoids using features from C++14 or later in order to support older systems.
 	</li>
 	<li>
@@ -944,6 +1625,9 @@
     <ul>
 	<li>
 	Released 26 May 2017.
+	</li>
+	<li>
+	This is the final release of SciTE 3.x.
 	</li>
 	<li>
 	Support dropped for Microsoft Visual C++ 2013 due to increased use of C++11 features.
@@ -1029,7 +1713,7 @@
 	</li>
 	<li>
 	SciTE on Windows Find strip Find button works in incremental no-close mode.
-	<href="https://sourceforge.net/p/scintilla/bugs/1926/">Bug #1926</a>.
+	<a href="https://sourceforge.net/p/scintilla/bugs/1926/">Bug #1926</a>.
 	</li>
     </ul>
     <h3>

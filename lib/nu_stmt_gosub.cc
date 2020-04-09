@@ -26,12 +26,12 @@ void stmt_gosub_t::run(rt_prog_ctx_t& ctx)
     if (!_line_number) {
         if (_label.empty() || !ctx.prog_label.is_defined(_label)) {
             rt_error_code_t::get_instance().throw_if(_label.empty(),
-                ctx.runtime_pc.get_line(), rt_error_code_t::E_NO_LABEL,
+                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_NO_LABEL,
                 "Gosub");
 
             rt_error_code_t::get_instance().throw_if(
                 !ctx.prog_label.is_defined(_label), ctx.runtime_pc.get_line(),
-                rt_error_code_t::E_LABEL_NOT_DEF, "Gosub");
+                rt_error_code_t::value_t::E_LABEL_NOT_DEF, "Gosub");
         }
 
         _line_number = ctx.prog_label[_label];

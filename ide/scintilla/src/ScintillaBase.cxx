@@ -12,6 +12,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -23,16 +24,13 @@
 #include "ILexer.h"
 #include "Scintilla.h"
 
-#ifdef SCI_LEXER
 #include "SciLexer.h"
-#endif
 
 #include "PropSetSimple.h"
+#include "CharacterCategory.h"
 
-#ifdef SCI_LEXER
 #include "LexerModule.h"
 #include "Catalogue.h"
-#endif
 
 #include "Position.h"
 #include "UniqueString.h"
@@ -60,6 +58,8 @@
 #include "AutoComplete.h"
 #include "ScintillaBase.h"
 
+#include "ExternalLexer.h"
+
 using namespace Scintilla;
 
 ScintillaBase::ScintillaBase() {
@@ -67,6 +67,9 @@ ScintillaBase::ScintillaBase() {
 	listType = 0;
 	maxListWidth = 0;
 	multiAutoCMode = SC_MULTIAUTOC_ONCE;
+#ifdef SCI_LEXER
+	Scintilla_LinkLexers();
+#endif
 }
 
 ScintillaBase::~ScintillaBase() {
@@ -77,17 +80,21 @@ void ScintillaBase::Finalise() {
 	popup.Destroy();
 }
 
-void ScintillaBase::AddCharUTF(const char *s, unsigned int len, bool treatAsDBCS) {
-	const bool isFillUp = ac.Active() && ac.IsFillUpChar(*s);
+void ScintillaBase::AddCharUTF(const char *s, unsigned int len, bool /*treatAsDBCS*/) {
+	InsertCharacter(std::string_view(s, len), CharacterSource::directInput);
+}
+
+void ScintillaBase::InsertCharacter(std::string_view sv, CharacterSource charSource) {
+	const bool isFillUp = ac.Active() && ac.IsFillUpChar(sv[0]);
 	if (!isFillUp) {
-		Editor::AddCharUTF(s, len, treatAsDBCS);
+		Editor::InsertCharacter(sv, charSource);
 	}
 	if (ac.Active()) {
-		AutoCompleteCharacterAdded(s[0]);
+		AutoCompleteCharacterAdded(sv[0]);
 		// For fill ups add the character after the autocompletion has
 		// triggered so containers see the key so can display a calltip.
 		if (isFillUp) {
-			Editor::AddCharUTF(s, len, treatAsDBCS);
+			Editor::InsertCharacter(sv, charSource);
 		}
 	}
 }
@@ -274,10 +281,8 @@ void ScintillaBase::AutoCompleteStart(Sci::Position lenEntered, const char *list
 		Redraw();
 		pt = PointMainCaret();
 	}
-	if (wMargin.GetID()) {
-		const Point ptOrigin = GetVisibleOriginInMain();
-		pt.x += ptOrigin.x;
-		pt.y += ptOrigin.y;
+	if (wMargin.Created()) {
+		pt = pt + GetVisibleOriginInMain();
 	}
 	PRectangle rcac;
 	rcac.left = pt.x - ac.lb->CaretFromEdge();
@@ -293,7 +298,7 @@ void ScintillaBase::AutoCompleteStart(Sci::Position lenEntered, const char *list
 	}
 	rcac.right = rcac.left + widthLB;
 	rcac.bottom = static_cast<XYPOSITION>(std::min(static_cast<int>(rcac.top) + heightLB, static_cast<int>(rcPopupBounds.bottom)));
-	ac.lb->SetPositionRelative(rcac, wMain);
+	ac.lb->SetPositionRelative(rcac, &wMain);
 	ac.lb->SetFont(vs.styles[STYLE_DEFAULT].font);
 	const unsigned int aveCharWidth = static_cast<unsigned int>(vs.styles[STYLE_DEFAULT].aveCharWidth);
 	ac.lb->SetAverageCharWidth(aveCharWidth);
@@ -317,7 +322,7 @@ void ScintillaBase::AutoCompleteStart(Sci::Position lenEntered, const char *list
 		rcList.top = pt.y + vs.lineHeight;
 	}
 	rcList.bottom = rcList.top + heightAlloced;
-	ac.lb->SetPositionRelative(rcList, wMain);
+	ac.lb->SetPositionRelative(rcList, &wMain);
 	ac.Show(true);
 	if (lenEntered != 0) {
 		AutoCompleteMoveToCurrentWord();
@@ -442,12 +447,12 @@ int ScintillaBase::AutoCompleteGetCurrentText(char *buffer) const {
 		const int item = ac.GetSelection();
 		if (item != -1) {
 			const std::string selected = ac.GetValue(item);
-			if (buffer != NULL)
+			if (buffer)
 				memcpy(buffer, selected.c_str(), selected.length()+1);
 			return static_cast<int>(selected.length());
 		}
 	}
-	if (buffer != NULL)
+	if (buffer)
 		*buffer = '\0';
 	return 0;
 }
@@ -461,10 +466,8 @@ void ScintillaBase::CallTipShow(Point pt, const char *defn) {
 	if (ct.UseStyleCallTip()) {
 		ct.SetForeBack(vs.styles[STYLE_CALLTIP].fore, vs.styles[STYLE_CALLTIP].back);
 	}
-	if (wMargin.GetID()) {
-		const Point ptOrigin = GetVisibleOriginInMain();
-		pt.x += ptOrigin.x;
-		pt.y += ptOrigin.y;
+	if (wMargin.Created()) {
+		pt = pt + GetVisibleOriginInMain();
 	}
 	PRectangle rc = ct.CallTipStart(sel.MainCaret(), pt,
 		vs.lineHeight,
@@ -491,7 +494,7 @@ void ScintillaBase::CallTipShow(Point pt, const char *defn) {
 	}
 	// Now display the window.
 	CreateCallTipWindow(rc);
-	ct.wCallTip.SetPositionRelative(rc, wMain);
+	ct.wCallTip.SetPositionRelative(rc, &wMain);
 	ct.wCallTip.Show();
 }
 
@@ -540,8 +543,6 @@ void ScintillaBase::RightButtonDownWithModifiers(Point pt, unsigned int curTime,
 	Editor::RightButtonDownWithModifiers(pt, curTime, modifiers);
 }
 
-#ifdef SCI_LEXER
-
 namespace Scintilla {
 
 class LexState : public LexInterface {
@@ -553,6 +554,7 @@ public:
 	int lexLanguage;
 
 	explicit LexState(Document *pdoc_);
+	void SetInstance(ILexer5 *instance_);
 	// Deleted so LexState objects can not be copied.
 	LexState(const LexState &) = delete;
 	LexState(LexState &&) = delete;
@@ -561,8 +563,10 @@ public:
 	~LexState() override;
 	void SetLexer(uptr_t wParam);
 	void SetLexerLanguage(const char *languageName);
+
 	const char *DescribeWordListSets();
 	void SetWordList(int n, const char *wl);
+	int GetIdentifier() const;
 	const char *GetName() const;
 	void *PrivateCall(int operation, void *pointer);
 	const char *PropertyNames();
@@ -592,7 +596,7 @@ public:
 }
 
 LexState::LexState(Document *pdoc_) : LexInterface(pdoc_) {
-	lexCurrent = 0;
+	lexCurrent = nullptr;
 	performingStyle = false;
 	interfaceVersion = lvRelease4;
 	lexLanguage = SCLEX_CONTAINER;
@@ -601,8 +605,17 @@ LexState::LexState(Document *pdoc_) : LexInterface(pdoc_) {
 LexState::~LexState() {
 	if (instance) {
 		instance->Release();
-		instance = 0;
+		instance = nullptr;
 	}
+}
+
+void LexState::SetInstance(ILexer5 *instance_) {
+	if (instance) {
+		instance->Release();
+		instance = nullptr;
+	}
+	instance = instance_;
+	pdoc->LexerChanged();
 }
 
 LexState *ScintillaBase::DocumentLexState() {
@@ -616,7 +629,7 @@ void LexState::SetLexerModule(const LexerModule *lex) {
 	if (lex != lexCurrent) {
 		if (instance) {
 			instance->Release();
-			instance = 0;
+			instance = nullptr;
 		}
 		interfaceVersion = lvRelease4;
 		lexCurrent = lex;
@@ -631,7 +644,7 @@ void LexState::SetLexerModule(const LexerModule *lex) {
 void LexState::SetLexer(uptr_t wParam) {
 	lexLanguage = static_cast<int>(wParam);
 	if (lexLanguage == SCLEX_CONTAINER) {
-		SetLexerModule(0);
+		SetLexerModule(nullptr);
 	} else {
 		const LexerModule *lex = Catalogue::Find(lexLanguage);
 		if (!lex)
@@ -653,7 +666,7 @@ const char *LexState::DescribeWordListSets() {
 	if (instance) {
 		return instance->DescribeWordListSets();
 	} else {
-		return 0;
+		return nullptr;
 	}
 }
 
@@ -667,14 +680,22 @@ void LexState::SetWordList(int n, const char *wl) {
 }
 
 const char *LexState::GetName() const {
-	return lexCurrent ? lexCurrent->languageName : "";
+	if (lexCurrent) {
+		return lexCurrent->languageName;
+	}
+	if (instance) {
+		if (instance->Version() >= lvRelease5) {
+			return instance->GetName();
+		}
+	}
+	return "";
 }
 
 void *LexState::PrivateCall(int operation, void *pointer) {
 	if (pdoc && instance) {
 		return instance->PrivateCall(operation, pointer);
 	} else {
-		return 0;
+		return nullptr;
 	}
 }
 
@@ -682,7 +703,7 @@ const char *LexState::PropertyNames() {
 	if (instance) {
 		return instance->PropertyNames();
 	} else {
-		return 0;
+		return nullptr;
 	}
 }
 
@@ -698,7 +719,7 @@ const char *LexState::DescribeProperty(const char *name) {
 	if (instance) {
 		return instance->DescribeProperty(name);
 	} else {
-		return 0;
+		return nullptr;
 	}
 }
 
@@ -805,7 +826,7 @@ const char *LexState::NameOfStyle(int style) {
 	if (instance) {
 		return instance->NameOfStyle(style);
 	} else {
-		return 0;
+		return nullptr;
 	}
 }
 
@@ -813,7 +834,7 @@ const char *LexState::TagsOfStyle(int style) {
 	if (instance) {
 		return instance->TagsOfStyle(style);
 	} else {
-		return 0;
+		return nullptr;
 	}
 }
 
@@ -821,14 +842,11 @@ const char *LexState::DescriptionOfStyle(int style) {
 	if (instance) {
 		return instance->DescriptionOfStyle(style);
 	} else {
-		return 0;
+		return nullptr;
 	}
 }
 
-#endif
-
 void ScintillaBase::NotifyStyleToNeeded(Sci::Position endStyleNeeded) {
-#ifdef SCI_LEXER
 	if (DocumentLexState()->lexLanguage != SCLEX_CONTAINER) {
 		const Sci::Line lineEndStyled =
 			pdoc->SciLineFromPosition(pdoc->GetEndStyled());
@@ -837,14 +855,11 @@ void ScintillaBase::NotifyStyleToNeeded(Sci::Position endStyleNeeded) {
 		DocumentLexState()->Colourise(endStyled, endStyleNeeded);
 		return;
 	}
-#endif
 	Editor::NotifyStyleToNeeded(endStyleNeeded);
 }
 
 void ScintillaBase::NotifyLexerChanged(Document *, void *) {
-#ifdef SCI_LEXER
 	vs.EnsureStyle(0xff);
-#endif
 }
 
 sptr_t ScintillaBase::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
@@ -1012,19 +1027,19 @@ sptr_t ScintillaBase::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lPara
 		break;
 
 	case SCI_CALLTIPSETBACK:
-		ct.colourBG = ColourDesired(static_cast<long>(wParam));
+		ct.colourBG = ColourDesired(static_cast<int>(wParam));
 		vs.styles[STYLE_CALLTIP].back = ct.colourBG;
 		InvalidateStyleRedraw();
 		break;
 
 	case SCI_CALLTIPSETFORE:
-		ct.colourUnSel = ColourDesired(static_cast<long>(wParam));
+		ct.colourUnSel = ColourDesired(static_cast<int>(wParam));
 		vs.styles[STYLE_CALLTIP].fore = ct.colourUnSel;
 		InvalidateStyleRedraw();
 		break;
 
 	case SCI_CALLTIPSETFOREHLT:
-		ct.colourSel = ColourDesired(static_cast<long>(wParam));
+		ct.colourSel = ColourDesired(static_cast<int>(wParam));
 		InvalidateStyleRedraw();
 		break;
 
@@ -1042,13 +1057,16 @@ sptr_t ScintillaBase::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lPara
 		displayPopupMenu = static_cast<int>(wParam);
 		break;
 
-#ifdef SCI_LEXER
 	case SCI_SETLEXER:
 		DocumentLexState()->SetLexer(static_cast<int>(wParam));
 		break;
 
 	case SCI_GETLEXER:
 		return DocumentLexState()->lexLanguage;
+
+	case SCI_SETILEXER:
+		DocumentLexState()->SetInstance(reinterpret_cast<ILexer5 *>(lParam));
+		return 0;
 
 	case SCI_COLOURISE:
 		if (DocumentLexState()->lexLanguage == SCLEX_CONTAINER) {
@@ -1085,6 +1103,12 @@ sptr_t ScintillaBase::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lPara
 
 	case SCI_GETLEXERLANGUAGE:
 		return StringResult(lParam, DocumentLexState()->GetName());
+
+#ifdef SCI_LEXER
+	case SCI_LOADLEXERLIBRARY:
+		ExternalLexerLoad(ConstCharPtrFromSPtr(lParam));
+		break;
+#endif
 
 	case SCI_PRIVATELEXERCALL:
 		return reinterpret_cast<sptr_t>(
@@ -1155,8 +1179,6 @@ sptr_t ScintillaBase::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lPara
 	case SCI_DESCRIPTIONOFSTYLE:
 		return StringResult(lParam, DocumentLexState()->
 				    DescriptionOfStyle(static_cast<int>(wParam)));
-
-#endif
 
 	default:
 		return Editor::WndProc(iMessage, wParam, lParam);

@@ -72,12 +72,12 @@ void stmt_call_t::run(
         }
     }
 
-    rt_error_if(undef, rt_error_code_t::E_SUB_UNDEF, _name);
+    rt_error_if(undef, rt_error_code_t::value_t::E_SUB_UNDEF, _name);
 
     auto& function_prototype = i->second.second;
 
     rt_error_if(function_prototype.parameters.size() != _args.size(),
-        rt_error_code_t::E_WRG_NUM_ARGS, _name);
+        rt_error_code_t::value_t::E_WRG_NUM_ARGS, _name);
 
     // Evaluate sub arguments
     std::list<variant_t> values;
@@ -126,7 +126,7 @@ void stmt_call_t::run(
             auto it = sprototypes.find(function_prototype.ret_type);
 
             rt_error_if(it == sprototypes.end(),
-                rt_error_code_t::E_STRUCT_UNDEF, "'" + _name + "'");
+                rt_error_code_t::value_t::E_STRUCT_UNDEF, "'" + _name + "'");
 
             auto value = it->second.second; // struct prototype
 
@@ -137,7 +137,7 @@ void stmt_call_t::run(
 
         default:
             rt_error_if(
-                true, rt_error_code_t::E_INV_VECT_SIZE, "'" + _name + "'");
+                true, rt_error_code_t::value_t::E_INV_VECT_SIZE, "'" + _name + "'");
         }
     }
 
@@ -166,7 +166,7 @@ void stmt_call_t::run(
 
             rt_error_if(
                 vsize && (!val.is_vector() || int(val.vector_size()) != vsize),
-                rt_error_code_t::E_TYPE_MISMATCH,
+                rt_error_code_t::value_t::E_TYPE_MISMATCH,
                 _name + ": '" + variable_name + "' array ");
 
             if (var_type != variant_t::type_t::ANY) {
@@ -177,13 +177,13 @@ void stmt_call_t::run(
                 case variant_t::type_t::DOUBLE:
                 case variant_t::type_t::BOOLEAN:
                     rt_error_if(!variable_t::is_number(var_type),
-                        rt_error_code_t::E_TYPE_MISMATCH,
+                        rt_error_code_t::value_t::E_TYPE_MISMATCH,
                         _name + ": Parameter '" + variable_name + "'");
                     break;
 
                 case variant_t::type_t::BYTEVECTOR:
                     rt_error_if(var_type != variable_t::type_t::BYTEVECTOR,
-                        rt_error_code_t::E_TYPE_MISMATCH,
+                        rt_error_code_t::value_t::E_TYPE_MISMATCH,
                         _name + ", Parameter '" + variable_name + "'");
                     break;
 
@@ -193,7 +193,7 @@ void stmt_call_t::run(
                     auto it = sprototypes.find(variable_type);
 
                     rt_error_if(it == sprototypes.end(),
-                        rt_error_code_t::E_STRUCT_UNDEF, "'" + variable_type + "'");
+                        rt_error_code_t::value_t::E_STRUCT_UNDEF, "'" + variable_type + "'");
 
                     break;
                 }
@@ -205,12 +205,12 @@ void stmt_call_t::run(
                 case variant_t::type_t::STRING:
                 default:
                     if (val.get_type() == variant_t::type_t::UNDEFINED) {
-                        rt_error_if(true, rt_error_code_t::E_TYPE_ILLEGAL,
+                        rt_error_if(true, rt_error_code_t::value_t::E_TYPE_ILLEGAL,
                             _name + ", Parameter '" + variable_name + "'");
                     }
                     else {
                         rt_error_if(var_type != variable_t::type_t::STRING,
-                            rt_error_code_t::E_TYPE_MISMATCH,
+                            rt_error_code_t::value_t::E_TYPE_MISMATCH,
                             _name + ", Parameter '" + variable_name + "'");
                     }
 

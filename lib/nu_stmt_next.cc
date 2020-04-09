@@ -32,7 +32,7 @@ void stmt_next_t::run(rt_prog_ctx_t& ctx)
 {
     if (ctx.for_loop_tbl.empty()) {
         rt_error_code_t::get_instance().throw_if(true,
-            ctx.runtime_pc.get_line(), rt_error_code_t::E_NEXT_WITHOUT_FOR, "");
+            ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_NEXT_WITHOUT_FOR, "");
     }
 
     // If counter was not specified... (NEXT <without-counter>)
@@ -42,7 +42,7 @@ void stmt_next_t::run(rt_prog_ctx_t& ctx)
         if (ctx.for_loop_tbl.size() > 1) {
             rt_error_code_t::get_instance().throw_if(true,
                 ctx.runtime_pc.get_line(),
-                rt_error_code_t::E_IMPL_CNT_NOT_ALLOWED, "Next");
+                rt_error_code_t::value_t::E_IMPL_CNT_NOT_ALLOWED, "Next");
         }
 
         counter_name = ctx.for_loop_tbl.begin()->first;
@@ -50,7 +50,7 @@ void stmt_next_t::run(rt_prog_ctx_t& ctx)
         if (counter_name.empty()) {
             rt_error_code_t::get_instance().throw_if(true,
                 ctx.runtime_pc.get_line(),
-                rt_error_code_t::E_IMPL_CNT_NOT_ALLOWED, "Next");
+                rt_error_code_t::value_t::E_IMPL_CNT_NOT_ALLOWED, "Next");
         }
 
         // Extranct variable name from qualified counter name
@@ -84,7 +84,7 @@ void stmt_next_t::run(rt_prog_ctx_t& ctx)
 
     if (!handle) {
         rt_error_code_t::get_instance().throw_if(true,
-            ctx.runtime_pc.get_line(), rt_error_code_t::E_NEXT_WITHOUT_FOR, "");
+            ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_NEXT_WITHOUT_FOR, "");
     }
 
     bool exit_for_loop = handle->flag[instrblock_t::EXIT];

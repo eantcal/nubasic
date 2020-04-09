@@ -39,7 +39,7 @@ namespace nu {
                 case ' ':
                     rt_error_code_t::get_instance().throw_if(1,
                         ctx.runtime_pc.get_line(), 
-                        rt_error_code_t::E_INV_DATA_SEPARATOR, "Data");
+                        rt_error_code_t::value_t::E_INV_DATA_SEPARATOR, "Data");
                     break;
 
                 default:
@@ -62,7 +62,7 @@ namespace nu {
                 default:
                     rt_error_code_t::get_instance().throw_if(1,
                         ctx.runtime_pc.get_line(), 
-                        rt_error_code_t::E_TYPE_ILLEGAL, "Data");
+                        rt_error_code_t::value_t::E_TYPE_ILLEGAL, "Data");
                     break;
             }
 

@@ -30,7 +30,7 @@ namespace nu {
 
 class rt_error_code_t {
 public:
-    enum value_t {
+    enum class value_t : int {
         E_INTERNAL,
         E_DIV_BY_ZERO,
         E_WRG_NUM_ARGS,
@@ -96,7 +96,7 @@ private:
     rt_error_code_t(const rt_error_code_t&) = delete;
     rt_error_code_t& operator=(const rt_error_code_t&) = delete;
 
-    std::map<int, std::string> _err_desc_tbl;
+    std::map<value_t, std::string> _err_desc_tbl;
 };
 
 

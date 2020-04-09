@@ -286,7 +286,7 @@ variant_t variant_t::power(const variant_t& b) const
     }
 
     rt_error_code_t::get_instance().throw_if(
-        true, 0, rt_error_code_t::E_TYPE_MISMATCH, "");
+        true, 0, rt_error_code_t::value_t::E_TYPE_MISMATCH, "");
 
     return variant_t();
 }
@@ -298,7 +298,7 @@ variant_t variant_t::increment()
 {
     if (is_vector()) {
         rt_error_code_t::get_instance().throw_if(
-            is_vector(), 0, rt_error_code_t::E_TYPE_ILLEGAL, "");
+            is_vector(), 0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
     }
 
     switch (get_type()) {
@@ -321,7 +321,7 @@ variant_t variant_t::increment()
     case variant_t::type_t::UNDEFINED:
     default:
         rt_error_code_t::get_instance().throw_if(
-            true, 0, rt_error_code_t::E_TYPE_MISMATCH, "");
+            true, 0, rt_error_code_t::value_t::E_TYPE_MISMATCH, "");
     }
 
 
@@ -335,7 +335,7 @@ variant_t variant_t::decrement()
 {
     if (is_vector()) {
         rt_error_code_t::get_instance().throw_if(
-            is_vector(), 0, rt_error_code_t::E_TYPE_ILLEGAL, "");
+            is_vector(), 0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
     }
 
     switch (get_type()) {
@@ -358,7 +358,7 @@ variant_t variant_t::decrement()
     case variant_t::type_t::UNDEFINED:
     default:
         rt_error_code_t::get_instance().throw_if(
-            true, 0, rt_error_code_t::E_TYPE_MISMATCH, "");
+            true, 0, rt_error_code_t::value_t::E_TYPE_MISMATCH, "");
     }
 
     return variant_t();
@@ -399,7 +399,7 @@ static variant_t binary_operation(std::function<T(long64_t, long64_t)> fint,
     }
 
     rt_error_code_t::get_instance().throw_if(
-        true, 0, rt_error_code_t::E_TYPE_MISMATCH, "");
+        true, 0, rt_error_code_t::value_t::E_TYPE_MISMATCH, "");
 
     return variant_t(T());
 }
@@ -498,7 +498,7 @@ variant_t operator+(const variant_t& a, const variant_t& b)
         rt_error_code_t::get_instance().throw_if(
             a.get_type() != variable_t::type_t::STRING
                 || b.get_type() != variable_t::type_t::STRING,
-            0, rt_error_code_t::E_TYPE_ILLEGAL, "");
+            0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
         return variant_t(a._at_s(0) + b._at_s(0));
     }
@@ -522,7 +522,7 @@ variant_t operator-(const variant_t& a, const variant_t& b)
 {
     if (!a.is_number() || !b.is_number()) {
         rt_error_code_t::get_instance().throw_if(
-            true, 0, rt_error_code_t::E_TYPE_MISMATCH, "");
+            true, 0, rt_error_code_t::value_t::E_TYPE_MISMATCH, "");
     }
 
     if (a.get_type() == variant_t::type_t::DOUBLE
@@ -560,13 +560,13 @@ variant_t operator/(const variant_t& a, const variant_t& b)
         || variable_t::is_number(a.get_type())) 
     {
         rt_error_code_t::get_instance().throw_if(
-            b.to_double() == 0.0, 0, rt_error_code_t::E_DIV_BY_ZERO, "");
+            b.to_double() == 0.0, 0, rt_error_code_t::value_t::E_DIV_BY_ZERO, "");
 
         return variant_t(double_t(a.to_double() / b.to_double()));
     }
 
     rt_error_code_t::get_instance().throw_if(
-        true, 0, rt_error_code_t::E_TYPE_MISMATCH, "");
+        true, 0, rt_error_code_t::value_t::E_TYPE_MISMATCH, "");
 
     return variant_t();
 }
@@ -578,14 +578,14 @@ variant_t variant_t::int_div(const variant_t& b) const
 {
     if (!is_integral() || !b.is_integral()) {
         rt_error_code_t::get_instance().throw_if(
-            true, 0, rt_error_code_t::E_TYPE_MISMATCH, "");
+            true, 0, rt_error_code_t::value_t::E_TYPE_MISMATCH, "");
     }
 
     if (get_type() == variant_t::type_t::LONG64
         || b.get_type() == variant_t::type_t::LONG64) 
     {
         rt_error_code_t::get_instance().throw_if(
-            b.to_long64() == 0, 0, rt_error_code_t::E_DIV_BY_ZERO, "");
+            b.to_long64() == 0, 0, rt_error_code_t::value_t::E_DIV_BY_ZERO, "");
 
         return variant_t(long64_t(to_long64() / b.to_long64()));
     }
@@ -594,7 +594,7 @@ variant_t variant_t::int_div(const variant_t& b) const
         || b.get_type() == variant_t::type_t::INTEGER) 
     {
         rt_error_code_t::get_instance().throw_if(
-            b.to_int() == 0, 0, rt_error_code_t::E_DIV_BY_ZERO, "");
+            b.to_int() == 0, 0, rt_error_code_t::value_t::E_DIV_BY_ZERO, "");
 
         return variant_t(integer_t(to_int() / b.to_int()));
     }
@@ -609,12 +609,12 @@ variant_t variant_t::int_mod(const variant_t& b) const
 {
     if (!is_integral() || !b.is_integral()) {
         rt_error_code_t::get_instance().throw_if(
-            true, 0, rt_error_code_t::E_TYPE_MISMATCH, "");
+            true, 0, rt_error_code_t::value_t::E_TYPE_MISMATCH, "");
     }
 
     if (b.to_long64() == 0) {
         rt_error_code_t::get_instance().throw_if(
-            true, 0, rt_error_code_t::E_DIV_BY_ZERO, "");
+            true, 0, rt_error_code_t::value_t::E_DIV_BY_ZERO, "");
     }
 
     if (get_type() == variant_t::type_t::LONG64
@@ -639,7 +639,7 @@ variant_t operator*(const variant_t& a, const variant_t& b)
 {
     if (!a.is_number() || !b.is_number()) {
         rt_error_code_t::get_instance().throw_if(
-            true, 0, rt_error_code_t::E_TYPE_MISMATCH, "");
+            true, 0, rt_error_code_t::value_t::E_TYPE_MISMATCH, "");
     }
 
     if (a.is_float()) {
@@ -953,7 +953,7 @@ void variant_t::define_struct_member(
     const std::string& field_name, const variant_t& value)
 {
     rt_error_code_t::get_instance().throw_if(
-        _type != type_t::STRUCT, 0, rt_error_code_t::E_TYPE_ILLEGAL, "");
+        _type != type_t::STRUCT, 0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
     auto hvalue = std::make_shared<variant_t>(value);
 
@@ -972,12 +972,12 @@ variant_t::handle_t variant_t::struct_member(
 {
     rt_error_code_t::get_instance().throw_if(
         _type != type_t::STRUCT || vector_idx >= _struct_data.size(), 0,
-        rt_error_code_t::E_TYPE_ILLEGAL, "");
+        rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
     auto it = _struct_data[vector_idx].find(field_name);
 
     rt_error_code_t::get_instance().throw_if(
-        it == _struct_data[vector_idx].end(), 0, rt_error_code_t::E_INV_IDENTIF,
+        it == _struct_data[vector_idx].end(), 0, rt_error_code_t::value_t::E_INV_IDENTIF,
         "");
 
     return it->second;
@@ -1047,7 +1047,7 @@ void variant_t::describe_type(std::stringstream& ss) const noexcept
 double_t variant_t::to_double(size_t idx) const
 {
     rt_error_code_t::get_instance().throw_if(
-        _type == type_t::STRUCT, 0, rt_error_code_t::E_TYPE_ILLEGAL, "");
+        _type == type_t::STRUCT, 0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
     if (is_number()) {
         return is_integral() ? double_t(_at_i(idx)) : _at_f(idx);
@@ -1062,7 +1062,7 @@ double_t variant_t::to_double(size_t idx) const
 long64_t variant_t::to_long64(size_t idx) const
 {
     rt_error_code_t::get_instance().throw_if(
-        _type == type_t::STRUCT, 0, rt_error_code_t::E_TYPE_ILLEGAL, "");
+        _type == type_t::STRUCT, 0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
     if (is_number()) {
         return is_integral() ? _at_i(idx) : long64_t(_at_f(idx));
@@ -1077,7 +1077,7 @@ long64_t variant_t::to_long64(size_t idx) const
 const string_t& variant_t::to_str(size_t idx) const
 {
     rt_error_code_t::get_instance().throw_if(
-        _type == type_t::STRUCT, 0, rt_error_code_t::E_TYPE_ILLEGAL, "");
+        _type == type_t::STRUCT, 0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
     if (is_number()) {
         _s_data.resize(idx + 1);

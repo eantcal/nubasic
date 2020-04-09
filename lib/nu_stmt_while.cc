@@ -91,7 +91,7 @@ void stmt_while_t::run(rt_prog_ctx_t& ctx)
         auto handle = wctxs.begin_find(ctx.runtime_pc);
 
         rt_error_code_t::get_instance().throw_if(!handle,
-            ctx.runtime_pc.get_line(), rt_error_code_t::E_INTERNAL, "While");
+            ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INTERNAL, "While");
 
         if (!static_cast<bool>(_condition->eval(ctx))) {
             handle->flag.set(instrblock_t::EXIT, true);

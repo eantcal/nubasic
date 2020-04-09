@@ -46,7 +46,7 @@ void stmt_endstruct_t::run(rt_prog_ctx_t& ctx)
 
     if (!handle) {
         rt_error_code_t::get_instance().throw_if(true,
-            ctx.runtime_pc.get_line(), rt_error_code_t::E_NO_MATCH_STRUCT, "");
+            ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_NO_MATCH_STRUCT, "");
     }
 
     // Struct completed, go to next line

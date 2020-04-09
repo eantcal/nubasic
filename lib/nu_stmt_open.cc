@@ -33,19 +33,19 @@ void stmt_open_t::run(rt_prog_ctx_t& ctx)
     auto filename = _filename->eval(ctx);
 
     rt_error_if(filename.get_type() != variant_t::type_t::STRING,
-        rt_error_code_t::E_TYPE_MISMATCH, "OPEN");
+        rt_error_code_t::value_t::E_TYPE_MISMATCH, "OPEN");
 
     std::string mode = "r";
 
     if (_mode == "input") {
         rt_error_if(_access == "write" || _access == "read write",
-            rt_error_code_t::E_TYPE_ILLEGAL, "OPEN");
+            rt_error_code_t::value_t::E_TYPE_ILLEGAL, "OPEN");
 
         mode = "r";
     } 
     else if (_mode == "output") {
         rt_error_if(_access == "read" || _access == "read write",
-            rt_error_code_t::E_TYPE_ILLEGAL, "OPEN");
+            rt_error_code_t::value_t::E_TYPE_ILLEGAL, "OPEN");
 
         mode = "w";
     } 

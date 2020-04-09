@@ -61,7 +61,7 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t& ctx)
         case variable_t::type_t::STRING:
         case variable_t::type_t::BOOLEAN:
             rt_error_code_t::get_instance().throw_if(true,
-                ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_ILLEGAL,
+                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
                 "For " + _variable);
             break;
 
@@ -103,7 +103,7 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t& ctx)
                 {
                     rt_error_code_t::get_instance().throw_if(
                        true,
-                       ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_ILLEGAL,
+                       ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
                        "For " + _variable);
                 }
                 break;
@@ -112,7 +112,7 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t& ctx)
             case variant_t::type_t::UNDEFINED:
             default:
                 rt_error_code_t::get_instance().throw_if(true,
-                    ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_ILLEGAL,
+                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
                     "For " + _variable);
                 break;
             }

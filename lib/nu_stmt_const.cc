@@ -31,7 +31,7 @@ void stmt_const_t::run(rt_prog_ctx_t& ctx)
     case proc_scope_t::type_t::LOCAL:
     case proc_scope_t::type_t::GLOBAL:
         rt_error_code_t::get_instance().throw_if(true,
-            ctx.runtime_pc.get_line(), rt_error_code_t::E_VAR_REDEF,
+            ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_VAR_REDEF,
             "Variable '" + name + "'");
         break;
 
@@ -51,7 +51,7 @@ void stmt_const_t::run(rt_prog_ctx_t& ctx)
     case variable_t::type_t::STRING:
         rt_error_code_t::get_instance().throw_if(
             value_type != variable_t::type_t::STRING, ctx.runtime_pc.get_line(),
-            rt_error_code_t::E_TYPE_ILLEGAL, "'" + name + "'");
+            rt_error_code_t::value_t::E_TYPE_ILLEGAL, "'" + name + "'");
         init_val = value.to_str();
 	break;
 
@@ -70,7 +70,7 @@ void stmt_const_t::run(rt_prog_ctx_t& ctx)
     case variable_t::type_t::UNDEFINED:
     default:
         rt_error_code_t::get_instance().throw_if(true,
-            ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_ILLEGAL,
+            ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
             "'" + name + "'");
     }
 

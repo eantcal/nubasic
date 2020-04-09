@@ -26,11 +26,11 @@ void stmt_goto_t::run(rt_prog_ctx_t& ctx)
         if (_label.empty() || !ctx.prog_label.is_defined(_label)) {
 
             rt_error_code_t::get_instance().throw_if(_label.empty(),
-                ctx.runtime_pc.get_line(), rt_error_code_t::E_NO_LABEL, "Goto");
+                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_NO_LABEL, "Goto");
 
             rt_error_code_t::get_instance().throw_if(
                 !ctx.prog_label.is_defined(_label), ctx.runtime_pc.get_line(),
-                rt_error_code_t::E_LABEL_NOT_DEF, "Goto");
+                rt_error_code_t::value_t::E_LABEL_NOT_DEF, "Goto");
         }
 
         _line_number = ctx.prog_label[_label];

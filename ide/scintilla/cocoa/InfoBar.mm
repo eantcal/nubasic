@@ -1,7 +1,7 @@
 
 /**
  * Scintilla source code edit control
- * InfoBar.mm - Implements special info bar with zoom info, caret position etc. to be used with
+ * @file InfoBar.mm - Implements special info bar with zoom info, caret position etc. to be used with
  *              ScintillaView.
  *
  * Mike Lischke <mlischke@sun.com>
@@ -9,6 +9,8 @@
  * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
  * This file is dual licensed under LGPL v2.1 and the Scintilla license (http://www.scintilla.org/License.txt).
  */
+
+#include <cmath>
 
 #import "InfoBar.h"
 
@@ -33,7 +35,7 @@
 		CGFloat heightDelta = newRect.size.height - textSize.height;
 		if (heightDelta > 0) {
 			newRect.size.height -= heightDelta;
-			newRect.origin.y += ceil(heightDelta / 2);
+			newRect.origin.y += std::ceil(heightDelta / 2);
 		}
 	}
 
@@ -192,7 +194,7 @@ static float BarFontSize = 10.0;
 
 	NSTextFieldCell *cell = mCaretPositionLabel.cell;
 	cell.placeholderString = @"0:0";
-	cell.alignment = NSCenterTextAlignment;
+	cell.alignment = NSTextAlignmentCenter;
 
 	[self addSubview: mCaretPositionLabel];
 
@@ -223,12 +225,15 @@ static float BarFontSize = 10.0;
  * Fill the background.
  */
 - (void) drawRect: (NSRect) rect {
+	[[NSColor controlBackgroundColor] set];
+	[NSBezierPath fillRect: rect];
+
 	// Since the background is seamless, we don't need to take care for the proper offset.
 	// Simply tile the background over the invalid rectangle.
 	if (mBackground.size.width != 0) {
 		NSPoint target = {rect.origin.x, 0};
 		while (target.x < rect.origin.x + rect.size.width) {
-			[mBackground drawAtPoint: target fromRect: NSZeroRect operation: NSCompositeCopy fraction: 1];
+			[mBackground drawAtPoint: target fromRect: NSZeroRect operation: NSCompositingOperationSourceOver fraction: 1];
 			target.x += mBackground.size.width;
 		}
 	}
@@ -346,7 +351,7 @@ static float BarFontSize = 10.0;
 
 			// We only work with some preset zoom values. If the given value does not correspond
 			// to one then show no selection.
-			while (count < numberOfDefaultItems && (fabs(newScaleFactor - DefaultScaleMenuFactors[count]) > 0.07))
+			while (count < numberOfDefaultItems && (std::abs(newScaleFactor - DefaultScaleMenuFactors[count]) > 0.07))
 				count++;
 			if (count == numberOfDefaultItems)
 				[mZoomPopup selectItemAtIndex: -1];

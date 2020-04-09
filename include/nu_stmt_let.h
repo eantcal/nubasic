@@ -68,7 +68,7 @@ protected:
             if (val.get_type() != variable_t::type_t::STRING &&
                 val.get_type() != variable_t::type_t::ANY)
                 rt_error_code_t::get_instance().throw_if(true,
-                    ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_MISMATCH,
+                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_MISMATCH,
                     "'" + _variable + "'");
 
             var.set_str(val.to_str(), idx...);

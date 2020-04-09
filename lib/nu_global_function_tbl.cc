@@ -503,7 +503,7 @@ variant_t conv_functor(
     const auto args_num = args.size();
 
     rt_error_code_t::get_instance().throw_if(
-        args_num != 4 && args_num != 2, 0, rt_error_code_t::E_INVALID_ARGS, "");
+        args_num != 4 && args_num != 2, 0, rt_error_code_t::value_t::E_INVALID_ARGS, "");
 
     auto variant_v1 = args[0]->eval(ctx);
     auto variant_v2 = args[1]->eval(ctx);
@@ -518,10 +518,10 @@ variant_t conv_functor(
         args_num == 4 ? size_t(args[3]->eval(ctx).to_long64()) : actual_v2_size;
 
     rt_error_code_t::get_instance().throw_if(
-        size_v1 > actual_v1_size || size_v1<1, 0, rt_error_code_t::E_INV_VECT_SIZE, args[0]->name());
+        size_v1 > actual_v1_size || size_v1<1, 0, rt_error_code_t::value_t::E_INV_VECT_SIZE, args[0]->name());
 
     rt_error_code_t::get_instance().throw_if(
-        size_v2 > actual_v2_size || size_v2<1, 0, rt_error_code_t::E_INV_VECT_SIZE, args[1]->name());
+        size_v2 > actual_v2_size || size_v2<1, 0, rt_error_code_t::value_t::E_INV_VECT_SIZE, args[1]->name());
 
     std::vector<double> v1(size_v1);
     std::vector<double> v2(size_v2);
@@ -529,12 +529,12 @@ variant_t conv_functor(
     bool ok = variant_v1.copy_vector_content(v1);
 
     rt_error_code_t::get_instance().throw_if(
-        !ok, 0, rt_error_code_t::E_INV_VECT_SIZE, args[0]->name());
+        !ok, 0, rt_error_code_t::value_t::E_INV_VECT_SIZE, args[0]->name());
 
     ok = variant_v2.copy_vector_content(v2);
 
     rt_error_code_t::get_instance().throw_if(
-        !ok, 0, rt_error_code_t::E_INV_VECT_SIZE, args[1]->name());
+        !ok, 0, rt_error_code_t::value_t::E_INV_VECT_SIZE, args[1]->name());
 
     auto vr = conv(v1, v2);
 
@@ -554,7 +554,7 @@ variant_t restore_functor(
     const auto args_num = args.size();
 
     rt_error_code_t::get_instance().throw_if(
-        args_num > 1, 0, rt_error_code_t::E_INVALID_ARGS, "");
+        args_num > 1, 0, rt_error_code_t::value_t::E_INVALID_ARGS, "");
 
     nu::variant_t v(nu::long64_t(0));
 
@@ -575,7 +575,7 @@ variant_t restore_functor(
     rt_error_code_t::get_instance().throw_if(
         index < 0 || 
         index >= nu::long64_t(ctx.read_data_store.size()), 0, 
-        rt_error_code_t::E_VAL_OUT_OF_RANGE, name);
+        rt_error_code_t::value_t::E_VAL_OUT_OF_RANGE, name);
 
     ctx.read_data_store_index = index;
     nu::variant_t result(old_val);
@@ -614,13 +614,13 @@ static variant_t process_operator(rt_prog_ctx_t& ctx,
     const std::string& operator_name, const nu::func_args_t& args)
 {
     rt_error_code_t::get_instance().throw_if(
-        args.size() != 1, 0, rt_error_code_t::E_INVALID_ARGS, "");
+        args.size() != 1, 0, rt_error_code_t::value_t::E_INVALID_ARGS, "");
 
     auto var = args[0];
     auto var_ptr = dynamic_cast<expr_var_t*>(var.get());
 
     rt_error_code_t::get_instance().throw_if(
-        var_ptr == nullptr, 0, rt_error_code_t::E_INVALID_ARGS, "");
+        var_ptr == nullptr, 0, rt_error_code_t::value_t::E_INVALID_ARGS, "");
 
     const auto variable_name = var_ptr->name();
 
@@ -629,7 +629,7 @@ static variant_t process_operator(rt_prog_ctx_t& ctx,
         = ctx.proc_scope.get(proc_scope_t::type_t::LOCAL);
 
     rt_error_code_t::get_instance().throw_if(!scope->is_defined(variable_name),
-        0, rt_error_code_t::E_INV_IDENTIF, "");
+        0, rt_error_code_t::value_t::E_INV_IDENTIF, "");
 
     auto variable_value = &(*scope)[variable_name].first;
 
@@ -641,7 +641,7 @@ static variant_t process_operator(rt_prog_ctx_t& ctx,
     } 
     else {
         rt_error_code_t::get_instance().throw_if(
-            true, 0, rt_error_code_t::E_FUNC_UNDEF, "");
+            true, 0, rt_error_code_t::value_t::E_FUNC_UNDEF, "");
     }
 
     return *variable_value;

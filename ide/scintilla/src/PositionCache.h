@@ -10,8 +10,12 @@
 
 namespace Scintilla {
 
-static inline bool IsEOLChar(char ch) {
+inline constexpr bool IsEOLChar(int ch) noexcept {
 	return (ch == '\r') || (ch == '\n');
+}
+
+inline constexpr bool IsSpaceOrTab(int ch) noexcept {
+	return ch == ' ' || ch == '\t';
 }
 
 /**
@@ -40,6 +44,13 @@ enum PointEnd {
 	peSubLineEnd = 0x2
 };
 
+class BidiData {
+public:
+	std::vector<FontAlias> stylesFonts;
+	std::vector<XYPOSITION> widthReprs;
+	void Resize(size_t maxLineLength_);
+};
+
 /**
  */
 class LineLayout {
@@ -66,6 +77,8 @@ public:
 	std::unique_ptr<XYPOSITION[]> positions;
 	char bracePreviousStyles[2];
 
+	std::unique_ptr<BidiData> bidiData;
+
 	// Hotspot support
 	Range hotspot;
 
@@ -82,12 +95,16 @@ public:
 	void operator=(LineLayout &&) = delete;
 	virtual ~LineLayout();
 	void Resize(int maxLineLength_);
-	void Free();
+	void EnsureBidiData();
+	void Free() noexcept;
 	void Invalidate(validLevel validity_);
 	int LineStart(int line) const;
-	int LineLastVisible(int line) const;
-	Range SubLineRange(int subLine) const;
+	int LineLength(int line) const;
+	enum class Scope { visibleOnly, includeEnd };
+	int LineLastVisible(int line, Scope scope) const;
+	Range SubLineRange(int subLine, Scope scope) const;
 	bool InLine(int offset, int line) const;
+	int SubLineFromPosition(int posInLine, PointEnd pe) const;
 	void SetLineStart(int line, int start);
 	void SetBracesHighlight(Range rangeLine, const Sci::Position braces[],
 		char bracesMatchStyle, int xHighlight, bool ignoreStyle);
@@ -96,6 +113,36 @@ public:
 	int FindPositionFromX(XYPOSITION x, Range range, bool charPosition) const;
 	Point PointFromPosition(int posInLine, int lineHeight, PointEnd pe) const;
 	int EndLineStyle() const;
+};
+
+struct ScreenLine : public IScreenLine {
+	const LineLayout *ll;
+	size_t start;
+	size_t len;
+	XYPOSITION width;
+	XYPOSITION height;
+	int ctrlCharPadding;
+	XYPOSITION tabWidth;
+	int tabWidthMinimumPixels;
+
+	ScreenLine(const LineLayout *ll_, int subLine, const ViewStyle &vs, XYPOSITION width_, int tabWidthMinimumPixels_);
+	// Deleted so ScreenLine objects can not be copied.
+	ScreenLine(const ScreenLine &) = delete;
+	ScreenLine(ScreenLine &&) = delete;
+	void operator=(const ScreenLine &) = delete;
+	void operator=(ScreenLine &&) = delete;
+	virtual ~ScreenLine();
+
+	std::string_view Text() const override;
+	size_t Length() const override;
+	size_t RepresentationCount() const override;
+	XYPOSITION Width() const override;
+	XYPOSITION Height() const override;
+	XYPOSITION TabWidth() const override;
+	XYPOSITION TabWidthMinimumPixels() const override;
+	const Font *FontOfPosition(size_t position) const override;
+	XYPOSITION RepresentationWidth(size_t position) const override;
+	XYPOSITION TabPositionAfter(XYPOSITION xPosition) const override;
 };
 
 /**
@@ -116,7 +163,7 @@ public:
 	void operator=(const LineLayoutCache &) = delete;
 	void operator=(LineLayoutCache &&) = delete;
 	virtual ~LineLayoutCache();
-	void Deallocate();
+	void Deallocate() noexcept;
 	enum {
 		llcNone=SC_CACHE_NONE,
 		llcCaret=SC_CACHE_CARET,
@@ -124,11 +171,11 @@ public:
 		llcDocument=SC_CACHE_DOCUMENT
 	};
 	void Invalidate(LineLayout::validLevel validity_);
-	void SetLevel(int level_);
-	int GetLevel() const { return level; }
+	void SetLevel(int level_) noexcept;
+	int GetLevel() const noexcept { return level; }
 	LineLayout *Retrieve(Sci::Line lineNumber, Sci::Line lineCaret, int maxChars, int styleClock_,
 		Sci::Line linesOnScreen, Sci::Line linesInDoc);
-	void Dispose(LineLayout *ll);
+	void Dispose(LineLayout *ll) noexcept;
 };
 
 class PositionCacheEntry {
@@ -137,7 +184,7 @@ class PositionCacheEntry {
 	unsigned int clock:16;
 	std::unique_ptr<XYPOSITION []> positions;
 public:
-	PositionCacheEntry();
+	PositionCacheEntry() noexcept;
 	// Copy constructor not currently used, but needed for being element in std::vector.
 	PositionCacheEntry(const PositionCacheEntry &);
 	// Deleted so PositionCacheEntry objects can not be assigned.
@@ -145,12 +192,12 @@ public:
 	void operator=(const PositionCacheEntry &) = delete;
 	void operator=(PositionCacheEntry &&) = delete;
 	~PositionCacheEntry();
-	void Set(unsigned int styleNumber_, const char *s_, unsigned int len_, XYPOSITION *positions_, unsigned int clock_);
-	void Clear();
+	void Set(unsigned int styleNumber_, const char *s_, unsigned int len_, const XYPOSITION *positions_, unsigned int clock_);
+	void Clear() noexcept;
 	bool Retrieve(unsigned int styleNumber_, const char *s_, unsigned int len_, XYPOSITION *positions_) const;
-	static unsigned int Hash(unsigned int styleNumber_, const char *s, unsigned int len_);
-	bool NewerThan(const PositionCacheEntry &other) const;
-	void ResetClock();
+	static unsigned int Hash(unsigned int styleNumber_, const char *s, unsigned int len_) noexcept;
+	bool NewerThan(const PositionCacheEntry &other) const noexcept;
+	void ResetClock() noexcept;
 };
 
 class Representation {
@@ -215,7 +262,7 @@ public:
 	void operator=(BreakFinder &&) = delete;
 	~BreakFinder();
 	TextSegment Next();
-	bool More() const;
+	bool More() const noexcept;
 };
 
 class PositionCache {
@@ -230,16 +277,12 @@ public:
 	void operator=(const PositionCache &) = delete;
 	void operator=(PositionCache &&) = delete;
 	~PositionCache();
-	void Clear();
+	void Clear() noexcept;
 	void SetSize(size_t size_);
-	size_t GetSize() const { return pces.size(); }
+	size_t GetSize() const noexcept { return pces.size(); }
 	void MeasureWidths(Surface *surface, const ViewStyle &vstyle, unsigned int styleNumber,
 		const char *s, unsigned int len, XYPOSITION *positions, const Document *pdoc);
 };
-
-inline bool IsSpaceOrTab(int ch) {
-	return ch == ' ' || ch == '\t';
-}
 
 }
 

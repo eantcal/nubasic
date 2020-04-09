@@ -31,13 +31,13 @@ void stmt_redim_t::run(rt_prog_ctx_t& ctx)
     for (const auto& [name, value] : _vars) {
         int vsize = value.second->eval(ctx).to_int();
 
-        rt_error_if(vsize <= 0, rt_error_code_t::E_INV_VECT_SIZE,
+        rt_error_if(vsize <= 0, rt_error_code_t::value_t::E_INV_VECT_SIZE,
             "ReDim '" + name + "'");
 
         var_scope_t::handle_t scope
             = ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
-        rt_error_if(!scope->is_defined(name), rt_error_code_t::E_VAR_UNDEF,
+        rt_error_if(!scope->is_defined(name), rt_error_code_t::value_t::E_VAR_UNDEF,
             "ReDim '" + name + "'");
 
         auto vtype = value.first;
@@ -64,7 +64,7 @@ void stmt_redim_t::run(rt_prog_ctx_t& ctx)
         case variable_t::type_t::OBJECT:
         default:
             rt_error_if(
-                true, rt_error_code_t::E_INV_IDENTIF, "ReDim '" + name + "'");
+                true, rt_error_code_t::value_t::E_INV_IDENTIF, "ReDim '" + name + "'");
             break;
         }
     }

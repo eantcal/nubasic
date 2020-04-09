@@ -1,6 +1,7 @@
 
 /**
  * Declaration of the native Cocoa View that serves as container for the scintilla parts.
+ * @file ScintillaView.h
  *
  * Created by Mike Lischke.
  *
@@ -40,6 +41,13 @@ extern NSString *const SCIUpdateUINotification;
 
 @protocol ScintillaNotificationProtocol
 - (void) notification: (SCNotification *) notification;
+@end
+
+/**
+ * SCIScrollView provides pre-macOS 10.14 tiling behavior.
+ */
+@interface SCIScrollView : NSScrollView;
+
 @end
 
 /**

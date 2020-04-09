@@ -38,10 +38,10 @@ void stmt_exit_sub_t::run(rt_prog_ctx_t& ctx)
 
     auto handle = ctx.procedure_metadata.exit_find(ctx.runtime_pc);
 
-    rt_error_if(!handle, rt_error_code_t::E_EXIT_SUB_OUTSIDE_SUB, "");
+    rt_error_if(!handle, rt_error_code_t::value_t::E_EXIT_SUB_OUTSIDE_SUB, "");
 
     rt_error_if(handle->pc_end_stmt.get_line() < 1,
-        rt_error_code_t::E_MISSING_END_SUB, "Exit Sub/Function");
+        rt_error_code_t::value_t::E_MISSING_END_SUB, "Exit Sub/Function");
 
     ctx.go_to(handle->pc_end_stmt);
 }

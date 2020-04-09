@@ -25,7 +25,7 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
 {
     rt_error_code_t::get_instance().throw_if(
         ctx.read_data_store_index >= ctx.read_data_store.size(),
-        ctx.runtime_pc.get_line(), rt_error_code_t::E_VAL_OUT_OF_RANGE,
+        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_VAL_OUT_OF_RANGE,
         "Read");
 
     for (auto const& variable : _vars) {
@@ -41,7 +41,7 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
                 = ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
             rt_error_code_t::get_instance().throw_if(!scope->is_defined(name),
-                ctx.runtime_pc.get_line(), rt_error_code_t::E_VAR_UNDEF,
+                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_VAR_UNDEF,
                 "'" + name + "'");
 
             size_t idx = index->eval(ctx).to_int();
@@ -51,12 +51,12 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
             const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
 
             rt_error_code_t::get_instance().throw_if(const_var,
-                ctx.runtime_pc.get_line(), rt_error_code_t::E_CANNOT_MOD_CONST,
+                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_CANNOT_MOD_CONST,
                 "'" + name + "'");
 
             rt_error_code_t::get_instance().throw_if(idx >= var.vector_size(),
                 ctx.runtime_pc.get_line(),
-                rt_error_code_t::E_VEC_IDX_OUT_OF_RANGE, "'" + name + "'");
+                rt_error_code_t::value_t::E_VEC_IDX_OUT_OF_RANGE, "'" + name + "'");
 
             variant_t::type_t t = var.get_type();
 
@@ -69,7 +69,7 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
             case variant_t::type_t::OBJECT:
             case variant_t::type_t::STRUCT:
                 rt_error_code_t::get_instance().throw_if(true,
-                    ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_ILLEGAL,
+                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
                     "'" + name + "'");
                 break;
 
@@ -112,7 +112,7 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
             const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
 
             rt_error_code_t::get_instance().throw_if(const_var,
-                ctx.runtime_pc.get_line(), rt_error_code_t::E_CANNOT_MOD_CONST,
+                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_CANNOT_MOD_CONST,
                 "'" + name + "'");
 
             variant_t var = v.first;
@@ -150,7 +150,7 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
             case variant_t::type_t::UNDEFINED:
             case variant_t::type_t::STRUCT:
                 rt_error_code_t::get_instance().throw_if(true,
-                    ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_ILLEGAL,
+                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
                     "'" + name + "'");
                 break;
             }

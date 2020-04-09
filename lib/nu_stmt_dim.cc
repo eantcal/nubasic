@@ -37,12 +37,12 @@ void stmt_dim_t::run(rt_prog_ctx_t& ctx)
         switch (scope_type) {
         case proc_scope_t::type_t::GLOBAL:
             rt_error_if(
-                true, rt_error_code_t::E_VAR_REDEF, "Global '" + name + "'");
+                true, rt_error_code_t::value_t::E_VAR_REDEF, "Global '" + name + "'");
             break;
 
         case proc_scope_t::type_t::LOCAL:
             rt_error_if(
-                true, rt_error_code_t::E_VAR_REDEF, "Local '" + name + "'");
+                true, rt_error_code_t::value_t::E_VAR_REDEF, "Local '" + name + "'");
             break;
 
         case proc_scope_t::type_t::UNDEF:
@@ -51,7 +51,7 @@ void stmt_dim_t::run(rt_prog_ctx_t& ctx)
         }
 
         rt_error_if(
-            vsize < 0, rt_error_code_t::E_INV_VECT_SIZE, "Dim: '" + name + "'");
+            vsize < 0, rt_error_code_t::value_t::E_INV_VECT_SIZE, "Dim: '" + name + "'");
 
         var_scope_t::handle_t scope
             = ctx.proc_scope.get(ctx.proc_scope.get_type(name));
@@ -89,7 +89,7 @@ void stmt_dim_t::run(rt_prog_ctx_t& ctx)
             auto it = sprototypes.find(vtype);
 
             rt_error_if(it == sprototypes.end(),
-                rt_error_code_t::E_STRUCT_UNDEF, "Dim: '" + name + "'");
+                rt_error_code_t::value_t::E_STRUCT_UNDEF, "Dim: '" + name + "'");
 
             auto value = it->second.second; // struct prototype
 
@@ -102,7 +102,7 @@ void stmt_dim_t::run(rt_prog_ctx_t& ctx)
 
         default:
             rt_error_if(
-                true, rt_error_code_t::E_INV_VECT_SIZE, "Dim: '" + name + "'");
+                true, rt_error_code_t::value_t::E_INV_VECT_SIZE, "Dim: '" + name + "'");
         }
     }
 

@@ -37,7 +37,7 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
         var = ctx.get_struct_member_value(_variable, scope, idx);
 
         rt_error_code_t::get_instance().throw_if(!var,
-            ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_MISMATCH,
+            ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_MISMATCH,
             "'" + _variable + "'");
     }
 
@@ -52,7 +52,7 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
 
         if (const_var) {
             rt_error_code_t::get_instance().throw_if(true,
-                ctx.runtime_pc.get_line(), rt_error_code_t::E_CANNOT_MOD_CONST,
+                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_CANNOT_MOD_CONST,
                 "'" + _variable + "'");
         }
 
@@ -84,13 +84,13 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
 
             rt_error_code_t::get_instance().throw_if(idx >= var->vector_size(),
                 ctx.runtime_pc.get_line(),
-                rt_error_code_t::E_VEC_IDX_OUT_OF_RANGE,
+                rt_error_code_t::value_t::E_VEC_IDX_OUT_OF_RANGE,
                 "'" + _variable + "(" + nu::to_string(idx) + ")'");
 
             if (val.is_struct()) {
                 rt_error_code_t::get_instance().throw_if(
                     var->struct_type_name() != val.struct_type_name(),
-                    ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_MISMATCH,
+                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_MISMATCH,
                     "'" + _variable + "(" + nu::to_string(idx) + ")'");
 
                 var->set_struct_value(val, idx);
@@ -104,7 +104,7 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
 
             rt_error_code_t::get_instance().throw_if(
                 var->get_type() != val.get_type(),
-                ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_MISMATCH,
+                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_MISMATCH,
                 "'" + _variable + "'");
 
             scope->define(_variable, var_value_t(val, VAR_ACCESS_RW));

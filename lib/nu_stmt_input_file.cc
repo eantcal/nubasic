@@ -69,7 +69,7 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
         case nu::variable_t::type_t::STRUCT:
         default:
             rt_error_code_t::get_instance().throw_if(true,
-                ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_ILLEGAL,
+                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
                 "input#");
             break;
         }
@@ -81,7 +81,7 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
 
         if (is_vector) {
             rt_error_code_t::get_instance().throw_if(true,
-                ctx.runtime_pc.get_line(), rt_error_code_t::E_VAR_UNDEF,
+                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_VAR_UNDEF,
                 "'" + name + "'");
 
             size_t idx = index->eval(ctx).to_int();
@@ -91,12 +91,12 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
             variant_t var = v.first;
 
             rt_error_code_t::get_instance().throw_if(const_var,
-                ctx.runtime_pc.get_line(), rt_error_code_t::E_CANNOT_MOD_CONST,
+                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_CANNOT_MOD_CONST,
                 "'" + name + "'");
 
             rt_error_code_t::get_instance().throw_if(idx >= var.vector_size(),
                 ctx.runtime_pc.get_line(),
-                rt_error_code_t::E_VEC_IDX_OUT_OF_RANGE, "'" + name + "'");
+                rt_error_code_t::value_t::E_VEC_IDX_OUT_OF_RANGE, "'" + name + "'");
 
             switch (vtype) {
             case nu::variable_t::type_t::INTEGER:
@@ -136,7 +136,7 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
             case nu::variable_t::type_t::OBJECT:
             case nu::variable_t::type_t::ANY:
                 rt_error_code_t::get_instance().throw_if(true,
-                    ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_ILLEGAL,
+                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
                     "'" + name + "'");
                 break;
             }
@@ -151,7 +151,7 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
             const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
 
             rt_error_code_t::get_instance().throw_if(const_var,
-                ctx.runtime_pc.get_line(), rt_error_code_t::E_CANNOT_MOD_CONST,
+                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_CANNOT_MOD_CONST,
                 "'" + name + "'");
 
             variant_t var = v.first;
@@ -223,7 +223,7 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
             case nu::variable_t::type_t::OBJECT:
             case nu::variable_t::type_t::ANY:
                 rt_error_code_t::get_instance().throw_if(true,
-                    ctx.runtime_pc.get_line(), rt_error_code_t::E_TYPE_ILLEGAL,
+                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
                     "'" + name + "'");
                 break;
 
