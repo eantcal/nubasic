@@ -9,6 +9,8 @@ Win32/64 built with VS2017 needs "Visual C++ Redistributable Packages for Visual
 TBD 2020
 * Released nuBASIC 1.52
 - Allow PRINT to print out sequence of escaped unicode characters
+- Update Scintilla to Release 4.3.2
+
 
 Sep 2019
 * Released nuBASIC 1.51
