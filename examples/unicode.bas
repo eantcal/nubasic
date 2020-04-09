@@ -16,7 +16,7 @@ cls
 for j=0 to 15
    for i=0 to 15
       h$ = hex$(j) + hex$(i)
-      print $u, "Unicode symbol 26" + h$ + "= '\u26" + h$ + "'"
+      print $u, '\u26" + h$ + "'" 
    next i
 next j
 
