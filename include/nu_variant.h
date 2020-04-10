@@ -40,7 +40,9 @@ struct struct_variant_t {
     {
     }
 
-    const std::string& get() const noexcept { return _prototype_name; }
+    const std::string& get() const noexcept { 
+       return _prototype_name; 
+    }
 private:
     std::string _prototype_name;
 };
@@ -54,7 +56,8 @@ struct any_variant_t {
 
 //! Structure type
 struct obj_variant_t {
-    obj_variant_t(object_t::handle_t handle) : _handle(handle) {}
+    obj_variant_t(object_t::handle_t handle) : 
+       _handle(handle) {}
 
     object_t::handle_t _handle;
 };
@@ -135,8 +138,8 @@ public:
     variant_t(const char* value, size_t vect_size = 0);
     variant_t(const real_t& value, size_t vect_size = 0);
     variant_t(const double_t& value, size_t vect_size = 0);
-	variant_t(const std::vector<double_t>& value);
-	variant_t(std::vector<double_t>&& value);
+	 variant_t(const std::vector<double_t>& value);
+	 variant_t(std::vector<double_t>&& value);
 
     variant_t(const integer_t& value, size_t vect_size = 0);
     variant_t(const bool_t& value, size_t vect_size = 0);
