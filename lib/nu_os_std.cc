@@ -361,10 +361,6 @@ int _os_erase_dir(const std::string& filepath)
 /* -------------------------------------------------------------------------- */
 
 #include <fcntl.h>
-#ifdef __linux__
-#include <linux/kd.h>
-#include <linux/limits.h>
-#endif
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -521,6 +517,7 @@ bool _os_change_dir(const std::string& dir) { return 0 == chdir(dir.c_str()); }
 
 std::string _os_get_working_dir()
 {
+    constexpr size_t PATH_MAX = 4095; 
     char buf[PATH_MAX + 1] = { 0 };
 
     if (getcwd(buf, PATH_MAX) != nullptr) {
