@@ -13,6 +13,9 @@
 
 #include "nu_terminal.h"
 #include "nu_cpp_lang.h"
+#include <sys/types.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 /* -------------------------------------------------------------------------- */
 
