@@ -49,7 +49,7 @@ std::u16string unicode_unescape(const std::string& unescaped)
          std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes(s);
    };
 
-   for (int i = 0; i < unescaped.size(); ++i) {
+   for (size_t i = 0; i < unescaped.size(); ++i) {
 
       auto ch = unescaped[i];
 
