@@ -517,7 +517,9 @@ bool _os_change_dir(const std::string& dir) { return 0 == chdir(dir.c_str()); }
 
 std::string _os_get_working_dir()
 {
+#ifndef PATH_MAX
     constexpr size_t PATH_MAX = 4095; 
+#endif
     char buf[PATH_MAX + 1] = { 0 };
 
     if (getcwd(buf, PATH_MAX) != nullptr) {
