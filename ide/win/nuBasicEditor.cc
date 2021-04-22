@@ -721,7 +721,7 @@ public:
     /**
      * Set overstrike state
      */
-    void nu::editor_t::set_overstrike(bool enable) noexcept {
+    void set_overstrike(bool enable) noexcept {
         send_command(SCI_SETOVERTYPE, enable ? TRUE : FALSE, 0);
     }
 
@@ -936,6 +936,16 @@ public:
         return _is_dirty; 
     }
 
+
+public:
+    HWND get_splitter_handle() const noexcept {
+        return _h_splitter;
+    }
+
+    HWND get_infobox_handle() const noexcept {
+        return _h_infobox;
+    }
+
 protected:
     using func_map_t = std::map<int, int>;
     func_map_t _func_map;
@@ -1060,6 +1070,7 @@ static winMsgProc g_winMsgProc(g_editor);
 static toolbar_t* g_toolbar = nullptr;
 static txtinfobox_t* g_info = nullptr;
 
+LRESULT CALLBACK HSplitterWndProc(HWND hWnd, WORD Message, WORD wParam, LONG lParam);
 
 /* -------------------------------------------------------------------------- */
 
@@ -1070,7 +1081,7 @@ void nu::editor_t::create_splitter(HWND hWnd)
     wcex.cbSize = sizeof(WNDCLASSEX);
 
     wcex.style = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc = (WNDPROC)HSplitterWndProc;
+    wcex.lpfnWndProc = (WNDPROC) HSplitterWndProc;
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.hInstance = get_instance_handle();
@@ -3386,7 +3397,7 @@ static BOOL GetClientWindowRect(HWND hWnd, RECT& rect)
 }
 
 
-namespace nu {
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -3411,8 +3422,8 @@ LRESULT CALLBACK HSplitterWndProc(
     case WM_LBUTTONDOWN:
 
         GetClientWindowRect(g_editor.get_editor_hwnd(), old_editor_rect);
-        GetClientWindowRect(g_editor._h_splitter, old_hsplitter_rect);
-        GetClientWindowRect(g_editor._h_infobox, old_searchbox_rect);
+        GetClientWindowRect(g_editor.get_splitter_handle(), old_hsplitter_rect);
+        GetClientWindowRect(g_editor.get_infobox_handle(), old_searchbox_rect);
 
         if (g_toolbar) {
             GetClientWindowRect(g_toolbar->get_hwnd(), toolbar_rect);
@@ -3455,16 +3466,16 @@ LRESULT CALLBACK HSplitterWndProc(
             old_editor_rect.top, old_editor_rect.right - old_editor_rect.left,
             old_editor_rect.bottom - old_editor_rect.top + dy, TRUE);
 
-        MoveWindow(g_editor._h_infobox, old_searchbox_rect.left,
+        MoveWindow(g_editor.get_infobox_handle(), old_searchbox_rect.left,
             old_searchbox_rect.top + dy,
             old_searchbox_rect.right - old_searchbox_rect.left,
             old_searchbox_rect.bottom - old_searchbox_rect.top - dy, TRUE);
 
         InvalidateRect(g_editor.get_editor_hwnd(), NULL, TRUE);
-        InvalidateRect(g_editor._h_infobox, NULL, TRUE);
+        InvalidateRect(g_editor.get_infobox_handle(), NULL, TRUE);
 
         UpdateWindow(g_editor.get_editor_hwnd());
-        UpdateWindow(g_editor._h_infobox);
+        UpdateWindow(g_editor.get_infobox_handle());
 
         ClipCursor(NULL);
         ReleaseCapture();
@@ -3487,12 +3498,6 @@ LRESULT CALLBACK HSplitterWndProc(
     }
     return 0;
 }
-
-
-/* -------------------------------------------------------------------------- */
-
-}
-
 
 /* -------------------------------------------------------------------------- */
 

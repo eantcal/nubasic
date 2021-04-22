@@ -92,7 +92,10 @@ BOOL toolbar_t::on_notify(HWND hWnd, LPARAM lParam)
             szBuf,
             sizeof(szBuf));
 #endif
-        lpToolTipText->lpszText = /*szBuf*/ "TODO";
+        {
+            TCHAR text[4] = { 0 }; // TODO
+            lpToolTipText->lpszText = /*szBuf*/ (LPSTR)text;
+        }
         break;
 
     case TBN_QUERYDELETE:
