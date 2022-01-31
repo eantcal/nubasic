@@ -35,7 +35,7 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
     int ret = 0;
 
     for (auto const& variable : _vars) {
-        auto vtype = variable_t::type_by_name(variable.first);
+        const auto vtype = variable_t::type_by_name(variable.first);
 
         std::string svalue;
         int ivalue = 0;
@@ -74,10 +74,10 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
             break;
         }
 
-        auto index = variable.second;
-        auto name = variable.first;
+        const auto index = variable.second;
+        const auto name = variable.first;
 
-        bool is_vector = index != nullptr;
+        const bool is_vector = index != nullptr;
 
         if (is_vector) {
             rt_error_code_t::get_instance().throw_if(true,
@@ -147,7 +147,7 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
             var_scope_t::handle_t scope
                 = ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
-            auto& v = (*scope)[name];
+            const auto& v = (*scope)[name];
             const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
 
             rt_error_code_t::get_instance().throw_if(const_var,

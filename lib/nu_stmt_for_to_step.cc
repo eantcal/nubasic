@@ -30,10 +30,10 @@ stmt_for_to_step_t::stmt_cl_t stmt_for_to_step_t::get_cl() const noexcept
 
 void stmt_for_to_step_t::run(rt_prog_ctx_t& ctx)
 {
-    variant_t val = _from_arg->eval(ctx);
+    const variant_t val = _from_arg->eval(ctx);
 
-    auto scope_id = ctx.proc_scope.get_scope_id();
-    auto scope_type = ctx.proc_scope.get_type(_variable);
+    const auto scope_id = ctx.proc_scope.get_scope_id();
+    const auto scope_type = ctx.proc_scope.get_type(_variable);
 
     std::string counter = _variable;
 
@@ -124,7 +124,7 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t& ctx)
         ctx.go_to_next();
         forctx.flag.set(for_loop_ctx_t::FLG_FIRST_EXEC, false);
 
-        auto handle = ctx.for_loop_metadata.begin_find(ctx.runtime_pc);
+        const auto handle = ctx.for_loop_metadata.begin_find(ctx.runtime_pc);
 
         if (handle) {
             handle->flag.set(instrblock_t::EXIT, false);

@@ -22,10 +22,10 @@ namespace nu {
 
 void stmt_const_t::run(rt_prog_ctx_t& ctx)
 {
-    variant_t value = _arg->eval(ctx);
+    const variant_t value = _arg->eval(ctx);
     const std::string& name = _var;
 
-    auto scope_type = ctx.proc_scope.get_type(name);
+    const auto scope_type = ctx.proc_scope.get_type(name);
 
     switch (scope_type) {
     case proc_scope_t::type_t::LOCAL:
@@ -42,8 +42,8 @@ void stmt_const_t::run(rt_prog_ctx_t& ctx)
 
     var_scope_t::handle_t scope = ctx.proc_scope.get_global();
 
-    auto vtype_code = variable_t::type_by_typename(_vtype);
-    auto value_type = value.get_type();
+    const auto vtype_code = variable_t::type_by_typename(_vtype);
+    const auto value_type = value.get_type();
 
     std::string init_val;
 

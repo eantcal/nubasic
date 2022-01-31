@@ -65,8 +65,8 @@ void stmt_read_file_t::run(rt_prog_ctx_t& ctx)
 
     auto const& variable = _var;
 
-    auto index = variable.second;
-    auto name = variable.first;
+    const auto index = variable.second;
+    const auto name = variable.first;
     bool is_vector = index != nullptr;
 
 

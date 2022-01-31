@@ -349,8 +349,8 @@ stmt_t::handle_t stmt_parser_t::parse_read(
     while (!tl.empty()
         && (token.type() != tkncl_t::OPERATOR || token.identifier() != ":")) {
 
-        auto var = parse_var_arg(ctx, token, tl);
-        var_list.push_back(var);
+        const auto var = parse_var_arg(ctx, token, tl);
+        var_list.emplace_back(var);
 
         if (!tl.empty()) {
             token = *tl.begin();
@@ -538,8 +538,8 @@ void stmt_parser_t::parse_fd_args(prog_ctx_t& ctx, token_t token,
     while (!tl.empty()
         && (token.type() != tkncl_t::OPERATOR || token.identifier() != ":")) {
 
-        auto var = parse_var_arg(ctx, token, tl);
-        var_list.push_back(var);
+        const auto var = parse_var_arg(ctx, token, tl);
+        var_list.emplace_back(var);
 
         if (!tl.empty()) {
             token = *tl.begin();
@@ -601,7 +601,7 @@ stmt_t::handle_t stmt_parser_t::parse_read_file(
 
     token = *tl.begin();
 
-    var_arg_t var = parse_var_arg(ctx, token, tl);
+    const var_arg_t var = parse_var_arg(ctx, token, tl);
 
     token = *tl.begin();
 

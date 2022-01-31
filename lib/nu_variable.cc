@@ -164,9 +164,9 @@ bool variable_t::is_valid_name(std::string name, bool ingnore_builtin)
         return false;
     }
 
-    auto letter = [](char c) { return c >= 'a' && c <= 'z'; };
+    const auto letter = [](char c) { return c >= 'a' && c <= 'z'; };
 
-    char first_char = name.c_str()[0];
+    const char first_char = name.c_str()[0];
 
     if (!letter(first_char) && first_char != '_') {
         return false;

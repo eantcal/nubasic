@@ -82,7 +82,7 @@ variant_t::variant_t(const char* value, size_t vect_size)
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const real_t& value, size_t vect_size)
+variant_t::variant_t(const real_t value, size_t vect_size)
     : _type(type_t::FLOAT)
     , _vect_size(vect_size)
     , _vector_type(vect_size >= 1)
@@ -97,7 +97,7 @@ variant_t::variant_t(const real_t& value, size_t vect_size)
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const double_t& value, size_t vect_size)
+variant_t::variant_t(const double_t value, size_t vect_size)
     : _type(type_t::DOUBLE)
     , _vect_size(vect_size)
     , _vector_type(vect_size >= 1)
@@ -144,7 +144,7 @@ variant_t::variant_t(std::vector<double_t>&& value)
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const integer_t& value, size_t vect_size)
+variant_t::variant_t(const integer_t value, size_t vect_size)
     : _type(type_t::INTEGER)
     , _vect_size(vect_size)
     , _vector_type(vect_size >= 1)
@@ -159,7 +159,7 @@ variant_t::variant_t(const integer_t& value, size_t vect_size)
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const bool_t& value, size_t vect_size)
+variant_t::variant_t(const bool_t value, size_t vect_size)
     : _type(type_t::BOOLEAN)
     , _vect_size(vect_size)
     , _vector_type(vect_size >= 1)
@@ -174,7 +174,7 @@ variant_t::variant_t(const bool_t& value, size_t vect_size)
 
 /* -------------------------------------------------------------------------- */
 
-variant_t::variant_t(const long64_t& value, size_t vect_size)
+variant_t::variant_t(const long64_t value, size_t vect_size)
     : _type(type_t::LONG64)
     , _vect_size(vect_size)
     , _vector_type(vect_size >= 1)
@@ -657,7 +657,7 @@ variant_t operator*(const variant_t& a, const variant_t& b)
 
 std::ostream& operator<<(std::ostream& os, const variant_t& val)
 {
-    bool bvector = val.is_vector();
+    const bool bvector = val.is_vector();
     size_t vect_size = bvector ? val.vector_size() : 1;
     bool bigvect = vect_size > 10;
 
@@ -955,7 +955,7 @@ void variant_t::define_struct_member(
     rt_error_code_t::get_instance().throw_if(
         _type != type_t::STRUCT, 0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
-    auto hvalue = std::make_shared<variant_t>(value);
+    const auto hvalue = std::make_shared<variant_t>(value);
 
     if (_struct_data.empty()) {
         _struct_data.resize(1);
@@ -974,7 +974,7 @@ variant_t::handle_t variant_t::struct_member(
         _type != type_t::STRUCT || vector_idx >= _struct_data.size(), 0,
         rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
-    auto it = _struct_data[vector_idx].find(field_name);
+    const auto it = _struct_data[vector_idx].find(field_name);
 
     rt_error_code_t::get_instance().throw_if(
         it == _struct_data[vector_idx].end(), 0, rt_error_code_t::value_t::E_INV_IDENTIF,

@@ -97,7 +97,7 @@ size_t token_list_t::find(const token_t& t, size_t pos, size_t items)
 size_t token_list_t::find(
     const std::string& identifier, size_t pos, size_t items)
 {
-    auto test = [&](size_t i) { return (*this)[i].identifier() == identifier; };
+    const auto test = [&](size_t i) { return (*this)[i].identifier() == identifier; };
 
     return find(test, pos, items);
 }
@@ -107,7 +107,7 @@ size_t token_list_t::find(
 
 size_t token_list_t::find(const tkncl_t type, size_t pos, size_t items)
 {
-    auto test = [&](size_t i) { return (*this)[i].type() == type; };
+    const auto test = [&](size_t i) { return (*this)[i].type() == type; };
 
     return find(test, pos, items);
 }
@@ -171,15 +171,15 @@ std::list<token_list_t> token_list_t::get_parameters(btfunc_t test_begin,
 std::list<token_list_t> token_list_t::get_parameters(
     const tkp_t& tbegin, const tkp_t& tend, const tkp_t& tseparator)
 {
-    auto fb = [&](const token_t& t) {
+    const auto fb = [&](const token_t& t) {
         return t.identifier() == tbegin.first && t.type() == tbegin.second;
     };
 
-    auto fe = [&](const token_t& t) {
+    const auto fe = [&](const token_t& t) {
         return t.identifier() == tend.first && t.type() == tend.second;
     };
 
-    auto fs = [&](const token_t& t) {
+    const auto fs = [&](const token_t& t) {
         return t.identifier() == tseparator.first
             && t.type() == tseparator.second;
     };
@@ -247,11 +247,11 @@ token_list_t token_list_t::sublist(const token_t& first, const token_t& second,
     size_t search_from, bool b_erase)
 {
 
-    auto test_begin = [&](const token_t& t) {
+    const auto test_begin = [&](const token_t& t) {
         return t.identifier() == first.identifier() && t.type() == first.type();
     };
 
-    auto test_end = [&](const token_t& t) {
+    const auto test_end = [&](const token_t& t) {
         return t.identifier() == second.identifier()
             && t.type() == second.type();
     };
@@ -266,11 +266,11 @@ token_list_t token_list_t::sublist(
     const tkp_t& first, const tkp_t& second, size_t search_from, bool b_erase)
 {
 
-    auto test_begin = [&](const token_t& t) {
+    const auto test_begin = [&](const token_t& t) {
         return t.identifier() == first.first && t.type() == first.second;
     };
 
-    auto test_end = [&](const token_t& t) {
+    const auto test_end = [&](const token_t& t) {
         return t.identifier() == second.first && t.type() == second.second;
     };
 
@@ -359,9 +359,9 @@ token_list_t token_list_t::replace_sublist(
 {
     assert(search_from < size());
 
-    token_list_t sub_list = sublist(test_begin, test_end, search_from, false);
-    token_list_t head_list = sublist(0, search_from);
-    token_list_t tail_list = sublist(
+    const token_list_t sub_list = sublist(test_begin, test_end, search_from, false);
+    const token_list_t head_list = sublist(0, search_from);
+    const token_list_t tail_list = sublist(
         search_from + sub_list.size(), size() - search_from - sub_list.size());
 
     return head_list + replist + tail_list;
@@ -375,9 +375,9 @@ token_list_t token_list_t::replace_sublist(
 {
     assert(!(end_pos < begin_pos || end_pos >= size()));
 
-    token_list_t sub_list = sublist(begin_pos, end_pos - begin_pos + 1);
-    token_list_t head_list = sublist(0, begin_pos);
-    token_list_t tail_list = sublist(end_pos + 1, size() - end_pos - 1);
+    const token_list_t sub_list = sublist(begin_pos, end_pos - begin_pos + 1);
+    const token_list_t head_list = sublist(0, begin_pos);
+    const token_list_t tail_list = sublist(end_pos + 1, size() - end_pos - 1);
 
     return head_list + replist + tail_list;
 }
@@ -388,11 +388,11 @@ token_list_t token_list_t::replace_sublist(
 token_list_t token_list_t::replace_sublist(const tkp_t& first,
     const tkp_t& second, size_t search_from, const token_list_t& replist)
 {
-    auto test_begin = [&](const token_t& t) {
+    const auto test_begin = [&](const token_t& t) {
         return t.identifier() == first.first && t.type() == first.second;
     };
 
-    auto test_end = [&](const token_t& t) {
+    const auto test_end = [&](const token_t& t) {
         return t.identifier() == second.first && t.type() == second.second;
     };
 

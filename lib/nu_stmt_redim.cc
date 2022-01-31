@@ -22,14 +22,14 @@ namespace nu {
 
 void stmt_redim_t::run(rt_prog_ctx_t& ctx)
 {
-    auto rt_error_if
+    const auto rt_error_if
         = [&](bool cond, rt_error_code_t::value_t err, const std::string desc) {
               rt_error_code_t::get_instance().throw_if(
                   cond, ctx.runtime_pc.get_line(), err, desc);
           };
 
     for (const auto& [name, value] : _vars) {
-        int vsize = value.second->eval(ctx).to_int();
+        const int vsize = value.second->eval(ctx).to_int();
 
         rt_error_if(vsize <= 0, rt_error_code_t::value_t::E_INV_VECT_SIZE,
             "ReDim '" + name + "'");
@@ -40,10 +40,10 @@ void stmt_redim_t::run(rt_prog_ctx_t& ctx)
         rt_error_if(!scope->is_defined(name), rt_error_code_t::value_t::E_VAR_UNDEF,
             "ReDim '" + name + "'");
 
-        auto vtype = value.first;
-        auto vtype_code = variable_t::type_by_name(vtype); // TODO Struct
+        const auto vtype = value.first;
+        const auto vtype_code = variable_t::type_by_name(vtype); // TODO Struct
 
-        std::string init_val = 
+        const std::string init_val = 
             vtype_code == variable_t::type_t::STRING ? "" : "0";
 
         switch (vtype_code) {

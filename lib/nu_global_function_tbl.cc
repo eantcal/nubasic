@@ -156,9 +156,9 @@ variant_t functor_RT_T1_T2_T3(rt_prog_ctx_t& ctx, const std::string& name,
     std::vector<variant_t> vargs;
     get_functor_vargs(ctx, name, args, check_vect, vargs);
 
-    auto arg1 = static_cast<T1>(vargs[0]);
-    auto arg2 = static_cast<T2>(vargs[1]);
-    auto arg3 = static_cast<T3>(vargs[2]);
+    const auto arg1 = static_cast<T1>(vargs[0]);
+    const auto arg2 = static_cast<T2>(vargs[1]);
+    const auto arg3 = static_cast<T3>(vargs[2]);
 
     return nu::variant_t(RT(F()(arg1, arg2, arg3)));
 }
@@ -177,10 +177,10 @@ variant_t functor_RT_T1_T2_T3_T4(rt_prog_ctx_t& ctx, const std::string& name,
     std::vector<variant_t> vargs;
     get_functor_vargs(ctx, name, args, check_vect, vargs);
 
-    auto arg1 = static_cast<T1>(vargs[0]);
-    auto arg2 = static_cast<T2>(vargs[1]);
-    auto arg3 = static_cast<T3>(vargs[2]);
-    auto arg4 = static_cast<T3>(vargs[3]);
+    const auto arg1 = static_cast<T1>(vargs[0]);
+    const auto arg2 = static_cast<T2>(vargs[1]);
+    const auto arg3 = static_cast<T3>(vargs[2]);
+    const auto arg4 = static_cast<T3>(vargs[3]);
 
     return nu::variant_t(RT(F()(arg1, arg2, arg3, arg4)));
 }
@@ -505,8 +505,8 @@ variant_t conv_functor(
     rt_error_code_t::get_instance().throw_if(
         args_num != 4 && args_num != 2, 0, rt_error_code_t::value_t::E_INVALID_ARGS, "");
 
-    auto variant_v1 = args[0]->eval(ctx);
-    auto variant_v2 = args[1]->eval(ctx);
+    const auto variant_v1 = args[0]->eval(ctx);
+    const auto variant_v2 = args[1]->eval(ctx);
 
     const auto actual_v1_size = variant_v1.vector_size();
     const auto actual_v2_size = variant_v2.vector_size();
@@ -538,7 +538,7 @@ variant_t conv_functor(
 
     auto vr = conv(v1, v2);
 
-    nu::variant_t result(std::move(vr));
+    const nu::variant_t result(std::move(vr));
 
     return result;
 }
@@ -561,9 +561,9 @@ variant_t restore_functor(
     if (args_num>0) 
         v = args[0]->eval(ctx);
 
-    auto index = v.to_long64();
+    const auto index = v.to_long64();
 
-    nu::long64_t old_val = ctx.read_data_store_index;
+    const nu::long64_t old_val = ctx.read_data_store_index;
 
     if (index < 0) {
         ctx.read_data_store.clear();
@@ -578,7 +578,7 @@ variant_t restore_functor(
         rt_error_code_t::value_t::E_VAL_OUT_OF_RANGE, name);
 
     ctx.read_data_store_index = index;
-    nu::variant_t result(old_val);
+    const nu::variant_t result(old_val);
 
     return result;
 }
@@ -616,8 +616,8 @@ static variant_t process_operator(rt_prog_ctx_t& ctx,
     rt_error_code_t::get_instance().throw_if(
         args.size() != 1, 0, rt_error_code_t::value_t::E_INVALID_ARGS, "");
 
-    auto var = args[0];
-    auto var_ptr = dynamic_cast<expr_var_t*>(var.get());
+    const auto var = args[0];
+    const auto var_ptr = dynamic_cast<expr_var_t*>(var.get());
 
     rt_error_code_t::get_instance().throw_if(
         var_ptr == nullptr, 0, rt_error_code_t::value_t::E_INVALID_ARGS, "");

@@ -50,7 +50,7 @@ void stmt_call_t::run(
     // (however its return value will be ignored, but function will be executed
     //  like a procedure)
     if (i == ctx.proc_prototypes.data.end()) {
-        auto& gf = global_function_tbl_t::get_instance();
+        const auto& gf = global_function_tbl_t::get_instance();
         undef = !gf.is_defined(_name);
 
         if (undef == false) {
@@ -74,19 +74,19 @@ void stmt_call_t::run(
 
     rt_error_if(undef, rt_error_code_t::value_t::E_SUB_UNDEF, _name);
 
-    auto& function_prototype = i->second.second;
+    const auto& function_prototype = i->second.second;
 
     rt_error_if(function_prototype.parameters.size() != _args.size(),
         rt_error_code_t::value_t::E_WRG_NUM_ARGS, _name);
 
     // Evaluate sub arguments
-    std::list<variant_t> values;
-
-    for (auto arg : _args) {
-        variant_t val
+    std::vector<variant_t> values;
+    values.reserve(_args.size());
+    for (const auto& arg : _args) {
+        const variant_t val
             = arg.first == nullptr ? variant_t("") : arg.first->eval(ctx);
 
-        values.push_back(val);
+        values.emplace_back(val);
     }
 
 
@@ -97,7 +97,7 @@ void stmt_call_t::run(
 
     if (!function_prototype.ret_type.empty()) {
         auto sub_xscope = ctx.proc_scope.get();
-        auto vtype_code
+        const auto vtype_code
             = variable_t::type_by_typename(function_prototype.ret_type);
 
         const auto vsize = function_prototype.array_size;
@@ -122,13 +122,13 @@ void stmt_call_t::run(
 
         case variable_t::type_t::STRUCT:
         case variable_t::type_t::UNDEFINED: {
-            auto& sprototypes = ctx.struct_prototypes.data;
-            auto it = sprototypes.find(function_prototype.ret_type);
+            const auto& sprototypes = ctx.struct_prototypes.data;
+            const auto it = sprototypes.find(function_prototype.ret_type);
 
             rt_error_if(it == sprototypes.end(),
                 rt_error_code_t::value_t::E_STRUCT_UNDEF, "'" + _name + "'");
 
-            auto value = it->second.second; // struct prototype
+            const auto value = it->second.second; // struct prototype
 
             //TODO: extend to array of structures
             sub_xscope->define(_name, var_value_t(value, VAR_ACCESS_RW));
@@ -145,9 +145,9 @@ void stmt_call_t::run(
 
     if (!values.empty()) {
         auto sub_xscope = ctx.proc_scope.get();
-        auto values_it = values.begin();
+        auto values_it = values.cbegin();
 
-        for (auto arg : _args) {
+        for (const auto& arg : _args) {
             variant_t val = *values_it;
 
             const auto& variable_name = arg_it->var_name;
@@ -156,11 +156,11 @@ void stmt_call_t::run(
             int vsize = 0;
 
             if (arg_it->vsize) {
-                auto size = arg_it->vsize->eval(ctx);
+                const auto size = arg_it->vsize->eval(ctx);
                 vsize = size.to_int();
             }
 
-            auto var_type = variable_type.empty()
+            const auto var_type = variable_type.empty()
                 ? variable_t::type_by_name(variable_name)
                 : variable_t::type_by_typename(variable_type);
 
