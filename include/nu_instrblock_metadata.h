@@ -94,10 +94,10 @@ public:
     instrblock_t::handle_t compile_end(const prog_pointer_t& pc);
     instrblock_t::handle_t compile_exit_point(const prog_pointer_t& pc);
     instrblock_t::handle_t begin_find(
-        const prog_pointer_t::line_number_t& line);
-    instrblock_t::handle_t begin_find(const prog_pointer_t& pc);
-    instrblock_t::handle_t end_find(const prog_pointer_t& pc);
-    instrblock_t::handle_t exit_find(const prog_pointer_t& pc);
+        const prog_pointer_t::line_number_t& line) const;
+    instrblock_t::handle_t begin_find(const prog_pointer_t& pc) const;
+    instrblock_t::handle_t end_find(const prog_pointer_t& pc) const;
+    instrblock_t::handle_t exit_find(const prog_pointer_t& pc) const;
 };
 
 

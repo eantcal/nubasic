@@ -30,7 +30,7 @@ stmt_endfunction_t::stmt_endfunction_t(prog_ctx_t& ctx)
 
 void stmt_endfunction_t::run(rt_prog_ctx_t& ctx)
 {
-    auto handle = ctx.procedure_metadata.end_find(ctx.runtime_pc);
+    const auto handle = ctx.procedure_metadata.end_find(ctx.runtime_pc);
 
     if (!handle || handle->identifier.empty()) {
         rt_error_code_t::get_instance().throw_if(true,
@@ -55,10 +55,10 @@ void stmt_endfunction_t::run(rt_prog_ctx_t& ctx)
 
         if (expected_retval) {
             // Get return-value
-            variant_t value = (*(ctx.proc_scope.get()))[identifier].first;
+            const variant_t value = (*(ctx.proc_scope.get()))[identifier].first;
 
             // Insert the return value in the context
-            ctx.function_retval_tbl[identifier].push_back(value);
+            ctx.function_retval_tbl[identifier].emplace_back(value);
         }
 
         // Clean up any FOR-loop dynamic data

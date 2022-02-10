@@ -48,7 +48,7 @@ public:
     }
 
     virtual bool define(const std::string& name, const Symb& value) {
-        auto i = map().insert(std::make_pair(name, value));
+        const auto i = map().insert(std::make_pair(name, value));
         return i.second;
     }
 
@@ -65,7 +65,7 @@ public:
     }
 
     const Symb& operator[](const std::string& name) const {
-        auto i = map().find(name);
+        const auto i = map().find(name);
 
         if (i == map().end()) {
             std::string err;

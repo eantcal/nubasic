@@ -32,7 +32,7 @@ stmt_elif_t::stmt_elif_t(prog_ctx_t& ctx, expr_any_t::handle_t condition)
     syntax_error_if(
         ifctxs.pc_stack.empty(), "'Elif' no any if-statement matching");
 
-    auto if_pc = ifctxs.pc_stack.top();
+    const auto if_pc = ifctxs.pc_stack.top();
 
     ifctxs.data[if_pc].else_list.push_back(ctx.compiletime_pc);
     ifctxs.block_to_if_line_tbl[ctx.compiletime_pc] = if_pc;
@@ -44,7 +44,7 @@ stmt_elif_t::stmt_elif_t(prog_ctx_t& ctx, expr_any_t::handle_t condition)
 void stmt_elif_t::run(rt_prog_ctx_t& ctx)
 {
     auto& ifctxs = ctx.if_metadata;
-    auto ifstmt_pc = ifctxs.block_to_if_line_tbl[ctx.runtime_pc];
+    const auto ifstmt_pc = ifctxs.block_to_if_line_tbl[ctx.runtime_pc];
     const auto& metadata_it = ifctxs.data.find(ifstmt_pc);
 
     rt_error_code_t::get_instance().throw_if(metadata_it == ifctxs.data.end(),

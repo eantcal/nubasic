@@ -73,7 +73,7 @@ struct obj_variant_t {
  */
 class variant_t {
 protected:
-    void _resize(size_t size);
+    void _resize(const size_t size);
 
     template <class T, class DT = T>
     void _set(const T& value, std::vector<DT>& data, variable_t::type_t t)
@@ -89,7 +89,7 @@ protected:
 
     template <class T, class DT = T>
     void _set(
-        const T& value, std::vector<DT>& data, variable_t::type_t t, size_t idx)
+        const T& value, std::vector<DT>& data, variable_t::type_t t, const size_t idx)
     {
         _type = t;
 
@@ -116,7 +116,7 @@ public:
     explicit variant_t(const obj_variant_t&) : _type(type_t::OBJECT)
     {}
 
-    variant_t(const struct_variant_t& value, size_t vect_size = 0)
+    variant_t(const struct_variant_t& value, const size_t vect_size = 0)
         : variant_t(value.get(), type_t::STRUCT, vect_size)
     {}
 
@@ -132,18 +132,18 @@ public:
         _struct_data[0] = value;
     }
 
-    variant_t(const string_t& value, type_t t, size_t vect_size = 0);
+    variant_t(const string_t& value, type_t t, const size_t vect_size = 0);
     variant_t(const char* value, type_t t, size_t vect_size = 0);
-    variant_t(const string_t& value, size_t vect_size = 0);
-    variant_t(const char* value, size_t vect_size = 0);
-    variant_t(const real_t value, size_t vect_size = 0);
-    variant_t(const double_t value, size_t vect_size = 0);
+    variant_t(const string_t& value, const size_t vect_size = 0);
+    variant_t(const char* value, const size_t vect_size = 0);
+    variant_t(const real_t value, const size_t vect_size = 0);
+    variant_t(const double_t value, const size_t vect_size = 0);
 	variant_t(const std::vector<double_t>& value);
 	variant_t(std::vector<double_t>&& value);
 
-    variant_t(const integer_t value, size_t vect_size = 0);
-    variant_t(const bool_t value, size_t vect_size = 0);
-    variant_t(const long64_t value, size_t vect_size = 0);
+    variant_t(const integer_t value, const size_t vect_size = 0);
+    variant_t(const bool_t value, const size_t vect_size = 0);
+    variant_t(const long64_t value, const size_t vect_size = 0);
 
     variant_t(const std::vector<byte_t>& value);
 
@@ -160,9 +160,9 @@ public:
         const std::string& field_name, const variant_t& value);
 
     handle_t struct_member(
-        const std::string& field_name, size_t vector_idx = 0);
+        const std::string& field_name, const size_t vector_idx = 0);
 
-    void set_struct_value(const variant_t& v, size_t vector_idx = 0)
+    void set_struct_value(const variant_t& v, const size_t vector_idx = 0)
     {
         rt_error_code_t::get_instance().throw_if(_type != type_t::STRUCT
                 || v._type != type_t::STRUCT
@@ -218,11 +218,11 @@ public:
 		return true;
 	}
 
-    real_t to_real(size_t idx = 0) const { return real_t(to_double(idx)); }
-    double_t to_double(size_t idx = 0) const;
-    integer_t to_int(size_t idx = 0) const { return integer_t(to_long64(idx)); }
-    long64_t to_long64(size_t idx = 0) const;
-    bool to_bool(size_t idx = 0) const { return to_long64(idx) != 0; }
+    real_t to_real(const size_t idx = 0) const { return real_t(to_double(idx)); }
+    double_t to_double(const size_t idx = 0) const;
+    integer_t to_int(const size_t idx = 0) const { return integer_t(to_long64(idx)); }
+    long64_t to_long64(const size_t idx = 0) const;
+    bool to_bool(const size_t idx = 0) const { return to_long64(idx) != 0; }
 
     type_t get_type() const noexcept { return _type; }
 
@@ -241,24 +241,24 @@ public:
     explicit operator string_t() const { return to_str(); }
     explicit operator bool() const { return to_int() != 0; }
 
-    const string_t& to_str(size_t idx = 0) const;
+    const string_t& to_str(const size_t idx = 0) const;
 
     void set_str(const string_t& value) { _set(value, _s_data, type_t::STRING); }
     void set_str(const char* value) { _set<string_t>(value, _s_data, type_t::STRING); }
     void set_int(const integer_t& value)  { _set(value, _i_data, type_t::INTEGER); }
-    void set_real(real_t value) { _set(value, _f_data, type_t::FLOAT); }
-    void set_double(double_t value) { _set(value, _f_data, type_t::DOUBLE); }
-    void set_bvect(integer_t value) { _set(value, _i_data, type_t::BYTEVECTOR); }
-    void set_bool(bool_t value) { _set(value, _i_data, type_t::BOOLEAN); }
-    void set_long64(long64_t value) { _set(value, _i_data, type_t::LONG64); }
-    void set_str(const string_t& value, size_t idx) { _set(value, _s_data, type_t::STRING, idx);  }
-    void set_str(const char* value, size_t idx) { _set<string_t>(value, _s_data, type_t::STRING, idx); }
-    void set_int(const integer_t& value, size_t idx) { _set(value, _i_data, type_t::INTEGER, idx); }
-    void set_real(real_t value, size_t idx) { _set(value, _f_data, type_t::FLOAT, idx);  }
-    void set_double(double_t value, size_t idx) { _set(value, _f_data, type_t::DOUBLE, idx); }
-    void set_bvect(integer_t value, size_t idx) { _set(value, _i_data, type_t::BYTEVECTOR, idx); }
-    void set_bool(bool_t value, size_t idx) { _set(value, _i_data, type_t::BOOLEAN, idx); }
-    void set_long64(long64_t value, size_t idx) { _set(value, _i_data, type_t::LONG64, idx); }
+    void set_real(const real_t value) { _set(value, _f_data, type_t::FLOAT); }
+    void set_double(const double_t value) { _set(value, _f_data, type_t::DOUBLE); }
+    void set_bvect(const integer_t value) { _set(value, _i_data, type_t::BYTEVECTOR); }
+    void set_bool(const bool_t value) { _set(value, _i_data, type_t::BOOLEAN); }
+    void set_long64(const long64_t value) { _set(value, _i_data, type_t::LONG64); }
+    void set_str(const string_t& value, const size_t idx) { _set(value, _s_data, type_t::STRING, idx);  }
+    void set_str(const char* value, const size_t idx) { _set<string_t>(value, _s_data, type_t::STRING, idx); }
+    void set_int(const integer_t& value, const size_t idx) { _set(value, _i_data, type_t::INTEGER, idx); }
+    void set_real(const real_t value, const size_t idx) { _set(value, _f_data, type_t::FLOAT, idx);  }
+    void set_double(const double_t value, const size_t idx) { _set(value, _f_data, type_t::DOUBLE, idx); }
+    void set_bvect(const integer_t value, const size_t idx) { _set(value, _i_data, type_t::BYTEVECTOR, idx); }
+    void set_bool(const bool_t value, const size_t idx) { _set(value, _i_data, type_t::BOOLEAN, idx); }
+    void set_long64(const long64_t value, const size_t idx) { _set(value, _i_data, type_t::LONG64, idx); }
 
     variant_t operator[](size_t idx) const;
     friend variant_t operator+(const variant_t& a, const variant_t& b);

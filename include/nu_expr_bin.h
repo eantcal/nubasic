@@ -112,11 +112,11 @@ public:
             throw exception_t(std::string("Cannot resolve struct element"));
         }
 
-        auto var_name = _var1->name();
-        auto var_idx = _var1->get_args();
+        const auto var_name = _var1->name();
+        const auto var_idx = _var1->get_args();
 
-        auto member_element = _var2->name();
-        auto var_member_idx = _var2->get_args();
+        const auto member_element = _var2->name();
+        const auto var_member_idx = _var2->get_args();
 
         if (var_idx.size() > 1 || var_member_idx.size() > 1
             || member_element.empty())
@@ -137,7 +137,7 @@ public:
 
         std::string err;
 
-        variant_t res = ctx.resolve_struct_element(
+        const variant_t res = ctx.resolve_struct_element(
             var_name, var_vec_idx, member_element, element_vec_idx, err);
 
         if (!err.empty()) {

@@ -139,13 +139,13 @@ std::list<token_list_t> token_list_t::get_parameters(btfunc_t test_begin,
             --level;
 
             if (level < 1) {
-                ret_list.push_back(ret);
+                ret_list.emplace_back(ret);
                 break;
             }
         }
 
         if (level == 1 && test_separator(t)) {
-            ret_list.push_back(ret);
+            ret_list.emplace_back(ret);
             ret.clear();
 
             if (i == end_pos)

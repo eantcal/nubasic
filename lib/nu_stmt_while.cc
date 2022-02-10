@@ -88,7 +88,7 @@ void stmt_while_t::run(rt_prog_ctx_t& ctx)
 
     if (!_single_stmt) {
         auto& wctxs = ctx.while_metadata;
-        auto handle = wctxs.begin_find(ctx.runtime_pc);
+        const auto handle = wctxs.begin_find(ctx.runtime_pc);
 
         rt_error_code_t::get_instance().throw_if(!handle,
             ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INTERNAL, "While");

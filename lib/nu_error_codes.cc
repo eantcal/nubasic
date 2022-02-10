@@ -57,7 +57,7 @@ std::string rt_error_code_t::message(value_t err_code)
 {
     std::string ret;
 
-    auto err_it = _err_desc_tbl.find(err_code);
+    const auto err_it = _err_desc_tbl.find(err_code);
 
     if (err_it != _err_desc_tbl.end()) {
         ret = err_it->second;

@@ -21,7 +21,7 @@ namespace nu {
 
 void stmt_expr_t::run(rt_prog_ctx_t& ctx)
 {
-    for (auto arg : _args) {
+    for (const auto& arg : _args) {
         if (arg.first != nullptr)
             arg.first->eval(ctx);
     }

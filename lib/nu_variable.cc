@@ -176,7 +176,7 @@ bool variable_t::is_valid_name(std::string name, bool ingnore_builtin)
         return first_char != '_';
     }
 
-    auto number = [](char c) { return (c >= '0' && c <= '9'); };
+    const auto number = [](char c) { return (c >= '0' && c <= '9'); };
 
     char prev_c = 0;
 

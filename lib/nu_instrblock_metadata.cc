@@ -86,8 +86,8 @@ instrblock_t::handle_t instrblock_metadata_t::compile_end(
         return nullptr;
     }
 
-    auto begin_line = build_stack.front();
-    auto i = begin_tbl.find(begin_line);
+    const auto begin_line = build_stack.front();
+    const auto i = begin_tbl.find(begin_line);
 
     if (i == begin_tbl.end()) {
         return nullptr;
@@ -112,8 +112,8 @@ instrblock_t::handle_t instrblock_metadata_t::compile_exit_point(
         return nullptr;
     }
 
-    auto begin_line = build_stack.front();
-    auto i = begin_tbl.find(begin_line);
+    const auto begin_line = build_stack.front();
+    const auto i = begin_tbl.find(begin_line);
 
     if (i == begin_tbl.end()) {
         return nullptr;
@@ -128,9 +128,9 @@ instrblock_t::handle_t instrblock_metadata_t::compile_exit_point(
 /* -------------------------------------------------------------------------- */
 
 instrblock_t::handle_t instrblock_metadata_t::begin_find(
-    const prog_pointer_t::line_number_t& line)
+    const prog_pointer_t::line_number_t& line) const
 {
-    auto i = begin_tbl.find(line);
+    const auto i = begin_tbl.find(line);
 
     if (i == begin_tbl.end()) {
         return nullptr;
@@ -143,7 +143,7 @@ instrblock_t::handle_t instrblock_metadata_t::begin_find(
 /* -------------------------------------------------------------------------- */
 
 instrblock_t::handle_t instrblock_metadata_t::begin_find(
-    const prog_pointer_t& pc)
+    const prog_pointer_t& pc) const
 {
     return begin_find(pc.get_line());
 }
@@ -151,9 +151,9 @@ instrblock_t::handle_t instrblock_metadata_t::begin_find(
 
 /* -------------------------------------------------------------------------- */
 
-instrblock_t::handle_t instrblock_metadata_t::end_find(const prog_pointer_t& pc)
+instrblock_t::handle_t instrblock_metadata_t::end_find(const prog_pointer_t& pc) const
 {
-    auto i = end_tbl.find(pc.get_line());
+    const auto i = end_tbl.find(pc.get_line());
     return i == end_tbl.end() ? nullptr : begin_find(i->second);
 }
 
@@ -161,9 +161,9 @@ instrblock_t::handle_t instrblock_metadata_t::end_find(const prog_pointer_t& pc)
 /* -------------------------------------------------------------------------- */
 
 instrblock_t::handle_t instrblock_metadata_t::exit_find(
-    const prog_pointer_t& pc)
+    const prog_pointer_t& pc) const
 {
-    auto i = exit_tbl.find(pc.get_line());
+    const auto i = exit_tbl.find(pc.get_line());
     return i == exit_tbl.end() ? nullptr : begin_find(i->second);
 }
 

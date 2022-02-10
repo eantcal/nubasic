@@ -126,7 +126,7 @@ public:
 
     //! Append a new token at the tail of the token list
     token_list_t& operator+=(const token_t& tkn) noexcept {
-        _data.push_back(tkn);
+        _data.emplace_back(tkn);
         return *this;
     }
 
@@ -162,7 +162,7 @@ public:
     //! Append to the list all the tokens of a given token list argument
     token_list_t& operator+=(const token_list_t& tknl) {
         for (const auto& e : tknl.data()) {
-            data().push_back(e);
+            data().emplace_back(e);
         }
 
         return *this;

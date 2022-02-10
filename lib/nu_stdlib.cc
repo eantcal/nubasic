@@ -40,7 +40,7 @@ int os_shell_t::apply(rt_prog_ctx_t& ctx, args_t args)
             || args[CMD].get_type() != variant_t::type_t::STRING,
         ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "SHELL");
 
-    auto c = args[CMD].to_str();
+    const auto c = args[CMD].to_str();
 
     return exec(c);
 }
@@ -57,7 +57,7 @@ int os_chdir_t::apply(rt_prog_ctx_t& ctx, args_t args)
             || args[CMD].get_type() != variant_t::type_t::STRING,
         ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "CHDIR");
 
-    auto dir = args[CMD].to_str();
+    const auto dir = args[CMD].to_str();
 
     return _os_change_dir(dir) ? 0 : errno;
 }
@@ -75,11 +75,11 @@ int os_fopen_t::apply(rt_prog_ctx_t& ctx, args_t args)
             || !variable_t::is_integral(args[FILENUMBER].get_type()),
         ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "FOPEN");
 
-    auto filename = args[FILENAME].to_str();
-    auto mode = args[MODE].to_str();
-    auto filenumber = args[FILENUMBER].to_int();
+    const auto filename = args[FILENAME].to_str();
+    const auto mode = args[MODE].to_str();
+    const auto filenumber = args[FILENUMBER].to_int();
 
-    bool res = ctx.file_tbl.open_fd(filename, mode, filenumber);
+    const bool res = ctx.file_tbl.open_fd(filename, mode, filenumber);
 
     return !res && !errno ? EBADF : errno;
 }
@@ -95,9 +95,9 @@ int os_fflush_t::apply(rt_prog_ctx_t& ctx, args_t args)
             || !variable_t::is_integral(args[FILENUMBER].get_type()),
         ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "FLUSH");
 
-    auto filenumber = args[FILENUMBER].to_int();
+    const auto filenumber = args[FILENUMBER].to_int();
 
-    bool res = ctx.file_tbl.flush_fd(filenumber);
+    const bool res = ctx.file_tbl.flush_fd(filenumber);
 
     return !res && !errno ? EBADF : errno;
 }
@@ -115,11 +115,11 @@ int os_fseek_t::apply(rt_prog_ctx_t& ctx, args_t args)
             || !variable_t::is_integral(args[FILENUMBER].get_type()),
         ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "SEEK");
 
-    auto filenumber = args[FILENUMBER].to_int();
-    auto seekptr = args[SEEKPTR].to_int();
-    auto seekorigin = args[SEEKORIGIN].to_int();
+    const auto filenumber = args[FILENUMBER].to_int();
+    const auto seekptr = args[SEEKPTR].to_int();
+    const auto seekorigin = args[SEEKORIGIN].to_int();
 
-    bool res = ctx.file_tbl.seek_fd(seekptr, seekorigin, filenumber);
+    const bool res = ctx.file_tbl.seek_fd(seekptr, seekorigin, filenumber);
 
     return !res && !errno ? EBADF : errno;
 }

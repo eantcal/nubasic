@@ -24,7 +24,7 @@ stmt_sub_t::stmt_sub_t(prog_ctx_t& ctx, const std::string& id)
     : stmt_t(ctx)
     , _id(id)
 {
-    auto i = ctx.proc_prototypes.data.find(id);
+    const auto i = ctx.proc_prototypes.data.find(id);
 
     const auto found = i != ctx.proc_prototypes.data.end();
 
@@ -48,12 +48,12 @@ stmt_sub_t::stmt_sub_t(prog_ctx_t& ctx, const std::string& id)
 void stmt_sub_t::run(rt_prog_ctx_t& ctx)
 {
     auto& subctx = ctx.procedure_metadata;
-    auto handle = subctx.begin_find(ctx.runtime_pc);
+    const auto handle = subctx.begin_find(ctx.runtime_pc);
 
     rt_error_code_t::get_instance().throw_if(
         !handle, ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_SUB_UNDEF, _id);
 
-    auto scope_id = ctx.proc_scope.get_scope_id();
+    const auto scope_id = ctx.proc_scope.get_scope_id();
 
     // Skip function body if we are in the global scope
     if (scope_id.empty()) {
@@ -84,7 +84,7 @@ void stmt_sub_t::define(const std::string& var, const std::string& vtype,
     // TODO VAR prototype must include types
     auto& fproto = ctx.proc_prototypes.data[id].second;
 
-    fproto.parameters.push_back(func_param_t(var, vtype, vect_size));
+    fproto.parameters.emplace_back(func_param_t(var, vtype, vect_size));
 }
 
 

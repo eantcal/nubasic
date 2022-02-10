@@ -192,6 +192,10 @@ variant_t::variant_t(const long64_t value, size_t vect_size)
 variant_t::variant_t(const std::vector<byte_t>& value)
     : variant_t(0, type_t::BYTEVECTOR, value.size())
 {
+    const auto size = _s_data[0].size() + value.size() + 1;
+
+    _s_data[0].reserve(size);
+
     for (const auto& e : value) {
         _s_data[0].push_back(e);
     }
@@ -968,7 +972,7 @@ void variant_t::define_struct_member(
 /* -------------------------------------------------------------------------- */
 
 variant_t::handle_t variant_t::struct_member(
-    const std::string& field_name, size_t vector_idx)
+    const std::string& field_name, const size_t vector_idx)
 {
     rt_error_code_t::get_instance().throw_if(
         _type != type_t::STRUCT || vector_idx >= _struct_data.size(), 0,
@@ -986,7 +990,7 @@ variant_t::handle_t variant_t::struct_member(
 
 /* -------------------------------------------------------------------------- */
 
-void variant_t::_resize(size_t size)
+void variant_t::_resize(const size_t size)
 {
     if (is_struct()) {
         if (size != _struct_data.size()) {
@@ -1044,7 +1048,7 @@ void variant_t::describe_type(std::stringstream& ss) const noexcept
 
 /* -------------------------------------------------------------------------- */
 
-double_t variant_t::to_double(size_t idx) const
+double_t variant_t::to_double(const size_t idx) const
 {
     rt_error_code_t::get_instance().throw_if(
         _type == type_t::STRUCT, 0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
@@ -1059,7 +1063,7 @@ double_t variant_t::to_double(size_t idx) const
 
 /* -------------------------------------------------------------------------- */
 
-long64_t variant_t::to_long64(size_t idx) const
+long64_t variant_t::to_long64(const size_t idx) const
 {
     rt_error_code_t::get_instance().throw_if(
         _type == type_t::STRUCT, 0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
@@ -1074,7 +1078,7 @@ long64_t variant_t::to_long64(size_t idx) const
 
 /* -------------------------------------------------------------------------- */
 
-const string_t& variant_t::to_str(size_t idx) const
+const string_t& variant_t::to_str(const size_t idx) const
 {
     rt_error_code_t::get_instance().throw_if(
         _type == type_t::STRUCT, 0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
@@ -1092,7 +1096,7 @@ const string_t& variant_t::to_str(size_t idx) const
 
 /* -------------------------------------------------------------------------- */
 
-variant_t variant_t::operator[](size_t idx) const
+variant_t variant_t::operator[](const size_t idx) const
 {
     if (is_struct())
         return variant_t(struct_type_name(), _struct_data[idx]);

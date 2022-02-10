@@ -30,7 +30,7 @@ stmt_function_t::stmt_function_t(prog_ctx_t& ctx, const std::string& id)
 
     // Search function prototype by name
     //
-    auto i = ctx.proc_prototypes.data.find(id);
+    const auto i = ctx.proc_prototypes.data.find(id);
 
     syntax_error_if(
         funcs.is_defined(id) || (i != ctx.proc_prototypes.data.end()
@@ -61,13 +61,13 @@ stmt_function_t::stmt_function_t(prog_ctx_t& ctx, const std::string& id)
             ctx.program().run(name, args);
 
             // Retrieve the return value
-            auto i = ctx.function_retval_tbl.find(name);
+            const auto i = ctx.function_retval_tbl.find(name);
 
             syntax_error_if(i == ctx.function_retval_tbl.end(),
                 "Return value '" + name + "' not defined");
 
             auto& stack = i->second;
-            auto ret = stack.front();
+            const auto ret = stack.front();
             stack.pop_front();
 
             if (stack.empty())
@@ -88,12 +88,12 @@ stmt_function_t::stmt_function_t(prog_ctx_t& ctx, const std::string& id)
 void stmt_function_t::run(rt_prog_ctx_t& ctx)
 {
     auto& subctx = ctx.procedure_metadata;
-    auto handle = subctx.begin_find(ctx.runtime_pc);
+    const auto handle = subctx.begin_find(ctx.runtime_pc);
 
     rt_error_code_t::get_instance().throw_if(
         !handle, ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_FUNC_UNDEF, _id);
 
-    auto scope_id = ctx.proc_scope.get_scope_id();
+    const auto scope_id = ctx.proc_scope.get_scope_id();
 
     // Skip function body if we are in the global scope
     if (scope_id.empty()) {
