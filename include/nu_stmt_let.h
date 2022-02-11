@@ -74,20 +74,12 @@ protected:
             var.set_str(val.to_str(), idx...);
             break;
 
-        case variable_t::type_t::FLOAT:
-            var.set_real(val.to_real(), idx...);
-            break;
-
         case variable_t::type_t::DOUBLE:
             var.set_double(val.to_double(), idx...);
             break;
 
         case variable_t::type_t::BYTEVECTOR:
             var.set_bvect(val.to_int(), idx...);
-            break;
-
-        case variable_t::type_t::LONG64:
-            var.set_long64(val.to_long64(), idx...);
             break;
 
         case variable_t::type_t::BOOLEAN:

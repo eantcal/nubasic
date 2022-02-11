@@ -29,12 +29,10 @@ struct variable_t {
     enum class type_t {
         UNDEFINED,
         INTEGER,
-        FLOAT,
         DOUBLE,
         STRING,
         BYTEVECTOR,
         BOOLEAN,
-        LONG64,
         STRUCT,
         ANY,
         OBJECT
@@ -48,19 +46,22 @@ struct variable_t {
 
 
     static inline bool is_number(type_t t) noexcept {
-        return t == type_t::LONG64 || t == type_t::INTEGER || t == type_t::FLOAT
+        return t == type_t::INTEGER
             || t == type_t::DOUBLE || t == type_t::BOOLEAN;
     }
 
 
     static inline bool is_float(type_t t) noexcept {
-        return t == type_t::FLOAT || t == type_t::DOUBLE;
+        return t == type_t::DOUBLE;
     }
 
 
     static inline bool is_integral(type_t t) noexcept {
-        return t == type_t::LONG64 || t == type_t::INTEGER
-            || t == type_t::BOOLEAN;
+        return t == type_t::INTEGER || t == type_t::BOOLEAN;
+    }
+
+    static inline bool is_string(type_t t) noexcept {
+       return t == type_t::STRING;
     }
 };
 

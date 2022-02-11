@@ -27,7 +27,7 @@ namespace nu {
 class expr_literal_t : public expr_any_t {
 public:
     //! ctor
-    expr_literal_t(const variant_t& value = variant_t(0))
+    expr_literal_t(const variant_t& value = variant_t(integer_t()))
         : _val(value)
     {
     }

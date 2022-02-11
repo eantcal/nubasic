@@ -29,7 +29,7 @@ void stmt_redim_t::run(rt_prog_ctx_t& ctx)
           };
 
     for (const auto& [name, value] : _vars) {
-        const int vsize = value.second->eval(ctx).to_int();
+        const auto vsize = int(value.second->eval(ctx).to_int());
 
         rt_error_if(vsize <= 0, rt_error_code_t::value_t::E_INV_VECT_SIZE,
             "ReDim '" + name + "'");
@@ -48,10 +48,8 @@ void stmt_redim_t::run(rt_prog_ctx_t& ctx)
 
         switch (vtype_code) {
         case variable_t::type_t::STRING:
-        case variable_t::type_t::FLOAT:
         case variable_t::type_t::DOUBLE:
         case variable_t::type_t::INTEGER:
-        case variable_t::type_t::LONG64:
         case variable_t::type_t::BOOLEAN:
         case variable_t::type_t::BYTEVECTOR:
             scope->define(

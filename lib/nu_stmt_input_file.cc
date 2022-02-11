@@ -45,15 +45,7 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
 
         switch (vtype) {
         case nu::variable_t::type_t::INTEGER:
-            ret = fscanf(s_in, "%i", &ivalue);
-            break;
-
-        case nu::variable_t::type_t::LONG64:
             ret = fscanf(s_in, "%lli", &llvalue);
-            break;
-
-        case nu::variable_t::type_t::FLOAT:
-            ret = fscanf(s_in, "%f", &fvalue);
             break;
 
         case nu::variable_t::type_t::DOUBLE:
@@ -100,19 +92,11 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
 
             switch (vtype) {
             case nu::variable_t::type_t::INTEGER:
-                var.set_int(ivalue, idx);
-                break;
-
-            case nu::variable_t::type_t::LONG64:
-                var.set_long64(llvalue, idx);
+                var.set_int(llvalue, idx);
                 break;
 
             case nu::variable_t::type_t::DOUBLE:
                 var.set_double(dvalue, idx);
-                break;
-
-            case nu::variable_t::type_t::FLOAT:
-                var.set_real(fvalue, idx);
                 break;
 
             case nu::variable_t::type_t::STRING:
@@ -178,18 +162,6 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
 
                 break;
 
-            case variable_t::type_t::FLOAT:
-                try {
-                    (ctx.proc_scope.get())
-                        ->define(name, var_value_t(fvalue, VAR_ACCESS_RW));
-                } 
-                catch (...) {
-                    (ctx.proc_scope.get())
-                        ->define(name, var_value_t(float(0), VAR_ACCESS_RW));
-                }
-
-                break;
-
             case variable_t::type_t::BOOLEAN:
                 try {
                     (ctx.proc_scope.get())
@@ -206,19 +178,6 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
 
                 break;
 
-            case variable_t::type_t::LONG64:
-                try {
-                    (ctx.proc_scope.get())
-                        ->define(name, var_value_t(llvalue, VAR_ACCESS_RW));
-                } 
-                catch (...) {
-                    (ctx.proc_scope.get())
-                        ->define(
-                            name, var_value_t((long long)0, VAR_ACCESS_RW));
-                }
-
-                break;
-
             case nu::variable_t::type_t::STRUCT:
             case nu::variable_t::type_t::OBJECT:
             case nu::variable_t::type_t::ANY:
@@ -231,11 +190,11 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
             default:
                 try {
                     (ctx.proc_scope.get())
-                        ->define(name, var_value_t(ivalue, VAR_ACCESS_RW));
+                        ->define(name, var_value_t(llvalue, VAR_ACCESS_RW));
                 } 
                 catch (...) {
                     (ctx.proc_scope.get())
-                        ->define(name, var_value_t(0, VAR_ACCESS_RW));
+                        ->define(name, var_value_t(0LL, VAR_ACCESS_RW));
                 }
 
                 break;

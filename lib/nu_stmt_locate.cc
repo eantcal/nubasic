@@ -23,50 +23,50 @@ namespace nu {
 
 void stmt_locate_t::run(rt_prog_ctx_t& ctx)
 {
-    auto rt_error_if
-        = [&](bool cond, rt_error_code_t::value_t err, const std::string desc) {
-              rt_error_code_t::get_instance().throw_if(
-                  cond, ctx.runtime_pc.get_line(), err, desc);
-    };
+   auto rt_error_if
+      = [&](bool cond, rt_error_code_t::value_t err, const std::string desc) {
+      rt_error_code_t::get_instance().throw_if(
+         cond, ctx.runtime_pc.get_line(), err, desc);
+   };
 
-    enum { ARGS_NUM = 2 };
+   enum { ARGS_NUM = 2 };
 
-    rt_error_if(
-        _args.size() != ARGS_NUM, rt_error_code_t::value_t::E_WRG_NUM_ARGS, "LOCATE");
+   rt_error_if(
+      _args.size() != ARGS_NUM, rt_error_code_t::value_t::E_WRG_NUM_ARGS, "LOCATE");
 
-    variant_t val[2];
-    int i = 0;
+   variant_t val[2];
+   int i = 0;
 
-    for (auto arg : _args) {
-        if (arg.first)
-            val[i] = arg.first->eval(ctx);
+   for (auto arg : _args) {
+      if (arg.first)
+         val[i] = arg.first->eval(ctx);
 
-        rt_error_if(!variable_t::is_integral(val[i].get_type()),
-            rt_error_code_t::value_t::E_INVALID_ARGS, "Locate");
+      rt_error_if(!variable_t::is_integral(val[i].get_type()),
+         rt_error_code_t::value_t::E_INVALID_ARGS, "Locate");
 
-        ++i;
+      ++i;
 
-        if (i > ARGS_NUM) {
-            break;
-        }
-    }
+      if (i > ARGS_NUM) {
+         break;
+      }
+   }
 
-    // locate y,x
+   // locate y,x
 
-    int y = val[0].to_int();
-    int x = val[1].to_int();
+   auto y = int(val[0].to_int());
+   auto x = int(val[1].to_int());
 
-    if (x <= 0) {
-        x = 1;
-    }
+   if (x <= 0) {
+      x = 1;
+   }
 
-    if (y <= 0) {
-        y = 1;
-    }
+   if (y <= 0) {
+      y = 1;
+   }
 
-    _os_locate(y, x);
+   _os_locate(y, x);
 
-    ctx.go_to_next();
+   ctx.go_to_next();
 }
 
 

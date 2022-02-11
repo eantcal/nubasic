@@ -34,7 +34,7 @@ public:
 
     //! It does nothing for an empty object
     variant_t eval(rt_prog_ctx_t&) const override {
-        return variant_t(0);
+        return variant_t(integer_t());
     }
 
     //! Returns true for an empty expression

@@ -1,13 +1,14 @@
 nuBASIC NEWS -- history of user-visible changes.
 http://www.nubasic.eu/
-Author - Antonino Calderone - antonino.calderone@gmail.com - (c) 2014-2020
+Author - Antonino Calderone - antonino.calderone@gmail.com - (c) 2014-2022
 
 Please send nuBASIC and nuBasic IDE bug reports to <antonino.calderone@gmail.com>.
 
-Win32/64 built with VS2017 needs "Visual C++ Redistributable Packages for Visual Studio 2017"
+Win32/64 built with VS2022 needs "Visual C++ Redistributable Packages for Visual Studio 2022"
 
-TBD 2020
+Feb 2022
 * Released nuBASIC 1.52
+- Bug Fix (const wasn't working with strings)
 - Allow PRINT to print out sequence of escaped unicode characters
 - Update Scintilla to Release 4.3.2
 

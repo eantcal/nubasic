@@ -2957,7 +2957,7 @@ void nu::editor_t::notify(SCNotification* notification)
 
     // User clicked margin - try folding action
     case SCN_MARGINCLICK:
-        set_def_folding(notification->margin, notification->position);
+        set_def_folding(int(notification->margin), long(notification->position));
         break;
 
     case SCN_NEEDSHOWN:

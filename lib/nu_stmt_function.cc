@@ -37,7 +37,6 @@ stmt_function_t::stmt_function_t(prog_ctx_t& ctx, const std::string& id)
                                     && i->second.first.get_line()
                                         != ctx.compiletime_pc.get_line()),
         "Function " + id + " already defined");
-    //
 
     // Remove an old declaration for replacing its prototype
     if (i != ctx.proc_prototypes.data.end())

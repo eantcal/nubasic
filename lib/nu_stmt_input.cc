@@ -80,30 +80,22 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
                 var.set_str(value, idx);
                 break;
 
-            case variant_t::type_t::FLOAT:
-                var.set_real(nu::stof(value), idx);
-                break;
-
             case variant_t::type_t::DOUBLE:
                 var.set_double(nu::stod(value), idx);
                 break;
 
             case variant_t::type_t::INTEGER:
-                var.set_int(nu::stoi(value), idx);
+                var.set_int(nu::stoll(value), idx);
                 break;
 
             case variant_t::type_t::BYTEVECTOR:
-                var.set_bvect(nu::stoi(value), idx);
+               var.set_bvect(nu::stoll(value), idx);
                 break;
 
             case variant_t::type_t::BOOLEAN:
                 var.set_bool(strcasecmp(value.c_str(), "false") != 0
                         && strcasecmp(value.c_str(), "0") != 0,
                     idx);
-                break;
-
-            case variant_t::type_t::LONG64:
-                var.set_long64(nu::stoll(value), idx);
                 break;
             }
 
@@ -142,24 +134,13 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
 
                 break;
 
-            case variable_t::type_t::FLOAT:
-                try {
-                    scope->define(
-                        name, var_value_t(nu::stof(value), VAR_ACCESS_RW));
-                } 
-                catch (...) {
-                    scope->define(name, var_value_t(float(0), VAR_ACCESS_RW));
-                }
-
-                break;
-
-            case variable_t::type_t::LONG64:
+            case variable_t::type_t::INTEGER:
                 try {
                     scope->define(
                         name, var_value_t(nu::stoll(value), VAR_ACCESS_RW));
                 } 
                 catch (...) {
-                    scope->define(name, var_value_t(0, VAR_ACCESS_RW));
+                    scope->define(name, var_value_t(0LL, VAR_ACCESS_RW));
                 }
 
                 break;
@@ -174,18 +155,6 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
                 } 
                 catch (...) {
                     scope->define(name, var_value_t(false, VAR_ACCESS_RW));
-                }
-
-                break;
-
-            case variable_t::type_t::INTEGER:
-            default:
-                try {
-                    scope->define(
-                        name, var_value_t(nu::stoi(value), VAR_ACCESS_RW));
-                } 
-                catch (...) {
-                    scope->define(name, var_value_t(0, VAR_ACCESS_RW));
                 }
 
                 break;

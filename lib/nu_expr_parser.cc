@@ -71,7 +71,7 @@ variant_t::type_t expr_parser_t::get_type(const token_t& t)
 {
     switch (t.type()) {
     case tkncl_t::INTEGRAL:
-        return variant_t::type_t::LONG64;
+        return variant_t::type_t::INTEGER;
 
     case tkncl_t::REAL:
         return variant_t::type_t::DOUBLE;
@@ -210,7 +210,7 @@ expr_any_t::handle_t expr_parser_t::parse_operand(token_list_t& tl)
                 sscanf(hex.c_str(), "%x", &n);
 
                 ret_handle = expr_any_t::handle_t(
-                    std::make_shared<expr_literal_t>(variant_t(n)));
+                    std::make_shared<expr_literal_t>(integer_t(variant_t(n))));
             } 
             else {
                 std::string id = t.identifier();
@@ -245,6 +245,7 @@ expr_any_t::handle_t expr_parser_t::parse_operand(token_list_t& tl)
             // Generates a literal using a "variant" instance
             // for the executable object
             expr_any_t::handle_t ret_handle(std::make_shared<expr_literal_t>(
+
                 variant_t(t.identifier(), get_type(t))));
 
             // Check if we have other to parse

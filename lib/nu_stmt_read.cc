@@ -77,10 +77,6 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
                 var.set_str(data_value.to_str(), idx);
                 break;
 
-            case variant_t::type_t::FLOAT:
-                var.set_real(data_value.to_real(), idx);
-                break;
-
             case variant_t::type_t::DOUBLE:
                 var.set_double(data_value.to_double(), idx);
                 break;
@@ -95,10 +91,6 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
 
             case variant_t::type_t::BOOLEAN:
                 var.set_bool(data_value.to_bool(), idx);
-                break;
-
-            case variant_t::type_t::LONG64:
-                var.set_long64(data_value.to_long64(), idx);
                 break;
             }
 
@@ -128,14 +120,6 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
 
             case variable_t::type_t::DOUBLE:
                 scope->define(name, var_value_t(data_value.to_double(), VAR_ACCESS_RW));
-                break;
-
-            case variable_t::type_t::FLOAT:
-                scope->define(name, var_value_t(data_value.to_real(), VAR_ACCESS_RW));
-                break;
-
-            case variable_t::type_t::LONG64:
-                scope->define(name, var_value_t(data_value.to_long64(), VAR_ACCESS_RW));
                 break;
 
             case variable_t::type_t::BOOLEAN:

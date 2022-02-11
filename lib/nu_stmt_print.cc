@@ -118,21 +118,9 @@ void stmt_print_t::run(rt_prog_ctx_t& ctx)
             if (sout != stdout && variable_t::is_number(val.get_type())) {
                 // Implements write# semantic (see implementation of input#)
                 switch (val.get_type()) {
-                case variant_t::type_t::FLOAT:
-                    ret = ::fprintf(
-                        sout, "%f%s", val.to_real(), separator.c_str());
-                    ::fflush(sout);
-                    break;
-
                 case variant_t::type_t::DOUBLE:
                     ret = ::fprintf(
                         sout, "%lf%s", val.to_double(), separator.c_str());
-                    ::fflush(sout);
-                    break;
-
-                case variant_t::type_t::INTEGER:
-                    ret = ::fprintf(
-                        sout, "%i%s", val.to_int(), separator.c_str());
                     ::fflush(sout);
                     break;
 
@@ -142,9 +130,9 @@ void stmt_print_t::run(rt_prog_ctx_t& ctx)
                     ::fflush(sout);
                     break;
 
-                case variant_t::type_t::LONG64:
+                case variant_t::type_t::INTEGER:
                     ret = ::fprintf(
-                        sout, "%lli%s", val.to_long64(), separator.c_str());
+                        sout, "%lli%s", val.to_int(), separator.c_str());
                     ::fflush(sout);
                     break;
 
@@ -165,7 +153,6 @@ void stmt_print_t::run(rt_prog_ctx_t& ctx)
                     ::fflush(sout);
                     break;
 
-                case variant_t::type_t::FLOAT:
                 case variant_t::type_t::DOUBLE:
                     ss << val.to_double();
 
@@ -175,8 +162,7 @@ void stmt_print_t::run(rt_prog_ctx_t& ctx)
                     break;
 
                 case variant_t::type_t::INTEGER:
-                case variant_t::type_t::LONG64:
-                    ss << val.to_long64();
+                    ss << val.to_int();
 
                     ret = ::fprintf(
                         sout, "%s%s", ss.str().c_str(), separator.c_str());

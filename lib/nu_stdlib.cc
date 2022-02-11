@@ -23,9 +23,9 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-int os_shell_t::exec(const std::string& cmd) 
-{ 
-    return ::system(cmd.c_str()); 
+int os_shell_t::exec(const std::string& cmd)
+{
+   return ::system(cmd.c_str());
 }
 
 
@@ -33,16 +33,16 @@ int os_shell_t::exec(const std::string& cmd)
 
 int os_shell_t::apply(rt_prog_ctx_t& ctx, args_t args)
 {
-    enum { CMD, NARGS };
-    (void)ctx;
+   enum { CMD, NARGS };
+   (void)ctx;
 
-    rt_error_code_t::get_instance().throw_if(args.size() != NARGS
-            || args[CMD].get_type() != variant_t::type_t::STRING,
-        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "SHELL");
+   rt_error_code_t::get_instance().throw_if(args.size() != NARGS
+      || args[CMD].get_type() != variant_t::type_t::STRING,
+      ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "SHELL");
 
-    const auto c = args[CMD].to_str();
+   const auto c = args[CMD].to_str();
 
-    return exec(c);
+   return exec(c);
 }
 
 
@@ -50,16 +50,16 @@ int os_shell_t::apply(rt_prog_ctx_t& ctx, args_t args)
 
 int os_chdir_t::apply(rt_prog_ctx_t& ctx, args_t args)
 {
-    enum { CMD, NARGS };
-    (void)ctx;
+   enum { CMD, NARGS };
+   (void)ctx;
 
-    rt_error_code_t::get_instance().throw_if(args.size() != NARGS
-            || args[CMD].get_type() != variant_t::type_t::STRING,
-        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "CHDIR");
+   rt_error_code_t::get_instance().throw_if(args.size() != NARGS
+      || args[CMD].get_type() != variant_t::type_t::STRING,
+      ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "CHDIR");
 
-    const auto dir = args[CMD].to_str();
+   const auto dir = args[CMD].to_str();
 
-    return _os_change_dir(dir) ? 0 : errno;
+   return _os_change_dir(dir) ? 0 : errno;
 }
 
 
@@ -67,21 +67,21 @@ int os_chdir_t::apply(rt_prog_ctx_t& ctx, args_t args)
 
 int os_fopen_t::apply(rt_prog_ctx_t& ctx, args_t args)
 {
-    enum { FILENAME, MODE, FILENUMBER, NARGS };
+   enum { FILENAME, MODE, FILENUMBER, NARGS };
 
-    rt_error_code_t::get_instance().throw_if(args.size() != NARGS
-            || args[FILENAME].get_type() != variant_t::type_t::STRING
-            || args[MODE].get_type() != variant_t::type_t::STRING
-            || !variable_t::is_integral(args[FILENUMBER].get_type()),
-        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "FOPEN");
+   rt_error_code_t::get_instance().throw_if(args.size() != NARGS
+      || args[FILENAME].get_type() != variant_t::type_t::STRING
+      || args[MODE].get_type() != variant_t::type_t::STRING
+      || !variable_t::is_integral(args[FILENUMBER].get_type()),
+      ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "FOPEN");
 
-    const auto filename = args[FILENAME].to_str();
-    const auto mode = args[MODE].to_str();
-    const auto filenumber = args[FILENUMBER].to_int();
+   const auto filename = args[FILENAME].to_str();
+   const auto mode = args[MODE].to_str();
+   const auto filenumber = int(args[FILENUMBER].to_int());
 
-    const bool res = ctx.file_tbl.open_fd(filename, mode, filenumber);
+   const bool res = ctx.file_tbl.open_fd(filename, mode, filenumber);
 
-    return !res && !errno ? EBADF : errno;
+   return !res && !errno ? EBADF : errno;
 }
 
 
@@ -89,17 +89,17 @@ int os_fopen_t::apply(rt_prog_ctx_t& ctx, args_t args)
 
 int os_fflush_t::apply(rt_prog_ctx_t& ctx, args_t args)
 {
-    enum { FILENUMBER, NARGS };
+   enum { FILENUMBER, NARGS };
 
-    rt_error_code_t::get_instance().throw_if(args.size() != NARGS
-            || !variable_t::is_integral(args[FILENUMBER].get_type()),
-        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "FLUSH");
+   rt_error_code_t::get_instance().throw_if(args.size() != NARGS
+      || !variable_t::is_integral(args[FILENUMBER].get_type()),
+      ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "FLUSH");
 
-    const auto filenumber = args[FILENUMBER].to_int();
+   const auto filenumber = int(args[FILENUMBER].to_int());
 
-    const bool res = ctx.file_tbl.flush_fd(filenumber);
+   const bool res = ctx.file_tbl.flush_fd(filenumber);
 
-    return !res && !errno ? EBADF : errno;
+   return !res && !errno ? EBADF : errno;
 }
 
 
@@ -107,21 +107,21 @@ int os_fflush_t::apply(rt_prog_ctx_t& ctx, args_t args)
 
 int os_fseek_t::apply(rt_prog_ctx_t& ctx, args_t args)
 {
-    enum { FILENUMBER, SEEKPTR, SEEKORIGIN, NARGS };
+   enum { FILENUMBER, SEEKPTR, SEEKORIGIN, NARGS };
 
-    rt_error_code_t::get_instance().throw_if(args.size() != NARGS
-            || !variable_t::is_integral(args[SEEKPTR].get_type())
-            || !variable_t::is_integral(args[SEEKORIGIN].get_type())
-            || !variable_t::is_integral(args[FILENUMBER].get_type()),
-        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "SEEK");
+   rt_error_code_t::get_instance().throw_if(args.size() != NARGS
+      || !variable_t::is_integral(args[SEEKPTR].get_type())
+      || !variable_t::is_integral(args[SEEKORIGIN].get_type())
+      || !variable_t::is_integral(args[FILENUMBER].get_type()),
+      ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INVALID_ARGS, "SEEK");
 
-    const auto filenumber = args[FILENUMBER].to_int();
-    const auto seekptr = args[SEEKPTR].to_int();
-    const auto seekorigin = args[SEEKORIGIN].to_int();
+   const auto filenumber = int(args[FILENUMBER].to_int());
+   const auto seekptr = int(args[SEEKPTR].to_int());
+   const auto seekorigin = int(args[SEEKORIGIN].to_int());
 
-    const bool res = ctx.file_tbl.seek_fd(seekptr, seekorigin, filenumber);
+   const bool res = ctx.file_tbl.seek_fd(seekptr, seekorigin, filenumber);
 
-    return !res && !errno ? EBADF : errno;
+   return !res && !errno ? EBADF : errno;
 }
 
 

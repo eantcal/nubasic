@@ -22,27 +22,27 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 static void __stmt_delay_t_run(rt_prog_ctx_t& ctx, arg_list_t& args,
-    const std::string delay_desc, std::function<void(int)> delay_f,
-    volatile bool& break_event, int poll_break_intv)
+   const std::string delay_desc, std::function<void(int)> delay_f,
+   volatile bool& break_event, int poll_break_intv)
 {
-    rt_error_code_t::get_instance().throw_if(args.empty(),
-        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_WRG_NUM_ARGS, delay_desc);
+   rt_error_code_t::get_instance().throw_if(args.empty(),
+      ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_WRG_NUM_ARGS, delay_desc);
 
-    variant_t val = args.begin()->first->eval(ctx);
+   variant_t val = args.begin()->first->eval(ctx);
 
-    int intv = val.to_int();
-    int iters = intv / poll_break_intv;
-    int left_intv = intv % poll_break_intv;
+   const auto intv = int(val.to_int());
+   int iters = intv / poll_break_intv;
+   int left_intv = intv % poll_break_intv;
 
-    while (!break_event && iters--) {
-        delay_f(poll_break_intv);
-    }
+   while (!break_event && iters--) {
+      delay_f(poll_break_intv);
+   }
 
-    if (left_intv && !break_event) {
-        delay_f(left_intv);
-    }
+   if (left_intv && !break_event) {
+      delay_f(left_intv);
+   }
 
-    ctx.go_to_next();
+   ctx.go_to_next();
 }
 
 
@@ -50,8 +50,8 @@ static void __stmt_delay_t_run(rt_prog_ctx_t& ctx, arg_list_t& args,
 
 bool stmt_delay_t::notify(const event_t& ev)
 {
-    _break_delay = ev == event_t::BREAK;
-    return _break_delay;
+   _break_delay = ev == event_t::BREAK;
+   return _break_delay;
 }
 
 
@@ -59,8 +59,8 @@ bool stmt_delay_t::notify(const event_t& ev)
 
 void stmt_delay_t::run(rt_prog_ctx_t& ctx)
 {
-    _break_delay = false;
-    __stmt_delay_t_run(ctx, _args, "Delay", _os_delay, _break_delay, 1);
+   _break_delay = false;
+   __stmt_delay_t_run(ctx, _args, "Delay", _os_delay, _break_delay, 1);
 }
 
 
@@ -68,8 +68,8 @@ void stmt_delay_t::run(rt_prog_ctx_t& ctx)
 
 void stmt_mdelay_t::run(rt_prog_ctx_t& ctx)
 {
-    _break_delay = false;
-    __stmt_delay_t_run(ctx, _args, "MDelay", _os_mdelay, _break_delay, 1000);
+   _break_delay = false;
+   __stmt_delay_t_run(ctx, _args, "MDelay", _os_mdelay, _break_delay, 1000);
 }
 
 

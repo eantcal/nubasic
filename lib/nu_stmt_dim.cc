@@ -29,7 +29,7 @@ void stmt_dim_t::run(rt_prog_ctx_t& ctx)
     };
 
     for (const auto& v : _vars) {
-        int vsize = v.second.second->eval(ctx).to_int();
+        const auto vsize = int(v.second.second->eval(ctx).to_int());
         const std::string& name = v.first;
 
         auto scope_type = ctx.proc_scope.get_type(name);
@@ -70,10 +70,8 @@ void stmt_dim_t::run(rt_prog_ctx_t& ctx)
                           VAR_ACCESS_RW));
             break;
 
-        case variable_t::type_t::FLOAT:
         case variable_t::type_t::DOUBLE:
         case variable_t::type_t::INTEGER:
-        case variable_t::type_t::LONG64:
         case variable_t::type_t::BOOLEAN:
         case variable_t::type_t::BYTEVECTOR:
             init_val = "0";
