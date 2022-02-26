@@ -376,7 +376,7 @@ variant_t variant_t::int_div(const variant_t& b) const
    const auto result = to_int() / bvalue;
 
    return is_float() ?
-      variant_t(real_t(result)) :
+      variant_t(double_t(result)) :
       variant_t(integer_t(result));
 }
 
@@ -398,7 +398,7 @@ variant_t variant_t::int_mod(const variant_t& b) const
    const auto result = to_int() % bvalue;
 
    return is_float() ?
-      variant_t(real_t(result)) :
+      variant_t(double_t(result)) :
       variant_t(integer_t(result));
 }
 

@@ -25,7 +25,6 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 using integer_t = int64_t;
-using real_t = float;
 using double_t = double;
 using string_t = std::string;
 using byte_t = uint8_t;
