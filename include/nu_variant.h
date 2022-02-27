@@ -104,37 +104,6 @@ protected:
          data[idx] = value;
    }
 
-   template<class sourceT, class destT>
-   void init_variant_t(const std::vector<sourceT>& value, const variable_t::type_t TtypeId)
-   {
-      _type = TtypeId;
-      _vect_size = value.size();
-      _vector_type = _vect_size >= 1;
-
-      if (_vect_size < 1) {
-         _data.resize(1, destT());
-      }
-      else {
-         _data.reserve(value.size());
-
-         for (const auto e : value)
-         {
-            _data.emplace_back(destT(e));
-         }
-      }
-   }
-
-   template<class sourceT, class destT = sourceT>
-   void init_variant_t(const sourceT& value, const variable_t::type_t TtypeId, const size_t vect_size = 0)
-   {
-      _type = TtypeId;
-      _vect_size = vect_size;
-      _vector_type = vect_size > 0;
-
-      _data.resize(1 > vect_size ? 1 : vect_size, destT(value));
-   }
-
-
 public:
    using handle_t = std::shared_ptr<variant_t>;
    using type_t = variable_t::type_t;
@@ -161,17 +130,21 @@ public:
    }
 
    explicit variant_t(const struct_variant_t& value, const size_t vect_size = 0)
-      : variant_t(value.get(), {}, vect_size)
-   {}
+      : variant_t(value.get(), type_t::STRUCT, vect_size)
+   {
+   }
 
    static void copy_struct_data(struct_data_t& dst, const struct_data_t& src);
 
    variant_t(const string_t& value, const type_t t, const size_t vect_size = 0)
+      : _type(t)
+      , _vect_size(vect_size)
+      , _vector_type(vect_size>1)
    {
       switch (t)
       {
       case type_t::STRING:
-         init_variant_t<string_t>(value, t, vect_size);
+         _data.resize(1 > vect_size ? 1 : vect_size, string_t(value));
          break;
       case type_t::INTEGER:
       case type_t::BOOLEAN:
@@ -183,7 +156,7 @@ public:
          }
          catch (...) {
          }
-         init_variant_t<integer_t, integer_t>(integer_t(ivalue), t, vect_size);
+         _data.resize(1 > vect_size ? 1 : vect_size, integer_t(ivalue));
       }
       break;
       case type_t::DOUBLE:
@@ -194,53 +167,98 @@ public:
          }
          catch (...) {
          }
-         init_variant_t<double_t, double_t>(double_t(fvalue), t, vect_size);
+         _data.resize(1 > vect_size ? 1 : vect_size, double_t(fvalue));
+
       }
       break;
       default:
-         assert(0);
          break;
       }
    }
 
    variant_t(const string_t& value, const size_t vect_size = 0)
+      : _type(type_t::STRING)
+      , _vect_size(vect_size)
+      , _vector_type(vect_size > 1)
    {
-      init_variant_t<string_t>(value, type_t::STRING, vect_size);
+      _data.resize(1 > vect_size ? 1 : vect_size, string_t(value));
    }
 
    variant_t(const char* value, const size_t vect_size = 0)
+      : _type(type_t::STRING)
+      , _vect_size(vect_size)
+      , _vector_type(vect_size > 1)
    {
-      init_variant_t<string_t>(string_t(value), type_t::STRING, vect_size);
+      _data.resize(1 > vect_size ? 1 : vect_size, string_t(value));
    }
 
    variant_t(const double_t value, const size_t vect_size = 0)
+      : _type(type_t::DOUBLE)
+      , _vect_size(vect_size)
+      , _vector_type(vect_size > 1)
    {
-      init_variant_t<double_t>(value, type_t::DOUBLE, vect_size);
+      _data.resize(1 > vect_size ? 1 : vect_size, double_t(value));
    }
 
    variant_t(const std::vector<double_t>& value)
+      : _type(type_t::BYTEVECTOR)
+      , _vect_size(value.size())
+      , _vector_type(true)
    {
-      init_variant_t<double_t, double_t>(value, type_t::DOUBLE);
+      if (_vect_size < 1) {
+         _data.resize(1, double_t());
+      }
+      else {
+         _data.reserve(value.size());
+
+         for (const auto e : value)
+         {
+            _data.emplace_back(double_t(e));
+         }
+      }
    }
 
    variant_t(const std::vector<byte_t>& value)
+      : _type(type_t::BYTEVECTOR)
+      , _vect_size(value.size())
+      , _vector_type(true)
    {
-      init_variant_t<byte_t, integer_t>(value, type_t::BYTEVECTOR);
+      if (_vect_size < 1) {
+         _data.resize(1, integer_t());
+      }
+      else {
+         _data.reserve(value.size());
+
+         for (const auto e : value)
+         {
+            _data.emplace_back(integer_t(e));
+         }
+      }
    }
 
    variant_t(const integer_t value, const size_t vect_size = 0)
+      : _type(type_t::INTEGER)
+      , _vect_size(vect_size)
+      , _vector_type(vect_size > 1)
    {
-      init_variant_t<integer_t>(integer_t(value), type_t::INTEGER, vect_size);
+      _data.resize(1>vect_size ? 1 : vect_size, integer_t(value));
+
    }
 
    variant_t(const int value, const size_t vect_size = 0)
+      : _type(type_t::INTEGER)
+      , _vect_size(vect_size)
+      , _vector_type(vect_size > 1)
    {
-      init_variant_t<integer_t>(integer_t(value), type_t::INTEGER, vect_size);
+      _data.resize(1 > vect_size ? 1 : vect_size, integer_t(value));
    }
 
    variant_t(const bool_t value, const size_t vect_size = 0)
+      : _type(type_t::BOOLEAN)
+      , _vect_size(vect_size)
+      , _vector_type(vect_size > 1)
    {
-      init_variant_t<integer_t>(integer_t(value), type_t::BOOLEAN, vect_size);
+      _data.resize(1 > vect_size ? 1 : vect_size, integer_t(value));
    }
 
    variant_t() = default;
