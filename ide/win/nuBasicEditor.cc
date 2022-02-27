@@ -380,10 +380,10 @@ public:
      * Set editor item style
      */
     void set_item_style(
-        int style, 
-        COLORREF fore, 
-        COLORREF back = editor::white,
-        int size = -1, 
+        const int style, 
+        const COLORREF fore, 
+        const COLORREF back = editor::white,
+        const int size = -1, 
         const char* face = nullptr);
 
     /**
@@ -438,7 +438,7 @@ public:
     /**
      * Initilize the editor
      */
-    void init_editor(const std::string& fontname, int height);
+    void init_editor(const std::string& fontname, const int height);
 
     /**
      * Refresh editor
@@ -989,7 +989,7 @@ protected:
 
     //! build the basic line
     bool build_basic_line(
-        const std::string& line, int line_num, bool dump_err_msg);
+        const std::string& line, const int line_num, const bool dump_err_msg);
 
     // Search and replace stuff
     UINT _find_replace_msg = 0;
@@ -1138,7 +1138,7 @@ void nu::editor_t::create_search_replace_cntrls(HWND hWnd)
     lFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;
     strcpy(lFont.lfFaceName, "Consolas");
 
-    auto hFont = CreateFontIndirect(&lFont);
+    const auto hFont = CreateFontIndirect(&lFont);
 
     SendMessage(_h_infobox, WM_SETFONT, (WPARAM)hFont, (DWORD)TRUE);
 }
@@ -1181,18 +1181,16 @@ void nu::editor_t::clear_info()
 void nu::editor_t::on_drop_files(HDROP hDropInfo)
 {
     // A file is being dropped.
-    int iFiles;
     char lpszFile[MAX_PATH + 1] = { 0 };
 
     // Get the number of files.
-    iFiles = DragQueryFile(hDropInfo, (DWORD)(-1), (LPSTR)NULL, 0);
+    const auto iFiles = DragQueryFile(hDropInfo, (DWORD)(-1), (LPSTR)NULL, 0);
 
     if (iFiles != 1) {
         MessageBox(get_main_hwnd(), "One file at a time, please.", NULL, MB_OK);
     } 
     else {
         DragQueryFile(hDropInfo, 0, lpszFile, sizeof(lpszFile));
-        std::string fileName;
 
         if (lpszFile) {
             open_document_file(lpszFile);
@@ -1282,7 +1280,7 @@ void nu::editor_t::add_info(std::string msg, DWORD message_style)
 /* -------------------------------------------------------------------------- */
 
 bool nu::editor_t::build_basic_line(
-    const std::string& line, int line_num, bool dump_err_msg)
+    const std::string& line, const int line_num, const bool dump_err_msg)
 {
     try {
         // Ignore first line if it begins with #!
@@ -1395,7 +1393,7 @@ LRESULT nu::editor_t::get_current_style() const noexcept
 
 int nu::editor_t::get_fold_level() const noexcept
 {
-    int level = (send_command(SCI_GETFOLDLEVEL, get_current_line(), 0))
+    const int level = (send_command(SCI_GETFOLDLEVEL, get_current_line(), 0))
         & SC_FOLDLEVELNUMBERMASK;
 
     return level - 1024;
@@ -1468,7 +1466,7 @@ bool nu::editor_t::search_backward(LPSTR szText)
         return false;
 
     long pos = (long)get_current_position();
-    long lMinSel = (long)get_selection_begin();
+    const long lMinSel = (long)get_selection_begin();
 
     Sci_TextToFind tf = { 0 };
 
@@ -1498,7 +1496,7 @@ bool nu::editor_t::search_backward(LPSTR szText)
 
 std::string nu::editor_t::get_selection()
 {
-    long sel_len = long((get_selection_end() - get_selection_begin()) + 1);
+    const long sel_len = long((get_selection_end() - get_selection_begin()) + 1);
 
     if (sel_len <= 0) {
         return std::string();
@@ -1526,7 +1524,7 @@ int nu::editor_t::replace_all(
     if (bUseSelection) {
         // Get starting selection range
         long length = 0;
-        long begin = long(get_selection_begin());
+        const long begin = long(get_selection_begin());
         long end = long(get_selection_end());
 
         // Set target to selection
@@ -1565,7 +1563,7 @@ int nu::editor_t::replace_all(
     else {
         // start with first and last char in buffer
         long length = 0;
-        long begin = 0;
+        const long begin = 0;
         long end = long(send_command(SCI_GETTEXTLENGTH, 0, 0));
         //    set target to selection
         send_command(SCI_SETTARGETSTART, begin, 0);
@@ -1781,7 +1779,7 @@ bool nu::editor_t::show_execution_point(int line) noexcept
         line = 1;
     }
 
-    auto endpos = send_command(SCI_GETLINEENDPOSITION, line - 1, 0) + 1;
+    const auto endpos = send_command(SCI_GETLINEENDPOSITION, (WPARAM) line - 1, 0) + 1;
 
     while (!interpreter().has_runnable_stmt(line) && line < endpos) {
         ++line;
@@ -1997,7 +1995,7 @@ bool nu::editor_t::evaluate_expression(const std::string& expression)
 
 void nu::editor_t::eval_sel()
 {
-    std::string sel = get_selection();
+    const std::string sel = get_selection();
     std::string qsel;
 
     for (size_t i = 0; i < sel.length(); ++i) {
@@ -2021,7 +2019,7 @@ void nu::editor_t::eval_sel()
 
 void nu::editor_t::show_ctx_help()
 {
-    std::string sel = get_selection();
+    const std::string sel = get_selection();
 
     if (sel.empty() || sel[0] == '\0') {
         g_editor.send_command(SCI_ANNOTATIONCLEARALL);
@@ -2029,7 +2027,7 @@ void nu::editor_t::show_ctx_help()
     }
 
     if (sel.size() <= 32) {
-        auto help_text = builtin_help_t::get_instance().help(sel);
+        const auto help_text = builtin_help_t::get_instance().help(sel);
 
         if (!help_text.empty()) {
             send_command(SCI_ANNOTATIONCLEARALL);
@@ -2068,7 +2066,7 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) noexcept
 {
     remove_prog_cnt_marker();
 
-    auto doc_size = send_command(SCI_GETLENGTH);
+    const auto doc_size = send_command(SCI_GETLENGTH);
 
     if (doc_size <= 0) {
         return true;
@@ -2094,7 +2092,7 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) noexcept
     std::vector<char> data(doc_size + 1);
     get_text_range(0, int(doc_size), data.data());
 
-    decltype(doc_size) i = 0;
+    int i = 0;
     std::string line;
     int line_num = 1;
     g_editor.interpreter().clear_all();
@@ -2267,7 +2265,7 @@ void nu::editor_t::set_new_document(bool clear_title)
 
 void nu::editor_t::open_document_file(const char* fileName)
 {
-    std::string old_file_name = _full_path_str;
+    const std::string old_file_name = _full_path_str;
 
     _full_path_str = fileName;
 
@@ -2448,7 +2446,7 @@ int nu::editor_t::save_if_unsure()
 
         std::string msg = "Save changes to \"" + _full_path_str + "\"?";
 
-        int decision = MessageBox(
+        const int decision = MessageBox(
             _hwnd_main, msg.c_str(), editor::application_name, MB_YESNOCANCEL);
 
         if (decision == IDYES) {
@@ -2498,7 +2496,7 @@ static bool exec_process(const std::string& cmd_line)
 
 static bool stop_process(const std::string& cmd_line)
 {
-    HWND h = FindWindow(0, "nuBASIC");
+    const HWND h = FindWindow(0, "nuBASIC");
 
     if (!h) {
         return false;
@@ -2719,13 +2717,13 @@ void nu::editor_t::exec_command(int id)
 
         _invert_search_direction = false;
 
-        HWND find_handle = FindText(&_find_replace_data);
+        const HWND find_handle = FindText(&_find_replace_data);
         g_editor.set_current_dialog(find_handle);
         break;
     }
 
     case IDM_SEARCH_FINDANDREPLACE: {
-        std::string selection = g_editor.get_selection();
+        const std::string selection = g_editor.get_selection();
 
         if (!selection.empty()) {
             strncpy(_find_str, selection.c_str(), sizeof(_find_str) - 1);
@@ -2742,7 +2740,7 @@ void nu::editor_t::exec_command(int id)
 
         _invert_search_direction = false;
 
-        HWND replace_handle = ReplaceText(&_find_replace_data);
+        const HWND replace_handle = ReplaceText(&_find_replace_data);
         g_editor.set_current_dialog(replace_handle);
         break;
     }
@@ -2812,7 +2810,7 @@ void nu::editor_t::exec_command(int id)
         break;
 
     case IDM_HELP_SEARCH_KEYWORD: {
-        std::string selection = g_editor.get_selection();
+        const std::string selection = g_editor.get_selection();
 
         std::string online_help_url = about::homepage;
 
@@ -2984,7 +2982,11 @@ void nu::editor_t::notify(SCNotification* notification)
 /* -------------------------------------------------------------------------- */
 
 void nu::editor_t::set_item_style(
-    int style, COLORREF fore, COLORREF back, int size, const char* face)
+   const int style, 
+   const COLORREF fore, 
+   const COLORREF back, 
+   const int size, 
+   const char* face)
 {
     send_command(SCI_STYLESETFORE, style, fore);
     send_command(SCI_STYLESETBACK, style, back);
@@ -3001,7 +3003,7 @@ void nu::editor_t::set_item_style(
 
 /* -------------------------------------------------------------------------- */
 
-void nu::editor_t::init_editor(const std::string& fontname, int height)
+void nu::editor_t::init_editor(const std::string& fontname, const int height)
 {
 
     // clear all text styles
@@ -3158,7 +3160,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
         g_editor.set_find_replace_msg(::RegisterWindowMessage(FINDMSGSTRING));
 
-        auto cmdLine = g_editor.get_command_line();
+        const auto& cmdLine = g_editor.get_command_line();
 
         if (!cmdLine.empty())
             g_editor.open_document_file(cmdLine.c_str());
@@ -3216,7 +3218,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
     case WM_COMMAND:
         if (LOWORD(wParam) >= IDM_INTERPRETER_BROWSER_FUN) {
-            auto line = g_editor.resolve_funclinenum_from_id(LOWORD(wParam));
+            const auto line = g_editor.resolve_funclinenum_from_id(LOWORD(wParam));
 
             if (line <= 0) {
                 MessageBeep(0);
@@ -3254,6 +3256,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
     case WM_PAINT: {
         HDC hdc = BeginPaint(hWnd, &ps);
+        (void)hdc;
         EndPaint(hWnd, &ps);
     } break;
 
@@ -3482,7 +3485,7 @@ LRESULT CALLBACK HSplitterWndProc(
         return 0;
 
     case WM_PAINT: {
-        HDC hdc = BeginPaint(hWnd, &ps);
+        const HDC hdc = BeginPaint(hWnd, &ps);
         RECT rect;
         FillRect(
             hdc, &ps.rcPaint, GetSysColorBrush(COLOR_3DFACE)); // LIGHT GRAY

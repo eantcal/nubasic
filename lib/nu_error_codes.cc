@@ -29,7 +29,7 @@ void rt_error_code_t::throw_exc(
     int line, value_t errcode, const std::string& stmt)
 {
     class err_t : public error_code_t {
-        value_t _err = value_t::E_INTERNAL;
+        const value_t _err = value_t::E_INTERNAL;
 
         public:
             err_t(value_t err)
@@ -45,7 +45,7 @@ void rt_error_code_t::throw_exc(
     std::string errmsg = stmt.empty() ? "" : stmt + " ";
     errmsg += rt_error_code_t::get_instance().message(errcode);
 
-    err_t err(errcode);
+    const err_t err(errcode);
 
     runtime_error_t::error_if(true, runtime_error_t(line, err, errmsg));
 }

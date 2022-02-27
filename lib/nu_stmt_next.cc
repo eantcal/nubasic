@@ -61,8 +61,8 @@ void stmt_next_t::run(rt_prog_ctx_t& ctx)
             : _variable = counter_name;
     }
 
-    auto scope_id = ctx.proc_scope.get_scope_id();
-    auto scope_type = ctx.proc_scope.get_type(_variable);
+    const auto& scope_id = ctx.proc_scope.get_scope_id();
+    const auto scope_type = ctx.proc_scope.get_type(_variable);
 
     if (scope_type != proc_scope_t::type_t::GLOBAL && !scope_id.empty()) {
         counter_name = scope_id + "::" + _variable;

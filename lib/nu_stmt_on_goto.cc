@@ -45,7 +45,7 @@ void stmt_on_goto_t::run(rt_prog_ctx_t& ctx)
         ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_LABEL_NOT_DEF,
         "On ... Goto '" + label + "'");
 
-    auto line_number = ctx.prog_label[label];
+    const auto line_number = ctx.prog_label[label];
 
     ctx.go_to(prog_pointer_t(line_number, 0));
 }

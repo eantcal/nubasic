@@ -36,7 +36,7 @@ static nu::interpreter_t::exec_res_t exec_command(
     nu::interpreter_t& basic, const std::string& command)
 {
     try {
-        auto res = basic.exec_command(command);
+        const auto res = basic.exec_command(command);
 
         if (basic.get_and_reset_break_event())
             printf("Code execution has been interrupted by CTRL+C\n");
@@ -147,7 +147,7 @@ static int nuBASIC_console(int argc, char* argv[])
     std::string command;
 
     if (command_line.empty()) {
-        auto ver_str = nuBASIC.version();
+        const auto ver_str = nuBASIC.version();
         printf("%s", ver_str.c_str());
         printf(NU_BASIC_MSG_STR__READY NU_BASIC_PROMPT_NEWLINE);
     }
@@ -168,7 +168,7 @@ static int nuBASIC_console(int argc, char* argv[])
             continue;
 
         nuBASIC.get_and_reset_break_event();
-        auto res = exec_command(nuBASIC, command);
+        const auto res = exec_command(nuBASIC, command);
 
         switch (res) {
         case nu::interpreter_t::exec_res_t::IO_ERROR:

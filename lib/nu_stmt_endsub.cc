@@ -53,7 +53,7 @@ void stmt_endsub_t::run(rt_prog_ctx_t& ctx)
         ctx.flag.set(rt_prog_ctx_t::FLG_RETURN_REQUEST, true);
 
         // Clean up any FOR-loop dynamic data
-        const auto scope_name = ctx.proc_scope.get_scope_id();
+        const auto& scope_name = ctx.proc_scope.get_scope_id();
         ctx.for_loop_tbl.cleanup_data(scope_name);
 
         ctx.proc_scope.exit_scope();

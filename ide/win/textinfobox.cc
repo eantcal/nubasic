@@ -17,8 +17,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-txtinfobox_t::txtinfobox_t(HWND hParentWnd, HINSTANCE hInst,
-    const std::string& fontName, const int fontSize, DWORD dwStyle)
+txtinfobox_t::txtinfobox_t(const HWND hParentWnd, const HINSTANCE hInst,
+    const std::string& fontName, const int fontSize, const DWORD dwStyle)
 {
     _ctrl_hwnd = CreateWindow(TEXT("EDIT"), // Class name
         NULL, // Window text
@@ -52,7 +52,7 @@ txtinfobox_t::txtinfobox_t(HWND hParentWnd, HINSTANCE hInst,
 
     strncpy(lFont.lfFaceName, fontName.c_str(), sizeof(lFont.lfFaceName) - 1);
 
-    auto hFont = CreateFontIndirect(&lFont);
+    const auto hFont = CreateFontIndirect(&lFont);
 
     SendMessage(_ctrl_hwnd, WM_SETFONT, (WPARAM)hFont, (DWORD)TRUE);
 }

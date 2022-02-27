@@ -27,11 +27,11 @@ private:
 
 public:
     txtinfobox_t(
-        HWND hParentWnd, 
-        HINSTANCE hInst,
+        const HWND hParentWnd, 
+        const HINSTANCE hInst,
         const std::string& fontName = "Verdana", 
         const int fontSize = 14,
-        DWORD dwStyle = /*WS_BORDER |*/ ES_READONLY | ES_RIGHT | ES_MULTILINE);
+        const DWORD dwStyle = /*WS_BORDER |*/ ES_READONLY | ES_RIGHT | ES_MULTILINE);
 
     void update(const std::stringstream& os);
     void arrange(WORD x_pos, WORD y_pos, WORD dx, WORD dy);

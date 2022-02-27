@@ -201,7 +201,7 @@ public:
    }
 
    variant_t(const std::vector<double_t>& value)
-      : _type(type_t::BYTEVECTOR)
+      : _type(type_t::DOUBLE)
       , _vect_size(value.size())
       , _vector_type(true)
    {

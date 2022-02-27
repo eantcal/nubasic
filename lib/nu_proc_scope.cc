@@ -81,7 +81,7 @@ var_scope_t::handle_t proc_scope_t::get(type_t type) const noexcept
 void proc_scope_t::enter_scope(
     const std::string& sub_name, bool fncall) noexcept
 {
-    auto i = _rec_tbl.find(sub_name);
+    const auto i = _rec_tbl.find(sub_name);
 
     int id = 0;
 
@@ -106,7 +106,7 @@ void proc_scope_t::enter_scope(
 
 bool proc_scope_t::is_func_call(const std::string& sub_name) const
 {
-    auto i = _rec_tbl.find(sub_name);
+    const auto i = _rec_tbl.find(sub_name);
 
     if (i == _rec_tbl.end()) {
         return false;
@@ -128,16 +128,19 @@ void proc_scope_t::exit_scope() noexcept
 
     _vars.erase(name);
 
-    auto pos = name.find('[');
+    const auto pos = name.find('[');
 
     int value = 0;
 
     decltype(_rec_tbl.begin()) i;
 
     if (int(pos) >= 0) {
-        auto endpos = name.find(']');
-        std::string svalue = name.substr(pos + 1, endpos - pos - 1);
-        value = nu::stoi(svalue);
+        const auto endpos = name.find(']');
+        const std::string svalue = name.substr(pos + 1, endpos - pos - 1);
+        try {
+           value = nu::stoi(svalue);
+        }
+        catch (...) {}
         i = _rec_tbl.find(name.substr(0, pos));
     } 
     else {
@@ -161,14 +164,14 @@ void proc_scope_t::exit_scope() noexcept
 proc_scope_t::type_t proc_scope_t::get_type(const std::string& varname) const
     noexcept
 {
-    bool global_var = _global_vars->is_defined(varname);
+    const bool global_var = _global_vars->is_defined(varname);
 
     const auto& scope_name = get_scope_id();
 
     // Test local scope
     if (!scope_name.empty()) {
         // Search variable in the local scope
-        auto i = _vars.find(scope_name);
+        const auto i = _vars.find(scope_name);
 
         if (i != _vars.end() && i->second->is_defined(varname)) {
             return type_t::LOCAL;

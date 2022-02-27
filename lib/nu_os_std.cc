@@ -31,7 +31,7 @@ namespace nu {
 
 int _os_get_time()
 {
-    time_t t = time(NULL);
+    const time_t t = time(NULL);
     return int(t);
 }
 
@@ -40,7 +40,7 @@ int _os_get_time()
 
 static inline tm* _get_local_tm()
 {
-    time_t t = time(NULL);
+    const time_t t = time(NULL);
     return localtime(&t);
 }
 
@@ -208,7 +208,7 @@ int _os_get_vkey()
 std::string _os_get_app_path()
 {
     char buffer[1024] = { 0 };
-    GetModuleFileNameA(NULL, buffer, 1024);
+    GetModuleFileNameA(NULL, buffer, sizeof(buffer));
 
     return buffer;
 }

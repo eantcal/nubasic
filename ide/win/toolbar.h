@@ -33,17 +33,17 @@
 class toolbar_t {
 public:
     toolbar_t(
-        HWND hParentWnd, 
-        HINSTANCE hInstance, 
-        UINT idi_toolbar,
-        UINT_PTR res_id, 
-        int n_of_bitmaps, 
-        TBBUTTON buttons[], 
-        int n_of_buttons,
-        int bmwidth = 28, 
-        int bmheight = 32, 
-        int btwidth = 28,
-        int btheight = 32);
+        const HWND hParentWnd, 
+        const HINSTANCE hInstance, 
+        const UINT idi_toolbar,
+        const UINT_PTR res_id, 
+        const int n_of_bitmaps, 
+        const TBBUTTON buttons[], 
+        const int n_of_buttons,
+        const int bmwidth = 28, 
+        const int bmheight = 32, 
+        const int btwidth = 28,
+        const int btheight = 32);
 
     virtual void on_resize();
     virtual void on_customize();
@@ -52,16 +52,16 @@ public:
     void enable(DWORD id);
     void disable(DWORD id);
 
-    bool get_rect(RECT& rect);
+    bool get_rect(RECT& rect) const;
 
     HWND get_hwnd() const throw() { 
         return _toolbar; 
     }
 
 private:
+    const HINSTANCE _hinstance;
+    const HWND _hparent;
     HWND _toolbar;
-    HINSTANCE _hinstance;
-    HWND _hparent;
 };
 
 

@@ -31,7 +31,7 @@ variant_t eval_expr(rt_prog_ctx_t& ctx, std::string data)
         tokenizer_t st(data);
         expr_parser_t ep;
 
-        auto h = ep.compile(st);
+        const auto h = ep.compile(st);
         return h->eval(ctx);
     } 
     catch (nu::exception_t&) {

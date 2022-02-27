@@ -17,9 +17,7 @@ v2(0) = 0.6
 v2(1) = 1.9
 v2(2) = -2.2
 
-' Create a result vector (1 is a place holder)
-' the actual vector size depends on result of conv function
-Dim result(1) As Double
+Dim result(7) As Double
 
 ' Compute the 1D-convolution of v1 and v2
 result = conv(v1, v2, sizeof(v1), sizeof(v2))

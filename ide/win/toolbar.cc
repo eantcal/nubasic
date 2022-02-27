@@ -18,22 +18,21 @@
 /* -------------------------------------------------------------------------- */
 
 toolbar_t::toolbar_t(
-    HWND hWnd, 
-    HINSTANCE hInstance, 
-    UINT idi_toolbar,
-    UINT_PTR res_id, 
-    int n_of_bitmaps, 
-    TBBUTTON buttons[], 
-    int n_of_buttons,
-    int bmwidth, 
-    int bmheight, 
-    int btwidth, 
-    int btheight
+    const HWND hWnd, 
+    const HINSTANCE hInstance, 
+    const UINT idi_toolbar,
+    const UINT_PTR res_id, 
+    const int n_of_bitmaps, 
+    const TBBUTTON buttons[], 
+    const int n_of_buttons,
+    const int bmwidth, 
+    const int bmheight, 
+    const int btwidth, 
+    const int btheight
 )
     : _hinstance(hInstance)
+    , _hparent(hWnd)
 {
-    _hparent = hWnd;
-
     _toolbar = CreateToolbarEx(
         hWnd, // parent
         WS_CHILD | WS_BORDER | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_ADJUSTABLE
@@ -148,7 +147,7 @@ void toolbar_t::disable(DWORD id)
 
 /* -------------------------------------------------------------------------- */
 
-bool toolbar_t::get_rect(RECT& rect)
+bool toolbar_t::get_rect(RECT& rect) const
 {
     return GetWindowRect(_toolbar, &rect) != 0;
 }

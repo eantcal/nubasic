@@ -30,7 +30,7 @@ void stmt_open_t::run(rt_prog_ctx_t& ctx)
 
     ctx.go_to_next();
 
-    auto filename = _filename->eval(ctx);
+    const auto filename = _filename->eval(ctx);
 
     rt_error_if(filename.get_type() != variant_t::type_t::STRING,
         rt_error_code_t::value_t::E_TYPE_MISMATCH, "OPEN");

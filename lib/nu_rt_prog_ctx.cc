@@ -125,9 +125,9 @@ void rt_prog_ctx_t::clear_rtdata()
 
 void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
 {
-    prog_pointer_t::line_number_t gotoline = goingto_pc.get_line();
+    const prog_pointer_t::line_number_t gotoline = goingto_pc.get_line();
 
-    auto li = _source_line.find(runtime_pc.get_line());
+    const auto li = _source_line.find(runtime_pc.get_line());
 
     if (li != _source_line.end()) {
         ss << std::setw(5) << runtime_pc.get_line() << " ";
@@ -152,8 +152,8 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
        << (flag[rt_prog_ctx_t::FLG_JUMP_REQUEST] ? "Y" : "N") << std::endl;
     ss << "Step mode on: " << (step_mode_active ? "Y" : "N") << std::endl;
 
-    auto var = proc_scope.get();
-    auto scope_id = proc_scope.get_scope_id();
+    const auto var = proc_scope.get();
+    const auto &scope_id = proc_scope.get_scope_id();
 
     if (!scope_id.empty() && !var->empty()) {
         ss << "Variables";
@@ -162,7 +162,7 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
         ss << *var;
     }
 
-    auto gvar = proc_scope.get(proc_scope_t::type_t::GLOBAL);
+    const auto gvar = proc_scope.get(proc_scope_t::type_t::GLOBAL);
 
     if (!gvar->empty()) {
         ss << "Variables [<GLOBAL>]:" << std::endl;
@@ -240,7 +240,7 @@ void return_stack_t::trace(std::stringstream& ss)
 {
     ss << "RETURN stack: ";
 
-    for (auto e : *this) {
+    for (const auto &e : *this) {
         ss << e.first << " (stmt_id=" << e.second << ") ";
     }
 
