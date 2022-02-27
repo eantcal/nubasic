@@ -71,7 +71,7 @@ void stmt_print_t::run(rt_prog_ctx_t& ctx)
               _os_u16write(data);
            }
            else {
-              ret = fwprintf(sout, L"%ls\n", data.c_str());
+              ret = fwprintf(sout, L"%ls\n", (wchar_t*) data.c_str());
            }
         }
         else {

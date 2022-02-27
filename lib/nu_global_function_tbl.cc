@@ -205,7 +205,7 @@ variant_t functor_int_float(
    rt_prog_ctx_t& ctx, const std::string& name, const nu::func_args_t& args)
 {
    return functor_RT_T<F, int, float>(
-      ctx, name, args, variant_t::type_t::FLOAT);
+      ctx, name, args, variant_t::type_t::DOUBLE);
 }
 
 
@@ -253,7 +253,7 @@ variant_t functor_string_float(
    rt_prog_ctx_t& ctx, const std::string& name, const nu::func_args_t& args)
 {
    return functor_RT_T<F, std::string, float>(
-      ctx, name, args, variant_t::type_t::FLOAT);
+      ctx, name, args, variant_t::type_t::DOUBLE);
 }
 
 

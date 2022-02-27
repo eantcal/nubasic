@@ -126,10 +126,10 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
             case variable_t::type_t::DOUBLE:
                 try {
                     scope->define(
-                        name, var_value_t(nu::stod(value), VAR_ACCESS_RW));
+                        name, var_value_t(double_t(nu::stod(value)), VAR_ACCESS_RW));
                 } 
                 catch (...) {
-                    scope->define(name, var_value_t(double(0), VAR_ACCESS_RW));
+                    scope->define(name, var_value_t(double_t(0), VAR_ACCESS_RW));
                 }
 
                 break;
@@ -137,7 +137,7 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
             case variable_t::type_t::INTEGER:
                 try {
                     scope->define(
-                        name, var_value_t(nu::stoll(value), VAR_ACCESS_RW));
+                        name, var_value_t(integer_t(nu::stoll(value)), VAR_ACCESS_RW));
                 } 
                 catch (...) {
                     scope->define(name, var_value_t(0LL, VAR_ACCESS_RW));
