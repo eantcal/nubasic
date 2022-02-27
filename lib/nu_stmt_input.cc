@@ -140,7 +140,7 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
                         name, var_value_t(integer_t(nu::stoll(value)), VAR_ACCESS_RW));
                 } 
                 catch (...) {
-                    scope->define(name, var_value_t(0LL, VAR_ACCESS_RW));
+                    scope->define(name, var_value_t(integer_t(0), VAR_ACCESS_RW));
                 }
 
                 break;
