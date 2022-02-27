@@ -332,7 +332,6 @@ public:
    explicit operator integer_t() const { return to_int(); }
    explicit operator int() const { return static_cast<int>(to_int()); }
    explicit operator unsigned int() const { return static_cast<unsigned int>(to_int()); }
-   // explicit operator long() const { return static_cast<long>(to_int()); }
 
    explicit operator unsigned long() const { return static_cast<unsigned long>(to_int()); }
    explicit operator string_t() const { return to_str(); }
