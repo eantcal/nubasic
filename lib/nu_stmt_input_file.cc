@@ -190,11 +190,11 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
             default:
                 try {
                     (ctx.proc_scope.get())
-                        ->define(name, var_value_t(llvalue, VAR_ACCESS_RW));
+                        ->define(name, var_value_t(integer_t(llvalue), VAR_ACCESS_RW));
                 } 
                 catch (...) {
                     (ctx.proc_scope.get())
-                        ->define(name, var_value_t(0LL, VAR_ACCESS_RW));
+                        ->define(name, var_value_t(integer_t(0), VAR_ACCESS_RW));
                 }
 
                 break;

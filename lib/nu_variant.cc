@@ -119,7 +119,7 @@ variant_t variant_t::increment()
 
    case variant_t::type_t::INTEGER:
    {
-      _data[0] = std::get<integer_t>(_data[0]) + 1LL;
+      _data[0] = std::get<integer_t>(_data[0]) + integer_t(1);
       return *this;
    }
 
@@ -155,7 +155,7 @@ variant_t variant_t::decrement()
 
    case variant_t::type_t::INTEGER:
    {
-      _data[0] = std::get<integer_t>(_data[0]) - 1LL;
+      _data[0] = std::get<integer_t>(_data[0]) - integer_t(1);
       return *this;
    }
 

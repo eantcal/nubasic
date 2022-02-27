@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <variant>
 
 #ifdef WIN32
 #include <Windows.h>

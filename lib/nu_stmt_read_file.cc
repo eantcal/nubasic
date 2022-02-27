@@ -71,10 +71,8 @@ void stmt_read_file_t::run(rt_prog_ctx_t& ctx)
 
 
    std::string svalue;
-   int ivalue = 0;
-   long long llvalue = 0;
-   float fvalue(0);
    double dvalue(0);
+   long long llvalue(0);
 
    std::vector<byte_t> buf(size);
 
@@ -197,10 +195,10 @@ void stmt_read_file_t::run(rt_prog_ctx_t& ctx)
 
       case variable_t::type_t::INTEGER:
          try {
-            scope->define(name, var_value_t(llvalue, VAR_ACCESS_RW));
+            scope->define(name, var_value_t(integer_t(llvalue), VAR_ACCESS_RW));
          }
          catch (...) {
-            scope->define(name, var_value_t((long long)0, VAR_ACCESS_RW));
+            scope->define(name, var_value_t(integer_t(0), VAR_ACCESS_RW));
          }
 
          break;

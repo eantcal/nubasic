@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12)
 
+set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++17" )
+
 include (${CMAKE_ROOT}/Modules/FindX11.cmake)
 include (${CMAKE_ROOT}/Modules/FindGTK2.cmake)
 
@@ -59,6 +61,7 @@ file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
 
 add_executable(nubasicide ${SOURCES})
 add_dependencies(nubasicide scintilla)
+target_compile_features(nubasicide PRIVATE cxx_std_17)
 
 target_link_libraries(nubasicide nubasicinterpreter "${CMAKE_CURRENT_SOURCE_DIR}/../scintilla/bin/scintilla.a" mipjson ${X11_LIBRARIES} ${GTK2_LIBRARIES} -pthread)
 
