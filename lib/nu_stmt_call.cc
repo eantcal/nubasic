@@ -143,9 +143,8 @@ void stmt_call_t::run(
 
    if (!values.empty()) {
       auto sub_xscope = ctx.proc_scope.get();
-      auto values_it = values.cbegin();
 
-      for (const auto& arg : _args) {
+      for (auto values_it = values.cbegin(); values_it != values.cend(); ++values_it) {
          variant_t val = *values_it;
 
          const auto& variable_name = arg_it->var_name;
@@ -217,7 +216,6 @@ void stmt_call_t::run(
          sub_xscope->define(variable_name, var_value_t(val, VAR_ACCESS_RW));
 
          ++arg_it;
-         ++values_it;
 
       } // for
    }
