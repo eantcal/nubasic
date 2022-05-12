@@ -60,6 +60,8 @@ Sub PlayTheGame()
    x% = xm% div cell_size%
    y% = ym% div cell_size%
 
+   UpdateBoard board_offset_x%, board_offset_y%, cell_size%
+
    If btn%<>0 And x%>=0 And x%<=9 And y%>=0 And y%<=9 Then
       If btn%=1 Then
          DiscoverBoundaries x%, y%
@@ -137,38 +139,36 @@ Sub SetupGame()
 
    MoveWindow GetWindowX(),GetWindowY(),500,600
    FillRect 0,0,600,800,black%
-
-   CleanGameArea board_offset_x%, board_offset_y%, cell_size%
-   DrawScoreBoard scbx%, scby%, cell_size%
-   
-   TextOut 50, 20, "Click to choose ", white%
-   
-   FillRect 40, 60, 200, 100, yellow%
-   TextOut 50, 70,  "Beginner", red%
-
-   FillRect 40, 120, 200, 160, yellow%
-   TextOut 50, 130, "Expert", red%
    
    btn% = GetMouseBtn()
    game_mode% = 2
 
    While game_mode% > 1
-      btn% = 0
+      CleanGameArea board_offset_x%, board_offset_y%, cell_size%
+      DrawScoreBoard scbx%, scby%, cell_size%
+   
+      TextOut 50, 20, "Click to choose ", white%
+   
+      FillRect 40, 60, 200, 100, yellow%
+      TextOut 50, 70,  "Beginner", red%
 
-      While btn% = 0 
-         btn% = GetMouseBtn()
-         x% = GetMouseX()
-         y% = GetMouseY()
-      Wend
+      FillRect 40, 120, 200, 160, yellow%
+      TextOut 50, 130, "Expert", red%
+   
+      btn% = GetMouseBtn()
+      x% = GetMouseX()
+      y% = GetMouseY()
 
-      If x%>=40 And x%<=200 And y%>=60 And y%<=100 Then
+      If btn%>0 and x%>=40 And x%<=200 And y%>=60 And y%<=100 Then
          game_mode% = 0  
       End If
 
-      If x%>=40 And x%<=200 And y%>=120 And y%<=160 Then
+      If btn%>0 and x%>=40 And x%<=200 And y%>=120 And y%<=160 Then
          game_mode% = 1  
       End If
 
+      
+      MDelay 200
    Wend 
 
    SetupMines
