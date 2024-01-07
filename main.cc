@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -13,9 +13,8 @@
 #include "nu_interpreter.h"
 #include "nu_os_console.h"
 #include "nu_os_std.h"
-#include "nu_terminal_frame.h"
 #include "nu_reserved_keywords.h"
-
+#include "nu_terminal_frame.h"
 
 #include <cassert>
 #include <iostream>
@@ -26,9 +25,9 @@
 #include <variant>
 
 #ifdef WIN32
+#pragma message("Warning: Use winconsole project to build command line version of nuBASIC, which is compatible with Windows 11")
 #include <Windows.h>
 #endif
-
 
 /* -------------------------------------------------------------------------- */
 
@@ -47,7 +46,7 @@ static nu::interpreter_t::exec_res_t exec_command(
                 basic.get_cur_line_n());
         else if (res == nu::interpreter_t::exec_res_t::STOP_REQ)
             printf("Execution stopped at STOP instruction, line %i.\n"
-                "Type 'cont' to continue\n",
+                   "Type 'cont' to continue\n",
                 basic.get_cur_line_n());
         return res;
     }
@@ -79,7 +78,6 @@ static nu::interpreter_t::exec_res_t exec_command(
 
     return nu::interpreter_t::exec_res_t::CMD_EXEC;
 }
-
 
 /* -------------------------------------------------------------------------- */
 
@@ -194,7 +192,6 @@ static int nuBASIC_console(int argc, char* argv[])
 
     return 0;
 }
-
 
 /* -------------------------------------------------------------------------- */
 

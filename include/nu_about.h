@@ -8,8 +8,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __NU_ABOUT_H__
-#define __NU_ABOUT_H__
+#pragma once
 
 
 /* -------------------------------------------------------------------------- */
@@ -36,7 +35,7 @@ namespace about {
     static const char* const homepage = "http://www.nubasic.eu";
     static const char* const license = "The MIT License (MIT)";
     static const char* const version = PACKAGE_VERSION;
-    static const char* const copyright = "2014-2022";
+    static const char* const copyright = "2014-2024";
     static const char* const description
         = "nuBASIC is a programming language from the BASIC family.\n"
           "nuBASIC has been written in C++ and distributed under MIT License."
@@ -52,9 +51,5 @@ namespace about {
 
 }
 
-
-/* -------------------------------------------------------------------------- */
-
-#endif // __NU_ABOUT_H__
 
 /* -------------------------------------------------------------------------- */
