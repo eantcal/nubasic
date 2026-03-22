@@ -83,7 +83,7 @@ int nu_winconsole_init(void* hInstance, int nCmdShow)
         }
 
         g_console->show(nCmdShow);
-        g_console->refresh();
+        g_console->refresh(true); // force first paint
         g_running = true;
         return 1;
     } catch (...) {
@@ -254,7 +254,7 @@ void nu_winconsole_cls()
         return;
     g_console->get_buffer().clear();
     g_console->clear_backbuffer();
-    g_console->refresh();
+    g_console->refresh(true); // force immediate visual clear
 }
 
 /* -------------------------------------------------------------------------- */
@@ -284,7 +284,7 @@ void nu_winconsole_refresh()
 {
     if (!g_console)
         return;
-    g_console->refresh();
+    g_console->refresh(true); // explicit user call — force immediate
 }
 
 /* -------------------------------------------------------------------------- */
@@ -332,6 +332,14 @@ void nu_winconsole_release_hdc(void* hdc)
 
 /* -------------------------------------------------------------------------- */
 
+void nu_winconsole_set_exit_on_close(int enabled)
+{
+    if (g_console)
+        g_console->set_exit_on_close(enabled != 0);
+}
+
+/* -------------------------------------------------------------------------- */
+
 void nu_winconsole_set_close_callback(void (*fn)())
 {
     if (g_console)
@@ -344,6 +352,14 @@ void nu_winconsole_set_ctrlc_callback(void (*fn)())
 {
     if (g_console)
         g_console->set_ctrlc_callback(fn);
+}
+
+/* -------------------------------------------------------------------------- */
+
+void nu_winconsole_set_readline_cancel_hook(void (*fn)())
+{
+    if (g_console)
+        g_console->set_readline_cancel_hook(fn);
 }
 
 /* -------------------------------------------------------------------------- */

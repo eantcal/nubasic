@@ -34,6 +34,7 @@
 #include "nu_terminal_frame.h"
 #include "nu_winconsole_api.h"
 
+#include "nu_basic_defs.h"
 #include "nu_signal_handling.h"
 #include <cstdio>
 
@@ -43,6 +44,12 @@
 static void on_console_ctrlc()
 {
     nu::_ev_dispatcher(nu::signal_handler_t::event_t::BREAK);
+}
+
+// After cmd-style line cancel at the prompt, redraw the REPL prompt.
+static void on_readline_cancel_reprompt()
+{
+    nu_winconsole_printf("%s", NU_BASIC_PROMPT_STR);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -104,10 +111,25 @@ static int nuBASIC_console(int argc, char* argv[])
     nu::_os_cls();
 
     nu::interpreter_t nuBASIC;
-    // Pump the GDI window message queue between BASIC statements during RUN
-    // (same role as GTK's yield in the IDE). Without this, WM_PAINT and
-    // WM_CONSOLE_REFRESH never run and the CLI appears frozen.
-    nuBASIC.set_yield_cbk([](void*) { nu_winconsole_process_messages(); });
+    // Pump the GDI message queue, but not after every single statement:
+    // tight loops (e.g. rosettatxt.bas) would call PeekMessage ~70k times and
+    // repaint constantly. Coalesced refresh + time/budget cap keeps output
+    // smooth enough while improving throughput.
+    nuBASIC.set_yield_cbk([](void*) {
+        static DWORD last_pump = 0;
+        static unsigned stmt_budget = 0;
+        const DWORD now = GetTickCount();
+        ++stmt_budget;
+        const bool due_time = (last_pump == 0) || ((now - last_pump) >= 16u);
+        const bool due_budget = (stmt_budget >= 96u);
+        if (due_time || due_budget) {
+            stmt_budget = 0;
+            last_pump = now;
+            nu_winconsole_process_messages();
+        } else {
+            ::Sleep(0);
+        }
+    });
 
     std::string command_line;
     bool first_command = false;
@@ -252,8 +274,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // Set as target for GDI drawing operations
     nu::set_gdi_target_window((HWND)nu_winconsole_get_hwnd());
 
+    // Standalone CLI: closing the top-level console window must exit the
+    // process.
+    nu_winconsole_set_exit_on_close(1);
+
     // Route Ctrl+C in the GDI window to the BASIC break-event system.
     nu_winconsole_set_ctrlc_callback(on_console_ctrlc);
+    nu_winconsole_set_readline_cancel_hook(on_readline_cancel_reprompt);
 
     nu::reserved_keywords_t::list();
     nu::create_terminal_frame(argc, argv);

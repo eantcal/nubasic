@@ -116,13 +116,23 @@ void stmt_print_t::run(rt_prog_ctx_t& ctx)
         if (_unicode) {
             auto data = unicode_unescape(_data);
             if (sout == stdout) {
-                data.push_back('\n');
+                if (!_suppress_final_newline) {
+                    data.push_back('\n');
+                }
                 _os_u16write(data);
             } else {
-                ret = fwprintf(sout, L"%ls\n", (wchar_t*)data.c_str());
+                if (_suppress_final_newline) {
+                    ret = fwprintf(sout, L"%ls", (wchar_t*)data.c_str());
+                } else {
+                    ret = fwprintf(sout, L"%ls\n", (wchar_t*)data.c_str());
+                }
             }
         } else {
-            ret = _fprintf_console(sout, "%s\n", _data.c_str());
+            if (_suppress_final_newline) {
+                ret = _fprintf_console(sout, "%s", _data.c_str());
+            } else {
+                ret = _fprintf_console(sout, "%s\n", _data.c_str());
+            }
         }
         _fflush_console(sout);
     }
@@ -130,7 +140,12 @@ void stmt_print_t::run(rt_prog_ctx_t& ctx)
     else {
         _hide_cursor_guard_t guard(hide_cursor);
 
-        for (auto arg : _args) {
+        for (auto it = _args.begin(); it != _args.end(); ++it) {
+            const auto& arg = *it;
+            auto next = it;
+            ++next;
+            const bool is_last = (next == _args.end());
+
             std::string separator;
             variant_t val;
 
@@ -154,7 +169,8 @@ void stmt_print_t::run(rt_prog_ctx_t& ctx)
                     break;
 
                 default:
-                    separator = "\n";
+                    separator
+                        = (is_last && _suppress_final_newline) ? "" : "\n";
                     break;
                 }
             }

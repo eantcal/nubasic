@@ -649,77 +649,76 @@ End Sub
 
 
 Sub MainLoop()
-   ' -----------------------------------------------------------------------------
-   ' Main Loop
-   ' -----------------------------------------------------------------------------
+    ' -----------------------------------------------------------------------------
+    ' Main Loop
+    ' -----------------------------------------------------------------------------
 
-   MoveWindow GetWindowX(),GetWindowY(), 600,480 
-   FillRect 0,0,600,480,0
+    FillRect 0, 0, 600, 480, 0
 
-   GetDifficultSettings
-   Delay 1
+    GetDifficultSettings
+    Delay 1
 
    While 1
-      NewGame
+        NewGame
 
-      DrawBoard
+        DrawBoard
 
-      
-      If playerSymbol$ = "x" Then computerSymbol$ = "o" Else computerSymbol$ = "x"
 
-      If computerStarts% Then
-         ProcessComputerAction computerSymbol$
-         DrawBoard
-      End If
+        If playerSymbol$ = "x" Then computerSymbol$ = "o" Else computerSymbol$ = "x"
 
-      While 1
-         
-         btn% = GetMouseBtn()
-         xm% = GetMouseX()
-         ym% = GetMouseY()
-         
-         If btn% Then
-            
-            oldcnt% = player_cnt%
-            
-            ProcessPlayerAction cell_size%, cell_size%, cell_size%, playerSymbol$, xm%, ym%
+        If computerStarts% Then
+            ProcessComputerAction computerSymbol$
             DrawBoard
-         
+        End If
 
-            If oldcnt% <> player_cnt% Then
+        While 1
 
-               If Not(isTheEnd%()) Then
-                  ProcessComputerAction computerSymbol$
-                  MDelay 100
-                  DrawBoard
-               End If 
-            
-               If isTheEnd%() Then
+            btn% = GetMouseBtn()
+            xm% = GetMouseX()
+            ym% = GetMouseY()
 
-                  xmsg% = cell_size%*2
-                  ymsg% = cell_size%*2+cell_size% Div 2
+            If btn% Then
 
-                  FillRect xmsg%-10, ymsg%-10, xmsg%+150, ymsg%+60, Rgb(128,128,255)
+                oldcnt% = player_cnt%
+                ' Must match UpdateBoard origin in DrawBoard (110, 90)
 
-                  If winSymb$<>" " Then
-                     If winSymb$ = playerSymbol$ Then
-                        TextOut xmsg%, ymsg%, "   You won !", Rgb(0,255,0)
+                ProcessPlayerAction 110, 90, cell_size%, playerSymbol$, xm%, ym%
+                DrawBoard
+
+                If oldcnt% <> player_cnt% Then
+
+                    If Not (isTheEnd%()) Then
+                        ProcessComputerAction computerSymbol$
+                     MDelay 100
+                     DrawBoard
+                    End If
+
+                    If isTheEnd%() Then
+
+                        xmsg% = cell_size% * 2
+                        ymsg% = cell_size% * 2 + cell_size% Div 2
+
+                  FillRect xmsg% - 10, ymsg% - 10, xmsg% + 150, ymsg% + 60, Rgb(128, 128, 255)
+
+                  If winSymb$ <> " " Then
+                            If winSymb$ = playerSymbol$ Then
+                                TextOut xmsg%, ymsg%, "   You won !", Rgb(0, 255, 0)
                         playerScore% = playerScore% + 1
-                     Else
-                        TextOut xmsg%, ymsg%, "  You lose !", Rgb(255,0,0)
+                            Else
+                                TextOut xmsg%, ymsg%, "  You lose !", Rgb(255, 0, 0)
                         computerScore% = computerScore% + 1
-                     End If
-                  Else
-                     TextOut xmsg%, ymsg%, "  Nobody won !", Rgb(255,255,0)
+                            End If
+                        Else
+                            TextOut xmsg%, ymsg%, "  Nobody won !", Rgb(255, 255, 0)
                   End If
 
-                  TextOut xmsg%, ymsg%+30, "Click to continue", Rgb(255,255,255)
-         
+                        TextOut xmsg%, ymsg% + 30, "Click to continue", Rgb(255, 255, 255)
+
                   Exit While
 
-               End If
+                    End If
+                End If
             End If
-         End If
       Wend
 
       While GetMouseBtn() = 0 

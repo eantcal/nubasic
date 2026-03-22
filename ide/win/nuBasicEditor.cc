@@ -1028,6 +1028,7 @@ protected:
     bool _need_build = true;
     bool _program_running = false;
     bool _pending_rebuild = false; // set when user asks to stop-and-rebuild
+    std::string _pending_open_file; // non-empty: open this file after stop
 
     int _goto_line = 0;
     std::string _command_line;
@@ -1171,14 +1172,14 @@ static void on_console_window_closed()
     }
 }
 
-// Mouse text selection: disabled while RUN + embedded console (main thread).
+// Mouse selection + right-click menu: off while a program runs in the IDE
+// (embedded or detached console). Prevents TrackPopupMenu during RUN.
 static void sync_embedded_console_mouse_selection()
 {
-    if (!nu_winconsole_is_active() || !g_tab_container)
+    if (!nu_winconsole_is_active())
         return;
-    const bool embedded = !g_tab_container->is_console_detached();
     const bool running = g_editor.program_is_running();
-    nu_winconsole_set_mouse_text_selection_enabled(!(embedded && running));
+    nu_winconsole_set_mouse_text_selection_enabled(!running);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2141,6 +2142,10 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
         // Reset BEFORE starting the thread to avoid a race where a very fast
         // program sets RunningDlgWndProc_terminate = true before we reset it.
         RunningDlgWndProc_terminate = false;
+        // Worker thread must yield so the UI thread can dispatch
+        // WM_CONSOLE_REFRESH / WM_PAINT; otherwise text/GDI output (e.g.
+        // rosettatxt.bas) appears only when the program finishes.
+        g_editor.interpreter().set_yield_cbk([](void*) { ::Sleep(0); });
         std::thread t(async_fn);
 
         // Route keyboard input to the console window so that INKEY$() and
@@ -2168,11 +2173,21 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
                     app_quit_pending = true;
                     break;
                 }
-                if (TranslateAccelerator(
-                        g_editor.get_main_hwnd(), g_hAccTable, &msg)
-                    == 0) {
-                    TranslateMessage(&msg);
-                    DispatchMessage(&msg);
+                // Only translate accelerators for messages directed at the IDE
+                // frame or its owned children.  Modal system dialogs (e.g. the
+                // Open File dialog) must NOT have their keyboard/mouse events
+                // consumed by TranslateAccelerator or they become
+                // non-interactive.
+                {
+                    HWND frame = g_editor.get_main_hwnd();
+                    bool for_ide = (msg.hwnd == frame
+                        || (frame && IsChild(frame, msg.hwnd)));
+                    if (!for_ide
+                        || TranslateAccelerator(frame, g_hAccTable, &msg)
+                            == 0) {
+                        TranslateMessage(&msg);
+                        DispatchMessage(&msg);
+                    }
                 }
             }
             if (!RunningDlgWndProc_terminate)
@@ -2199,11 +2214,16 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
                     got_quit = true;
                     break;
                 }
-                if (TranslateAccelerator(
-                        g_editor.get_main_hwnd(), g_hAccTable, &msg)
-                    == 0) {
-                    TranslateMessage(&msg);
-                    DispatchMessage(&msg);
+                {
+                    HWND frame = g_editor.get_main_hwnd();
+                    bool for_ide = (msg.hwnd == frame
+                        || (frame && IsChild(frame, msg.hwnd)));
+                    if (!for_ide
+                        || TranslateAccelerator(frame, g_hAccTable, &msg)
+                            == 0) {
+                        TranslateMessage(&msg);
+                        DispatchMessage(&msg);
+                    }
                 }
             }
             if (got_quit)
@@ -2212,6 +2232,8 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
         }
 
         t.join();
+
+        g_editor.interpreter().set_yield_cbk(nullptr);
 
         if (app_quit_pending)
             _program_running = false;
@@ -2239,6 +2261,15 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
         if (_pending_rebuild) {
             _pending_rebuild = false;
             rebuild_code(true);
+        }
+
+        // If the user opened a new file while the program was running, load it
+        // now that the interpreter thread has fully exited.
+        if (!_pending_open_file.empty()) {
+            std::string f = _pending_open_file;
+            _pending_open_file.clear();
+            nu_winconsole_cls(); // clear console before showing the new source
+            open_document_file(f.c_str());
         }
 
         return true;
@@ -2554,6 +2585,15 @@ void nu::editor_t::set_new_document(bool clear_title)
 
 void nu::editor_t::open_document_file(const char* fileName)
 {
+    // If the interpreter is still running, defer the load until it stops.
+    // Same pattern as _pending_rebuild: stop_debugging() signals the thread;
+    // exec_interpreter_cmd() performs the actual load after t.join().
+    if (_program_running) {
+        _pending_open_file = fileName;
+        stop_debugging();
+        return;
+    }
+
     const std::string old_file_name = _full_path_str;
 
     _full_path_str = fileName;
@@ -2633,7 +2673,9 @@ void nu::editor_t::open_document()
     std::vector<char> open_file_name(MAX_PATH);
     open_file_name[0] = '\0';
 
-    OPENFILENAME ofn = { sizeof(OPENFILENAME) };
+    // Use explicit ANSI variants so that filters and title work correctly
+    // regardless of whether UNICODE is defined in the translation unit.
+    OPENFILENAMEA ofn = { sizeof(OPENFILENAMEA) };
 
     ofn.hwndOwner = _hwnd_main;
     ofn.hInstance = _hInstance;
@@ -2647,7 +2689,7 @@ void nu::editor_t::open_document()
     ofn.lpstrTitle = "Open File";
     ofn.Flags = OFN_HIDEREADONLY;
 
-    if (::GetOpenFileName(&ofn)) {
+    if (::GetOpenFileNameA(&ofn)) {
         open_document_file(open_file_name.data());
     }
 }
@@ -2672,7 +2714,7 @@ void nu::editor_t::save_document_as()
     char openName[MAX_PATH] = "\0";
     strncpy(openName, _full_path_str.c_str(), MAX_PATH - 1);
 
-    OPENFILENAME ofn = { sizeof(ofn) };
+    OPENFILENAMEA ofn = { sizeof(OPENFILENAMEA) };
     ofn.hwndOwner = _hwnd_main;
     ofn.hInstance = _hInstance;
     ofn.lpstrFile = openName;
@@ -2681,7 +2723,7 @@ void nu::editor_t::save_document_as()
     ofn.lpstrFilter = filter;
     ofn.Flags = OFN_HIDEREADONLY;
 
-    if (::GetSaveFileName(&ofn)) {
+    if (::GetSaveFileNameA(&ofn)) {
         _full_path_str = openName;
 
         set_title();

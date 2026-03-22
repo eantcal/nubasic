@@ -11,7 +11,6 @@
 Dim wall%(128)
 Dim c%(8) 
 
-
 ' -------------------------------------------------------------------------
 ' Setup Colors
 
@@ -38,6 +37,8 @@ Locate 4, 10
 Print " To play press key n to move left Or key m move right, q to quit" 
 
 Delay 3
+
+Cls
 
 
 ' -------------------------------------------------------------------------
@@ -77,6 +78,7 @@ While 1
 
       GoSub InitWallMap  
       GoSub DrawWall     
+      brickMoveCount%=0 : Rem Full wall drawn; periodic refresh every 10 moves if no hit
       GoSub HandlePlayer 
 
 
@@ -87,19 +89,27 @@ While 1
          FillRect x%*10, y%*10, x%*10+10, y%*10+10, 0 
          x%=x%+a%
          y%=y%+b%
-         FillEllipse x%*10, y%*10, x%*10+10, y%*10+10, &h2f00ff 
-
-         GoSub DrawWall
-
-
+         brickMoveCount%=brickMoveCount%+1
       ' ----------- Dispatch event to handle ----------------------------------
 
          If x%<=2 Or x%>w%-2 Then 
             a%=-a%
             Beep 
          ElseIf y%<=lines%*2 Then 
+            dirty% = 0
             GoSub ProcessCollision
+            If dirty% Then GoSub DrawWall : brickMoveCount%=0
          End If 
+
+         If brickMoveCount%>=50 Then GoSub DrawWall : brickMoveCount%=0
+
+         FillEllipse x%*10, y%*10, x%*10+10, y%*10+10, &h2f00ff 
+         GoSub DrawHud
+
+         Rem Pace like original (was ~60-level%*5 ms per frame when DrawWall ran every tick)
+         fdelay% = 60 - level% * 5
+         If fdelay% < 22 Then fdelay% = 22
+         MDelay fdelay%
 
          If completed%<0 Then
             Rem Game Over
@@ -170,8 +180,7 @@ DrawPlayer:
 
 ' -------------------------------------------------------------------------
 DrawWall:
-   counter%=lines%*8
-
+   Rem Redraw brick field only (ball is drawn separately — avoids flicker)
    For brickx%=0 to 7
       For bricky%=0 to lines%-1
          index% = brickx%+bricky%*8
@@ -179,16 +188,28 @@ DrawWall:
          If wall%(index%)=1 Then 
             bcolor%=c%(index% Mod 7) 
          Else 
-            bcolor%=0: counter%=counter%-1
+            bcolor%=0
          End If
          FillRect bx%+1, by%+1, bx%+80+1, by%+20+1, bcolor% 
-         FillEllipse x%*10, y%*10, x%*10+10, y%*10+10, &h2f00ff 
       Next bricky% 
    Next brickx%
 
    rect 0,0,642,480, 255
 
-   If level%<=12 Then mdelay 60-level%*5
+   Return
+
+
+' -------------------------------------------------------------------------
+DrawHud:
+   Rem Score / level / win check without redrawing every brick each frame
+   counter%=lines%*8
+   For brickx%=0 to 7
+      For bricky%=0 to lines%-1
+         index% = brickx%+bricky%*8
+         If wall%(index%)=0 Then counter%=counter%-1
+      Next bricky% 
+   Next brickx%
+
    If counter%<=0 Then completed%=1
 
    FillRect 10, (h%+2)*10+20, 280, (h%+2)*10+50, &hffffff
@@ -225,6 +246,7 @@ ProcessCollision:
       If wall%(brickx%+bricky%*8)<>0 Then 
          b%=-b%
          wall%(brickx%+bricky%*8) = 0
+         dirty% = 1
 
          Beep
       End If
@@ -267,6 +289,7 @@ ProcessPlayerBallCollision:
    Cls
   
    GoSub DrawWall   
+   brickMoveCount%=0
    GoSub DrawPlayer 
    
    If lives%<1 Then 

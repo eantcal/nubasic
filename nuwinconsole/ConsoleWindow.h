@@ -46,8 +46,12 @@ public:
     /* Cursor visibility */
     void set_cursor_visible(bool visible);
 
-    /* Refresh display */
-    void refresh();
+    /* Refresh display.
+     * force=false (default): coalesced — posts at most one WM_CONSOLE_REFRESH.
+     * force=true           : always invalidates immediately (used by CLS,
+     *                        explicit nu_winconsole_refresh, GDI unlock, etc.)
+     */
+    void refresh(bool force = false);
 
     /* Back-buffer DC for GDI drawing (graphics persist across repaints).
      * Acquires an internal lock; must call release_offscreen_dc() when done
@@ -80,12 +84,22 @@ public:
     /* Message loop (optional — call run() if you want a dedicated loop) */
     int run();
 
+    /* When true (CLI/standalone mode): WM_CLOSE on the top-level window
+     * destroys it (triggering WM_DESTROY → PostQuitMessage).  When false (IDE
+     * embedded): WM_CLOSE merely hides the window and fires the close callback.
+     */
+    void set_exit_on_close(bool v) { _exit_on_close = v; }
+
     /* Close callback: called when the user closes a top-level (detached) window
      */
     void set_close_callback(void (*fn)()) { _close_callback = fn; }
 
     /* Ctrl+C callback: called when the user presses Ctrl+C in the window */
     void set_ctrlc_callback(void (*fn)()) { _ctrlc_callback = fn; }
+
+    /* After Ctrl+C abandons the current read_line edit (cmd-style), redraw the
+     * prompt. Used by nuBasicCLI; leave unset in the IDE. */
+    void set_readline_cancel_hook(void (*fn)()) { _readline_cancel_hook = fn; }
 
     /* When false, mouse drag / double-click selection and the R-button menu
      * for copy/select-all are ignored (IDE embedded console while RUN). */
@@ -97,7 +111,7 @@ private:
 
     void on_paint();
     void on_size(int width, int height);
-    void on_key_down(WPARAM key);
+    void on_key_down(WPARAM key, LPARAM lParam);
     void on_char(WPARAM ch);
     void on_mouse_wheel(int delta);
     void on_vscroll(WPARAM wParam);
@@ -110,6 +124,7 @@ private:
 
     void mouse_to_buffer(int mx, int my, int& row, int& col) const;
     void copy_selection_to_clipboard();
+    void paste_from_clipboard_line_input();
 
     void update_scrollbar();
     void render_console(HDC hdc);
@@ -153,14 +168,28 @@ private:
     std::atomic<bool> _input_mode; // true while read_line() is waiting
     std::atomic<bool> _line_ready; // set by on_char() when Enter pressed
 
+    // Command history for read_line (up/down arrow navigation).
+    // All access is on the UI thread (on_char / on_key_down).
+    static const int HISTORY_MAX = 200;
+    std::deque<std::wstring> _history;
+    int _history_idx = -1; // -1 = not browsing
+    std::wstring _history_save; // saved current draft while browsing
+
+    bool _exit_on_close = false;
     void (*_close_callback)() = nullptr;
     void (*_ctrlc_callback)() = nullptr;
+    void (*_readline_cancel_hook)() = nullptr;
+
+    // Refresh coalescing: at most one WM_CONSOLE_REFRESH in the queue.
+    std::atomic<bool> _refresh_pending{ false };
 
     // Mouse text selection (buffer-absolute coordinates)
     int _sel_r0 = 0, _sel_c0 = 0; // anchor (where drag started)
     int _sel_r1 = 0, _sel_c1 = 0; // cursor (current drag end)
     bool _selecting = false;
     bool _mouse_text_selection_enabled = true;
+    // If WM_KEYDOWN handled Ctrl+V paste, ignore the following WM_CHAR (0x16).
+    bool _skip_next_ctrl_v_char = false;
 };
 
 /* -------------------------------------------------------------------------- */

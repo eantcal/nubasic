@@ -106,6 +106,12 @@ void* nu_winconsole_get_hdc();
 /* -------------------------------------------------------------------------- */
 /* Close Callback */
 
+// When enabled (non-zero), closing the top-level console window destroys it
+// and posts WM_QUIT so the message loop exits cleanly.  Enable for CLI/
+// standalone mode; leave disabled (default) when embedded in the IDE so that
+// closing the detached console does not terminate the host application.
+void nu_winconsole_set_exit_on_close(int enabled);
+
 // Register a callback invoked when the user closes a detached (top-level)
 // console window.  Pass NULL to unregister.
 void nu_winconsole_set_close_callback(void (*fn)());
@@ -113,6 +119,11 @@ void nu_winconsole_set_close_callback(void (*fn)());
 // Register a callback invoked when the user presses Ctrl+C in the console.
 // Use this to dispatch a BREAK signal to the interpreter.
 void nu_winconsole_set_ctrlc_callback(void (*fn)());
+
+// Optional: after Ctrl+C clears the current read_line buffer (cmd-style, no
+// selection), this runs so the CLI can print the prompt again. Pass NULL to
+// clear.
+void nu_winconsole_set_readline_cancel_hook(void (*fn)());
 
 // Release a device context obtained with nu_winconsole_get_hdc
 void nu_winconsole_release_hdc(void* hdc);

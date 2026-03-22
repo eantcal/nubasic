@@ -6,10 +6,13 @@
 // See COPYING file in the project root for full license information.
 //
 
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include "ConsoleWindow.h"
 #include <algorithm>
 #include <mutex>
+#include <string>
 
 /* -------------------------------------------------------------------------- */
 
@@ -75,6 +78,14 @@ console_window_t::console_window_t(HINSTANCE hInstance)
 console_window_t::~console_window_t()
 {
     stop_cursor_blink();
+
+    // Destroy the HWND if it wasn't already destroyed (e.g. IDE shutdown path).
+    // on_destroy() sets _hwnd = nullptr, so this is safe to call
+    // unconditionally.
+    if (_hwnd) {
+        DestroyWindow(_hwnd);
+        _hwnd = nullptr;
+    }
 
     // Avoid deadlock if another thread still holds the surface lock.
     if (_surface_mutex.try_lock()) {
@@ -189,14 +200,26 @@ void console_window_t::set_mouse_text_selection_enabled(bool enabled)
 
 /* -------------------------------------------------------------------------- */
 
-void console_window_t::refresh()
+void console_window_t::refresh(bool force)
 {
     if (!_hwnd)
         return;
-    // Never call SetScrollInfo / synchronous paint from the interpreter
-    // thread: marshal to the thread that owns the HWND.
-    if (!PostMessageW(_hwnd, WM_CONSOLE_REFRESH, 0, 0))
+
+    if (force) {
+        // Immediate: reset any pending coalesced message and invalidate now.
+        _refresh_pending.store(false);
         InvalidateRect(_hwnd, nullptr, FALSE);
+        return;
+    }
+
+    // Coalesced path: post WM_CONSOLE_REFRESH only when none is already queued.
+    // Never call SetScrollInfo / synchronous paint from the interpreter thread.
+    if (!_refresh_pending.exchange(true)) {
+        if (!PostMessageW(_hwnd, WM_CONSOLE_REFRESH, 0, 0)) {
+            _refresh_pending.store(false);
+            InvalidateRect(_hwnd, nullptr, FALSE);
+        }
+    }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -246,6 +269,7 @@ LRESULT CALLBACK console_window_t::window_proc(
             return 0;
 
         case WM_CONSOLE_REFRESH:
+            window->_refresh_pending.store(false);
             window->update_scrollbar();
             InvalidateRect(hwnd, nullptr, FALSE);
             return 0;
@@ -271,8 +295,14 @@ LRESULT CALLBACK console_window_t::window_proc(
             window->on_rbutton_up(LOWORD(lParam), HIWORD(lParam));
             return 0;
 
+        // Never pass WM_CONTEXTMENU to DefWindowProc: the default handler shows
+        // an empty/wrong shell menu and hides our TrackPopupMenu from
+        // WM_RBUTTONUP.
+        case WM_CONTEXTMENU:
+            return 0;
+
         case WM_KEYDOWN:
-            window->on_key_down(wParam);
+            window->on_key_down(wParam, lParam);
             return 0;
 
         case WM_CHAR:
@@ -295,9 +325,16 @@ LRESULT CALLBACK console_window_t::window_proc(
         case WM_CLOSE: {
             LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
             if (!(style & WS_CHILD)) {
-                ShowWindow(hwnd, SW_HIDE);
-                if (window->_close_callback)
-                    window->_close_callback();
+                if (window->_exit_on_close) {
+                    // CLI/standalone mode: destroy window so WM_DESTROY posts
+                    // WM_QUIT and the message loop can exit cleanly.
+                    DestroyWindow(hwnd);
+                } else {
+                    // IDE embedded mode: hide only, fire optional callback.
+                    ShowWindow(hwnd, SW_HIDE);
+                    if (window->_close_callback)
+                        window->_close_callback();
+                }
                 return 0;
             }
         } break;
@@ -447,6 +484,7 @@ void console_window_t::render_text(HDC hdc)
                 continue;
             size_t last_ch = line.find_last_not_of(L' ');
             std::wstring seg = line.substr(first_ch, last_ch - first_ch + 1);
+            int seg_len = (int)seg.size();
             int x_pos
                 = _config.margin_left + (int)first_ch * _config.char_width;
             SetTextColor(hdc, _config.text_color);
@@ -456,11 +494,14 @@ void console_window_t::render_text(HDC hdc)
             // colour.  This prevents stale pixel content (e.g. from a
             // previous LOCATE + PRINT) from showing through the transparent
             // space regions.
+            // Use uniform lpDx to enforce the monospace grid exactly —
+            // prevents GDI kerning from shifting characters off the cell grid.
             RECT line_rc = { _config.margin_left, y_pos,
                 _config.margin_left + _config.cols * _config.char_width,
                 y_pos + _config.char_height };
+            std::vector<INT> dx(seg_len, _config.char_width);
             ExtTextOutW(hdc, x_pos, y_pos, ETO_OPAQUE, &line_rc, seg.c_str(),
-                (int)seg.size(), nullptr);
+                seg_len, dx.data());
         } else {
             // Selection path: render in runs of same colour.
             int x = 0;
@@ -470,6 +511,7 @@ void console_window_t::render_text(HDC hdc)
                 while (x < line_len && in_sel(buffer_y, x) == sel)
                     ++x;
                 std::wstring run = line.substr(run_start, x - run_start);
+                int run_len = (int)run.size();
                 bool all_spaces
                     = (run.find_first_not_of(L' ') == std::wstring::npos);
                 // Only render if selected (highlight) or has non-space chars.
@@ -484,7 +526,10 @@ void console_window_t::render_text(HDC hdc)
                 }
                 int x_pos
                     = _config.margin_left + run_start * _config.char_width;
-                TextOutW(hdc, x_pos, y_pos, run.c_str(), (int)run.size());
+                // Uniform lpDx keeps selection highlights aligned to the grid.
+                std::vector<INT> dx(run_len, _config.char_width);
+                ExtTextOutW(hdc, x_pos, y_pos, ETO_OPAQUE, nullptr, run.c_str(),
+                    run_len, dx.data());
             }
         }
     }
@@ -552,8 +597,11 @@ void console_window_t::on_size(int width, int height)
 
 /* -------------------------------------------------------------------------- */
 
-void console_window_t::on_key_down(WPARAM key)
+void console_window_t::on_key_down(WPARAM key, LPARAM lParam)
 {
+    // Bit 30: previous key state — 1 means autorepeat (key was already down).
+    const bool is_autorepeat = (lParam & (1u << 30)) != 0;
+
     // Map Windows VK_* codes to nuBASIC vk_* codes (from nu_os_std.h):
     //   vk_PageUp=6, vk_PageDown=7, vk_End=8, vk_Home=9
     //   vk_Left=10,  vk_Up=11,      vk_Right=12, vk_Down=13
@@ -588,25 +636,57 @@ void console_window_t::on_key_down(WPARAM key)
         }
     }
 
+    // Helper: replace the currently-typed input line on screen and in buffer.
+    // Erases characters one by one via backspace, then writes the new string.
+    auto replace_input_line = [&](const std::wstring& newline) {
+        while (!_input_line.empty()) {
+            _input_line.pop_back();
+            _buffer->put_char(L'\b');
+        }
+        for (wchar_t c : newline) {
+            _input_line += c;
+            _buffer->put_char(c);
+        }
+        InvalidateRect(_hwnd, nullptr, FALSE);
+    };
+
     // Scrollback shortcuts (Ctrl+Home / Ctrl+End) — display only, no queueing.
     switch (key) {
     case VK_UP:
         if (!_input_mode.load())
-            break; // arrow already queued above
-        _buffer->scroll_up(1);
-        update_scrollbar();
-        InvalidateRect(_hwnd, nullptr, FALSE);
+            break; // arrow already queued for GetVKey()
+        // History: navigate backwards.
+        if (_history.empty())
+            break;
+        if (_history_idx == -1) {
+            _history_save = _input_line;
+            _history_idx = (int)_history.size() - 1;
+        } else if (_history_idx > 0) {
+            --_history_idx;
+        }
+        replace_input_line(_history[_history_idx]);
         break;
 
     case VK_DOWN:
         if (!_input_mode.load())
+            break; // arrow already queued for GetVKey()
+        // History: navigate forwards.
+        if (_history_idx == -1)
             break;
-        _buffer->scroll_down(1);
-        update_scrollbar();
-        InvalidateRect(_hwnd, nullptr, FALSE);
+        ++_history_idx;
+        if (_history_idx >= (int)_history.size()) {
+            _history_idx = -1;
+            replace_input_line(_history_save);
+            _history_save.clear();
+        } else {
+            replace_input_line(_history[_history_idx]);
+        }
         break;
 
     case VK_PRIOR:
+        // PgUp: scroll the buffer when in read_line mode. In non-input mode
+        // the key is already queued as a vkey code for GetVKey(); don't also
+        // move the viewport or the visual state would diverge from the program.
         if (!_input_mode.load())
             break;
         _buffer->scroll_up(_config.rows);
@@ -639,8 +719,27 @@ void console_window_t::on_key_down(WPARAM key)
         break;
 
     case VK_INSERT:
-        if (GetKeyState(VK_CONTROL) & 0x8000)
+        if (GetKeyState(VK_CONTROL) & 0x8000) {
             copy_selection_to_clipboard();
+        } else if ((GetKeyState(VK_SHIFT) & 0x8000) && _input_mode.load()) {
+            if (!is_autorepeat) {
+                // Shift+Insert — paste (common terminal accelerator)
+                paste_from_clipboard_line_input();
+                InvalidateRect(_hwnd, nullptr, FALSE);
+            }
+        }
+        break;
+
+    case 0x56: // VK_V ('V' key) — not always in lean Win32 headers
+        // Ctrl+V: handle here so paste works even when WM_CHAR 0x16 is not
+        // posted.
+        if (is_autorepeat)
+            break;
+        if ((GetKeyState(VK_CONTROL) & 0x8000) && _input_mode.load()) {
+            paste_from_clipboard_line_input();
+            _skip_next_ctrl_v_char = true;
+            InvalidateRect(_hwnd, nullptr, FALSE);
+        }
         break;
 
     case 0x41: // 'A' key
@@ -664,20 +763,33 @@ void console_window_t::on_char(WPARAM ch)
 
     // Ctrl+C (ETX = 0x03)
     if (wch == L'\x03') {
-        // If there is an active selection, copy it to clipboard first.
-        bool has_sel = (_sel_r0 != _sel_r1 || _sel_c0 != _sel_c1);
-        if (has_sel)
+        const bool has_sel = (_sel_r0 != _sel_r1 || _sel_c0 != _sel_c1);
+        if (has_sel) {
             copy_selection_to_clipboard();
-
-        // Cancel any pending INPUT/read_line.
-        if (_input_mode.load()) {
-            _input_line.clear();
-            _line_ready.store(true);
+            InvalidateRect(_hwnd, nullptr, FALSE);
+            return;
         }
-        // Notify the application (sets interpreter break event).
+
+        if (_input_mode.load()) {
+            // cmd.exe: abandon the current input line, newline, stay in
+            // read_line. Do not fire ctrl-c break callback (that is for INKEY /
+            // running code).
+            while (!_input_line.empty()) {
+                _input_line.pop_back();
+                _buffer->put_char(L'\b');
+            }
+            _buffer->put_char(L'\n');
+            _history_idx = -1;
+            _history_save.clear();
+            _sel_r0 = _sel_r1 = _sel_c0 = _sel_c1 = 0;
+            if (_readline_cancel_hook)
+                _readline_cancel_hook();
+            InvalidateRect(_hwnd, nullptr, FALSE);
+            return;
+        }
+
         if (_ctrlc_callback)
             _ctrlc_callback();
-
         InvalidateRect(_hwnd, nullptr, FALSE);
         return;
     }
@@ -685,7 +797,15 @@ void console_window_t::on_char(WPARAM ch)
     if (_input_mode.load()) {
         // ---- Line-input mode (read_line is waiting) ----
         if (wch == L'\r') {
-            // Enter: commit the line
+            // Enter: commit the line and save to history (including pasted
+            // text).
+            if (!_input_line.empty()) {
+                _history.push_back(_input_line);
+                if ((int)_history.size() > HISTORY_MAX)
+                    _history.pop_front();
+            }
+            _history_idx = -1;
+            _history_save.clear();
             _buffer->put_char(L'\n');
             _line_ready.store(true);
         } else if (wch == L'\b') {
@@ -694,6 +814,13 @@ void console_window_t::on_char(WPARAM ch)
             if (!_input_line.empty()) {
                 _input_line.pop_back();
                 _buffer->put_char(L'\b');
+            }
+        } else if (wch == L'\x16') {
+            // Ctrl+V → WM_CHAR SYN; skip if key-down path already pasted.
+            if (_skip_next_ctrl_v_char) {
+                _skip_next_ctrl_v_char = false;
+            } else {
+                paste_from_clipboard_line_input();
             }
         } else if (wch >= L' ') {
             // Printable character: echo, accumulate, and clear any selection.
@@ -851,7 +978,7 @@ void console_window_t::release_offscreen_dc()
         _surface_client_locked = false;
         _surface_mutex.unlock();
     }
-    refresh();
+    refresh(true); // GDI drawing done — force immediate repaint
 }
 
 /* -------------------------------------------------------------------------- */
@@ -874,8 +1001,12 @@ void console_window_t::clear_backbuffer()
 void console_window_t::on_destroy()
 {
     LONG_PTR style = GetWindowLongPtr(_hwnd, GWL_STYLE);
-    if (!(style & WS_CHILD))
+    // Only post WM_QUIT when running standalone (CLI).  In IDE embedded mode
+    // (_exit_on_close == false) closing the console must not terminate the app.
+    if (!(style & WS_CHILD) && _exit_on_close)
         PostQuitMessage(0);
+    _hwnd = nullptr; // mark destroyed so the destructor won't call
+                     // DestroyWindow again
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1117,10 +1248,16 @@ void console_window_t::on_rbutton_up(int x, int y)
     POINT pt = { x, y };
     ClientToScreen(_hwnd, &pt);
 
+    // Required on Windows so the popup receives clicks / is not instantly
+    // dismissed.
+    SetForegroundWindow(_hwnd);
+
     HMENU hMenu = CreatePopupMenu();
     bool has_sel = (_sel_r0 != _sel_r1 || _sel_c0 != _sel_c1);
+    const bool can_paste = _input_mode.load();
     AppendMenuW(hMenu, MF_STRING | (has_sel ? 0 : MF_GRAYED), 1, L"Copy");
     AppendMenuW(hMenu, MF_STRING, 2, L"Select All");
+    AppendMenuW(hMenu, MF_STRING | (can_paste ? 0 : MF_GRAYED), 3, L"Paste");
 
     int cmd = TrackPopupMenu(
         hMenu, TPM_RETURNCMD | TPM_RIGHTBUTTON, pt.x, pt.y, 0, _hwnd, nullptr);
@@ -1134,7 +1271,60 @@ void console_window_t::on_rbutton_up(int x, int y)
         _sel_r1 = _buffer->get_screen_top() + _config.rows - 1;
         _sel_c1 = _buffer->get_cols();
         InvalidateRect(_hwnd, nullptr, FALSE);
+    } else if (cmd == 3 && can_paste) {
+        paste_from_clipboard_line_input();
+        InvalidateRect(_hwnd, nullptr, FALSE);
     }
+}
+
+/* -------------------------------------------------------------------------- */
+
+void console_window_t::paste_from_clipboard_line_input()
+{
+    if (!_input_mode.load())
+        return;
+    // Some hosts reject OpenClipboard(hwnd); NULL associates with current task.
+    if (!OpenClipboard(_hwnd) && !OpenClipboard(nullptr))
+        return;
+
+    auto append_clip_text = [this](const wchar_t* p) {
+        for (; *p; ++p) {
+            wchar_t c = *p;
+            if (c == L'\r' || c == L'\n')
+                break;
+            if (c >= L' ' || c == L'\t') {
+                _input_line += c;
+                _buffer->put_char(c);
+            }
+        }
+    };
+
+    if (HANDLE hUni = GetClipboardData(CF_UNICODETEXT)) {
+        if (const wchar_t* text
+            = static_cast<const wchar_t*>(GlobalLock(hUni))) {
+            append_clip_text(text);
+            GlobalUnlock(hUni);
+        }
+    } else if (HANDLE hAnsi = GetClipboardData(CF_TEXT)) {
+        if (const char* text = static_cast<const char*>(GlobalLock(hAnsi))) {
+            int n = MultiByteToWideChar(CP_UTF8, 0, text, -1, nullptr, 0);
+            UINT cp = CP_UTF8;
+            if (n <= 1) {
+                n = MultiByteToWideChar(CP_ACP, 0, text, -1, nullptr, 0);
+                cp = CP_ACP;
+            }
+            if (n > 1) {
+                std::wstring ws((size_t)n, L'\0');
+                MultiByteToWideChar(cp, 0, text, -1, &ws[0], n);
+                if (!ws.empty() && ws.back() == L'\0')
+                    ws.pop_back();
+                append_clip_text(ws.c_str());
+            }
+            GlobalUnlock(hAnsi);
+        }
+    }
+
+    CloseClipboard();
 }
 
 /* -------------------------------------------------------------------------- */

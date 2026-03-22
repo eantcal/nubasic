@@ -13,20 +13,23 @@
 120 GoSub 510 : Rem Rectangle
 130 GoSub 780 : Rem Init wall map
 140 GoSub 580 : Rem Draw wall
+145 brickMoveCount%=0 : Rem Reset brick refresh counter (hit or every 10 moves)
 150 GoSub 440 : Rem Draw player
 160 Rem Draw ball
 170 Locate y%,x%:Print " "
 180 x%=x%+a%
 190 y%=y%+b%
 200 Locate y%,x%:Print "*"
-210 GoSub 580
-220 Rem -------------- COLLISIONs ------------------------
+205 brickMoveCount%=brickMoveCount%+1
+206 Rem Wall: on brick hit (inside 850) or every 10 ball moves if none hit
+210 Rem -------------- COLLISIONs ------------------------
 230 If x%<=2 or x%>w%-2 Then 
 240 a%=-a%
 250 Beep 
 260 ElseIf y%<=lines%+1 Then 
 270 GoSub 850 : Rem Process collitions
 280 End if
+285 If brickMoveCount%>=10 Then GoSub 580 : brickMoveCount%=0
 290 If completed%<0 Then 
 300   GoTo 1120 : Rem Completed (loose)
 310 End if
@@ -40,6 +43,8 @@
 390 If len(akey$)>0 Then 
 400   GoSub 440 : Rem Draw player
 410 End if
+412 GoSub 562 : Rem HUD text only (score/lives) without redrawing bricks
+415 MDelay 48
 420 GoTo 170
 430 Rem
 440 Rem Draw Player
@@ -56,9 +61,21 @@
 550   Locate h%+3,1: For i%=1 to w%: Print "-"; : Next
 560   Locate h%+4,w%\2-20: Print "nuBreakout - acaldmail@gmail.com (c) 2014"
 570   Return
+562 Rem Update HUD (lives/score) without redrawing the brick wall
+563   cleft%=0
+564   For i%=0 TO lines%*8-1
+565     If wall%(i%)=1 Then cleft%=cleft%+1
+566   Next
+567   If cleft%<=0 Then completed%=1
+568   Locate 5, w%+2 : Print "Lives: "; lives%
+569   Locate 7, w%+2 : Print "Score: "; (lines%*8-cleft%)*10
+570   Locate 10, w%+2 : Print "[n]-LEFT"
+571   Locate 11, w%+2 : Print "[m]-RIGHT"
+572   Locate 12, w%+2 : Print "[q]-QUIT"
+573   Return
 580 Rem Wall
 590   brick$="|______|"
-600   counter%=32
+600   counter%=lines%*8
 610   For brickx%=0 TO 7
 620   For bricky%=0 TO lines%-1
 630   index% = brickx%+bricky%*8
@@ -68,10 +85,10 @@
 670   If brickx%=7 AND wall%(index%)=0 Then Locate bricky%+1, brickx%*Len(brick$)+8 : Print "|" 
 680   Next bricky% 
 690   Next brickx%
-700   MDelay 100
+700 Rem Delay removed here — main loop uses MDelay for steady frame rate
 710   If counter%<=0 Then completed%=1
 720   Locate 5, w%+2 : Print "Lives: "; lives%
-730   Locate 7, w%+2 : Print "Score: "; (32-counter%)*10
+730   Locate 7, w%+2 : Print "Score: "; (lines%*8-counter%)*10
 740   Locate 10, w%+2 : Print "[n]-LEFT"
 750   Locate 11, w%+2 : Print "[m]-RIGHT"
 760   Locate 12, w%+2 : Print "[q]-QUIT"
@@ -88,6 +105,8 @@
 870   If b%<0 Then bricky% = y%-2 Else bricky% = y%-1
 880   If wall%(brickx%+bricky%*8)=0 Then GoTo 920
 890   wall%(brickx%+bricky%*8) = 0
+895   GoSub 580 : Rem Redraw wall + HUD after a brick is removed
+896   brickMoveCount%=0 : Rem Full refresh; reset periodic counter
 900   b%=-b%: Beep
 910   Return
 920   If y%<=2 or y%>h%-1 Then b%=-b%: Beep
@@ -107,6 +126,7 @@
 1060  b%=-1: cls
 1070  GoSub 510 : Rem Rectangle
 1080  GoSub 580 : Rem Draw wall
+1085  brickMoveCount%=0
 1090  GoSub 480 : Rem Draw player
 1100  If lives%<1 Then completed%=-1
 1110  Return

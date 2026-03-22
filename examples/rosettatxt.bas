@@ -23,13 +23,13 @@ For x0 = -2 TO 2 Step 0.013
       Loop While ((x*x+y*y<=4) And (iteration < maxIteration))
 
       If iteration <> maxIteration Then c = iteration Else c = 0
-      wx%=30
-      wy%=15
-      dx%=80
-      dy%=25
+      wx% = 30
+wy% = 15
+dx% = 80
+dy% = 25
 
-      Locate int(y0*wy%+dy%), int(x0*wx%+dx%)
-      Print chr(c+33)
+      Locate int(y0 * wy% + dy%), int(x0 * wx% + dx%)
+      Write chr(c+33)
     Next y0
 Next x0
 

@@ -38,7 +38,7 @@ cyan%    = 0
 hotpink% = 0
 blue2%   = 0
 
-version$="1.04"
+version$="1.05"
 game_mode% = 2
 
 randomize
@@ -60,7 +60,8 @@ Sub PlayTheGame()
    x% = xm% div cell_size%
    y% = ym% div cell_size%
 
-   UpdateBoard board_offset_x%, board_offset_y%, cell_size%
+   ' Do not redraw every loop iteration — that caused full-screen flicker
+   ' (UpdateBoard repaints all 100 cells). Redraw only after input below.
 
    If btn%<>0 And x%>=0 And x%<=9 And y%>=0 And y%<=9 Then
       If btn%=1 Then
@@ -77,8 +78,6 @@ Sub PlayTheGame()
       If mine_found% Then
          ShowAllMines board_offset_x%, board_offset_y%, cell_size%
          game_over% = 1
-      Else
-         UpdateBoard board_offset_x%, board_offset_y%, cell_size%
       End If
    End If
 
@@ -86,6 +85,9 @@ Sub PlayTheGame()
       ShowAllMines board_offset_x%, board_offset_y%, cell_size%
       game_over% = 1
    End If
+
+   ' Pace the idle loop so GDI/console can present frames without busy flicker
+   MDelay 16
    
 End Sub
 

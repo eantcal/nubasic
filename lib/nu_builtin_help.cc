@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -42,8 +42,9 @@ static help_content_t _help_content[] = {
     { lang_item_t::COMMAND, "!", "Executes shell command",
         "! shell_command\n" },
 
-    { lang_item_t::COMMAND, "?", "Executes Print instruction\n"
-                                 "See also Print",
+    { lang_item_t::COMMAND, "?",
+        "Executes Print instruction\n"
+        "See also Print",
         "? [parameters...]" },
 
     { lang_item_t::COMMAND, "run", "Executes the program currently in memory",
@@ -92,8 +93,9 @@ static help_content_t _help_content[] = {
     { lang_item_t::COMMAND, "grep",
         "Lists lines containing a match to the given pattern", "Grep pattern" },
 
-    { lang_item_t::COMMAND, "new", "Deletes the program currently "
-                                   "in memory and clear all variables",
+    { lang_item_t::COMMAND, "new",
+        "Deletes the program currently "
+        "in memory and clear all variables",
         "New" },
 
     { lang_item_t::COMMAND, "renum", "Renumbers program lines",
@@ -139,19 +141,22 @@ static help_content_t _help_content[] = {
         "The expression can include existing variables.",
         "Eval(expr$)" },
 
-    { lang_item_t::FUNCTION, "hset", "Insert a pair key/value into a hash table",
+    { lang_item_t::FUNCTION, "hset",
+        "Insert a pair key/value into a hash table",
         "hset(hash as String, key as String, value as Any)" },
 
-    { lang_item_t::FUNCTION, "hget", "Returns a value from a hash table for a given key",
+    { lang_item_t::FUNCTION, "hget",
+        "Returns a value from a hash table for a given key",
         "hget(hash as String, key as String) as Any" },
 
     { lang_item_t::FUNCTION, "hchk", "Returns true if hash/key exist",
         "hchk(hash as String, key as String) as Boolean" },
 
-    { lang_item_t::FUNCTION, "hcnt", "Returns count of pairs hash/key of a hash table",
+    { lang_item_t::FUNCTION, "hcnt",
+        "Returns count of pairs hash/key of a hash table",
         "hcnt(hash as String) as Integer" },
 
-    { lang_item_t::FUNCTION, "hdel", 
+    { lang_item_t::FUNCTION, "hdel",
         "Erases the key/value pair from a hash table "
         "or a whole table in case the key is not specified",
         "hdel(hash as String [, key as String])" },
@@ -237,8 +242,9 @@ static help_content_t _help_content[] = {
         " to retrieve",
         "InKey[$]()" },
 
-    { lang_item_t::FUNCTION, "input$", "Returns a string of x characters read "
-                                       "from the standard input",
+    { lang_item_t::FUNCTION, "input$",
+        "Returns a string of x characters read "
+        "from the standard input",
         "Input$(x)" },
 
     { lang_item_t::FUNCTION, "len", "Returns the number of characters in x$",
@@ -254,8 +260,9 @@ static help_content_t _help_content[] = {
     { lang_item_t::FUNCTION, "int", "Truncates an expression to a whole number",
         "Int(x)" },
 
-    { lang_item_t::FUNCTION, "sign", "Returns the sign of x. If x=0 returns 0, "
-                                     "if x<0 retunrs -1 else 1",
+    { lang_item_t::FUNCTION, "sign",
+        "Returns the sign of x. If x=0 returns 0, "
+        "if x<0 retunrs -1 else 1",
         "Sign(x)" },
 
     { lang_item_t::FUNCTION, "pow",
@@ -315,7 +322,8 @@ static help_content_t _help_content[] = {
         "Exp(x)" },
 
     { lang_item_t::FUNCTION, "conv",
-        "Returns a vector of double as result of convolution 2 given vectors of numbers",
+        "Returns a vector of double as result of convolution 2 given vectors "
+        "of numbers",
         "Conv( v1, v2 [, count1, count2 ] ))" },
 
     { lang_item_t::FUNCTION, "abs",
@@ -330,8 +338,8 @@ static help_content_t _help_content[] = {
     { lang_item_t::FUNCTION, "getenv", "Gets an environment variable",
         "GetEnv[$](var$)" },
 
-    { lang_item_t::FUNCTION, "getvkey", "Returns the next vkey code from the standard input",
-        "GetVKey()" },
+    { lang_item_t::FUNCTION, "getvkey",
+        "Returns the next vkey code from the standard input", "GetVKey()" },
 
     { lang_item_t::FUNCTION, "setenv",
         "Sets an environment variable to a given value", "SetEnv(var$, val$)" },
@@ -415,9 +423,10 @@ static help_content_t _help_content[] = {
     { lang_item_t::FUNCTION, "sizeof@",
         "Returns the number of items of the array x", "SizeOf@(x)" },
 
-    { lang_item_t::FUNCTION, "sysmonth", "returns the month(from 0 to 11) for "
-                                         "the system date, according to local "
-                                         "time",
+    { lang_item_t::FUNCTION, "sysmonth",
+        "returns the month(from 0 to 11) for "
+        "the system date, according to local "
+        "time",
         "SysMonth()" },
 
     { lang_item_t::FUNCTION, "sysyear",
@@ -432,8 +441,9 @@ static help_content_t _help_content[] = {
         "returns the week day for the system date, according to local time",
         "SysWDay()" },
 
-    { lang_item_t::FUNCTION, "sysyday", "returns the year day (1-365) for the "
-                                        "system date, according to local time",
+    { lang_item_t::FUNCTION, "sysyday",
+        "returns the year day (1-365) for the "
+        "system date, according to local time",
         "SysYDay()" },
 
     { lang_item_t::FUNCTION, "syshour", "returns the hour of day",
@@ -442,8 +452,9 @@ static help_content_t _help_content[] = {
     { lang_item_t::FUNCTION, "sysmin", "returns the minute of current hour",
         "SysMin()" },
 
-    { lang_item_t::FUNCTION, "systime", "returns a local time and date in the "
-                                        "format 'DDD MMM DN HH:MM:SS YYYY'",
+    { lang_item_t::FUNCTION, "systime",
+        "returns a local time and date in the "
+        "format 'DDD MMM DN HH:MM:SS YYYY'",
         "SysTime[$]()" },
 
 
@@ -519,8 +530,9 @@ static help_content_t _help_content[] = {
 
     { lang_item_t::OPERATOR, "<>", "'Not equal to' operator", "x <> y" },
 
-    { lang_item_t::OPERATOR, "=", "'Equal to' or assign operator "
-                                  "(when x is a left-value variable)",
+    { lang_item_t::OPERATOR, "=",
+        "'Equal to' or assign operator "
+        "(when x is a left-value variable)",
         "x = y" },
 
     { lang_item_t::OPERATOR, "<", "'Less than' operator", "x < y" },
@@ -656,8 +668,10 @@ static help_content_t _help_content[] = {
         "Return" },
 
     { lang_item_t::INSTRUCTION, "data",
-        "Stores the result of expressions (including constants and variables) that are "
-        "accessed later by Read statement. Data is added on statement Data execution. "
+        "Stores the result of expressions (including constants and variables) "
+        "that are "
+        "accessed later by Read statement. Data is added on statement Data "
+        "execution. "
         "Data can be removed from memory using special command Restore(-1).",
         "Data [expression1][,][expression2][,]..." },
 
@@ -674,7 +688,12 @@ static help_content_t _help_content[] = {
         "Restore [index]" },
 
     { lang_item_t::INSTRUCTION, "locate",
-        "Moves the cursor to the specified position on the active screen",
+        "Moves the text cursor to the given cell in the console buffer "
+        "(row and column are 1-based). Coordinates are absolute in the "
+        "backing store, not relative to the scrolled viewport, so scatter "
+        "drawing with Locate + Write preserves earlier characters in "
+        "non-overlapping cells. After long scrolling without Cls, row 1 is "
+        "still the first buffer line (use Cls before a fixed-screen plot).",
         "Locate row,col" },
 
     { lang_item_t::INSTRUCTION, "print",
@@ -687,9 +706,18 @@ static help_content_t _help_content[] = {
         "the first statement in the immediate-mode editing.\n"
         "Literal strings in the list must be enclosed in double quotation"
         "marks. If the optional prefix $u is specified, you can insert "
-        " sequence of \\u0000-\\uffff which will interpreted as unicode symbols.\n"
+        " sequence of \\u0000-\\uffff which will interpreted as unicode "
+        "symbols.\n"
         "How they are rendered depends on console configuration (e.g. Font)",
         "Print [$u,][list of expressions][;]" },
+
+    { lang_item_t::INSTRUCTION, "write",
+        "Like Print, but does not send an implicit newline after the last "
+        "expression. Use after Locate (or any scatter output) so the console "
+        "buffer is not scrolled on every character; otherwise the circular "
+        "scrollback can discard earlier cells. For a normal line ending use "
+        "Print, or end with Print \"\". Write# is unrelated (file output).",
+        "Write [$u,][list of expressions][;]" },
 
     { lang_item_t::INSTRUCTION, "print#",
         "Prints list of expressions to file (0-standard output)\n"
@@ -869,8 +897,9 @@ static help_content_t _help_content[] = {
         "\nSee also Open, Read, Write, Errno, Errno$",
         "Close [#]file-number" },
 
-    { lang_item_t::INSTRUCTION, "shell", "Executes a shell command\n"
-                                         "\nSee also Errno, Errno$",
+    { lang_item_t::INSTRUCTION, "shell",
+        "Executes a shell command\n"
+        "\nSee also Errno, Errno$",
         "Shell \"command...\"" },
 
     { lang_item_t::INSTRUCTION, "struct",
@@ -889,7 +918,7 @@ static help_content_t _help_content[] = {
         " on the console and returns control to the user.\n"
         " It is possible to resume program \n"
         " execution at the next statement using CONT command.\n",
-        "Stop\n"},
+        "Stop\n" },
 
 #ifndef TINY_NUBASIC_VER
     { lang_item_t::FUNCTION, "getmousex",
@@ -1019,15 +1048,15 @@ static help_content_t _help_content[] = {
         "\nSee also Line, Rect, Ellipse, FillRect, FillEllipse",
         "TextOut x, y, string_msg, rgb_color" },
 
-    { lang_item_t::INSTRUCTION, "plotimage", "Loads and draws a bitmap from "
-                                             "file on the screen starting at "
-                                             "coords x,y\n",
+    { lang_item_t::INSTRUCTION, "plotimage",
+        "Loads and draws a bitmap from "
+        "file on the screen starting at "
+        "coords x,y\n",
         "PlotImage bitmap$, x, y" },
 
 #endif // ...TINY_NUBASIC_VER
 
-    { lang_item_t::FUNCTION, "quit",
-        "Quit nuBASIC interpreter\n",
+    { lang_item_t::FUNCTION, "quit", "Quit nuBASIC interpreter\n",
         "Quit errorcode" }
 
 };
