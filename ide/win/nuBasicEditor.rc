@@ -118,6 +118,7 @@ BEGIN
         MENUITEM "&Clear message window",       IDM_CLEAR_INFOBOX
         MENUITEM "&Hide message window",        IDM_HIDE_INFOBOX
         MENUITEM "&Show and resize message window", IDM_RESIZE_INFOBOX
+        MENUITEM "Detach Console &Window",  IDM_CONSOLE_DETACH
         MENUITEM SEPARATOR
         MENUITEM "&Font...",                    IDM_SETTINGS_FONT
         MENUITEM SEPARATOR
@@ -143,14 +144,15 @@ BEGIN
         MENUITEM "&Build program\tCtrl+B", IDM_INTERPRETER_BUILD
         MENUITEM SEPARATOR
         MENUITEM "&Start Debugging\tF5",IDM_DEBUG_START
+        MENUITEM "Stop Debugging\tEsc", IDM_DEBUG_STOP
         MENUITEM "Continue Debugging\tF8", IDM_DEBUG_CONT
         MENUITEM "Step\tF10", IDM_DEBUG_STEP
         MENUITEM "Evaluate Selection\tF11", IDM_DEBUG_EVALSEL
         MENUITEM SEPARATOR
         MENUITEM "Start &Without Debugging\tCtrl+F5", IDM_DEBUG_RUN
         MENUITEM SEPARATOR
-        MENUITEM "Debug window topmost", IDM_DEBUG_TOPMOST
-        MENUITEM "Debug window no-topmost", IDM_DEBUG_NOTOPMOST
+        MENUITEM "Console window on &top", IDM_DEBUG_TOPMOST
+        MENUITEM "&IDE window on top", IDM_DEBUG_NOTOPMOST
         MENUITEM SEPARATOR
         MENUITEM "&Toggle Breakpoint\tF9", IDM_DEBUG_TOGGLEBRK
         MENUITEM "&Delete all Breakpoints", IDM_DEBUG_REMOVEALLBRK
@@ -178,6 +180,7 @@ NUBASICEDITOR ACCELERATORS
 BEGIN
     VK_F1,          IDM_HELP_SEARCH_KEYWORD, VIRTKEY, CONTROL, NOINVERT
     VK_F1,          IDM_CTX_HELP, VIRTKEY, NOINVERT
+    VK_ESCAPE,      IDM_DEBUG_STOP, VIRTKEY, NOINVERT
     VK_F5,          IDM_DEBUG_START, VIRTKEY, NOINVERT
     VK_F5,          IDM_DEBUG_RUN, VIRTKEY, CONTROL, NOINVERT
     VK_F8,          IDM_DEBUG_CONT, VIRTKEY, NOINVERT

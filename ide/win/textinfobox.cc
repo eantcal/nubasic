@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -20,9 +20,12 @@
 txtinfobox_t::txtinfobox_t(const HWND hParentWnd, const HINSTANCE hInst,
     const std::string& fontName, const int fontSize, const DWORD dwStyle)
 {
-    _ctrl_hwnd = CreateWindow(TEXT("EDIT"), // Class name
+    // Use RichEdit instead of plain EDIT for better formatting support
+    _ctrl_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE | WS_EX_DLGMODALFRAME,
+        "RICHEDIT", // Use RichEdit control
         NULL, // Window text
-        WS_CHILD | WS_VISIBLE | dwStyle, // Window style
+        WS_CHILD | WS_VISIBLE | dwStyle | WS_HSCROLL
+            | WS_VSCROLL, // Window style
         0, // x coordinate of the upper-left corner
         0, // y coordinate of the upper-left corner
         CW_USEDEFAULT, // Width of the edit control window

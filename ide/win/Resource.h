@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -58,6 +58,8 @@
 #define IDM_RESIZE_INFOBOX 40041
 #define IDM_ZOOM_IN 40042
 #define IDM_ZOOM_OUT 40043
+#define IDM_CONSOLE_DETACH 40044
+#define IDM_DEBUG_STOP 40045
 
 
 #define IDM_MENU_SEARCH_POS 4

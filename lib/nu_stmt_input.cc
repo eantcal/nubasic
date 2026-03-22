@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -12,6 +12,10 @@
 #include "nu_os_console.h"
 #include "nu_rt_prog_ctx.h"
 #include <cstdio>
+
+#ifdef _WIN32
+#include "nu_winconsole_api.h"
+#endif
 
 
 /* -------------------------------------------------------------------------- */
@@ -25,7 +29,14 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
 {
     FILE* sout = ctx.get_stdout_ptr();
 
-    fprintf(sout, "%s", _input_str.c_str());
+#ifdef _WIN32
+    if (sout == stdout && nu_winconsole_is_active()) {
+        nu_winconsole_write(_input_str.c_str());
+    } else
+#endif
+    {
+        fprintf(sout, "%s", _input_str.c_str());
+    }
 
     for (auto const& variable : _vars) {
         std::string value = _os_input(ctx.get_stdin_ptr());
@@ -44,8 +55,8 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
                 = ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
             rt_error_code_t::get_instance().throw_if(!scope->is_defined(name),
-                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_VAR_UNDEF,
-                "'" + name + "'");
+                ctx.runtime_pc.get_line(),
+                rt_error_code_t::value_t::E_VAR_UNDEF, "'" + name + "'");
 
             size_t idx = index->eval(ctx).to_int();
 
@@ -54,12 +65,13 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
             const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
 
             rt_error_code_t::get_instance().throw_if(const_var,
-                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_CANNOT_MOD_CONST,
-                "'" + name + "'");
+                ctx.runtime_pc.get_line(),
+                rt_error_code_t::value_t::E_CANNOT_MOD_CONST, "'" + name + "'");
 
             rt_error_code_t::get_instance().throw_if(idx >= var.vector_size(),
                 ctx.runtime_pc.get_line(),
-                rt_error_code_t::value_t::E_VEC_IDX_OUT_OF_RANGE, "'" + name + "'");
+                rt_error_code_t::value_t::E_VEC_IDX_OUT_OF_RANGE,
+                "'" + name + "'");
 
             variant_t::type_t t = var.get_type();
 
@@ -72,8 +84,8 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
             case variant_t::type_t::OBJECT:
             case variant_t::type_t::STRUCT:
                 rt_error_code_t::get_instance().throw_if(true,
-                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
-                    "'" + name + "'");
+                    ctx.runtime_pc.get_line(),
+                    rt_error_code_t::value_t::E_TYPE_ILLEGAL, "'" + name + "'");
                 break;
 
             case variant_t::type_t::STRING:
@@ -89,7 +101,7 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
                 break;
 
             case variant_t::type_t::BYTEVECTOR:
-               var.set_bvect(nu::stoll(value), idx);
+                var.set_bvect(nu::stoll(value), idx);
                 break;
 
             case variant_t::type_t::BOOLEAN:
@@ -100,8 +112,7 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
             }
 
             scope->define(name, var_value_t(var, VAR_ACCESS_RW));
-        } 
-        else {
+        } else {
             var_scope_t::handle_t scope
                 = ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
@@ -109,8 +120,8 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
             const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
 
             rt_error_code_t::get_instance().throw_if(const_var,
-                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_CANNOT_MOD_CONST,
-                "'" + name + "'");
+                ctx.runtime_pc.get_line(),
+                rt_error_code_t::value_t::E_CANNOT_MOD_CONST, "'" + name + "'");
 
             variant_t var = v.first;
             variant_t::type_t t = var.get_type();
@@ -125,35 +136,34 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
 
             case variable_t::type_t::DOUBLE:
                 try {
+                    scope->define(name,
+                        var_value_t(double_t(nu::stod(value)), VAR_ACCESS_RW));
+                } catch (...) {
                     scope->define(
-                        name, var_value_t(double_t(nu::stod(value)), VAR_ACCESS_RW));
-                } 
-                catch (...) {
-                    scope->define(name, var_value_t(double_t(0), VAR_ACCESS_RW));
+                        name, var_value_t(double_t(0), VAR_ACCESS_RW));
                 }
 
                 break;
 
             case variable_t::type_t::INTEGER:
                 try {
+                    scope->define(name,
+                        var_value_t(
+                            integer_t(nu::stoll(value)), VAR_ACCESS_RW));
+                } catch (...) {
                     scope->define(
-                        name, var_value_t(integer_t(nu::stoll(value)), VAR_ACCESS_RW));
-                } 
-                catch (...) {
-                    scope->define(name, var_value_t(integer_t(0), VAR_ACCESS_RW));
+                        name, var_value_t(integer_t(0), VAR_ACCESS_RW));
                 }
 
                 break;
 
             case variable_t::type_t::BOOLEAN:
                 try {
-                    scope->define(
-                        name,
+                    scope->define(name,
                         var_value_t(strcasecmp(value.c_str(), "false") != 0
                                 && strcasecmp(value.c_str(), "0") != 0,
                             VAR_ACCESS_RW));
-                } 
-                catch (...) {
+                } catch (...) {
                     scope->define(name, var_value_t(false, VAR_ACCESS_RW));
                 }
 
@@ -162,8 +172,8 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
             case variant_t::type_t::UNDEFINED:
             case variant_t::type_t::STRUCT:
                 rt_error_code_t::get_instance().throw_if(true,
-                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
-                    "'" + name + "'");
+                    ctx.runtime_pc.get_line(),
+                    rt_error_code_t::value_t::E_TYPE_ILLEGAL, "'" + name + "'");
                 break;
             }
         }

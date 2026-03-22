@@ -31,6 +31,8 @@
 
 #include "SciLexer.h"
 #include "Scintilla.h"
+#include "ILexer.h"   // ILexer5 interface (Scintilla 5.x)
+#include "Lexilla.h"  // CreateLexerFunction typedef (Lexilla 5.x)
 #include "resource.h"
 
 #include "config.h"

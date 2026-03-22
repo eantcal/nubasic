@@ -36,34 +36,37 @@ endif()
 
 add_subdirectory(mipjson)
 
-add_custom_target(
-   scintilla
-   COMMAND make
-   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../scintilla/gtk
-)
-
-
 set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GTK2_DEFINITIONS} -std=c++14 -Wmissing-field-initializers" )
 
+# SCINTILLA_INCLUDE_DIRS and LEXILLA_INCLUDE_DIRS are set by cmake/ScintillaFetch.cmake
 include_directories(
-    ../../ 
-    ../../include 
-    mipjson/include 
-    mipjson/miptknzr/include 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../scintilla/include 
-    ${X11_INCLUDE_DIR} 
+    ../../
+    ../../include
+    mipjson/include
+    mipjson/miptknzr/include
+    ${SCINTILLA_INCLUDE_DIRS}
+    ${LEXILLA_INCLUDE_DIRS}
+    ${X11_INCLUDE_DIR}
     ${GTK2_INCLUDE_DIRS}
 )
 
-link_directories(${lib_BINARY_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/../scintilla/bin" )
+link_directories(${lib_BINARY_DIR})
 
 file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
 
 add_executable(nubasicide ${SOURCES})
-add_dependencies(nubasicide scintilla)
 target_compile_features(nubasicide PRIVATE cxx_std_17)
 
-target_link_libraries(nubasicide nubasicinterpreter "${CMAKE_CURRENT_SOURCE_DIR}/../scintilla/bin/scintilla.a" mipjson ${X11_LIBRARIES} ${GTK2_LIBRARIES} -pthread)
+# Link against the CMake-built Scintilla target (set by cmake/ScintillaFetch.cmake)
+# Falls back to the prebuilt .a if SCINTILLA_LOCAL=ON
+if(TARGET scintilla)
+    target_link_libraries(nubasicide nubasicinterpreter scintilla mipjson ${X11_LIBRARIES} ${GTK2_LIBRARIES} -pthread)
+else()
+    # SCINTILLA_LOCAL fallback: use the prebuilt scintilla.a
+    target_link_libraries(nubasicide nubasicinterpreter
+        "${CMAKE_SOURCE_DIR}/ide/scintilla/bin/scintilla.a"
+        mipjson ${X11_LIBRARIES} ${GTK2_LIBRARIES} -pthread)
+endif()
 
 # add the install targets
 install (TARGETS nubasicide DESTINATION bin)

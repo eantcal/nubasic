@@ -1,0 +1,92 @@
+cmake_minimum_required(VERSION 3.5)
+project(nuWinConsole)
+
+if(NOT WIN32)
+  message(WARNING "nuWinConsole can only be built on Windows")
+  return()
+endif()
+
+# ===== Static Library for nuBASIC integration =====
+
+# Source files for library
+set(LIB_SOURCES
+  ConsoleWindow.cpp
+  ConsoleBuffer.cpp
+  nu_winconsole_api.cpp
+)
+
+# Header files for library
+set(LIB_HEADERS
+  ConsoleWindow.h
+  ConsoleBuffer.h
+  ConsoleConfig.h
+  nu_winconsole_api.h
+)
+
+# Create static library
+add_library(nuwinconsole STATIC ${LIB_SOURCES} ${LIB_HEADERS})
+
+# Set C++ standard for library
+target_compile_features(nuwinconsole PUBLIC cxx_std_17)
+
+# Include directories for library (PUBLIC so consumers can use them)
+target_include_directories(nuwinconsole PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/include
+)
+
+# Preprocessor definitions for library
+# UNICODE/_UNICODE are PRIVATE: nuwinconsole uses wide-char Win32 APIs internally
+# but must not force Unicode mode on consumers (interpreter / IDE use MBCS/ANSI).
+target_compile_definitions(nuwinconsole
+  PUBLIC
+    _CRT_SECURE_NO_WARNINGS
+    NOMINMAX
+    $<$<CONFIG:Debug>:_DEBUG>
+    $<$<CONFIG:Release>:NDEBUG>
+    _WINDOWS
+  PRIVATE
+    UNICODE
+    _UNICODE
+)
+
+# Compiler options for library
+if(MSVC)
+  target_compile_options(nuwinconsole PUBLIC
+    /W3
+    $<$<CONFIG:Release>:/O2>
+    $<$<CONFIG:Debug>:/Od /Zi>
+  )
+  # Use static runtime library
+  set_property(TARGET nuwinconsole PROPERTY
+    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
+# Link libraries for the static library
+target_link_libraries(nuwinconsole PUBLIC
+  Gdi32
+  User32
+  kernel32
+)
+
+# ===== Test Executable (optional) =====
+
+# Source files for test executable
+set(TEST_SOURCES
+  main.cpp
+)
+
+# Create test executable
+add_executable(nuWinConsole_test WIN32 ${TEST_SOURCES})
+
+# Output name for test
+set_target_properties(nuWinConsole_test PROPERTIES OUTPUT_NAME "nubasic_console")
+
+# Link against the library
+target_link_libraries(nuWinConsole_test PRIVATE
+  nuwinconsole
+)
+
+# Install targets
+install(TARGETS nuwinconsole nuWinConsole_test DESTINATION bin)
+

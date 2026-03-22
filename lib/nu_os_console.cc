@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -10,12 +10,11 @@
 
 #include "nu_os_console.h"
 #include <cstdio>
-#include <functional>
 
-#include <locale>
 #include <codecvt>
-#include <string>
 #include <iostream>
+#include <locale>
+#include <string>
 
 /* -------------------------------------------------------------------------- */
 
@@ -24,39 +23,15 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include <conio.h>
 #include <windows.h>
 
-#include <io.h>
-#include <fcntl.h>
 #include <locale.h>
+
+#include "nu_winconsole_api.h"
 
 /* -------------------------------------------------------------------------- */
 
 namespace nu {
-
-/* -------------------------------------------------------------------------- */
-
-static std::string _input_str(int n, std::function<int()> _getch_f)
-{
-    if (n <= 1) {
-        n = 1;
-    }
-
-    std::string ret;
-
-    for (int i = 0; i < n; ++i) {
-        int c = _getch_f();
-
-        if (c == 0x03 /* ETX */) {
-            break;
-        }
-
-        ret += (c & 0xff);
-    }
-
-    return ret;
-}
 
 
 /* -------------------------------------------------------------------------- */
@@ -64,8 +39,8 @@ static std::string _input_str(int n, std::function<int()> _getch_f)
 void _os_init()
 {
     // do nothing
-   //_setmode(_fileno(stderr), _O_U16TEXT);
-   setlocale(LC_CTYPE, ".932");
+    //_setmode(_fileno(stderr), _O_U16TEXT);
+    setlocale(LC_CTYPE, ".932");
 }
 
 
@@ -73,11 +48,7 @@ void _os_init()
 
 void _os_u16write(const std::u16string& output)
 {
-   WriteConsoleW(
-      GetStdHandle(STD_OUTPUT_HANDLE), 
-      output.c_str(), 
-      (DWORD) output.length(), 
-      NULL, NULL);
+    nu_winconsole_write_w((const wchar_t*)output.c_str());
 }
 
 
@@ -93,46 +64,7 @@ void _os_config_term(bool echo_mode)
 
 void _os_cls()
 {
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    COORD coordScreen = { 0, 0 };
-    DWORD cCharsWritten;
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    DWORD dwConSize;
-
-    // Get the number of character cells in the current buffer.
-    if (!GetConsoleScreenBufferInfo(hConsole, &csbi)) {
-        return;
-    }
-
-    dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
-
-    // Fill the entire screen with blanks.
-    if (!FillConsoleOutputCharacter(hConsole, // Handle to console screen buffer
-            (TCHAR)' ', // Character to write to the buffer
-            dwConSize, // Number of cells to write
-            coordScreen, // Coordinates of first cell
-            &cCharsWritten)) // Receive number of characters written
-    {
-        return;
-    }
-
-    // Get the current text attribute.
-    if (!GetConsoleScreenBufferInfo(hConsole, &csbi)) {
-        return;
-    }
-
-    // Set the buffer's attributes accordingly.
-    if (!FillConsoleOutputAttribute(hConsole, // Handle to console screen buffer
-            csbi.wAttributes, // Character attributes to use
-            dwConSize, // Number of cells to set attribute
-            coordScreen, // Coordinates of first cell
-            &cCharsWritten)) // Receive number of characters written
-    {
-        return;
-    }
-
-    // Put the cursor at its home coordinates.
-    SetConsoleCursorPosition(hConsole, coordScreen);
+    nu_winconsole_cls();
 }
 
 
@@ -140,8 +72,7 @@ void _os_cls()
 
 void _os_locate(int y, int x)
 {
-    COORD c = { short((x - 1) & 0xffff), short((y - 1) & 0xffff) };
-    ::SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
+    nu_winconsole_locate(x - 1, y - 1);
 }
 
 
@@ -149,8 +80,20 @@ void _os_locate(int y, int x)
 
 std::string _os_input_str(int n)
 {
-    // Implements INPUT$(x) semantic
-    return _input_str(n, _getch);
+    std::string result;
+    for (int i = 0; i < n; ++i) {
+        while (!nu_winconsole_key_available()) {
+            nu_winconsole_process_messages();
+            Sleep(10);
+        }
+        int key = nu_winconsole_get_key();
+        if (key == 0x03)
+            break; // ETX
+        if (key > 0 && key < 256) {
+            result += (char)(key & 0xff);
+        }
+    }
+    return result;
 }
 
 
@@ -159,23 +102,27 @@ std::string _os_input_str(int n)
 // Implements INPUT semantic
 std::string _os_input(FILE* finput_ptr)
 {
+    if (finput_ptr == stdin) {
+        char buffer[4096];
+        int len = nu_winconsole_read_line(buffer, sizeof(buffer));
+        if (len > 0)
+            return std::string(buffer);
+        return "";
+    }
+
     std::string s;
     char c;
 
     do {
         c = getc(finput_ptr);
 
-        if (finput_ptr != stdin) {
-            if (feof(finput_ptr) || ferror(finput_ptr))
-                return s;
-        }
+        if (feof(finput_ptr) || ferror(finput_ptr))
+            return s;
 
-        if (c != '\n') {
+        if (c != '\n')
             s += c;
-        }
 
-    } 
-    while (c != '\n');
+    } while (c != '\n');
 
     return s;
 }
@@ -183,42 +130,17 @@ std::string _os_input(FILE* finput_ptr)
 
 /* -------------------------------------------------------------------------- */
 
-int _os_kbhit() 
-{ 
-    return _kbhit() ? _getch() : 0; 
+int _os_kbhit()
+{
+    return nu_winconsole_key_available() ? nu_winconsole_get_key() : 0;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-static struct _cursor_info_t {
-    _cursor_info_t() {
-        hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-        GetConsoleCursorInfo(hConsoleOutput, &structCursorInfo);
-    }
-
-    ~_cursor_info_t() {
-        SetConsoleCursorInfo(hConsoleOutput, &structCursorInfo);
-    }
-
-    void set_cur_state(bool on) {
-        CONSOLE_CURSOR_INFO structCursorInfo_ = { 0 };
-        structCursorInfo_.bVisible = on ? TRUE : FALSE;
-        structCursorInfo_.dwSize = on ? structCursorInfo.dwSize : 1;
-        SetConsoleCursorInfo(hConsoleOutput, &structCursorInfo_);
-    }
-
-    CONSOLE_CURSOR_INFO structCursorInfo;
-    HANDLE hConsoleOutput;
-
-} _cur_info;
-
-
-/* -------------------------------------------------------------------------- */
-
-void _os_cursor_visible(bool on) 
-{ 
-    _cur_info.set_cur_state(on); 
+void _os_cursor_visible(bool on)
+{
+    nu_winconsole_cursor_visible(on ? 1 : 0);
 }
 
 
@@ -229,7 +151,8 @@ void _os_cursor_visible(bool on)
 
 /* -------------------------------------------------------------------------- */
 
-#else /*--------------- LINUX / MAC ------------------------------------------*/
+#else /*--------------- LINUX / MAC                                            \
+         ------------------------------------------*/
 /* -------------------------------------------------------------------------- */
 
 
@@ -281,25 +204,24 @@ private:
     struct termios _tty_set;
 
 public:
-    save_tty_settings_t() {
+    save_tty_settings_t()
+    {
         _old_flags = fcntl(STDIN_FILENO, F_GETFL, 0);
         tcgetattr(STDIN_FILENO, &_tty_set); // grab old terminal I/O settings
         _tty_set.c_lflag &= ~ICANON;
         tcsetattr(STDIN_FILENO, TCSANOW, &_tty_set);
     }
 
-    ~save_tty_settings_t() { 
-        fcntl(STDIN_FILENO, F_SETFL, _old_flags); 
-    }
+    ~save_tty_settings_t() { fcntl(STDIN_FILENO, F_SETFL, _old_flags); }
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_init() 
-{ 
+void _os_init()
+{
     static save_tty_settings_t _init_terminal;
-    setlocale(LC_CTYPE, ""); 
+    setlocale(LC_CTYPE, "");
 }
 
 
@@ -307,7 +229,7 @@ void _os_init()
 
 void _os_u16write(const std::u16string& output)
 {
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert;
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
     std::string bs = convert.to_bytes(output);
     printf("%s", bs.c_str());
 }
@@ -324,18 +246,12 @@ void _os_cls()
 
 /* -------------------------------------------------------------------------- */
 
-void _os_locate(int y, int x) 
-{ 
-    printf("%c[%d;%df", 0x1B, y, x); 
-}
+void _os_locate(int y, int x) { printf("%c[%d;%df", 0x1B, y, x); }
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_cursor_visible(bool on) 
-{ 
-    printf("%c[?25%c", 0x1B, !on ? 'l' : 'h'); 
-}
+void _os_cursor_visible(bool on) { printf("%c[?25%c", 0x1B, !on ? 'l' : 'h'); }
 
 
 /* -------------------------------------------------------------------------- */
@@ -412,8 +328,7 @@ std::string _os_input(FILE* finput_ptr)
 
         if (c != '\n')
             s += c;
-    } 
-    while (c != '\n');
+    } while (c != '\n');
 
     return s;
 }

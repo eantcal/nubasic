@@ -1,573 +1,526 @@
-nuBASIC NEWS -- history of user-visible changes.
+nuBASIC NEWS -- History of User-Visible Changes
 http://www.nubasic.eu/
-Author - Antonino Calderone - antonino.calderone@gmail.com - (c) 2014-2022
 
-Please send nuBASIC and nuBasic IDE bug reports to <antonino.calderone@gmail.com>.
+Author: Antonino Calderone - antonino.calderone@gmail.com
+Copyright (c) 2014-2022
 
-Win32/64 built with VS2022 needs "Visual C++ Redistributable Packages for Visual Studio 2022"
+Please send bug reports for nuBASIC and nuBASIC IDE to:
+<antonino.calderone@gmail.com>
+
+The Win32/64 build created with Visual Studio 2022 requires the
+"Visual C++ Redistributable Packages for Visual Studio 2022".
+
+March 2026
+* Released nuBASIC 1.60
+- Added a new console for Windows that does not rely on the standard Windows console application
+  (it works both attached to and detached from the IDE interface)
+- Updated Scintilla to the latest version
 
 Feb 2022
 * Released nuBASIC 1.52
-- Bug Fix (const wasn't working with strings)
-- Allow PRINT to print out sequence of escaped unicode characters
-- Update Scintilla to Release 4.3.2
-
+- Bug fix: CONST did not work correctly with strings
+- PRINT now supports output of escaped Unicode character sequences
+- Updated Scintilla to version 4.3.2
 
 Sep 2019
 * Released nuBASIC 1.51
-- Bug fixing of expression parser: unary minus operator could generate a false syntax error
-- Add STOP statement for compatibility with other BASIC interpreters
-- Allow IF statement to support implicit GOTO after THEN and ELSE statements
-- Bug fixing of mouse position disalignment in Windows with some high res cfg
-
+- Fixed an expression parser issue: the unary minus operator could trigger a false syntax error
+- Added the STOP statement for compatibility with other BASIC interpreters
+- IF now supports implicit GOTO after THEN and ELSE
+- Fixed mouse position misalignment on Windows with some high-resolution configurations
 
 Jul 13, 2019
 * Released nuBASIC 1.50
-- Add Read, Data and Restore statements
-
+- Added READ, DATA, and RESTORE statements
 
 Nov 11, 2018
-* Released nuBASIC 1.49 IDE 1.48 for Windows
-- Bug-fix: wrong access to element of array of double with index greater than 0
-- Update scilexer to 4.05
-- Add function Conv() and related conv.bas example
-- Add function GetVKey()
-- Add new text version of Rosetta example
-- Extend the function syntax in order to allow to return an array (by val)
-- Allow to assign an array to another (of same type) with unique assignment operation 
-- Additional improvements and minor bug-fixes
-
+* Released nuBASIC 1.49 / IDE 1.48 for Windows
+- Bug fix: incorrect access to elements of a double array with index greater than 0
+- Updated SciLexer to version 4.05
+- Added the Conv() function and related conv.bas example
+- Added the GetVKey() function
+- Added a new text version of the Rosetta example
+- Extended function syntax to allow returning an array by value
+- Arrays of the same type can now be assigned with a single assignment operation
+- Additional improvements and minor bug fixes
 
 Jul 3, 2017
 * Released nuBASIC 1.48 / nuBASIC GTK+ IDE 1.48 for Linux
-- Port IDE to Linux/GTK+
-- Change license to MIT
-- Add editor zoom in-out commands
-- Add SetTopmost API
-- Update stb_image to 2.15 
-- Update scintilla to 3.74
-
+- Ported the IDE to Linux/GTK+
+- Changed license to MIT
+- Added editor zoom in/out commands
+- Added SetTopmost API
+- Updated stb_image to version 2.15
+- Updated Scintilla to version 3.74
 
 Jan 22, 2017
 * Released nuBASIC 1.47
-- Add format function for floating point representation (StrP, StrP$)
-- Add Hash-table support: HSet(), HGet(), HCnt(), HChk(), HDel()
-- Add Any type: type deduction
-- Add GetAppPath() API
-- Add Quit() API
-- Improvements and bug-fixes
-
+- Added floating-point formatting functions StrP and StrP$
+- Added hash table support: HSet(), HGet(), HCnt(), HChk(), HDel()
+- Added Any type with type deduction
+- Added GetAppPath() API
+- Added Quit() API
+- Improvements and bug fixes
 
 Dec 22, 2015
 * Released nuBASIC 1.46
-- Changed icons layout and commands order of the toolbar
-- Bug-fix: IDE did not execute old-style programs if first line is special comment "!#"
-- Bug-fix: IDE did not clean "Go to procedures" submenu before build new programs
-- Improvements and bug-fixes
-
+- Changed icon layout and toolbar command order
+- Bug fix: the IDE did not execute old-style programs if the first line was the special comment "!#"
+- Bug fix: the IDE did not clear the "Go to procedures" submenu before building new programs
+- Improvements and bug fixes
 
 Dec 15, 2015
 * Released nuBASIC 1.45
-- User can now open a file dropping it into nuBASIC IDE Window
+- Files can now be opened by dragging and dropping them into the nuBASIC IDE window
 - Added GetPixel function
-- Changed behaviour of DbgWindow in running mode
-- Added new sample "plane.bas" and related bitmaps
-- Improvements and bug-fixes
-
+- Changed DbgWindow behaviour while running
+- Added new sample program "plane.bas" and related bitmaps
+- Improvements and bug fixes
 
 Dec 1, 2015
 * Released nuBASIC 1.44
-- Support for Linux executable .bas program:
-  Your program must begin with #!/<bin path>/nubasic 
-  (You may use make_bas_exec.sh script in order to make a file .bas executable)
-- Windows installer associates automatically .bas to nuBASIC. 
-  If you click on one of these file, it will run automatically
-- Improvements and bug-fixes
-
+- Added support for executable .bas programs on Linux:
+  your program must begin with #!/<bin path>/nubasic
+  (you may use the make_bas_exec.sh script to make a .bas file executable)
+- The Windows installer now automatically associates .bas files with nuBASIC.
+  Clicking one of these files will run it automatically
+- Improvements and bug fixes
 
 Nov 30, 2015
 * Released nuBASIC 1.43
-- Added Info Message Window to IDE
-- Added context help (pressing F1); 
-  from now on-line help is mapped on Ctrl+F1
-- Improvements and bug-fixes
-
+- Added Info Message Window to the IDE
+- Added context help (F1);
+  online help is now mapped to Ctrl+F1
+- Improvements and bug fixes
 
 Nov 25, 2015
 * Released nuBASIC 1.42
-- Explicit type definition extended to function return type
-- Extended function syntax in order to pass return struct objects
-- Improvements and bug-fixes
-
+- Extended explicit type definition to function return types
+- Extended function syntax to support returning struct objects
+- Improvements and bug fixes
 
 Nov 24, 2015
 * Released nuBASIC 1.41
-- Const statement syntax extended in order to support explicit type declaration
-- New toolbar buttons related to Top/No-top most debug window selectors
-- New sample code: clock.bas
-- Improvements and bug-fixes
-
+- Extended CONST statement syntax to support explicit type declaration
+- Added new toolbar buttons for topmost / non-topmost debug window selection
+- Added new sample program: clock.bas
+- Improvements and bug fixes
 
 Nov 21, 2015
 * Released nuBASIC 1.40
-- Add explicit type declaration (Example: Dim aString as String)
-- Add structures support:
+- Added explicit type declaration (example: Dim aString As String)
+- Added structure support:
 
   Struct AStructType
-     element as String
-	 element2 as Integer
-	 element3(4) as Double
+     element  As String
+     element2 As Integer
+     element3(4) As Double
   End Struct
 
-  Dim a as AStructType
+  Dim a As AStructType
 
   a.element = "Hello World"
   a.element2 = 3
   a.element3(0) = 1.5768
   a.element3(1) = 2.5868
   a.element3(2) = 3.14
-  
-- Improvements and bug-fixes
 
+- Improvements and bug fixes
 
 Oct 20, 2015
 * Released nuBASIC 1.32
-- Improvements and bug-fixes
+- Improvements and bug fixes
 
 Oct 14, 2015
 * Released nuBASIC 1.31
-- Improvements and bug-fixes
-- Win32/64 rebuilt with VS2015
-  It needs "Visual C++ Redistributable Packages for Visual Studio 2015"
+- Improvements and bug fixes
+- Rebuilt Win32/64 version with VS2015
+  It requires the "Visual C++ Redistributable Packages for Visual Studio 2015"
   https://www.microsoft.com/en-us/download/details.aspx?id=48145
-- Add Debug Window top-most / no-top-most command
+- Added Debug Window topmost / non-topmost command
 
 Jun 9, 2015
 * Released nuBASIC 1.30
-- Improve Randomize implementation
-
+- Improved Randomize implementation
 
 May 25, 2015
 * Released nuBASIC 1.29
-- Fixes a regression added in 1.28 on Delay/MDelay functions
-- Added the function SetPixel
-- Bug fixing and minor changes
+- Fixed a regression introduced in version 1.28 affecting Delay/MDelay functions
+- Added SetPixel function
+- Bug fixes and minor changes
 
 May 13, 2015
 * Released nuBASIC 1.28
-- Performance enhancements 
-- Bug fixing
+- Performance enhancements
+- Bug fixes
 
 Apr 19, 2015
-* Released nuBASIC 32/64 bit for Windows version 1.27
+* Released nuBASIC 32/64-bit for Windows version 1.27
 - Added toolbar for main commands
-- Improved handling of running program via IDE commands 
+- Improved handling of running programs through IDE commands
 
 Apr 17, 2015
-* Released nuBASIC 64 bit for Windows version 1.26.1
-- Bug-fixing: larger pointer to selection could be truncated causing
-  fatal exception error 
+* Released nuBASIC 64-bit for Windows version 1.26.1
+- Bug fix: a pointer to a selection could be truncated, causing a fatal exception
 
 Apr 9, 2015
-* Released nuBASIC Interpreter and nuBASIC IDE (for Windows) version 1.26 
-- Added Code checker and Debugger to Advanced Editor for Windows (now renamed IDE)
-- Added CLI commands "StOn" and "StOff" to enable/disable step-mode execution
-- Fix "cont" command bug allowing to use this command for step-mode execution
-- Added new statement "Elif" and its alias "ElseIf"
-
+* Released nuBASIC Interpreter and nuBASIC IDE (for Windows) version 1.26
+- Added Code Checker and Debugger to the Advanced Editor for Windows
+  (now renamed IDE)
+- Added CLI commands StOn and StOff to enable/disable step-mode execution
+- Fixed the cont command so it can be used correctly in step-mode execution
+- Added new statement Elif and its alias ElseIf
 
 Mar 26, 2015
-* Released nuBasic version 1.25
-- Added ElIf statement, it extends an If statement to execute a different 
-  statement in case the original If expression evaluates to False. 
-  However, unlike Else, it will execute that alternative expression only if 
-  the ElIf conditional expression evaluates to True.
-
+* Released nuBASIC version 1.25
+- Added ElIf statement, extending If to allow execution of an alternative statement
+  when the original If expression evaluates to False and the ElIf condition is True
 
 Mar 3, 2015
-* Released nuBasic version 1.24
-- Added Boolean ('#' postfix) and long64 ('&' postfix) types support
+* Released nuBASIC version 1.24
+- Added Boolean ('#' postfix) and Long64 ('&' postfix) type support
 - Added True and False literal constants
-- Added unary operator supports (added C-like ++ and -- prefix operators)
-- Fixed Random number generation issue
-- Added escape sequences (\n, \r, \a, \t, ...) support to strings
-
+- Added unary operator support (including C-like ++ and -- prefix operators)
+- Fixed random number generation issue
+- Added support for escape sequences (\n, \r, \a, \t, ...) in strings
 
 Nov 21, 2014
-* Released nuBasic version 1.23
- - calc.bas: Resize and clean calc window
- - Add some comment to the code and change README
- - Fix a bug on sub/function definition
- - Fix quoted-string bug when renumering code lines
- - Fix a bug: core-dump when some construct was incomplete
-
+* Released nuBASIC version 1.23
+- calc.bas: resized and cleaned up calc window
+- Added comments to the code and updated README
+- Fixed a bug in sub/function definition
+- Fixed quoted-string bug during line renumbering
+- Fixed a core dump caused by incomplete constructs
 
 Oct 17, 2014
 * Released nuBASIC 1.22
- - Added constant (CONST) support
+- Added constant (CONST) support
 
 * Released nuBasicEditor version 1.22
- - Updated keyword list
- - Change a wrong error message text
-
+- Updated keyword list
+- Corrected an incorrect error message
 
 Oct 1, 2014
 * Released nuBASIC 1.21
-  - Fixed a bug of Print statement implementation (on print exception cursor remained hidden)
-  - Added double-precision floating-point support
-  - Fixed GetWindowDx function bug for Windows platform (it always returned zero)
-
+- Fixed a bug in the PRINT statement implementation
+  (on print exception the cursor remained hidden)
+- Added double-precision floating-point support
+- Fixed GetWindowDx bug on Windows (it always returned zero)
 
 Sep 24, 2014
 * Released nuBASIC 1.20
-  - Update nuBASIC website homepage address (http://www.nubasic.eu)
-* Released nuBasicEditor verson 1.20
-  - Update nuBASIC online-help url
+- Updated nuBASIC website homepage address (http://www.nubasic.eu)
 
+* Released nuBasicEditor version 1.20
+- Updated nuBASIC online help URL
 
 Sep 13, 2014
-* Released nuBasicEditor verson 1.19.1
-  - Added missing keywords (end, cls) from keyword list
-* nuBASIC examples refactoring
+* Released nuBasicEditor version 1.19.1
+- Added missing keywords (end, cls) to the keyword list
+* Refactored nuBASIC examples
 * Updated documentation
-
 
 Sep 9, 2014
 * Released nuBASIC version 1.19
-  - Added Rgb function
-* Released nuBasicEditor verson 1.19
-  - Improved search and replace commands
-  - Implemented web based help system
+- Added Rgb function
 
+* Released nuBasicEditor version 1.19
+- Improved search and replace commands
+- Implemented web-based help system
 
 Aug 27, 2014
 * Released nuBASIC version 1.18
-  - Fixed Exponential Notation Bug 
-    (number like 123E-10 was not recognized as single floating number)
-  - Fixed a bug of a configure.ac script 
-    (it failed using --enable-tinyver option)
-
+- Fixed exponential notation bug
+  (numbers like 123E-10 were not recognized as a single floating-point number)
+- Fixed a bug in configure.ac
+  (it failed when using --enable-tinyver option)
 
 Aug 23, 2014
 * Released nuBASIC version 1.17
-  - Removed dependencies from SDL2 library for Linux platform
-  - Added MkDir, RmDir, Erase functions
-
+- Removed SDL2 dependency on Linux
+- Added MkDir, RmDir, and Erase functions
 
 Aug 21, 2014
 * Released nuBASIC version 1.16
-  - Added GetEnv, SetEnv, UnsetEnv functions
+- Added GetEnv, SetEnv, and UnsetEnv functions
 
 Aug 20, 2014
 * Released nuBASIC version 1.15 (tiny version)
-  - New release of nuBASIC compiled without any graphics, sound, windows 
-    manager support
-
+- New release of nuBASIC compiled without graphics, sound, or window manager support
 
 Aug 16, 2014
 * Released nuBASIC version 1.14
-  - Implemented PlotImage function for Linux platform
-  - Removed from the examples platform checking
-
+- Implemented PlotImage function for Linux
+- Removed platform checks from the examples
 
 Jul 13, 2014
 * Released nuBASIC version 1.13
-  - Update built-in help content including new functions
-  - Added and update examples
-* Released nuBASICEditor version 1.13
-  - Modified some menu items in order to fix minor issues
-  - Added new keywords to look-up table used by syntax highlighter 
-    and autocompletion
+- Updated built-in help content with new functions
+- Added and updated examples
 
+* Released nuBASICEditor version 1.13
+- Modified some menu items to fix minor issues
+- Added new keywords to the lookup table used by syntax highlighter and autocompletion
 
 Jul 06, 2014
 * Released nuBASIC version 1.12
-  - Add GetPlatId() function. 
-  - Added PlaySound(), MsgBox(), GetWindowX(), GetWindowY(), MoveWindow(),
-        GetWindowDx(), GetWindowDy(), functions (on Windows platform only)
-  - Extended to built-in function call-sub syntax (ignoring return code)
-
+- Added GetPlatId() function
+- Added PlaySound(), MsgBox(), GetWindowX(), GetWindowY(), MoveWindow(),
+  GetWindowDx(), and GetWindowDy() functions (Windows only)
+- Extended built-in function call/sub syntax to allow ignoring return values
 
 Jul 01, 2014
-* Release new installation package for Windows (1.11b) containing an up-date of
-  Guides and a new example (TicTacToe)
-
+* Released new installation package for Windows (1.11b)
+  including updated guides and a new example (TicTacToe)
 
 Jun 27, 2014
 * Released nuBasicEditor version 1.11
-  - Added language context help
-  - Added language keywords autocomplete (pressing F10)
-* Released nuBASIC version 1.11
-  - Added "-h" option to support nuBasicEditor "help queries"
-  - Fixed a bug adding 'FOR-loop dynamic data clean-up' when procedure ends
-  - Removed a resource leak if a function was called as procedure 
-  (ignoring return value)
+- Added language context help
+- Added language keyword autocomplete (press F10)
 
+* Released nuBASIC version 1.11
+- Added "-h" option to support nuBasicEditor help queries
+- Fixed a bug related to FOR-loop dynamic data cleanup when a procedure ends
+- Removed a resource leak when a function was called as a procedure
+  (ignoring the return value)
 
 Jun 25, 2014
 * Released nuBasicEditor version 1.10
-  - Added new keyword EVAL
-  - Fixed a bug related to replace command 
-* Released nuBASIC version 1.10
-  - Added EVAL function
-  - Added "calc.bas" example
-  - Fixed a bug of the expression parser
+- Added new keyword EVAL
+- Fixed a bug related to the replace command
 
+* Released nuBASIC version 1.10
+- Added EVAL function
+- Added calc.bas example
+- Fixed a bug in the expression parser
 
 Jun 17, 2014
-* Released nuBasicEditor version 1.09 for x64 platform
-  - Added "Interpret->Stop command"
-* Released nuBASIC version 1.09 (for Windows only)
-  - Added support to allow nuBasicEditor to stop it
+* Released nuBasicEditor version 1.09 for x64
+- Added Interpret -> Stop command
 
+* Released nuBASIC version 1.09 (Windows only)
+- Added support allowing nuBasicEditor to stop it
 
 Jun 16, 2014
 * Released nuBASIC version 1.08
-  - Added assignment by value of array objects 
-    (including procedure parameter passing)
-  - Fixed a bug on procedure parameter passing
-* Released nuBasicEditor version 1.08
-  - Added command line handling
-  - Update keywords list
+- Added assignment by value for arrays
+  (including procedure parameter passing)
+- Fixed a bug in procedure parameter passing
 
+* Released nuBasicEditor version 1.08
+- Added command-line handling
+- Updated keywords list
 
 Jun 14, 2014
 * Released nuBASIC version 1.07
-  - Added command apropos
-  - Updated built-in help content
-  - Added instruction Randomize (which has the same semantic of Rnd(-1))
-  - Added Randomize info into built-in help content
-
+- Added apropos command
+- Updated built-in help content
+- Added Randomize instruction
+  (same semantics as Rnd(-1))
+- Added Randomize information to built-in help
 
 Jun 10, 2014
 * Released nuBASIC version 1.06
-  - Bug fixing
-  - Added functions to manage mouse events
-  - Added a new game (Mine Hunter): minehunter.bas
-* Released nuBasicEditor version 1.06
-  - Added new keywords
+- Bug fixes
+- Added functions to manage mouse events
+- Added a new game: Mine Hunter (minehunter.bas)
 
+* Released nuBasicEditor version 1.06
+- Added new keywords
 
 Jun 6, 2014
 * Released nuBASIC version 1.05
-  - Bug fixing
-
+- Bug fixes
 
 Jun 4, 2014
-* Released RPM installers for Fedora and openSUSE 
-
+* Released RPM installers for Fedora and openSUSE
 
 May 31, 2014
 * Released nuBASIC version 1.04
-  - Fixed a bug on inkey$() 
-    (if no key pressed the returned string contained 
-	non printable single char)
-  - Released ray.bas - An interactive demo based on a simple 3D raycast engine
-
+- Fixed a bug in inkey$()
+  (if no key was pressed, the returned string contained a non-printable character)
+- Released ray.bas, an interactive demo based on a simple 3D ray-casting engine
 
 May 26, 2014
 * Released nuBASIC version 1.03
-  - Added CTRL+C handling also for delay and mdelay instructions
-  - Fixed a bug on "exec" (missing an implicit NEW before load a program file)
-  - Added a notification message on CTRL+C event
-  - Released nuTris.bas version 1.2 (improved the feedback)
-
+- Added CTRL+C handling for Delay and MDelay instructions
+- Fixed a bug in exec
+  (missing an implicit NEW before loading a program file)
+- Added a notification message on CTRL+C
+- Released nuTris.bas version 1.2 with improved feedback
 
 May 25, 2014
 * Released nuBASIC version 1.02
-  - Fixed a bug in for-to-next loop
-  - New example: nuTris Game (a tetris-clone written for nuBASIC) 
-
+- Fixed a bug in FOR...TO...NEXT loop
+- Added new example: nuTris Game (a Tetris clone written in nuBASIC)
 
 May 23, 2014
-* Released nuBASIC version 1.01 
-  - Fixed a regression in bounds checking of arrays
-  - Added command-line option -nx allowing user to run interpreter in 
-    the current window instead of opening new Xterm session (Linux)
-
+* Released nuBASIC version 1.01
+- Fixed a regression in array bounds checking
+- Added command-line option -nx to run the interpreter in the current window
+  instead of opening a new Xterm session (Linux)
 
 May 22, 2014
-* Released nuBASIC .deb packages (32 / 64 bit) for Ubuntu/Debian
-
+* Released nuBASIC .deb packages (32/64-bit) for Ubuntu/Debian
 
 May 18, 2014
 * Updated User's Guide
-* Added italian version of User's Guide
-
+* Added Italian version of the User's Guide
 
 May 16, 2014
 * Released nuBASIC version 1.0
-  - Bug-fixing 
-  - Added get-sys-time functions: Systime$, Time, SysDay, SysMonth, SysYear, ...
-  - Added On-Goto statement
-    - Added Ver$() function which returns nuBASIC version
+- Bug fixes
+- Added system time functions: Systime$, Time, SysDay, SysMonth, SysYear, ...
+- Added On-Goto statement
+- Added Ver$() function returning the nuBASIC version
 
 * Released nuBasicEditor version 1.0
-  - Bug-fixing 
-  - Updated list of keywords for the syntax highlighter 
-  - Added column indicator
+- Bug fixes
+- Updated keyword list for syntax highlighting
+- Added column indicator
 
 * Released nuBasic Guide (PDF) version 1.0
-  - Updated with new statement documentation
-
+- Updated with new statement documentation
 
 May 15, 2014
 * Released nuBASIC version 0.22
-  - Fixed function call stack bug
-
+- Fixed function call stack bug
 
 May 14, 2014
-* Created https://sites.google.com/site/nubasiclanguageinterpreter/ site
+* Created https://sites.google.com/site/nubasiclanguageinterpreter/
 * Released nuBASIC version 0.21
-  - Added Do ... Loop While statement
-  - Added LCase and UCase functions
-
+- Added Do ... Loop While statement
+- Added LCase and UCase functions
 
 May 13, 2014
 * Released nuBASIC version 0.20
-  - Added conditional and unconditional breakpoints
-
+- Added conditional and unconditional breakpoints
 
 May 9, 2014
 * Released nuBASIC version 0.19
-  - Added Function / End Function / Exit Function statements
-  - Fixed Input statement parsing bug
-
+- Added Function / End Function / Exit Function statements
+- Fixed Input statement parsing bug
 
 May 5, 2014
 * Released nuBASIC version 0.18
-  - Added support for Sub / End Sub / Exit Sub
-  - Fixed a bug related Exit If / Exit While statements 
-* Released nuBASIC version 0.6 
-  - Updated list of keywords for the syntax highlighter 
+- Added support for Sub / End Sub / Exit Sub
+- Fixed a bug related to Exit If / Exit While statements
 
+* Released nuBASICEditor version 0.6
+- Updated keyword list for syntax highlighting
 
 April 25, 2014
 * Released nuBASIC version 0.17
-  - Added Cd and Pwd CLI commands
-  - Added ChDir statement
-  - Added Pwd$() function
-
+- Added Cd and Pwd CLI commands
+- Added ChDir statement
+- Added Pwd$() function
 
 April 24, 2014
 * Released nuBasicEditor 0.5
-  - Added bookmarks 
-  - Added settings (font)
-
+- Added bookmarks
+- Added settings (font)
 
 April 23, 2014
 * Released nuBASIC version 0.16
-  - Added While/Wend and If/Then/Else multi-line statements
-  - Modified breakout2.bas using While-loop instead of Goto statement
-* Released nuBasicEditor 0.4
-  - Update keyword list
-  - Fixed menu "Search" accelerators issue
+- Added While/Wend and multi-line If/Then/Else statements
+- Modified breakout2.bas to use While instead of Goto
 
+* Released nuBasicEditor 0.4
+- Updated keyword list
+- Fixed Search menu accelerator issue
 
 April 18, 2014
 * Released nuBASIC version 0.15
-  - Extended file operations support adding FOpen, FTell, FSize, Seek, Read 
-  - Added support for array of bytes (example: dim x@(1000)... x@(0)=3... )
-  - Added Hex, Hex$, SizeOf@, SizeOf, Redim functions
-  - Fixed issue in Renum and Load CLI commands
+- Extended file operation support with FOpen, FTell, FSize, Seek, and Read
+- Added support for byte arrays
+  (example: dim x@(1000) ... x@(0)=3 ...)
+- Added Hex, Hex$, SizeOf@, SizeOf, and Redim functions
+- Fixed issues in Renum and Load CLI commands
 
 * Released nuBasicEditor 0.3
-  - Update keyword list
+- Updated keyword list
 
-* Released draft E of nuBasicGuide.pdf 
-  - Added file operations description
-
+* Released draft E of nuBasicGuide.pdf
+- Added file operations description
 
 April 14, 2014
 * Released nuBasicEditor 0.2
-* nuBasicGuide.pdf - Draft D 
-* Released version 0.14 of NuBASIC
-  - Added support for labels with goto / gosub
-  - Added command vars to print out the execution context
-  - Fixed bug about line erasing/renumering (code-rebuild was implemented)
-  - Implemented double support either for the old style 
-    file (with line numbers) or new one
-
+* Released draft D of nuBasicGuide.pdf
+* Released nuBASIC version 0.14
+- Added label support with Goto / Gosub
+- Added vars command to print the execution context
+- Fixed bug related to line erasing/renumbering
+  (code rebuild was implemented)
+- Implemented double support for both old-style files
+  (with line numbers) and new ones
 
 April 10, 2014
-* Released version 0.13 of nuBASIC
-  - Added EXIT FOR statement
-  - Added signal handling to manage "CTRL+C/CTRL+BREAK" to stop running programs 
-  - Implemented command line parameters 
-    (-e can be used to load and run a program via command line)
+* Released nuBASIC version 0.13
+- Added EXIT FOR statement
+- Added signal handling for CTRL+C / CTRL+BREAK to stop running programs
+- Implemented command-line parameters
+  (-e can be used to load and run a program from the command line)
 
-* Released version 0.12 of nuBASIC
-  - Fixed Linux installation issue
-  - Added terminal frame for Linux
-
+* Released nuBASIC version 0.12
+- Fixed Linux installation issue
+- Added terminal frame for Linux
 
 April 9, 2014
-* Released version 0.11 of nuBASIC
-  - Added InStr/InStrSc function
-  - Fixed and update built-in help database
-
+* Released nuBASIC version 0.11
+- Added InStr / InStrSc functions
+- Fixed and updated built-in help database
 
 April 6, 2014
-* Released version 0.10 of nuBASIC
-  - Implemented the Shell statement and related CLI command "!" 
-
+* Released nuBASIC version 0.10
+- Implemented the Shell statement and related CLI command "!"
 
 April 5, 2014
-* Released version 0.9 of nuBASIC
-  - Added TextOut instruction
-  - Added new version of breakout based on graphic statement
-  - Added PI(), GetScreenWidth(), GetScreenHeight() functions (Linux)
-
+* Released nuBASIC version 0.9
+- Added TextOut instruction
+- Added a new version of breakout based on graphics statements
+- Added PI(), GetScreenWidth(), and GetScreenHeight() functions (Linux)
 
 April 1, 2014
-* Released version 0.8 of nuBASIC
-  - Added PI(), GetScreenWidth(), GetScreenHeight() functions (Windows)
-  - Added graphics functions Line, Rect, FillRect, Ellipse, 
-    FillEllipse (Linux/X11)
-
+* Released nuBASIC version 0.8
+- Added PI(), GetScreenWidth(), and GetScreenHeight() functions (Windows)
+- Added graphics functions Line, Rect, FillRect, Ellipse, and FillEllipse (Linux/X11)
 
 March 31, 2014
-* Released version 0.7 of nuBASIC
-  - Added file handling support (Open, Close, Input#, Print#, FError, ErrNo, ErrNo$)
-  - Added Renum CLI command
-  - Added Grep CLI command
-  - Extended on-line help to all keywords
-  - Bug-finxing for floating-to-string conversion (MinGW) 
-  - Added graphics functions Line, Rect, FillRect, Ellipse, 
-    FillEllipse (Windows/MinGW) 
-  - Implemented line.bas and graph.bas demos
-
+* Released nuBASIC version 0.7
+- Added file handling support: Open, Close, Input#, Print#, FError, ErrNo, ErrNo$ 
+- Added Renum CLI command
+- Added Grep CLI command
+- Extended online help to all keywords
+- Fixed floating-to-string conversion bug (MinGW)
+- Added graphics functions Line, Rect, FillRect, Ellipse, and FillEllipse (Windows/MinGW)
+- Implemented line.bas and graph.bas demos
 
 March 24, 2014
-* Released version 0.5 and 0.6 of nuBASIC
-  - Extended math and string built-in functions
-  - Added support for array (Dim)
-
+* Released nuBASIC versions 0.5 and 0.6
+- Extended built-in math and string functions
+- Added array support (Dim)
 
 March 21, 2014
-* Released version 0.4 of nuBASIC
-  - Added support for MinGW 4.8.1
-  - Refactoring and bug-fixing
-  - Added help on commands
-  - Implemented breakout game-clone in ascii graphics (breakout.bas)
-
+* Released nuBASIC version 0.4
+- Added support for MinGW 4.8.1
+- Refactoring and bug fixes
+- Added help for commands
+- Implemented breakout.bas, an ASCII graphics breakout-style game
 
 March 17, 2014
-* Released version 0.3 of nuBASIC
-  - Implemented Gosub-Return (call-stack), nested For loop
-  - Added Beep, Cls, Locate, Dedaly and MDelay instructions
-  - Tracing and debugging facility
-  - Refactoring and bug-fixing
-
+* Released nuBASIC version 0.3
+- Implemented Gosub/Return (call stack) and nested FOR loops
+- Added Beep, Cls, Locate, Delay, and MDelay instructions
+- Added tracing and debugging facilities
+- Refactoring and bug fixes
 
 March 10, 2014
-* Released version 0.2 of nuBASIC
-  - Implemented main BASIC statement Let, Print, Input, Goto, If-Then-Else, For-To-Step
-  - Implemented main commands such as Run, List, New, Clr, ...
-  - Implemented I/O console support for Windows & Linux
-
+* Released nuBASIC version 0.2
+- Implemented main BASIC statements: Let, Print, Input, Goto, If-Then-Else, For-To-Step
+- Implemented main commands such as Run, List, New, Clr, ...
+- Implemented I/O console support for Windows and Linux
 
 March 03, 2014
-* Released version 0.1 of nuBASIC
-  - Implemented expression interpreter and support for variables
-  - Implemented main math functions (Sin, Cos, ASin, ACos, ...)
+* Released nuBASIC version 0.1
+- Implemented expression interpreter and variable support
+- Implemented main math functions (Sin, Cos, ASin, ACos, ...)

@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -42,12 +42,7 @@ signal_mgr_t& signal_mgr_t::instance()
         assert(_instance);
     }
 
-    if (!_console_active
-#ifdef _WIN32
-        && GetConsoleWindow()
-#endif
-     ) 
-    {
+    if (!_console_active) {
         _console_active = _os_install_signal_handler();
     }
 

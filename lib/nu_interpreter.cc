@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -19,16 +19,38 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdarg>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <string.h>
 #include <string>
-#include <sstream>
 
+#ifdef _WIN32
+#include "nu_winconsole_api.h"
+#endif
 
 /* -------------------------------------------------------------------------- */
 
 namespace nu {
+
+// fprintf wrapper: routes to GDI console when active, otherwise normal fprintf
+static void console_fprintf(FILE* fp, const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+#ifdef _WIN32
+    if (nu_winconsole_is_active()) {
+        char buf[8192];
+        vsnprintf(buf, sizeof(buf), fmt, args);
+        va_end(args);
+        nu_winconsole_write(buf);
+        return;
+    }
+#endif
+    vfprintf(fp, fmt, args);
+    va_end(args);
+}
 
 static void quote_string(
     std::string& str, const char qt = '\"', const std::string escape_s = "\\")
@@ -113,8 +135,8 @@ std::string interpreter_t::version()
         " - %s\n" // - <year> <CR>
         "%s\n" // <homepage>  <CR>
         "%s\n", // <descr>  <CR>
-        progname,
-        about::version, author, contacts, copyright, homepage, description);
+        progname, about::version, author, contacts, copyright, homepage,
+        description);
 
     return buf;
 }
@@ -122,10 +144,7 @@ std::string interpreter_t::version()
 
 /* -------------------------------------------------------------------------- */
 
-void interpreter_t::clear_rtdata() 
-{ 
-    get_rt_ctx().clear_rtdata(); 
-}
+void interpreter_t::clear_rtdata() { get_rt_ctx().clear_rtdata(); }
 
 
 /* -------------------------------------------------------------------------- */
@@ -179,7 +198,8 @@ void interpreter_t::renum_line(std::string& line, const renum_tbl_t& renum_tbl)
         EXPECTED_GOXX,
         EXPECTED_TO_OR_SUB,
         EXPECTED_LINENUM,
-    } state = st_t::EXPECTED_GOXX;
+    } state
+        = st_t::EXPECTED_GOXX;
 
     while (!tknzr.eol()) {
         token_t t = tknzr.next();
@@ -215,14 +235,11 @@ void interpreter_t::renum_line(std::string& line, const renum_tbl_t& renum_tbl)
 
                 if (t.identifier() == "goto") {
                     state = st_t::EXPECTED_LINENUM;
-                }
-                else if (t.identifier() == "gosub") {
+                } else if (t.identifier() == "gosub") {
                     state = st_t::EXPECTED_LINENUM;
-                }
-                else if (t.identifier() == "go") {
+                } else if (t.identifier() == "go") {
                     state = st_t::EXPECTED_TO_OR_SUB;
-                }
-                else {
+                } else {
                     state = st_t::EXPECTED_GOXX;
                 }
             }
@@ -248,18 +265,15 @@ void interpreter_t::renum_line(std::string& line, const renum_tbl_t& renum_tbl)
 
                 try {
                     ln = nu::stoi(t.org_id());
-                } 
-                catch (...) {
+                } catch (...) {
                     ln = 0;
                 }
 
                 auto i = renum_tbl.find(ln);
 
-                new_line += 
-                    i != renum_tbl.end() ? 
-                        nu::to_string(i->second) : t.org_id();
-            } 
-            else {
+                new_line += i != renum_tbl.end() ? nu::to_string(i->second)
+                                                 : t.org_id();
+            } else {
                 new_line += t.org_id();
             }
 
@@ -334,12 +348,10 @@ bool interpreter_t::update_program(const std::string& line, int ln)
 
     if (ln > 0) {
         line_num = ln;
-    } 
-    else {
+    } else {
         try {
             line_num = nu::stoi(token.identifier());
-        } 
-        catch (std::exception&) {
+        } catch (std::exception&) {
             return false;
         }
 
@@ -448,16 +460,16 @@ std::string interpreter_t::read_line(FILE* f)
 
 /* -------------------------------------------------------------------------- */
 
-std::string interpreter_t::read_line(std::stringstream & ss)
+std::string interpreter_t::read_line(std::stringstream& ss)
 {
     std::string line;
 
     while (!ss.bad() && !ss.eof()) {
         char c(0);
-        
+
         ss >> std::noskipws >> c;
 
-        if (int(c) >= 32 /* && int(c) <= 127 (implicit) */ ) {
+        if (int(c) >= 32 /* && int(c) <= 127 (implicit) */) {
             line.push_back(c);
         }
 
@@ -477,9 +489,8 @@ bool interpreter_t::load(FILE* f)
     std::string first_line = read_line(f);
 
     // skip executable script prefix line
-    if (!first_line.empty() &&
-        (first_line.size() >= 3 && first_line.substr(0, 2) == "#!")) 
-    {
+    if (!first_line.empty()
+        && (first_line.size() >= 3 && first_line.substr(0, 2) == "#!")) {
         first_line = read_line(f);
     }
 
@@ -522,8 +533,7 @@ bool interpreter_t::load(FILE* f)
         }
 
         if ((!old_format || !line.empty())
-            && !update_program(line, old_format ? 0 : ++ln)) 
-        {
+            && !update_program(line, old_format ? 0 : ++ln)) {
             fclose(f);
             return false;
         }
@@ -536,7 +546,7 @@ bool interpreter_t::load(FILE* f)
 
 /* -------------------------------------------------------------------------- */
 
-bool interpreter_t::append(std::stringstream & is, int & n_of_lines)
+bool interpreter_t::append(std::stringstream& is, int& n_of_lines)
 {
     while (!is.eof() && !is.bad()) {
         std::string line = read_line(is);
@@ -551,8 +561,7 @@ bool interpreter_t::append(std::stringstream & is, int & n_of_lines)
 
         if ((!line.empty()) && !update_program(line, ++n_of_lines)) {
             return false;
-        }
-        else if (line.empty()) {
+        } else if (line.empty()) {
             ++n_of_lines;
         }
 
@@ -567,9 +576,7 @@ bool interpreter_t::append(std::stringstream & is, int & n_of_lines)
 
 /* -------------------------------------------------------------------------- */
 
-bool interpreter_t::list(
-    runnable_t::line_num_t from, 
-    runnable_t::line_num_t to,
+bool interpreter_t::list(runnable_t::line_num_t from, runnable_t::line_num_t to,
     const std::string grep_filter)
 {
 
@@ -604,12 +611,12 @@ bool interpreter_t::list(
                     ptr->get_dbg_info(line.first, dbg);
                 }
 
-                fprintf(get_rt_ctx().get_stdout_ptr(), "%c%6u %s\n",
+                console_fprintf(get_rt_ctx().get_stdout_ptr(), "%c%6u %s\n",
                     dbg.break_point ? '*' : ' ', line.first,
                     line.second.c_str());
 
                 if (!dbg.condition_str.empty()) {
-                    fprintf(get_rt_ctx().get_stdout_ptr(),
+                    console_fprintf(get_rt_ctx().get_stdout_ptr(),
                         "Breakpoint at %i %s\n", line.first,
                         dbg.condition_str.c_str());
                 }
@@ -711,8 +718,7 @@ interpreter_t::exec_res_t interpreter_t::break_if(
     prog_pointer_t::line_number_t line, token_list_t& tl)
 {
     if (tl.empty() || tl.begin()->type() != tkncl_t::IDENTIFIER
-        || tl.begin()->identifier() != "if") 
-    {
+        || tl.begin()->identifier() != "if") {
         return exec_res_t::SYNTAX_ERROR;
     }
 
@@ -723,8 +729,7 @@ interpreter_t::exec_res_t interpreter_t::break_if(
             auto id = t.org_id();
             quote_string(id);
             condition_str += "\"" + id + "\"";
-        } 
-        else {
+        } else {
             condition_str += t.org_id();
         }
     }
@@ -815,8 +820,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
             + command.substr(i + 1, command.size() - i - 1);
         token.set_identifier("print", token_t::case_t::NOCHANGE);
         token.set_type(tkncl_t::IDENTIFIER);
-    } 
-    else if (token.identifier() == "!") {
+    } else if (token.identifier() == "!") {
         auto i = command.find("!");
 
         command = command.substr(i + 1, command.size() - i - 1);
@@ -824,8 +828,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         os_shell_t::exec(command);
 
         return exec_res_t::CMD_EXEC;
-    } 
-    else if (token.type() == tkncl_t::INTEGRAL) {
+    } else if (token.type() == tkncl_t::INTEGRAL) {
         unsigned int line = std::stoi(token.identifier());
 
         if (line > 0) {
@@ -864,7 +867,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
         if (cmd == "pwd") {
             std::string wd = _os_get_working_dir();
-            fprintf(get_stdout_ptr(), "%s\n", wd.c_str());
+            console_fprintf(get_stdout_ptr(), "%s\n", wd.c_str());
 
             return exec_res_t::CMD_EXEC;
         }
@@ -878,7 +881,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
             help_content = builtin_help_t::get_instance().help(
                 token.type() != tkncl_t::UNDEFINED ? token.identifier() : "");
 
-            fprintf(get_stdout_ptr(), "%s\n", help_content.c_str());
+            console_fprintf(get_stdout_ptr(), "%s\n", help_content.c_str());
 
             return exec_res_t::CMD_EXEC;
         }
@@ -893,14 +896,14 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
             help_content = builtin_help_t::get_instance().apropos(
                 token.type() != tkncl_t::UNDEFINED ? token.identifier() : "");
 
-            fprintf(get_stdout_ptr(), "%s\n", help_content.c_str());
+            console_fprintf(get_stdout_ptr(), "%s\n", help_content.c_str());
 
             return exec_res_t::CMD_EXEC;
         }
 
         if (cmd == "ver") {
             auto ver = version();
-            fprintf(get_stdout_ptr(), "%s\n", ver.c_str());
+            console_fprintf(get_stdout_ptr(), "%s\n", ver.c_str());
 
             return exec_res_t::CMD_EXEC;
         }
@@ -1077,8 +1080,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                 if (tl.empty()) {
                     return set_breakpoint(line, breakpoint_cond_t("", nullptr));
                 }
-            }
-            else {
+            } else {
                 return exec_res_t::SYNTAX_ERROR;
             }
 
@@ -1115,7 +1117,8 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         if (cmd == "vars") {
             std::stringstream ss;
             get_rt_ctx().trace_rtdata(ss);
-            fprintf(get_rt_ctx().get_stdout_ptr(), "%s\n", ss.str().c_str());
+            console_fprintf(
+                get_rt_ctx().get_stdout_ptr(), "%s\n", ss.str().c_str());
 
             return exec_res_t::CMD_EXEC;
         }
@@ -1124,7 +1127,8 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         if (cmd == "meta") {
             std::stringstream ss;
             get_rt_ctx().trace_metadata(ss);
-            fprintf(get_rt_ctx().get_stdout_ptr(), "%s\n", ss.str().c_str());
+            console_fprintf(
+                get_rt_ctx().get_stdout_ptr(), "%s\n", ss.str().c_str());
 
             return exec_res_t::CMD_EXEC;
         }
@@ -1167,14 +1171,12 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
             if (token.type() == tkncl_t::INTEGRAL) {
                 to_line = from_line = nu::stoi(token.identifier());
-            } 
-            else {
+            } else {
                 if (token.type() == tkncl_t::OPERATOR
                     && token.identifier() == "-") {
                     from_line = 0; // from begin
                     parse_minus = false;
-                } 
-                else {
+                } else {
                     return exec_res_t::SYNTAX_ERROR;
                 }
             }
@@ -1184,8 +1186,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
             if (parse_minus) {
                 if (token.type() == tkncl_t::OPERATOR
-                    && token.identifier() == "-") 
-                {
+                    && token.identifier() == "-") {
                     to_line = 0; // until the end
                 }
 
@@ -1200,8 +1201,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
             if (token.type() == tkncl_t::INTEGRAL) {
                 to_line = nu::stoi(token.identifier());
-            }
-            else {
+            } else {
                 return exec_res_t::SYNTAX_ERROR;
             }
 
@@ -1353,16 +1353,17 @@ bool interpreter_t::get_global_var(const std::string& name, nu::variant_t& var)
 
 /* -------------------------------------------------------------------------- */
 
-bool interpreter_t::set_global_var(const std::string& name, const nu::variant_t& value)
+bool interpreter_t::set_global_var(
+    const std::string& name, const nu::variant_t& value)
 {
     auto scope = get_rt_ctx().proc_scope.get_global();
 
     if (!scope) {
         return false;
     }
-     
+
     scope->define(name, nu::var_value_t(value, VAR_ACCESS_RW));
-    
+
     return true;
 }
 

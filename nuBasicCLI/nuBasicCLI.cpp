@@ -6,29 +6,44 @@
 // See COPYING file in the project root for full license information.
 //
 
+// Create a dedicated Windows console to ensure nuBasic can execute graphics
+// commands effectively when running in command-line mode. This is crucial for
+// compatibility with Windows 11, as the Windows Terminal does not allow
+// drawing directly in the graphical context. Creating a specific console
+// enables proper handling of graphics commands, which are unsupported in
+// the default Terminal environment.
+
 /* -------------------------------------------------------------------------- */
 
-#include "nu_builtin_help.h"
-#include "nu_exception.h"
-#include "nu_interpreter.h"
-#include "nu_os_console.h"
-#include "nu_os_std.h"
-#include "nu_reserved_keywords.h"
-#include "nu_terminal_frame.h"
-
 #include <cassert>
-#include <iostream>
 #include <memory>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
 #include <variant>
 
-#ifdef WIN32
-#pragma message(                                                               \
-    "Warning: Use the nuBasicCLI CMake target to build the Windows GDI command-line nuBASIC (Windows 11–compatible)")
-#include <Windows.h>
-#endif
+#include "framework.h"
+#include "nuBasicCLI.h"
+#include "nu_builtin_help.h"
+#include "nu_exception.h"
+#include "nu_interpreter.h"
+#include "nu_os_console.h"
+#include "nu_os_gdi.h"
+#include "nu_os_std.h"
+#include "nu_reserved_keywords.h"
+#include "nu_terminal_frame.h"
+#include "nu_winconsole_api.h"
+
+#include "nu_signal_handling.h"
+#include <cstdio>
+
+/* -------------------------------------------------------------------------- */
+
+// Dispatch a BREAK signal to the interpreter when Ctrl+C is pressed.
+static void on_console_ctrlc()
+{
+    nu::_ev_dispatcher(nu::signal_handler_t::event_t::BREAK);
+}
 
 /* -------------------------------------------------------------------------- */
 
@@ -39,15 +54,17 @@ static nu::interpreter_t::exec_res_t exec_command(
         const auto res = basic.exec_command(command);
 
         if (basic.get_and_reset_break_event())
-            printf("Code execution has been interrupted by CTRL+C\n");
+            nu_winconsole_printf(
+                "Code execution has been interrupted by CTRL+C\n");
 
         if (res == nu::interpreter_t::exec_res_t::BREAKPOINT)
-            printf("Execution stopped at breakpoint, line %i.\n"
-                   "Type 'cont' to continue\n",
+            nu_winconsole_printf("Execution stopped at breakpoint, line %i.\n"
+                                 "Type 'cont' to continue\n",
                 basic.get_cur_line_n());
         else if (res == nu::interpreter_t::exec_res_t::STOP_REQ)
-            printf("Execution stopped at STOP instruction, line %i.\n"
-                   "Type 'cont' to continue\n",
+            nu_winconsole_printf(
+                "Execution stopped at STOP instruction, line %i.\n"
+                "Type 'cont' to continue\n",
                 basic.get_cur_line_n());
         return res;
     }
@@ -57,23 +74,23 @@ static nu::interpreter_t::exec_res_t exec_command(
         int line = e.get_line_num();
         line = line <= 0 ? basic.get_cur_line_n() : line;
 
-        printf(
+        nu_winconsole_printf(
             "Runtime Error #%i at %i %s\n", e.get_error_code(), line, e.what());
     }
 
     // Print out Syntax Error Messages
     catch (std::exception& e) {
         if (basic.get_cur_line_n() > 0)
-            printf("At line %i: %s\n", basic.get_cur_line_n(), e.what());
-
+            nu_winconsole_printf(
+                "At line %i: %s\n", basic.get_cur_line_n(), e.what());
         else
-            printf("%s\n", e.what());
+            nu_winconsole_printf("%s\n", e.what());
 
         return nu::interpreter_t::exec_res_t::RT_ERROR;
     }
 
     catch (...) {
-        printf("Runtime Error\n");
+        nu_winconsole_printf("Runtime Error\n");
         return nu::interpreter_t::exec_res_t::RT_ERROR;
     }
 
@@ -87,6 +104,11 @@ static int nuBASIC_console(int argc, char* argv[])
     nu::_os_cls();
 
     nu::interpreter_t nuBASIC;
+    // Pump the GDI window message queue between BASIC statements during RUN
+    // (same role as GTK's yield in the IDE). Without this, WM_PAINT and
+    // WM_CONSOLE_REFRESH never run and the CLI appears frozen.
+    nuBASIC.set_yield_cbk([](void*) { nu_winconsole_process_messages(); });
+
     std::string command_line;
     bool first_command = false;
 
@@ -109,11 +131,8 @@ static int nuBASIC_console(int argc, char* argv[])
                         param = "LOAD \"" + std::string(argv[++i]) + "\"";
                         --argc;
                         break;
-#ifdef WIN32
 
                     case NU_BASIC_HELP_MACRO: {
-                        ::FreeConsole();
-
                         auto item = std::string(argv[++i]);
                         auto help
                             = nu::builtin_help_t::get_instance().help(item);
@@ -121,9 +140,7 @@ static int nuBASIC_console(int argc, char* argv[])
                         if (help.empty()) {
                             ::MessageBox(0, "Item not found", item.c_str(),
                                 MB_ICONEXCLAMATION);
-                        }
-
-                        else {
+                        } else {
                             ::MessageBox(0, help.c_str(), item.c_str(),
                                 MB_ICONINFORMATION);
                         }
@@ -131,8 +148,6 @@ static int nuBASIC_console(int argc, char* argv[])
                         exit(0);
                         break;
                     }
-
-#endif
                     }
                 }
 
@@ -147,19 +162,21 @@ static int nuBASIC_console(int argc, char* argv[])
 
     if (command_line.empty()) {
         const auto ver_str = nuBASIC.version();
-        printf("%s", ver_str.c_str());
-        printf(NU_BASIC_MSG_STR__READY NU_BASIC_PROMPT_NEWLINE);
-    }
-
-    else {
+        nu_winconsole_printf("%s", ver_str.c_str());
+        nu_winconsole_printf(NU_BASIC_MSG_STR__READY NU_BASIC_PROMPT_NEWLINE);
+    } else {
         command = command_line;
         first_command = true;
     }
 
     while (1) {
+        // Process Windows messages for GDI console
+        if (!nu_winconsole_process_messages()) {
+            break; // Window closed
+        }
+
         if (!first_command)
             command = nu::_os_input(stdin);
-
         else
             first_command = false;
 
@@ -171,15 +188,17 @@ static int nuBASIC_console(int argc, char* argv[])
 
         switch (res) {
         case nu::interpreter_t::exec_res_t::IO_ERROR:
-            printf(NU_BASIC_ERROR_STR__ERRORLOADING NU_BASIC_PROMPT_NEWLINE);
+            nu_winconsole_printf(
+                NU_BASIC_ERROR_STR__ERRORLOADING NU_BASIC_PROMPT_NEWLINE);
             break;
 
         case nu::interpreter_t::exec_res_t::SYNTAX_ERROR:
-            printf(NU_BASIC_ERROR_STR__SYNTAXERROR NU_BASIC_PROMPT_NEWLINE);
+            nu_winconsole_printf(
+                NU_BASIC_ERROR_STR__SYNTAXERROR NU_BASIC_PROMPT_NEWLINE);
             break;
 
         case nu::interpreter_t::exec_res_t::CMD_EXEC:
-            printf(NU_BASIC_PROMPT_STR NU_BASIC_PROMPT_NEWLINE);
+            nu_winconsole_printf(NU_BASIC_PROMPT_STR NU_BASIC_PROMPT_NEWLINE);
             break;
 
         case nu::interpreter_t::exec_res_t::NOP:
@@ -194,11 +213,59 @@ static int nuBASIC_console(int argc, char* argv[])
     return 0;
 }
 
+
 /* -------------------------------------------------------------------------- */
 
-int main(int argc, char* argv[])
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
+    _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
+
+    // Parse the command line
+    int argc;
+    LPWSTR* argvW = CommandLineToArgvW(GetCommandLineW(), &argc);
+
+    // Allocate memory for the narrow string arguments
+    char** argv = new char*[argc];
+
+    for (int i = 0; i < argc; ++i) {
+        // Compute the size of the required narrow string buffer
+        int bufSize = WideCharToMultiByte(
+            CP_UTF8, 0, argvW[i], -1, nullptr, 0, nullptr, nullptr);
+
+        // Allocate buffer for narrow string
+        argv[i] = new char[bufSize];
+
+        // Convert wide string to narrow string
+        WideCharToMultiByte(
+            CP_UTF8, 0, argvW[i], -1, argv[i], bufSize, nullptr, nullptr);
+    }
+
+    LocalFree(argvW);
+
+    // Initialize GDI console
+    if (!nu_winconsole_init(hInstance, SW_SHOW)) {
+        MessageBoxA(NULL, "Failed to initialize GDI console", "Error",
+            MB_OK | MB_ICONERROR);
+        return 1;
+    }
+
+    // Set as target for GDI drawing operations
+    nu::set_gdi_target_window((HWND)nu_winconsole_get_hwnd());
+
+    // Route Ctrl+C in the GDI window to the BASIC break-event system.
+    nu_winconsole_set_ctrlc_callback(on_console_ctrlc);
+
     nu::reserved_keywords_t::list();
     nu::create_terminal_frame(argc, argv);
-    return nuBASIC_console(argc, argv);
+
+    const auto errLevel = nuBASIC_console(argc, argv);
+
+    nu_winconsole_shutdown();
+
+    for (int i = 0; i < argc; ++i) {
+        delete[] argv[i];
+    }
+    delete[] argv;
+
+    return errLevel;
 }

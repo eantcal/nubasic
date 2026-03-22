@@ -1,8 +1,8 @@
-﻿//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -13,14 +13,22 @@
 
 #include "nu_about.h"
 #include "nu_builtin_help.h"
-#include "nu_builtin_help.h"
 #include "nu_exception.h"
 #include "nu_interpreter.h"
-#include "nu_reserved_keywords.h"
 #include "nu_os_console.h"
+#include "nu_reserved_keywords.h"
+#include "nu_signal_handling.h"
 
+#include "tab_container.h"
 #include "textinfobox.h"
 #include "toolbar.h"
+
+#include "../../nuwinconsole/nu_winconsole_api.h"
+#include "nu_os_gdi.h"
+
+// Posted after IDM_DEBUG_TOPMOST / similar so focus isn't stolen back when the
+// menu closes (wParam: bit0=topmost, bit1=activate console).
+static const UINT g_wmPresentGdiConsole = WM_APP + 64;
 
 #include <regex>
 #include <set>
@@ -30,112 +38,130 @@
 
 /* -------------------------------------------------------------------------- */
 
+// Forward declaration of HSplitterWndProc inside namespace nu so the friend
+// declaration in editor_t resolves to the same symbol as the definition.
 namespace nu {
+LRESULT CALLBACK HSplitterWndProc(HWND, UINT, WPARAM, LPARAM);
+}
 
+
+/* -------------------------------------------------------------------------- */
+
+namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
 namespace editor {
 
-/* -------------------------------------------------------------------------- */
+    /* --------------------------------------------------------------------------
+     */
 
-const char application_name[] = EDITOR_RESOURCE_NAME;
-const char class_name[] = EDITOR_RESOURCE_NAME "Window";
+    const char application_name[] = EDITOR_RESOURCE_NAME;
+    const char class_name[] = EDITOR_RESOURCE_NAME "Window";
 
-const COLORREF black = RGB(0, 0, 0);
-const COLORREF white = RGB(0xff, 0xff, 0xff);
-const COLORREF red = RGB(0xff, 0, 0);
-const COLORREF yellow = RGB(0xff, 0xff, 0xe0);
-const COLORREF offWhite = RGB(0xff, 0xfb, 0xF0);
-const COLORREF darkGreen = RGB(0, 0x80, 0);
-const COLORREF darkBlue = RGB(0, 0, 0x80);
-
-
-/* -------------------------------------------------------------------------- */
-
-const int toolbar_n_of_bmps = 11;
-const int toolbar_btn_state = TBSTATE_ENABLED;
-const int toolbar_btn_style = BTNS_BUTTON | TBSTATE_ELLIPSES;
+    const COLORREF black = RGB(0, 0, 0);
+    const COLORREF white = RGB(0xff, 0xff, 0xff);
+    const COLORREF red = RGB(0xff, 0, 0);
+    const COLORREF yellow = RGB(0xff, 0xff, 0xe0);
+    const COLORREF offWhite = RGB(0xff, 0xfb, 0xF0);
+    const COLORREF darkGreen = RGB(0, 0x80, 0);
+    const COLORREF darkBlue = RGB(0, 0, 0x80);
 
 
-TBBUTTON toolbar_buttons[]
-= { { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+    /* --------------------------------------------------------------------------
+     */
 
-    { 0, IDM_FILE_NEW, toolbar_btn_state, toolbar_btn_style, { 0 },
-	NULL, (INT_PTR) "New" },
-    { 1, IDM_FILE_OPEN, toolbar_btn_state, toolbar_btn_style, { 0 },
-	NULL, (INT_PTR) "Open" },
-    { 2, IDM_FILE_SAVE, toolbar_btn_state, toolbar_btn_style, { 0 },
-	NULL, (INT_PTR) "Save" },
-
-    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
-
-    { 3, IDM_DEBUG_START, toolbar_btn_state, toolbar_btn_style, { 0 },
-	NULL, (INT_PTR) "Run" },
-    { 4, IDM_DEBUG_STEP, toolbar_btn_state, toolbar_btn_style, { 0 },
-	NULL, (INT_PTR) "Step" },
-    { 5, IDM_DEBUG_CONT, toolbar_btn_state, toolbar_btn_style, { 0 },
-	NULL, (INT_PTR) "Continue" },
-    { 6, IDM_DEBUG_TOGGLEBRK, toolbar_btn_state, toolbar_btn_style,
-	{ 0 }, NULL, (INT_PTR) "Breakpoint" },
-    { 7, IDM_INTERPRETER_BUILD, toolbar_btn_state, toolbar_btn_style,
-	{ 0 }, NULL, (INT_PTR) "Build" },
-    { 8, IDM_DEBUG_EVALSEL, toolbar_btn_state, toolbar_btn_style, { 0 },
-	NULL, (INT_PTR) "Evaluate" },
-
-    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
-
-    { 9, IDM_SEARCH_FIND, toolbar_btn_state, toolbar_btn_style, { 0 },
-	NULL, (INT_PTR) "Find" },
-
-    { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
-
-    { 10, IDM_DEBUG_TOPMOST, toolbar_btn_state, toolbar_btn_style,
-	{ 0 }, NULL, (INT_PTR) "Dbg Top" },
-    { 11, IDM_DEBUG_NOTOPMOST, toolbar_btn_state, toolbar_btn_style,
-	{ 0 }, NULL, (INT_PTR) "Dbg No-Top" }
-
-  };
-
-const int toolbar_n_of_buttons = sizeof(toolbar_buttons) / sizeof(TBBUTTON);
+    const int toolbar_n_of_bmps = 11;
+    const int toolbar_btn_state = TBSTATE_ENABLED;
+    const int toolbar_btn_style = BTNS_BUTTON | TBSTATE_ELLIPSES;
 
 
-/* -------------------------------------------------------------------------- */
+    TBBUTTON toolbar_buttons[]
+        = { { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+
+              { 0, IDM_FILE_NEW, toolbar_btn_state, toolbar_btn_style, { 0 },
+                  NULL, (INT_PTR) "New" },
+              { 1, IDM_FILE_OPEN, toolbar_btn_state, toolbar_btn_style, { 0 },
+                  NULL, (INT_PTR) "Open" },
+              { 2, IDM_FILE_SAVE, toolbar_btn_state, toolbar_btn_style, { 0 },
+                  NULL, (INT_PTR) "Save" },
+
+              { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+
+              { 3, IDM_DEBUG_START, toolbar_btn_state, toolbar_btn_style, { 0 },
+                  NULL, (INT_PTR) "Run" },
+              { 3, IDM_DEBUG_STOP, 0 /*initially disabled*/, toolbar_btn_style,
+                  { 0 }, NULL, (INT_PTR) "Stop" },
+              { 4, IDM_DEBUG_STEP, toolbar_btn_state, toolbar_btn_style, { 0 },
+                  NULL, (INT_PTR) "Step" },
+              { 5, IDM_DEBUG_CONT, toolbar_btn_state, toolbar_btn_style, { 0 },
+                  NULL, (INT_PTR) "Continue" },
+              { 6, IDM_DEBUG_TOGGLEBRK, toolbar_btn_state, toolbar_btn_style,
+                  { 0 }, NULL, (INT_PTR) "Breakpoint" },
+              { 7, IDM_INTERPRETER_BUILD, toolbar_btn_state, toolbar_btn_style,
+                  { 0 }, NULL, (INT_PTR) "Build" },
+              { 8, IDM_DEBUG_EVALSEL, toolbar_btn_state, toolbar_btn_style,
+                  { 0 }, NULL, (INT_PTR) "Evaluate" },
+
+              { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+
+              { 9, IDM_SEARCH_FIND, toolbar_btn_state, toolbar_btn_style, { 0 },
+                  NULL, (INT_PTR) "Find" },
+
+              { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+
+              { 10, IDM_DEBUG_TOPMOST, toolbar_btn_state, toolbar_btn_style,
+                  { 0 }, NULL, (INT_PTR) "Con Top" },
+              { 11, IDM_DEBUG_NOTOPMOST, toolbar_btn_state, toolbar_btn_style,
+                  { 0 }, NULL, (INT_PTR) "Ide Top" }
+
+          };
+
+    const int toolbar_n_of_buttons = sizeof(toolbar_buttons) / sizeof(TBBUTTON);
 
 
-struct autocompl_t {
+    /* --------------------------------------------------------------------------
+     */
 
-/* -------------------------------------------------------------------------- */
 
-    std::string data;
+    struct autocompl_t {
 
-    autocompl_t() {
-        for (auto& token : nu::reserved_keywords_t::list()) {
-	        data += token;
-	        data += " ";
+        /* --------------------------------------------------------------------------
+         */
+
+        std::string data;
+
+        autocompl_t()
+        {
+            for (auto& token : nu::reserved_keywords_t::list()) {
+                data += token;
+                data += " ";
+            }
         }
-    }
 
 
-/* -------------------------------------------------------------------------- */
-
-};
-
-
-static autocompl_t autocomplete_list;
+        /* --------------------------------------------------------------------------
+         */
+    };
 
 
-/* -------------------------------------------------------------------------- */
+    static autocompl_t autocomplete_list;
+
+
+    /* --------------------------------------------------------------------------
+     */
 
 } // namespace editor
 
 
 /* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+
 //! nuBasic Editor application implementation
 //
 class editor_t {
-    friend LRESULT CALLBACK HSplitterWndProc(HWND, WORD, WORD, LONG);
+    friend LRESULT CALLBACK HSplitterWndProc(HWND, UINT, WPARAM, LPARAM);
     nu::interpreter_t _interpreter;
 
 public:
@@ -158,9 +184,7 @@ public:
 
     enum { TIMER_EVAL_SELECTION, TIMER_CTX_HELP };
 
-    nu::interpreter_t& interpreter() noexcept { 
-        return _interpreter; 
-    }
+    nu::interpreter_t& interpreter() noexcept { return _interpreter; }
 
     enum {
         LINENUM_WIDTH = 5,
@@ -171,50 +195,53 @@ public:
     };
 
     /**
-    * editor_t ctor
-    */
+     * editor_t ctor
+     */
     editor_t();
 
     /**
-    * Set main window handle
-    */
-    void set_hwnd(HWND hWnd) noexcept { 
-        _hwnd_main = hWnd; 
-    }
+     * Set main window handle
+     */
+    void set_hwnd(HWND hWnd) noexcept { _hwnd_main = hWnd; }
 
     /**
-    * Get main window handle
-    */
-    HWND get_main_hwnd() const noexcept { 
-        return _hwnd_main; 
-    }
+     * Get main window handle
+     */
+    HWND get_main_hwnd() const noexcept { return _hwnd_main; }
 
     /**
-    * Get editor window handle
-    */
-    HWND get_editor_hwnd() const noexcept { 
-        return _hwnd_editor; 
-    }
+     * Get editor window handle
+     */
+    HWND get_editor_hwnd() const noexcept { return _hwnd_editor; }
+
+    bool program_is_running() const noexcept { return _program_running; }
+
+    void set_program_running(bool v) noexcept { _program_running = v; }
 
     /**
      * Set editor window handle
      */
-    void set_editor_hwnd(HWND hwnd) noexcept { 
-        _hwnd_editor = hwnd; 
-    }
+    void set_editor_hwnd(HWND hwnd) noexcept { _hwnd_editor = hwnd; }
 
     /**
      * Set splitter position
      */
-    void set_splitbar_pos(DWORD wDX, DWORD oDY) {
-        MoveWindow(_h_splitter, 0, oDY, wDX, SPLIT_BAR_HEIGHT, TRUE);
+    void set_splitbar_pos(DWORD wDX, DWORD oDY)
+    {
+        SetWindowPos(_h_splitter, HWND_TOP, 0, oDY, wDX, SPLIT_BAR_HEIGHT,
+            SWP_SHOWWINDOW);
     }
 
     /**
-    * Set splitter position
-    */
-    void set_infobox_pos(DWORD x, DWORD y, DWORD dx, DWORD dy) {
-        MoveWindow(_h_infobox, x, y, dx, dy, TRUE);
+     * Set tab container position
+     */
+    void set_tab_container_pos(DWORD x, DWORD y, DWORD dx, DWORD dy)
+    {
+        extern tab_container_t* g_tab_container;
+        if (g_tab_container) {
+            g_tab_container->arrange(static_cast<WORD>(x), static_cast<WORD>(y),
+                static_cast<WORD>(dx), static_cast<WORD>(dy));
+        }
     }
 
     /**
@@ -245,9 +272,7 @@ public:
     /**
      * Hide info box
      */
-    void hide_info() { 
-        resize_info(10); 
-    }
+    void hide_info() { resize_info(10); }
 
     /**
      * Resize info box
@@ -263,56 +288,43 @@ public:
     /**
      * Set replace msg
      */
-    void set_find_replace_msg(UINT msg) noexcept { 
-        _find_replace_msg = msg; 
-    }
+    void set_find_replace_msg(UINT msg) noexcept { _find_replace_msg = msg; }
 
     /**
      * Get replace msg
      */
-    UINT get_find_replace_msg() const noexcept { 
-        return _find_replace_msg; 
-    }
+    UINT get_find_replace_msg() const noexcept { return _find_replace_msg; }
 
     /**
      * Get instance handle
      */
-    HINSTANCE get_instance_handle() const noexcept { 
-        return _hInstance; 
-    }
+    HINSTANCE get_instance_handle() const noexcept { return _hInstance; }
 
     /**
      * Set instance handle
      */
-    void set_instance_handle(HINSTANCE hInst) noexcept {
-        _hInstance = hInst;
-    }
+    void set_instance_handle(HINSTANCE hInst) noexcept { _hInstance = hInst; }
 
     /**
      * Export a reference to the current dialog window handle
      */
-    HWND& current_dialog() noexcept { 
-        return _current_dialog; 
-    }
+    HWND& current_dialog() noexcept { return _current_dialog; }
 
     /**
      * Set the reference to the current dialog window handle
      */
-    void set_current_dialog(HWND hwnd) noexcept { 
-        _current_dialog = hwnd; 
-    }
+    void set_current_dialog(HWND hwnd) noexcept { _current_dialog = hwnd; }
 
     /**
      * Export a reference to the "Go to ..." line
      */
-    int& goto_line() noexcept { 
-        return _goto_line; 
-    }
+    int& goto_line() noexcept { return _goto_line; }
 
     /**
      * Send a command to the editor control
      */
-    LRESULT send_command(UINT Msg, WPARAM wParam = 0, LPARAM lParam = 0) const {
+    LRESULT send_command(UINT Msg, WPARAM wParam = 0, LPARAM lParam = 0) const
+    {
         return ::SendMessage(_hwnd_editor, Msg, wParam, lParam);
     }
 
@@ -379,17 +391,15 @@ public:
     /**
      * Set editor item style
      */
-    void set_item_style(
-        const int style, 
-        const COLORREF fore, 
-        const COLORREF back = editor::white,
-        const int size = -1, 
+    void set_item_style(const int style, const COLORREF fore,
+        const COLORREF back = editor::white, const int size = -1,
         const char* face = nullptr);
 
     /**
      * Get line count
      */
-    int get_line_count() const noexcept {
+    int get_line_count() const noexcept
+    {
         return int((send_command(SCI_GETLINECOUNT, 0, 0)));
     }
 
@@ -397,7 +407,8 @@ public:
     /**
      * Toggle the display of the folding margin
      */
-    void set_folding_margin(bool enable) noexcept {
+    void set_folding_margin(bool enable) noexcept
+    {
         send_command(SCI_SETMARGINWIDTHN, 2, enable ? DEF_MARGIN_WIDTH : 0);
     }
 
@@ -406,7 +417,8 @@ public:
      * Calculate the width for line numbers
      * \return number of pixels for the margin width of margin (0)
      */
-    int get_line_num_width() const noexcept {
+    int get_line_num_width() const noexcept
+    {
         return int(LINENUM_WIDTH
             * send_command(SCI_TEXTWIDTH, STYLE_LINENUMBER, (LPARAM)("9")));
     }
@@ -416,7 +428,8 @@ public:
      *  Set the display of line numbers on or off.
      * \param enable if we shuld display line numbers
      */
-    void set_numbers_margin(bool enable) {
+    void set_numbers_margin(bool enable)
+    {
         send_command(
             SCI_SETMARGINWIDTHN, 0, enable ? get_line_num_width() + 4 : 0);
     }
@@ -424,14 +437,16 @@ public:
     /**
      * Toggle the display of the selection bookmark margin
      */
-    void set_selection_margin(bool enable) {
+    void set_selection_margin(bool enable)
+    {
         send_command(SCI_SETMARGINWIDTHN, 1, enable ? DEF_MARGIN_WIDTH : 0);
     }
 
     /**
      * Zoom in/out
      */
-    void zoom_in(bool in = true) {
+    void zoom_in(bool in = true)
+    {
         send_command(in ? SCI_ZOOMIN : SCI_ZOOMOUT, 0, 0);
     }
 
@@ -443,9 +458,7 @@ public:
     /**
      * Refresh editor
      */
-    void refresh() {
-        send_command(SCI_COLOURISE, 0, -1);
-    }
+    void refresh() { send_command(SCI_COLOURISE, 0, -1); }
 
 
     /**
@@ -458,7 +471,8 @@ public:
      * Otherwise remove it
      * \param line where to add/remove bookmark - lines start at 1
      */
-    void toggle_bookmark(long line) noexcept {
+    void toggle_bookmark(long line) noexcept
+    {
         // just one of following function will be effect !
         if (!add_bookmark(line)) {
             remove_bookmark(line);
@@ -470,7 +484,8 @@ public:
      * Add a bookmark at given line
      * \param line where to add bookmark - lines start at 1
      */
-    bool add_bookmark(long line) noexcept {
+    bool add_bookmark(long line) noexcept
+    {
         if (has_bookmark(line)) {
             return false;
         }
@@ -489,7 +504,8 @@ public:
     /**
      * Remove the program counter marker
      */
-    void remove_prog_cnt_marker() {
+    void remove_prog_cnt_marker()
+    {
         send_command(SCI_MARKERDELETEALL, int(marker_t::PROGCOUNTER), 0);
         send_command(SCI_MARKERDELETEALL, int(marker_t::LINESELECTION), 0);
         send_command(SCI_LINESCROLLDOWN, 0, 0);
@@ -510,7 +526,8 @@ public:
      * Remove a bookmark at given line
      * \param line where to delete bookmark - lines start at 1
      */
-    bool remove_bookmark(long line) noexcept {
+    bool remove_bookmark(long line) noexcept
+    {
         if (has_bookmark(line)) {
             send_command(SCI_MARKERDELETE, line - 1, 0);
             return true;
@@ -523,7 +540,8 @@ public:
      * Add a breakpoint at given line
      * \param line where to add breakpoint - lines start at 1
      */
-    bool add_breakpoint(long line) noexcept {
+    bool add_breakpoint(long line) noexcept
+    {
         const auto m = int(marker_t::BREAKPOINT);
         send_command(SCI_MARKERDEFINE, m, SC_MARK_CIRCLE);
         send_command(SCI_MARKERSETFORE, m, RGB(255, 255, 255));
@@ -538,7 +556,8 @@ public:
      * Add a breakpoint at given line
      * \param line where to add breakpoint - lines start at 1
      */
-    bool toggle_breakpoint(long line) noexcept {
+    bool toggle_breakpoint(long line) noexcept
+    {
         if (!remove_breakpoint(line)) {
             add_breakpoint(line);
         }
@@ -551,7 +570,8 @@ public:
      * Remove a breakpoint at given line
      * \param line where to delete bookmark - lines start at 1
      */
-    bool remove_breakpoint(long line) noexcept {
+    bool remove_breakpoint(long line) noexcept
+    {
         if (has_breakpoint(line)) {
             send_command(SCI_MARKERDELETE, line - 1, 1);
             return true;
@@ -563,21 +583,23 @@ public:
     /**
      * Remove all bookmarks
      */
-    void remove_all_bookmarks() noexcept {
+    void remove_all_bookmarks() noexcept
+    {
         send_command(SCI_MARKERDELETEALL, int(marker_t::BOOKMARK), 0);
     }
 
     /**
      * Remove all breakpoints
      */
-    void remove_all_breakpoints() noexcept {
+    void remove_all_breakpoints() noexcept
+    {
         send_command(SCI_MARKERDELETEALL, int(marker_t::BREAKPOINT), 0);
     }
 
 
     /**
-    * Reset all breakpoints
-    */
+     * Reset all breakpoints
+     */
     void reset_all_breakpoints() noexcept
     {
         auto linecount = get_line_count();
@@ -595,17 +617,19 @@ public:
      * \param line where to add bookmark - lines start at 1
      * \return true if given line has a bookmark - otherwise false
      */
-    bool has_bookmark(long line) const noexcept {
+    bool has_bookmark(long line) const noexcept
+    {
         const auto m = int(marker_t::BOOKMARK) + 1;
         return ((send_command(SCI_MARKERGET, line - 1, 0) & m) == m);
     }
 
     /**
-    * Check if given line has a breakpoint
-    * \param line where to add breakpoint - lines start at 1
-    * \return true if given line has a breakpoint - otherwise false
-    */
-    bool has_breakpoint(long line) const noexcept {
+     * Check if given line has a breakpoint
+     * \param line where to add breakpoint - lines start at 1
+     * \return true if given line has a breakpoint - otherwise false
+     */
+    bool has_breakpoint(long line) const noexcept
+    {
         const auto m = int(marker_t::BREAKPOINT) + 1;
         return ((send_command(SCI_MARKERGET, line - 1, 0) & m) == m);
     }
@@ -621,12 +645,10 @@ public:
     void find_prev_bookmark();
 
     /**
-    * Goto given character position
-    * \param pos new character position
-    */
-    void go_to_pos(long pos) noexcept { 
-        send_command(SCI_GOTOPOS, pos, 0); 
-    }
+     * Goto given character position
+     * \param pos new character position
+     */
+    void go_to_pos(long pos) noexcept { send_command(SCI_GOTOPOS, pos, 0); }
 
     /**
      * Get the current line number - this the with the caret in it
@@ -662,7 +684,8 @@ public:
     /**
      * Set the fontname
      */
-    void set_font(int style, const std::string& name) noexcept {
+    void set_font(int style, const std::string& name) noexcept
+    {
         send_command(
             SCI_STYLESETFONT, style, reinterpret_cast<LPARAM>(name.c_str()));
     }
@@ -670,14 +693,16 @@ public:
     /**
      * Set the font height in points
      */
-    void set_font_height(int style, int height) noexcept {
+    void set_font_height(int style, int height) noexcept
+    {
         send_command(SCI_STYLESETSIZE, style, static_cast<LPARAM>(height));
     }
 
     /**
      * Set the foreground color
      */
-    void set_fg(int style, COLORREF crForeground) noexcept {
+    void set_fg(int style, COLORREF crForeground) noexcept
+    {
         send_command(
             SCI_STYLESETFORE, style, static_cast<LPARAM>(crForeground));
     }
@@ -685,7 +710,8 @@ public:
     /**
      * Set the backgroundcolor
      */
-    void set_bg(int style, COLORREF crBackground) noexcept {
+    void set_bg(int style, COLORREF crBackground) noexcept
+    {
         send_command(
             SCI_STYLESETBACK, style, static_cast<LPARAM>(crBackground));
     }
@@ -693,35 +719,40 @@ public:
     /**
      * Set given style to bold
      */
-    void set_font_bold(int style, bool enable) noexcept {
+    void set_font_bold(int style, bool enable) noexcept
+    {
         send_command(SCI_STYLESETBOLD, style, static_cast<LPARAM>(enable));
     }
 
     /**
      * Set given style to italic
      */
-    void set_font_italic(int style, bool enable) noexcept {
+    void set_font_italic(int style, bool enable) noexcept
+    {
         send_command(SCI_STYLESETITALIC, style, static_cast<LPARAM>(enable));
     }
 
     /**
      * Set given style to underline
      */
-    void set_font_underline(int style, bool enable) noexcept {
+    void set_font_underline(int style, bool enable) noexcept
+    {
         send_command(SCI_STYLESETUNDERLINE, style, static_cast<LPARAM>(enable));
     }
 
     /**
      * Get true if overstrike is enabled
      */
-    bool get_overstrike() const noexcept {
+    bool get_overstrike() const noexcept
+    {
         return send_command(SCI_GETOVERTYPE, 0, 0) != 0;
     }
 
     /**
      * Set overstrike state
      */
-    void set_overstrike(bool enable) noexcept {
+    void set_overstrike(bool enable) noexcept
+    {
         send_command(SCI_SETOVERTYPE, enable ? TRUE : FALSE, 0);
     }
 
@@ -729,9 +760,7 @@ public:
      * Goto givven line position
      * \param line new line - lines start at 1
      */
-    void go_to_line(long line) { 
-        send_command(SCI_GOTOLINE, line - 1, 0); 
-    }
+    void go_to_line(long line) { send_command(SCI_GOTOLINE, line - 1, 0); }
 
     /**
      * Search forward for a given string and select it if found.
@@ -762,7 +791,8 @@ public:
      * \return character position of selection begin
      *  otherwise -1 on error
      */
-    LRESULT get_selection_begin() const noexcept {
+    LRESULT get_selection_begin() const noexcept
+    {
         return send_command(SCI_GETSELECTIONSTART, 0, 0);
     }
 
@@ -771,7 +801,8 @@ public:
      * \return character position of selection end
      *  otherwise -1 on error
      */
-    LRESULT get_selection_end() const noexcept {
+    LRESULT get_selection_end() const noexcept
+    {
         return send_command(SCI_GETSELECTIONEND, 0, 0);
     }
 
@@ -793,30 +824,31 @@ public:
      * Called from WinMain to set application command line
      * \param cmdLine passed to WinMain startup function
      */
-    void set_command_line(LPCSTR cmdLine) noexcept { 
-        _command_line = cmdLine; 
-    }
-    
+    void set_command_line(LPCSTR cmdLine) noexcept { _command_line = cmdLine; }
+
     /**
      * Returns program command line (set with set_command_line)
      * \return command line
      */
-    const std::string& get_command_line() const noexcept { 
-        return _command_line; 
+    const std::string& get_command_line() const noexcept
+    {
+        return _command_line;
     }
 
     /**
      * Returns scintilla search flags
      * \return flags
      */
-    int get_search_flags() const {
+    int get_search_flags() const
+    {
         return int(send_command(SCI_GETSEARCHFLAGS, 0, 0));
     }
-    
+
     /**
      * Set up search flags to scintilla
      */
-    void set_search_flags(int flags) {
+    void set_search_flags(int flags)
+    {
         _search_flags = flags;
         send_command(SCI_SETSEARCHFLAGS, _search_flags, 0);
     }
@@ -824,26 +856,29 @@ public:
     /**
      * Invert search direction flg
      */
-    void invert_search_direction() noexcept {
+    void invert_search_direction() noexcept
+    {
         _invert_search_direction = !_invert_search_direction;
     }
 
     /**
      * Get search direction flg
      */
-    bool get_search_direction() const noexcept {
+    bool get_search_direction() const noexcept
+    {
         return _invert_search_direction;
     }
-    
+
     /**
      * Rebuild code and check code syntax
      */
     bool rebuild_code(bool show_msg_error) noexcept;
-    
+
     /**
      * Remove functions reference menu
      */
-    void remove_funcs_menu() noexcept {
+    void remove_funcs_menu() noexcept
+    {
         HMENU hmenu = GetMenu(get_main_hwnd());
 
         if (_func_submenu) {
@@ -855,11 +890,12 @@ public:
      * Create functions reference menu
      */
     void create_funcs_menu() noexcept;
-    
+
     /**
      * Resolve function line using id of "functions" menu
      */
-    int resolve_funclinenum_from_id(int id) const noexcept {
+    int resolve_funclinenum_from_id(int id) const noexcept
+    {
         const auto i = _func_map.find(id);
 
         if (i == _func_map.end())
@@ -867,7 +903,7 @@ public:
 
         return i->second;
     }
-    
+
     /**
      * Show splash
      */
@@ -878,7 +914,7 @@ public:
      * Create a console if needed
      */
     void alloc_console();
-    
+
     enum class dbg_flg_t {
         NORMAL_EXECUTION,
         CONTINUE_EXECUTION = 1,
@@ -889,61 +925,86 @@ public:
      * Start program debugging
      */
     void start_debugging(dbg_flg_t flg = dbg_flg_t::NORMAL_EXECUTION);
-    
+
     /**
      * Start program debugging
      */
-    void continue_debugging() {
+    void continue_debugging()
+    {
         start_debugging(dbg_flg_t::CONTINUE_EXECUTION);
     }
 
     /**
      * Continue one statement
      */
-    void singlestep_debugging() {
+    void singlestep_debugging()
+    {
         start_debugging(dbg_flg_t::SINGLE_STEP_EXECUTION);
     }
-    
+
     /**
      * Evaluate selection
      */
     void eval_sel();
-    
+
     /**
      * Show on-line Help
      */
     void show_ctx_help();
-    
+
     /**
-     * Show running-mode dialog box
+     * Stop program execution (triggered by menu/toolbar Stop command)
      */
-    void show_running_dialog();
-    
+    void stop_debugging();
+
+    /**
+     * If the GDI console is embedded in the tab, detach it so HWND_TOPMOST /
+     * HWND_NOTOPMOST apply to a top-level window. If a program is running,
+     * unblocks pending console INPUT (read_line) then detaches; execution
+     * continues in the detached window.
+     */
+    bool detach_console_if_embedded();
+
+    /**
+     * Center the GDI console on the IDE, optional TOPMOST, and try hard to
+     * activate it (AttachThreadInput / AllowSetForegroundWindow). Same role as
+     * the block in start_debugging() so Con Top matches run/restart behaviour.
+     */
+    void present_floating_gdi_console(bool topmost, bool activate_console);
+
+    /** Defer presentation until after menu/accelerator focus restoration. */
+    void queue_present_floating_gdi_console(
+        bool topmost, bool activate_console);
+
     /**
      * Send a command to interpreter
      */
     bool exec_interpreter_cmd(const std::string& cmd, bool bgmode);
-    
+
     /**
-    * Ask the interpreter to evaluate an expression
-    */
+     * Ask the interpreter to evaluate an expression
+     */
     bool evaluate_expression(const std::string& expression);
-    
+
     /*
      * Return true if document has been modified but not saved
      */
-    bool is_dirty() const noexcept { 
-        return _is_dirty; 
-    }
+    bool is_dirty() const noexcept { return _is_dirty; }
 
 
 public:
-    HWND get_splitter_handle() const noexcept {
-        return _h_splitter;
-    }
+    HWND get_splitter_handle() const noexcept { return _h_splitter; }
 
-    HWND get_infobox_handle() const noexcept {
-        return _h_infobox;
+    int get_split_height() const noexcept { return _editor_split_height; }
+    void set_split_height(int h) noexcept { _editor_split_height = h; }
+
+    HWND get_infobox_handle() const noexcept
+    {
+        extern tab_container_t* g_tab_container;
+        if (g_tab_container && g_tab_container->get_infobox()) {
+            return g_tab_container->get_infobox()->get_hwnd();
+        }
+        return nullptr;
     }
 
 protected:
@@ -957,10 +1018,16 @@ protected:
     HWND _hwnd_editor;
 
     HWND _h_splitter;
-    HWND _h_infobox;
+    // _h_infobox removed - now managed by tab_container_t
+
+    // Absolute editor height in pixels after a manual splitter drag.
+    // Zero means "use the default editor_tenth fraction".
+    int _editor_split_height = 0;
 
     bool _is_dirty = false;
     bool _need_build = true;
+    bool _program_running = false;
+    bool _pending_rebuild = false; // set when user asks to stop-and-rebuild
 
     int _goto_line = 0;
     std::string _command_line;
@@ -969,22 +1036,23 @@ protected:
     const char* filter = EDITOR_FILE_FILTER;
 
     //! Set dirty flag
-    void set_dirty_flag() {
+    void set_dirty_flag()
+    {
         _is_dirty = true;
         _need_build = true;
     }
 
     /**
-    * Called from notification handler. Set default folding
-    *
-    * \param margin maring we want to handle
-    * \param pos character position where user clicked margin
-    */
+     * Called from notification handler. Set default folding
+     *
+     * \param margin maring we want to handle
+     * \param pos character position where user clicked margin
+     */
     void set_def_folding(int margin, long pos);
 
     /**
-    * Enable/Disable a menu item
-    */
+     * Enable/Disable a menu item
+     */
     void enable_menu_item(int id, bool enable);
 
     //! build the basic line
@@ -1041,13 +1109,17 @@ public:
 
             if (_editor.current_dialog() && going) {
                 if (!IsDialogMessage(_editor.current_dialog(), &msg)) {
-                    if (TranslateAccelerator(msg.hwnd, hAccTable, &msg) == 0) {
+                    // Always use the main window for accelerator translation,
+                    // not msg.hwnd (which may be Scintilla when the editor has
+                    // focus while a modeless Find/Replace dialog is open).
+                    if (TranslateAccelerator(
+                            _editor.get_main_hwnd(), hAccTable, &msg)
+                        == 0) {
                         TranslateMessage(&msg);
                         DispatchMessage(&msg);
                     }
                 }
-            } 
-            else if (going) {
+            } else if (going) {
                 if (TranslateAccelerator(
                         _editor.get_main_hwnd(), hAccTable, &msg)
                     == 0) {
@@ -1068,9 +1140,46 @@ static nu::editor_t g_editor;
 static HACCEL g_hAccTable = nullptr;
 static winMsgProc g_winMsgProc(g_editor);
 static toolbar_t* g_toolbar = nullptr;
-static txtinfobox_t* g_info = nullptr;
+tab_container_t* g_tab_container = nullptr;
 
-LRESULT CALLBACK HSplitterWndProc(HWND hWnd, WORD Message, WORD wParam, LONG lParam);
+static void sync_embedded_console_mouse_selection();
+
+/* -------------------------------------------------------------------------- */
+
+// Called when the user presses Ctrl+C in the GDI console window.
+static void on_console_ctrlc()
+{
+    nu::_ev_dispatcher(nu::signal_handler_t::event_t::BREAK);
+}
+
+/* -------------------------------------------------------------------------- */
+
+// Called on the main thread when the user closes the detached console window.
+static void on_console_window_closed()
+{
+    // stop_debugging() is a no-op when no program is running.
+    g_editor.stop_debugging();
+
+    // Re-attach the console and restore the Console tab.
+    if (g_tab_container && g_tab_container->is_console_detached()) {
+        g_tab_container->toggle_console_detach();
+        HMENU hMenu = GetMenu(g_editor.get_main_hwnd());
+        ModifyMenuA(hMenu, IDM_CONSOLE_DETACH, MF_BYCOMMAND | MF_STRING,
+            IDM_CONSOLE_DETACH, "Detach Console &Window");
+        g_editor.resize_info();
+        sync_embedded_console_mouse_selection();
+    }
+}
+
+// Mouse text selection: disabled while RUN + embedded console (main thread).
+static void sync_embedded_console_mouse_selection()
+{
+    if (!nu_winconsole_is_active() || !g_tab_container)
+        return;
+    const bool embedded = !g_tab_container->is_console_detached();
+    const bool running = g_editor.program_is_running();
+    nu_winconsole_set_mouse_text_selection_enabled(!(embedded && running));
+}
 
 /* -------------------------------------------------------------------------- */
 
@@ -1081,7 +1190,7 @@ void nu::editor_t::create_splitter(HWND hWnd)
     wcex.cbSize = sizeof(WNDCLASSEX);
 
     wcex.style = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc = (WNDPROC) HSplitterWndProc;
+    wcex.lpfnWndProc = (WNDPROC)HSplitterWndProc;
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.hInstance = get_instance_handle();
@@ -1105,42 +1214,8 @@ void nu::editor_t::create_splitter(HWND hWnd)
 
 void nu::editor_t::create_search_replace_cntrls(HWND hWnd)
 {
-    const auto ver = interpreter().version();
-
-    _h_infobox = CreateWindowEx(
-        WS_EX_CLIENTEDGE | WS_EX_DLGMODALFRAME, // make rich edit control appear
-        "RICHEDIT", // class name of rich edit control
-        ver.c_str(), // text of rich edit control
-        WS_CHILD | WS_VISIBLE | ES_MULTILINE | ES_SAVESEL | ES_READONLY
-            | WS_HSCROLL | WS_VSCROLL,
-
-        0, 0, // initially create 0 size,
-        0, 0, // main window's WM_SIZE handler will resize
-        hWnd, // use main parent
-        (HMENU)0,
-        get_instance_handle(), // this app instance owns this window
-        NULL);
-
-    LOGFONT lFont{ 0 };
-
-    lFont.lfHeight = 14;
-    lFont.lfWidth = 0;
-    lFont.lfEscapement = 0;
-    lFont.lfOrientation = 0;
-    lFont.lfWeight = 0;
-    lFont.lfItalic = 0;
-    lFont.lfUnderline = 0;
-    lFont.lfStrikeOut = 0;
-    lFont.lfCharSet = ANSI_CHARSET;
-    lFont.lfOutPrecision = OUT_DEFAULT_PRECIS;
-    lFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-    lFont.lfQuality = ANTIALIASED_QUALITY;
-    lFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;
-    strcpy(lFont.lfFaceName, "Consolas");
-
-    const auto hFont = CreateFontIndirect(&lFont);
-
-    SendMessage(_h_infobox, WM_SETFONT, (WPARAM)hFont, (DWORD)TRUE);
+    // Infobox is now created by tab_container_t, not here
+    // This function can be used for search/replace controls if needed
 }
 
 
@@ -1148,13 +1223,16 @@ void nu::editor_t::create_search_replace_cntrls(HWND hWnd)
 
 void nu::editor_t::copy_info_to_clipboard()
 {
+    HWND h_infobox = get_infobox_handle();
+    if (!h_infobox)
+        return;
+
     if (IDYES
         == MessageBox(get_main_hwnd(),
-               "Do you want to save status information to the clipboard ?",
-               "Clear message window", MB_ICONQUESTION | MB_YESNO)) 
-    {
-        SendMessage(_h_infobox, EM_SETSEL, 0, -1);
-        SendMessage(_h_infobox, WM_COPY, 0, 0);
+            "Do you want to save status information to the clipboard ?",
+            "Clear message window", MB_ICONQUESTION | MB_YESNO)) {
+        SendMessage(h_infobox, EM_SETSEL, 0, -1);
+        SendMessage(h_infobox, WM_COPY, 0, 0);
         MessageBox(get_main_hwnd(), "Logs copied to the clipboard !",
             "Operation completed", MB_OK | MB_ICONINFORMATION);
     }
@@ -1165,13 +1243,17 @@ void nu::editor_t::copy_info_to_clipboard()
 
 void nu::editor_t::clear_info()
 {
-    if (IDYES == MessageBox(get_main_hwnd(), "Are you sure ?",
-                     "Clear message window", MB_ICONQUESTION | MB_YESNO)) 
-    {
+    HWND h_infobox = get_infobox_handle();
+    if (!h_infobox)
+        return;
+
+    if (IDYES
+        == MessageBox(get_main_hwnd(), "Are you sure ?", "Clear message window",
+            MB_ICONQUESTION | MB_YESNO)) {
         copy_info_to_clipboard();
 
-        SendMessage(_h_infobox, EM_SETSEL, 0, -1);
-        SendMessage(_h_infobox, EM_REPLACESEL, 0, 0);
+        SendMessage(h_infobox, EM_SETSEL, 0, -1);
+        SendMessage(h_infobox, EM_REPLACESEL, 0, 0);
     }
 }
 
@@ -1188,8 +1270,7 @@ void nu::editor_t::on_drop_files(HDROP hDropInfo)
 
     if (iFiles != 1) {
         MessageBox(get_main_hwnd(), "One file at a time, please.", NULL, MB_OK);
-    } 
-    else {
+    } else {
         DragQueryFile(hDropInfo, 0, lpszFile, sizeof(lpszFile));
 
         if (lpszFile) {
@@ -1217,24 +1298,39 @@ void nu::editor_t::resize_info(int editor_tenth)
     RECT rc;
     ::GetClientRect(get_main_hwnd(), &rc);
 
-    if (g_info) {
-        g_info->arrange(dx - 100, 5, 90, dy - 20);
-    }
+    // Status info in toolbar area (removed from tab area)
+    // if (g_info) {
+    //     g_info->arrange(dx - 100, 5, 90, dy - 20);
+    // }
 
     LONG editor_size = 0;
 
-    editor_size = editor_tenth * ((rc.bottom - rc.top - dy) / 10)
-        - nu::editor_t::SPLIT_BAR_HEIGHT;
+    const int available_h = rc.bottom - rc.top - dy;
+    const int min_pane = 40; // minimum pixels for each pane
+
+    if (_editor_split_height > 0) {
+        // Clamp the stored pixel height to keep both panes usable
+        editor_size = _editor_split_height;
+        if (editor_size
+            > available_h - min_pane - nu::editor_t::SPLIT_BAR_HEIGHT)
+            editor_size
+                = available_h - min_pane - nu::editor_t::SPLIT_BAR_HEIGHT;
+        if (editor_size < min_pane)
+            editor_size = min_pane;
+    } else {
+        editor_size = editor_tenth * (available_h / 10)
+            - nu::editor_t::SPLIT_BAR_HEIGHT;
+    }
 
     ::SetWindowPos(g_editor.get_editor_hwnd(), 0, rc.left, rc.top + dy,
-        rc.right - rc.left, editor_size, 0);
+        rc.right - rc.left, editor_size, SWP_NOZORDER);
 
     set_splitbar_pos(rc.right - rc.left, rc.top + dy + editor_size);
 
     const auto y_bottom
         = rc.top + dy + editor_size + nu::editor_t::SPLIT_BAR_HEIGHT;
 
-    set_infobox_pos(
+    set_tab_container_pos(
         0, y_bottom, rc.right - rc.left, rc.bottom - rc.top - y_bottom);
 }
 
@@ -1243,12 +1339,16 @@ void nu::editor_t::resize_info(int editor_tenth)
 
 void nu::editor_t::add_info(std::string msg, DWORD message_style)
 {
+    HWND h_infobox = get_infobox_handle();
+    if (!h_infobox)
+        return;
+
     CHARFORMAT char_format = { 0 };
 
     char_format.cbSize = sizeof(char_format);
     char_format.dwMask = CFM_BOLD | CFM_ITALIC | CFE_UNDERLINE;
 
-    SendMessage(_h_infobox, EM_GETCHARFORMAT, 0, (LPARAM)&char_format);
+    SendMessage(h_infobox, EM_GETCHARFORMAT, 0, (LPARAM)&char_format);
 
     SYSTEMTIME st;
     GetLocalTime(&st);
@@ -1257,23 +1357,23 @@ void nu::editor_t::add_info(std::string msg, DWORD message_style)
     sprintf(szDateTime, "\n%02i-%02i-%i %02i:%02i:%02i\n", st.wDay, st.wMonth,
         st.wYear, st.wHour, st.wMinute, st.wSecond);
 
-    SendMessage(_h_infobox, EM_SCROLL, (LPARAM)SB_TOP, 0);
+    SendMessage(h_infobox, EM_SCROLL, (LPARAM)SB_TOP, 0);
 
-    SendMessage(_h_infobox, EM_SETSEL, 0, 0);
+    SendMessage(h_infobox, EM_SETSEL, 0, 0);
 
     SendMessage(
-        _h_infobox, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&char_format);
+        h_infobox, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&char_format);
 
     char_format.dwEffects = message_style;
 
-    SendMessage(_h_infobox, EM_REPLACESEL, 0, (LPARAM)szDateTime);
+    SendMessage(h_infobox, EM_REPLACESEL, 0, (LPARAM)szDateTime);
 
     SendMessage(
-        _h_infobox, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&char_format);
+        h_infobox, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&char_format);
 
     msg += "\n";
 
-    SendMessage(_h_infobox, EM_REPLACESEL, 0, (LPARAM)msg.c_str());
+    SendMessage(h_infobox, EM_REPLACESEL, 0, (LPARAM)msg.c_str());
 }
 
 
@@ -1339,8 +1439,7 @@ bool nu::editor_t::build_basic_line(
                 lbuf, sizeof(lbuf) - 1, "At line %i: %s\n", line, e.what());
 
             show_error_line(line);
-        } 
-        else {
+        } else {
             _snprintf(lbuf, sizeof(lbuf) - 1, "%s\n", e.what());
         }
 
@@ -1359,8 +1458,9 @@ bool nu::editor_t::build_basic_line(
 
 LRESULT nu::editor_t::get_current_line() const noexcept
 {
-    return 1 +
-        send_command(SCI_LINEFROMPOSITION, send_command(SCI_GETCURRENTPOS, 0, 0), 0);
+    return 1
+        + send_command(
+            SCI_LINEFROMPOSITION, send_command(SCI_GETCURRENTPOS, 0, 0), 0);
 }
 
 
@@ -1368,8 +1468,8 @@ LRESULT nu::editor_t::get_current_line() const noexcept
 
 LRESULT nu::editor_t::get_current_colum() const noexcept
 {
-    return 1 + 
-        send_command(SCI_GETCOLUMN, send_command(SCI_GETCURRENTPOS, 0, 0), 0);
+    return 1
+        + send_command(SCI_GETCOLUMN, send_command(SCI_GETCURRENTPOS, 0, 0), 0);
 }
 
 
@@ -1429,7 +1529,7 @@ void nu::editor_t::find_prev_bookmark()
 
 bool nu::editor_t::search_forward(LPSTR szText)
 {
-    if (! szText) {
+    if (!szText) {
         return false;
     }
 
@@ -1496,7 +1596,8 @@ bool nu::editor_t::search_backward(LPSTR szText)
 
 std::string nu::editor_t::get_selection()
 {
-    const long sel_len = long((get_selection_end() - get_selection_begin()) + 1);
+    const long sel_len
+        = long((get_selection_end() - get_selection_begin()) + 1);
 
     if (sel_len <= 0) {
         return std::string();
@@ -1542,9 +1643,9 @@ int nu::editor_t::replace_all(
 
             length = _search_flags & SCFIND_REGEXP
                 ? (long)send_command(
-                      SCI_REPLACETARGETRE, szlen, (LPARAM)szReplace)
+                    SCI_REPLACETARGETRE, szlen, (LPARAM)szReplace)
                 : (long)send_command(
-                      SCI_REPLACETARGET, szlen, (LPARAM)szReplace);
+                    SCI_REPLACETARGET, szlen, (LPARAM)szReplace);
 
             // the end of the selection was changed - recalc the end
             end = long(get_selection_end());
@@ -1559,8 +1660,7 @@ int nu::editor_t::replace_all(
                 SCI_SEARCHINTARGET, strlen(szFind), (LPARAM)szFind));
             nCount++;
         }
-    } 
-    else {
+    } else {
         // start with first and last char in buffer
         long length = 0;
         const long begin = 0;
@@ -1581,9 +1681,9 @@ int nu::editor_t::replace_all(
             // check for regular expression flag
             length = _search_flags & SCFIND_REGEXP
                 ? (long)send_command(
-                      SCI_REPLACETARGETRE, szlen, (LPARAM)szReplace)
+                    SCI_REPLACETARGETRE, szlen, (LPARAM)szReplace)
                 : (long)send_command(
-                      SCI_REPLACETARGET, szlen, (LPARAM)szReplace);
+                    SCI_REPLACETARGET, szlen, (LPARAM)szReplace);
 
             // the end of the selection was changed - recalc the end
             end = long(send_command(SCI_GETTEXTLENGTH, 0, 0));
@@ -1676,8 +1776,8 @@ void nu::editor_t::show_splash()
     const int dx = r.right - r.left;
     const int dy = r.bottom - r.top;
 
-    ::BitBlt(hdc, (dx - bm.bmWidth) / 2, (dy - bm.bmHeight) / 2,
-        bm.bmWidth, bm.bmHeight, hdcMem, 0, 0, SRCCOPY);
+    ::BitBlt(hdc, (dx - bm.bmWidth) / 2, (dy - bm.bmHeight) / 2, bm.bmWidth,
+        bm.bmHeight, hdcMem, 0, 0, SRCCOPY);
 
     Sleep(3000);
 
@@ -1707,10 +1807,10 @@ void nu::editor_t::alloc_console()
 
     hwnd = ::GetConsoleWindow();
 
-    if ( hwnd ) {
+    if (hwnd) {
         HMENU hMenu = ::GetSystemMenu(hwnd, FALSE);
 
-        if ( hMenu ) {
+        if (hMenu) {
             DeleteMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
         }
     }
@@ -1747,7 +1847,13 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
     reset_all_breakpoints();
     remove_prog_cnt_marker();
 
-    alloc_console();
+    if (g_tab_container) {
+        if (g_tab_container->is_console_detached()) {
+            present_floating_gdi_console(true, true);
+        } else {
+            g_tab_container->switch_to_tab(tab_container_t::tab_id_t::CONSOLE);
+        }
+    }
 
     g_editor.interpreter().register_break_event();
 
@@ -1779,7 +1885,8 @@ bool nu::editor_t::show_execution_point(int line) noexcept
         line = 1;
     }
 
-    const auto endpos = send_command(SCI_GETLINEENDPOSITION, (WPARAM) line - 1, 0) + 1;
+    const auto endpos
+        = send_command(SCI_GETLINEENDPOSITION, (WPARAM)line - 1, 0) + 1;
 
     while (!interpreter().has_runnable_stmt(line) && line < endpos) {
         ++line;
@@ -1804,8 +1911,7 @@ bool nu::editor_t::show_execution_point(int line) noexcept
         go_to_line(line);
 
         update_ui();
-    } 
-    else {
+    } else {
         send_command(SCI_MARKERDELETE, line - 1, int(marker_t::LINESELECTION));
         send_command(SCI_MARKERDELETE, line - 1, int(marker_t::PROGCOUNTER));
     }
@@ -1834,8 +1940,7 @@ bool nu::editor_t::show_error_line(int line) noexcept
         go_to_line(line);
 
         update_ui();
-    } 
-    else {
+    } else {
         send_command(SCI_MARKERDELETE, line - 1, int(marker_t::LINESELECTION));
     }
 
@@ -1852,32 +1957,15 @@ LRESULT CALLBACK RunningDlgWndProc(
 {
     switch (message) {
     case WM_INITDIALOG:
-        RunningDlgWndProc_terminate = false;
-        SetTimer(hDlg, 0, 1000, 0);
         return TRUE;
-
-    case WM_TIMER:
-        SetWindowPos(
-            GetConsoleWindow(), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-
-        if (RunningDlgWndProc_terminate) {
-            KillTimer(hDlg, 0);
-            EndDialog(hDlg, 0);
-            return TRUE;
-        }
-        break;
 
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
         case IDOK:
-            EndDialog(hDlg, LOWORD(wParam));
-            return TRUE;
-
         case IDCANCEL:
-            EndDialog(hDlg, LOWORD(wParam));
+            RunningDlgWndProc_terminate = true;
             return TRUE;
         }
-
         break;
     }
 
@@ -1887,25 +1975,116 @@ LRESULT CALLBACK RunningDlgWndProc(
 
 /* -------------------------------------------------------------------------- */
 
-void nu::editor_t::show_running_dialog()
+void nu::editor_t::stop_debugging()
 {
-    DialogBox(_hInstance, (LPCTSTR)IDD_DIALOG_RUNNING, get_main_hwnd(),
-        (DLGPROC)RunningDlgWndProc);
+    if (_program_running) {
+        RunningDlgWndProc_terminate = true;
+        interpreter().set_step_mode(true);
+    }
 }
 
+
+/* -------------------------------------------------------------------------- */
+
+bool nu::editor_t::detach_console_if_embedded()
+{
+    extern tab_container_t* g_tab_container;
+    if (!g_tab_container || g_tab_container->is_console_detached())
+        return true;
+    if (_program_running)
+        nu_winconsole_cancel_input();
+    g_tab_container->toggle_console_detach();
+    HMENU hMenu = GetMenu(_hwnd_main);
+    if (hMenu) {
+        ModifyMenuA(hMenu, IDM_CONSOLE_DETACH, MF_BYCOMMAND | MF_STRING,
+            IDM_CONSOLE_DETACH,
+            g_tab_container->is_console_detached() ? "Attach Console &Window"
+                                                   : "Detach Console &Window");
+    }
+    resize_info();
+    sync_embedded_console_mouse_selection();
+    return true;
+}
+
+void nu::editor_t::present_floating_gdi_console(
+    bool topmost, bool activate_console)
+{
+    HWND hCon = (HWND)nu_winconsole_get_hwnd();
+    if (!hCon || !IsWindow(hCon))
+        return;
+
+    HWND hMain = get_main_hwnd();
+
+    RECT mainRc = {};
+    GetWindowRect(hMain, &mainRc);
+    RECT conRc = {};
+    GetWindowRect(hCon, &conRc);
+    int conW = conRc.right - conRc.left;
+    int conH = conRc.bottom - conRc.top;
+    if (conW < 200)
+        conW = 640;
+    if (conH < 120)
+        conH = 400;
+
+    int x = mainRc.left + (mainRc.right - mainRc.left - conW) / 2;
+    int y = mainRc.top + (mainRc.bottom - mainRc.top - conH) / 2;
+    if (x < 0)
+        x = 0;
+    if (y < 0)
+        y = 0;
+
+    MoveWindow(hCon, x, y, conW, conH, FALSE);
+
+    if (topmost)
+        SetWindowPos(hCon, HWND_TOPMOST, 0, 0, 0, 0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+    else
+        SetWindowPos(hCon, HWND_NOTOPMOST, 0, 0, 0, 0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+    ShowWindow(hCon, SW_SHOW);
+    if (IsIconic(hCon))
+        ShowWindow(hCon, SW_RESTORE);
+
+    if (activate_console) {
+        HWND hFg = GetForegroundWindow();
+        DWORD tidSelf = GetCurrentThreadId();
+        DWORD tidFg = hFg ? GetWindowThreadProcessId(hFg, nullptr) : 0;
+        BOOL attached = FALSE;
+        if (tidFg != 0 && tidFg != tidSelf)
+            attached = AttachThreadInput(tidSelf, tidFg, TRUE);
+
+        AllowSetForegroundWindow(ASFW_ANY);
+
+        BringWindowToTop(hCon);
+        SetForegroundWindow(hCon);
+        SetActiveWindow(hCon);
+        SetFocus(hCon);
+
+        if (attached)
+            AttachThreadInput(tidSelf, tidFg, FALSE);
+    }
+
+    nu_winconsole_refresh();
+}
+
+void nu::editor_t::queue_present_floating_gdi_console(
+    bool topmost, bool activate_console)
+{
+    if (!_hwnd_main)
+        return;
+    WPARAM wp = (topmost ? 1u : 0u) | (activate_console ? 2u : 0u);
+    PostMessage(_hwnd_main, g_wmPresentGdiConsole, wp, 0);
+}
 
 /* -------------------------------------------------------------------------- */
 
 bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
 {
     auto async_fn = [&]() {
-
         try {
             g_editor.interpreter().exec_command(cmd);
-            RunningDlgWndProc_terminate = true;
-            return true;
-        } 
-        catch (nu::runtime_error_t& e) {
+        } catch (nu::runtime_error_t& e) {
             char buf[2048] = { 0 };
             int line = e.get_line_num();
             line = line <= 0 ? g_editor.interpreter().get_cur_line_n() : line;
@@ -1914,10 +2093,13 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
                 e.get_error_code(), line, e.what());
 
             g_editor.add_info(buf, CFM_BOLD | CFM_ITALIC);
-            MessageBox(get_main_hwnd(), buf, "Runtime Error", MB_ICONERROR);
+            nu_winconsole_write(buf);
+            // Switch to Output panel so the error is immediately visible.
+            if (g_tab_container)
+                g_tab_container->switch_to_tab(
+                    tab_container_t::tab_id_t::OUTPUT);
 
-        } 
-        catch (std::exception& e) {
+        } catch (std::exception& e) {
             char buf[2048] = { 0 };
 
             if (g_editor.interpreter().get_cur_line_n() > 0)
@@ -1926,28 +2108,138 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
             else
                 _snprintf(buf, sizeof(buf) - 1, "%s\n", e.what());
 
-            MessageBox(get_main_hwnd(), buf, "Runtime Error", MB_ICONERROR);
             g_editor.add_info(buf, CFM_BOLD | CFM_ITALIC);
+            nu_winconsole_write(buf);
+            // Switch to Output panel so the error is immediately visible.
+            if (g_tab_container)
+                g_tab_container->switch_to_tab(
+                    tab_container_t::tab_id_t::OUTPUT);
         }
 
+        // Signal the main thread that the interpreter has finished.
+        // Clear the running flag BEFORE setting the terminate flag so that
+        // when the main pump loop wakes up, _program_running is already false.
+        g_editor.set_program_running(false);
         RunningDlgWndProc_terminate = true;
-        return false;
+        return true;
     };
 
     if (bg_mode) {
-        std::thread t(async_fn);
+        _program_running = true;
+
+        sync_embedded_console_mouse_selection();
+
+        if (g_toolbar) {
+            g_toolbar->disable(IDM_DEBUG_START);
+            g_toolbar->disable(IDM_DEBUG_CONT);
+            g_toolbar->disable(IDM_DEBUG_STEP);
+            g_toolbar->enable(IDM_DEBUG_STOP);
+        }
 
         add_info("Run Program\n", CFM_ITALIC);
 
-        show_running_dialog();
+        // Reset BEFORE starting the thread to avoid a race where a very fast
+        // program sets RunningDlgWndProc_terminate = true before we reset it.
+        RunningDlgWndProc_terminate = false;
+        std::thread t(async_fn);
 
-        g_editor.interpreter().set_step_mode(true);
+        // Route keyboard input to the console window so that INKEY$() and
+        // other console-input calls receive WM_CHAR messages.
+        {
+            HWND hCon = (HWND)nu_winconsole_get_hwnd();
+            if (hCon)
+                ::SetFocus(hCon);
+        }
+
+        // --- Primary message pump: runs while interpreter is executing.
+        // The user can stop execution via the Stop toolbar button or menu item
+        // (IDM_DEBUG_STOP), which sets RunningDlgWndProc_terminate = true and
+        // calls set_step_mode(true).  The interpreter thread sets the same flag
+        // (via _program_running = false then RunningDlgWndProc_terminate =
+        // true) when it finishes normally.
+        MSG msg;
+        bool app_quit_pending = false;
+
+        while (!RunningDlgWndProc_terminate) {
+            while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+                if (msg.message == WM_QUIT) {
+                    PostQuitMessage((int)msg.wParam);
+                    RunningDlgWndProc_terminate = true;
+                    app_quit_pending = true;
+                    break;
+                }
+                if (TranslateAccelerator(
+                        g_editor.get_main_hwnd(), g_hAccTable, &msg)
+                    == 0) {
+                    TranslateMessage(&msg);
+                    DispatchMessage(&msg);
+                }
+            }
+            if (!RunningDlgWndProc_terminate)
+                MsgWaitForMultipleObjects(0, nullptr, FALSE, 50, QS_ALLINPUT);
+        }
+
+        // --- Secondary pump: keep dispatching messages and re-signalling
+        // cancel_input until the interpreter thread actually exits.  This is
+        // needed when the interpreter is blocked in a GDI-console INPUT call:
+        // cancel_input() unblocks it, but a subsequent INPUT in the same
+        // program would block again unless we keep calling cancel_input().
+        //
+        // If WM_QUIT was received (user closed the main window), we must exit
+        // this loop too — otherwise we spin forever with _program_running
+        // still true while the quit message was only breaking the inner
+        // PeekMessage loop.
+        while (_program_running) {
+            nu_winconsole_cancel_input();
+            bool got_quit = false;
+            while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+                if (msg.message == WM_QUIT) {
+                    PostQuitMessage((int)msg.wParam);
+                    app_quit_pending = true;
+                    got_quit = true;
+                    break;
+                }
+                if (TranslateAccelerator(
+                        g_editor.get_main_hwnd(), g_hAccTable, &msg)
+                    == 0) {
+                    TranslateMessage(&msg);
+                    DispatchMessage(&msg);
+                }
+            }
+            if (got_quit)
+                break;
+            MsgWaitForMultipleObjects(0, nullptr, FALSE, 50, QS_ALLINPUT);
+        }
 
         t.join();
 
+        if (app_quit_pending)
+            _program_running = false;
+
+        sync_embedded_console_mouse_selection();
+
+        // Restore keyboard focus to the editor so the user can type normally.
+        if (::IsWindow(_hwnd_editor))
+            ::SetFocus(_hwnd_editor);
+
         g_editor.interpreter().set_step_mode(false);
 
+        if (g_toolbar) {
+            g_toolbar->enable(IDM_DEBUG_START);
+            g_toolbar->enable(IDM_DEBUG_CONT);
+            g_toolbar->enable(IDM_DEBUG_STEP);
+            g_toolbar->disable(IDM_DEBUG_STOP);
+        }
+
         add_info("Stop Program\n", CFM_ITALIC);
+        enable_menu_item(IDM_CONSOLE_DETACH, true);
+
+        // If the user requested a stop-and-rebuild, do the rebuild now that
+        // the interpreter thread has fully exited and the toolbar is restored.
+        if (_pending_rebuild) {
+            _pending_rebuild = false;
+            rebuild_code(true);
+        }
 
         return true;
     }
@@ -2001,12 +2293,10 @@ void nu::editor_t::eval_sel()
     for (size_t i = 0; i < sel.length(); ++i) {
         if (sel[i] == '\\') {
             qsel += "\\\\";
-        } 
-        else if (sel[i] == '"') {
+        } else if (sel[i] == '"') {
             qsel += '\\';
             qsel += '"';
-        } 
-        else if (sel[i] >= 20) {
+        } else if (sel[i] >= 20) {
             qsel += sel[i];
         }
     }
@@ -2177,8 +2467,7 @@ void nu::editor_t::replace_searching_text(PCSTR szText)
 
     if (_search_flags & SCFIND_REGEXP) {
         send_command(SCI_REPLACETARGETRE, strlen(szText), (LPARAM)szText);
-    }
-    else {
+    } else {
         send_command(SCI_REPLACETARGET, strlen(szText), (LPARAM)szText);
     }
 }
@@ -2227,13 +2516,13 @@ void nu::editor_t::set_title()
 
     ::SetWindowText(_hwnd_main, s_title.c_str());
 
-    if (g_info) {
+    if (g_tab_container && g_tab_container->get_infobox()) {
         std::stringstream os;
         os << "Ln " << get_current_line() << "\r\n";
         os << "Col " << get_current_colum() << "\r\n";
         if (g_editor.is_dirty())
             os << "<Mod>";
-        g_info->update(os);
+        g_tab_container->get_infobox()->update(os);
     }
 }
 
@@ -2312,8 +2601,7 @@ void nu::editor_t::open_document_file(const char* fileName)
         msg += "'\n";
 
         add_info(msg, CFM_ITALIC);
-    } 
-    else {
+    } else {
         std::string msg = "Could not open file \"";
 
         msg += _full_path_str + "\".";
@@ -2423,8 +2711,7 @@ void nu::editor_t::save_file(const std::string& filename)
 
         std::string msg = "Save '" + filename + "'\n";
         add_info(msg, CFM_ITALIC);
-    } 
-    else {
+    } else {
         std::string msg = "Could not save file \"" + filename + "\".";
         add_info(msg + "\n", CFM_ITALIC | CFM_BOLD);
         MessageBox(_hwnd_main, msg.c_str(), editor::application_name, MB_OK);
@@ -2452,8 +2739,7 @@ int nu::editor_t::save_if_unsure()
         if (decision == IDYES) {
             if (save_as_dialog) {
                 save_document_as();
-            }
-            else {
+            } else {
                 save_document();
             }
         }
@@ -2581,9 +2867,7 @@ void nu::editor_t::exec_command(int id)
         break;
 
     case IDM_FILE_EXIT:
-        if (save_if_unsure() != IDCANCEL) {
-            ::PostQuitMessage(0);
-        }
+        ::SendMessage(get_main_hwnd(), WM_CLOSE, 0, 0);
         break;
 
     case IDM_EDIT_UNDO:
@@ -2615,11 +2899,28 @@ void nu::editor_t::exec_command(int id)
         break;
 
     case IDM_INTERPRETER_BUILD:
-        rebuild_code(true);
+        if (_program_running) {
+            int res = MessageBox(get_main_hwnd(),
+                "A program is currently running.\n\n"
+                "Do you want to stop it and rebuild?",
+                "Build", MB_YESNO | MB_ICONQUESTION);
+            if (res == IDYES) {
+                // Mark that a rebuild is pending; it will execute inside
+                // exec_interpreter_cmd once the interpreter thread has joined.
+                _pending_rebuild = true;
+                stop_debugging();
+            }
+        } else {
+            rebuild_code(true);
+        }
         break;
 
     case IDM_DEBUG_START:
         start_debugging();
+        break;
+
+    case IDM_DEBUG_STOP:
+        g_editor.stop_debugging();
         break;
 
     case IDM_DEBUG_CONT:
@@ -2647,13 +2948,21 @@ void nu::editor_t::exec_command(int id)
         break;
 
     case IDM_DEBUG_TOPMOST:
-        SetWindowPos(GetConsoleWindow(), HWND_TOPMOST, 0, 0, 0, 0,
-            SWP_NOMOVE | SWP_NOSIZE);
+        // Bring the GDI console window on top of all other windows.
+        if (!detach_console_if_embedded())
+            break;
+        // Defer: after the menu closes, Windows often returns focus to the
+        // editor; synchronous SetForeground here is unreliable. The queued step
+        // matches start_debugging()'s center + TOPMOST + focus behaviour.
+        queue_present_floating_gdi_console(true, true);
         break;
 
     case IDM_DEBUG_NOTOPMOST:
-        SetWindowPos(GetConsoleWindow(), HWND_NOTOPMOST, 0, 0, 0, 0,
-            SWP_NOMOVE | SWP_NOSIZE);
+        // Remove topmost from the console and bring the IDE to the foreground.
+        if (!detach_console_if_embedded())
+            break;
+        present_floating_gdi_console(false, false);
+        SetForegroundWindow(get_main_hwnd());
         break;
 
     case IDM_DEBUG_RUN:
@@ -2667,8 +2976,7 @@ void nu::editor_t::exec_command(int id)
                 MessageBox(get_main_hwnd(), "Error loading nuBasic",
                     "Run Interpreter", MB_ICONASTERISK | MB_OK);
             }
-        } 
-        else {
+        } else {
             const auto decision = MessageBox(get_main_hwnd(),
                 "Source file not specified, proceed anyway ?",
                 "Run Interpreter", MB_YESNOCANCEL);
@@ -2684,15 +2992,15 @@ void nu::editor_t::exec_command(int id)
         break;
 
     case IDC_AUTOCOMPLETE:
-        send_command(
-            SCI_AUTOCSHOW, 0, reinterpret_cast<LPARAM>(
-                                  nu::editor::autocomplete_list.data.c_str()));
+        send_command(SCI_AUTOCSHOW, 0,
+            reinterpret_cast<LPARAM>(
+                nu::editor::autocomplete_list.data.c_str()));
         break;
 
     case IDM_SEARCH_GOTOLINE:
-        if (IDOK == DialogBox(_hInstance, MAKEINTRESOURCE(IDD_GOTOLINE),
-                        _hwnd_main, (DLGPROC)DlgProc_GotoLine)) 
-        {
+        if (IDOK
+            == DialogBox(_hInstance, MAKEINTRESOURCE(IDD_GOTOLINE), _hwnd_main,
+                (DLGPROC)DlgProc_GotoLine)) {
             go_to_line(g_editor.goto_line());
         }
         break;
@@ -2799,6 +3107,22 @@ void nu::editor_t::exec_command(int id)
 
     case IDM_RESIZE_INFOBOX:
         g_editor.resize_info();
+        break;
+
+    case IDM_CONSOLE_DETACH:
+        if (g_tab_container) {
+            if (_program_running)
+                nu_winconsole_cancel_input();
+            g_tab_container->toggle_console_detach();
+            HMENU hMenu = GetMenu(get_main_hwnd());
+            ModifyMenuA(hMenu, IDM_CONSOLE_DETACH, MF_BYCOMMAND | MF_STRING,
+                IDM_CONSOLE_DETACH,
+                g_tab_container->is_console_detached()
+                    ? "Attach Console &Window"
+                    : "Detach Console &Window");
+            resize_info();
+            sync_embedded_console_mouse_selection();
+        }
         break;
 
     case IDM_COPY_INFOBOX_CLIPBOARD:
@@ -2955,7 +3279,8 @@ void nu::editor_t::notify(SCNotification* notification)
 
     // User clicked margin - try folding action
     case SCN_MARGINCLICK:
-        set_def_folding(int(notification->margin), long(notification->position));
+        set_def_folding(
+            int(notification->margin), long(notification->position));
         break;
 
     case SCN_NEEDSHOWN:
@@ -2981,12 +3306,8 @@ void nu::editor_t::notify(SCNotification* notification)
 
 /* -------------------------------------------------------------------------- */
 
-void nu::editor_t::set_item_style(
-   const int style, 
-   const COLORREF fore, 
-   const COLORREF back, 
-   const int size, 
-   const char* face)
+void nu::editor_t::set_item_style(const int style, const COLORREF fore,
+    const COLORREF back, const int size, const char* face)
 {
     send_command(SCI_STYLESETFORE, style, fore);
     send_command(SCI_STYLESETBACK, style, back);
@@ -3021,7 +3342,19 @@ void nu::editor_t::init_editor(const std::string& fontname, const int height)
     send_command(SCI_SETINDENT, DEF_INDENT, 0);
     send_command(SCI_SETCARETPERIOD, DEF_CARETPERIOD, 0);
     send_command(SCI_SETUSETABS, 0, 0L);
-    send_command(SCI_SETLEXER, SCLEX_VB);
+    // SCI_SETLEXER was removed in Scintilla 5.x.
+    // Use the Lexilla API: get CreateLexer from the loaded DLL, then
+    // SCI_SETILEXER.
+    {
+        HMODULE hSci = GetModuleHandle(EDITOR_DLL_NAME);
+        auto createLexer = hSci ? reinterpret_cast<Lexilla::CreateLexerFn>(
+                               GetProcAddress(hSci, "CreateLexer"))
+                                : nullptr;
+        if (createLexer) {
+            ILexer5* lexer = createLexer("vb");
+            send_command(SCI_SETILEXER, 0, reinterpret_cast<LPARAM>(lexer));
+        }
+    }
 
     static std::string keywords;
     for (const auto& keyword : nu::reserved_keywords_t::list()) {
@@ -3121,9 +3454,37 @@ void nu::editor_t::init_editor(const std::string& fontname, const int height)
     set_folding_margin(true);
     set_selection_margin(true);
 
+    // Remove Scintilla default key bindings for shortcuts that are handled
+    // exclusively by the application's accelerator table.  In Scintilla 5.x
+    // some of these may have been added as built-in commands; clearing them
+    // here ensures the accelerator table always wins and the editor never
+    // receives a WM_KEYDOWN / WM_CHAR for these combinations.
+    // Key definition: keycode | (SCMOD_* << 16)
+    //   SCMOD_CTRL = 2,  SCMOD_SHIFT = 1
+    {
+        auto clearKey = [this](int key, int mod) {
+            send_command(SCI_CLEARCMDKEY, key | (mod << 16), 0);
+        };
+        // Search / replace shortcuts (app-only, no equivalent Scintilla cmd)
+        clearKey('F', SCMOD_CTRL); // Ctrl+F  → IDM_SEARCH_FIND
+        clearKey('R', SCMOD_CTRL); // Ctrl+R  → IDM_SEARCH_FINDANDREPLACE
+        // Build
+        clearKey('B', SCMOD_CTRL); // Ctrl+B  → IDM_INTERPRETER_BUILD
+        // File operations that have no Scintilla equivalent
+        clearKey('N', SCMOD_CTRL); // Ctrl+N  → IDM_FILE_NEW
+        clearKey('O', SCMOD_CTRL); // Ctrl+O  → IDM_FILE_OPEN
+        clearKey('S', SCMOD_CTRL); // Ctrl+S  → IDM_FILE_SAVE
+    }
+
     // Refresh style
     refresh();
 }
+
+
+/* -------------------------------------------------------------------------- */
+
+static void save_settings(HWND hWnd);
+static void load_settings(HWND hWnd);
 
 
 /* -------------------------------------------------------------------------- */
@@ -3138,6 +3499,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_CREATE: {
+        g_editor.set_hwnd(hWnd);
+
         InitCommonControls();
 
         // Load RichEdit Control Library
@@ -3170,10 +3533,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
             nu::editor::toolbar_n_of_bmps, nu::editor::toolbar_buttons,
             nu::editor::toolbar_n_of_buttons);
 
-        g_info = new txtinfobox_t(hWnd, g_editor.get_instance_handle());
+        g_tab_container
+            = new tab_container_t(hWnd, g_editor.get_instance_handle());
 
+        nu_winconsole_set_close_callback(on_console_window_closed);
+        nu_winconsole_set_ctrlc_callback(on_console_ctrlc);
 
-        if (!g_toolbar || !g_info) {
+        if (!g_toolbar || !g_tab_container) {
             MessageBox(g_editor.get_main_hwnd(),
                 "Fatal error creating a resource", "Error", MB_ICONERROR);
 
@@ -3183,6 +3549,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         g_editor.create_splitter(hWnd);
         g_editor.create_search_replace_cntrls(hWnd);
 
+        // Restore window placement and splitter position from registry
+        load_settings(hWnd);
+
+        {
+            HWND hConsole = (HWND)nu_winconsole_get_hwnd();
+            if (hConsole)
+                nu::set_gdi_target_window(hConsole);
+        }
         g_editor.show_splash();
 
         DragAcceptFiles(hWnd, TRUE);
@@ -3216,9 +3590,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         g_editor.on_drop_files((HDROP)wParam);
         break;
 
+    case g_wmPresentGdiConsole: {
+        const bool topmost = (wParam & 1u) != 0;
+        const bool activate = (wParam & 2u) != 0;
+        g_editor.present_floating_gdi_console(topmost, activate);
+        return 0;
+    }
+
     case WM_COMMAND:
         if (LOWORD(wParam) >= IDM_INTERPRETER_BROWSER_FUN) {
-            const auto line = g_editor.resolve_funclinenum_from_id(LOWORD(wParam));
+            const auto line
+                = g_editor.resolve_funclinenum_from_id(LOWORD(wParam));
 
             if (line <= 0) {
                 MessageBeep(0);
@@ -3226,8 +3608,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
             g_editor.go_to_line((long)line);
 
-        } 
-        else {
+        } else {
             g_editor.exec_command(LOWORD(wParam));
         }
 
@@ -3244,8 +3625,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
             case TBN_QUERYINSERT:
                 return ret_val;
             }
-        } 
-        else {
+        } else {
+            // Handle tab container notifications
+            if (g_tab_container) {
+                LPNMHDR pnmhdr = (LPNMHDR)lParam;
+                if (pnmhdr->hwndFrom == g_tab_container->get_tab_hwnd()) {
+                    g_tab_container->on_notify(pnmhdr);
+                    return 0;
+                }
+            }
+
             g_editor.notify(reinterpret_cast<SCNotification*>(lParam));
         }
         return 0;
@@ -3262,11 +3651,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
     case WM_CLOSE:
         if (g_editor.save_if_unsure() != IDCANCEL) {
-            ::DestroyWindow(g_editor.get_editor_hwnd());
-            ::PostQuitMessage(0);
-            FreeConsole();
+            g_editor.stop_debugging();
+            save_settings(hWnd);
+            ::DestroyWindow(hWnd);
         }
         return 0;
+
+    case WM_DESTROY:
+        ::PostQuitMessage(0);
+        break;
 
     default:
         if (iMessage == g_editor.get_find_replace_msg()) {
@@ -3276,15 +3669,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
             if (lpf->Flags & FR_MATCHCASE) {
                 flgs |= SCFIND_MATCHCASE;
-            }
-            else {
+            } else {
                 flgs &= ~SCFIND_MATCHCASE;
             }
 
             if (lpf->Flags & FR_WHOLEWORD) {
                 flgs |= SCFIND_WHOLEWORD;
-            }
-            else {
+            } else {
                 flgs &= ~SCFIND_WHOLEWORD;
             }
 
@@ -3297,10 +3688,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
                     : g_editor.search_backward(lpf->lpstrFindWhat);
 
                 if (!search_result
-                    && IDYES == MessageBox(0, "Text not found, do you want to "
-                                              "invert search direction?",
-                                    "Search...", MB_YESNO)) 
-                {
+                    && IDYES
+                        == MessageBox(0,
+                            "Text not found, do you want to "
+                            "invert search direction?",
+                            "Search...", MB_YESNO)) {
                     g_editor.invert_search_direction();
 
                     // Invert selection and repeat searching
@@ -3400,107 +3792,167 @@ static BOOL GetClientWindowRect(HWND hWnd, RECT& rect)
 }
 
 
-
-
 /* -------------------------------------------------------------------------- */
 
-LRESULT CALLBACK HSplitterWndProc(
-    HWND hWnd, WORD Message, WORD wParam, LONG lParam)
-{
-    PAINTSTRUCT ps;
+namespace nu {
 
+LRESULT CALLBACK HSplitterWndProc(
+    HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
+{
     static RECT toolbar_rect;
     static RECT old_editor_rect;
     static RECT old_hsplitter_rect;
-    static RECT old_searchbox_rect;
-
     static POINT old_pt;
-    static POINT pt;
-
-    static DWORD dy = 0;
-
-    static bool bMoved = false;
+    static int dy = 0;
 
     switch (Message) {
     case WM_LBUTTONDOWN:
-
         GetClientWindowRect(g_editor.get_editor_hwnd(), old_editor_rect);
         GetClientWindowRect(g_editor.get_splitter_handle(), old_hsplitter_rect);
-        GetClientWindowRect(g_editor.get_infobox_handle(), old_searchbox_rect);
 
-        if (g_toolbar) {
+        if (g_toolbar)
             GetClientWindowRect(g_toolbar->get_hwnd(), toolbar_rect);
-        }
 
+        dy = 0;
         SetCapture(hWnd);
-        ClipCursor(NULL);
-        bMoved = false;
-
         GetCursorPos(&old_pt);
-
         return 0;
 
     case WM_MOUSEMOVE:
-        SetCursor(LoadCursor(NULL, IDC_SIZENS));
-
         if (wParam & MK_LBUTTON) {
-            bMoved = true;
-
+            POINT pt;
             GetCursorPos(&pt);
-
             dy = pt.y - old_pt.y;
-            auto new_y = old_hsplitter_rect.top + dy;
 
-            if (new_y > ULONG(toolbar_rect.bottom)) {
-                MoveWindow(hWnd, old_hsplitter_rect.left,
-                    old_hsplitter_rect.top + dy,
+            LONG new_y = old_hsplitter_rect.top + dy;
+            if (new_y > toolbar_rect.bottom) {
+                MoveWindow(hWnd, old_hsplitter_rect.left, new_y,
                     old_hsplitter_rect.right - old_hsplitter_rect.left,
                     old_hsplitter_rect.bottom - old_hsplitter_rect.top, TRUE);
             }
         }
-        break;
-
-    case WM_LBUTTONUP:
-        MoveWindow(hWnd, old_hsplitter_rect.left, old_hsplitter_rect.top + dy,
-            old_hsplitter_rect.right - old_hsplitter_rect.left,
-            old_hsplitter_rect.bottom - old_hsplitter_rect.top, TRUE);
-
-        MoveWindow(g_editor.get_editor_hwnd(), old_editor_rect.left,
-            old_editor_rect.top, old_editor_rect.right - old_editor_rect.left,
-            old_editor_rect.bottom - old_editor_rect.top + dy, TRUE);
-
-        MoveWindow(g_editor.get_infobox_handle(), old_searchbox_rect.left,
-            old_searchbox_rect.top + dy,
-            old_searchbox_rect.right - old_searchbox_rect.left,
-            old_searchbox_rect.bottom - old_searchbox_rect.top - dy, TRUE);
-
-        InvalidateRect(g_editor.get_editor_hwnd(), NULL, TRUE);
-        InvalidateRect(g_editor.get_infobox_handle(), NULL, TRUE);
-
-        UpdateWindow(g_editor.get_editor_hwnd());
-        UpdateWindow(g_editor.get_infobox_handle());
-
-        ClipCursor(NULL);
-        ReleaseCapture();
         return 0;
 
+    case WM_LBUTTONUP: {
+        int new_editor_h = (old_editor_rect.bottom - old_editor_rect.top) + dy;
+        if (new_editor_h > 0)
+            g_editor.set_split_height(new_editor_h);
+        g_editor.resize_info();
+        ReleaseCapture();
+        return 0;
+    }
+
     case WM_PAINT: {
-        const HDC hdc = BeginPaint(hWnd, &ps);
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWnd, &ps);
         RECT rect;
-        FillRect(
-            hdc, &ps.rcPaint, GetSysColorBrush(COLOR_3DFACE)); // LIGHT GRAY
+        FillRect(hdc, &ps.rcPaint, GetSysColorBrush(COLOR_3DFACE));
         GetClientRect(hWnd, &rect);
         FrameRect(hdc, &rect, GetSysColorBrush(COLOR_3DSHADOW));
         rect.bottom = rect.top;
-        FrameRect(hdc, &rect, GetSysColorBrush(COLOR_3DLIGHT)); // WHITE
+        FrameRect(hdc, &rect, GetSysColorBrush(COLOR_3DLIGHT));
         EndPaint(hWnd, &ps);
-    } break;
+        return 0;
+    }
 
     default:
         return DefWindowProc(hWnd, Message, wParam, lParam);
     }
-    return 0;
 }
+
+} // namespace nu
+
+/* -------------------------------------------------------------------------- */
+/* Registry helpers                                                           */
+/* -------------------------------------------------------------------------- */
+
+static const char* const REG_KEY = "Software\\nuBASIC\\IDE";
+
+static void save_settings(HWND hWnd)
+{
+    HKEY hk = nullptr;
+    if (RegCreateKeyExA(HKEY_CURRENT_USER, REG_KEY, 0, nullptr,
+            REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, nullptr, &hk, nullptr)
+        != ERROR_SUCCESS)
+        return;
+
+    // Window placement — don't save minimized state so next launch restores
+    // to a visible, sensibly-sized window.
+    WINDOWPLACEMENT wp = {};
+    wp.length = sizeof(wp);
+    if (GetWindowPlacement(hWnd, &wp)) {
+        if (wp.showCmd == SW_SHOWMINIMIZED)
+            wp.showCmd = SW_SHOWNORMAL;
+        RegSetValueExA(hk, "WndPlacement", 0, REG_BINARY,
+            reinterpret_cast<const BYTE*>(&wp), sizeof(wp));
+    }
+
+    // Splitter position — only save if the user actually moved the splitter.
+    DWORD splitH = static_cast<DWORD>(g_editor.get_split_height());
+    if (splitH > 0)
+        RegSetValueExA(hk, "SplitHeight", 0, REG_DWORD,
+            reinterpret_cast<const BYTE*>(&splitH), sizeof(splitH));
+
+    // Console detach state
+    DWORD detached
+        = (g_tab_container && g_tab_container->is_console_detached()) ? 1 : 0;
+    RegSetValueExA(hk, "ConsoleDetached", 0, REG_DWORD,
+        reinterpret_cast<const BYTE*>(&detached), sizeof(detached));
+
+    RegCloseKey(hk);
+}
+
+static void load_settings(HWND hWnd)
+{
+    HKEY hk = nullptr;
+    if (RegOpenKeyExA(HKEY_CURRENT_USER, REG_KEY, 0, KEY_QUERY_VALUE, &hk)
+        != ERROR_SUCCESS)
+        return;
+
+    // Window placement — validate before applying to avoid starting off-screen
+    // or at an unusable size.
+    WINDOWPLACEMENT wp = {};
+    DWORD sz = sizeof(wp);
+    if (RegQueryValueExA(hk, "WndPlacement", nullptr, nullptr,
+            reinterpret_cast<BYTE*>(&wp), &sz)
+            == ERROR_SUCCESS
+        && sz == sizeof(wp)) {
+        wp.length = sizeof(wp);
+        // Don't restore minimized state
+        if (wp.showCmd == SW_SHOWMINIMIZED)
+            wp.showCmd = SW_SHOWNORMAL;
+        // If the normal position is too small, maximise instead
+        const RECT& r = wp.rcNormalPosition;
+        if ((r.right - r.left) < 400 || (r.bottom - r.top) < 300)
+            wp.showCmd = SW_SHOWMAXIMIZED;
+        SetWindowPlacement(hWnd, &wp);
+    }
+
+    // Splitter position — only apply if the saved value is meaningful
+    DWORD splitH = 0;
+    sz = sizeof(splitH);
+    if (RegQueryValueExA(hk, "SplitHeight", nullptr, nullptr,
+            reinterpret_cast<BYTE*>(&splitH), &sz)
+            == ERROR_SUCCESS
+        && splitH > 50) {
+        g_editor.set_split_height(static_cast<int>(splitH));
+    }
+
+    // Console detach state: post a WM_COMMAND so the full IDM_CONSOLE_DETACH
+    // handler runs (it toggles the window style AND updates the menu text).
+    // It fires after WM_CREATE returns, when the window is fully visible.
+    DWORD detached = 0;
+    sz = sizeof(detached);
+    if (RegQueryValueExA(hk, "ConsoleDetached", nullptr, nullptr,
+            reinterpret_cast<BYTE*>(&detached), &sz)
+            == ERROR_SUCCESS
+        && detached) {
+        PostMessage(hWnd, WM_COMMAND, MAKEWPARAM(IDM_CONSOLE_DETACH, 0), 0);
+    }
+
+    RegCloseKey(hk);
+}
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -3522,11 +3974,12 @@ int PASCAL WinMain(
 
     RegisterWindowClass();
 
-    g_editor.set_hwnd(::CreateWindowEx(WS_EX_CLIENTEDGE, nu::editor::class_name,
-        "nuBASIC", WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX
-            | WS_MAXIMIZEBOX | WS_MAXIMIZE | WS_CLIPCHILDREN,
-        CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL,
-        g_editor.get_instance_handle(), 0));
+    g_editor.set_hwnd(
+        ::CreateWindowEx(WS_EX_CLIENTEDGE, nu::editor::class_name, "nuBASIC",
+            WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX
+                | WS_MAXIMIZEBOX | WS_MAXIMIZE | WS_CLIPCHILDREN,
+            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL,
+            NULL, g_editor.get_instance_handle(), 0));
 
     g_editor.set_title();
     ::ShowWindow(g_editor.get_main_hwnd(), nCmdShow);

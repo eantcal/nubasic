@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -70,15 +70,11 @@ public:
         if (i != _handlers.end())
             i->second.erase(handle);
     }
-    
-    void disable_notifications() throw() { 
-        _disable_notifications = true; 
-    }
-    
-    void enable_notifications() throw() { 
-        _disable_notifications = false; 
-    }
-    
+
+    void disable_notifications() throw() { _disable_notifications = true; }
+
+    void enable_notifications() throw() { _disable_notifications = false; }
+
 protected:
     using hlist_t = std::set<signal_handler_t::handle_t>;
     std::map<signal_handler_t::event_t, hlist_t> _handlers;
@@ -90,7 +86,12 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 
-}
+// Free function to dispatch a signal event to all registered handlers.
+// Forward-declared here so application code can trigger signals directly
+// (e.g. dispatch a BREAK from a Ctrl+C handler).
+bool _ev_dispatcher(signal_handler_t::event_t ev);
+
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

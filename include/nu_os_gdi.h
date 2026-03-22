@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -19,9 +19,11 @@
 
 
 #ifdef _WIN32
+// clang-format off
 #include <windows.h>
 #include <objidl.h>
 #include <gdiplus.h>
+// clang-format on
 #endif
 
 
@@ -140,7 +142,16 @@ int _os_set_topmost() noexcept;
 
 /* -------------------------------------------------------------------------- */
 
-}
+// GDI Console window management (Windows only)
+#ifdef _WIN32
+void set_gdi_target_window(HWND hwnd);
+HWND get_gdi_target_window();
+#endif
+
+
+/* -------------------------------------------------------------------------- */
+
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

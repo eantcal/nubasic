@@ -17,3 +17,15 @@ Debug
 *.orig
 *.user
 .vs
+/build/
+/out/
+/.claude
+
+# CMake-generated project files (use build/ directories instead)
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+/build-nucli
+/build-fix
+/build-fix/CMakeFiles
