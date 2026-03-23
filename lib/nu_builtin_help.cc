@@ -122,7 +122,8 @@ static help_content_t _help_content[] = {
     { lang_item_t::COMMAND, "help",
         "Provides a description about keyword. In case keyword is not "
         "specified, shows the list of keywords, including commands, "
-        "instructions, functions and operators.",
+        "instructions, functions and operators.\n"
+        "Use  Help examples  for installed sample programs (load/run).",
         "Help [keyword]" },
 
     { lang_item_t::COMMAND, "apropos",

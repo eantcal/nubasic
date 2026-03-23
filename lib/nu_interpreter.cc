@@ -11,6 +11,7 @@
 #include "nu_interpreter.h"
 #include "nu_about.h"
 #include "nu_builtin_help.h"
+#include "nu_examples_paths.h"
 #include "nu_os_console.h"
 #include "nu_os_std.h"
 #include "nu_program.h"
@@ -19,7 +20,9 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cctype>
 #include <cstdarg>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -33,6 +36,43 @@
 /* -------------------------------------------------------------------------- */
 
 namespace nu {
+
+namespace {
+
+    namespace fs = std::filesystem;
+
+    static std::string to_lower_ascii(std::string s)
+    {
+        for (char& c : s)
+            c = char(std::tolower(static_cast<unsigned char>(c)));
+        return s;
+    }
+
+    /** Try fopen(arg); then examples_dir/name and name.bas. */
+    static FILE* open_program_file(const std::string& arg)
+    {
+        FILE* f = fopen(arg.c_str(), "r");
+        if (f)
+            return f;
+
+        const std::string ex = examples_directory();
+        if (ex.empty())
+            return nullptr;
+
+        fs::path p = fs::path(ex) / arg;
+        f = fopen(p.string().c_str(), "r");
+        if (f)
+            return f;
+
+        if (arg.find('.') == std::string::npos) {
+            p = fs::path(ex) / (arg + ".bas");
+            f = fopen(p.string().c_str(), "r");
+        }
+
+        return f;
+    }
+
+} // namespace
 
 // fprintf wrapper: routes to GDI console when active, otherwise normal fprintf
 static void console_fprintf(FILE* fp, const char* fmt, ...)
@@ -861,6 +901,15 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                 arg += token.identifier();
             }
 
+            // "cd examples" -> install root (parent of the examples folder) so
+            //   load examples\foo.bas / load examples/foo.bas works as
+            //   documented.
+            if (to_lower_ascii(arg) == "examples") {
+                const std::string root = examples_install_root();
+                if (!root.empty() && _os_change_dir(root))
+                    return exec_res_t::CMD_EXEC;
+            }
+
             return _os_change_dir(arg) ? exec_res_t::CMD_EXEC
                                        : exec_res_t::IO_ERROR;
         }
@@ -873,13 +922,20 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         }
 
         if (cmd == "help") {
-            std::string help_content;
-
             token = tknzr.next();
             skip_blank(tknzr, token);
 
-            help_content = builtin_help_t::get_instance().help(
-                token.type() != tkncl_t::UNDEFINED ? token.identifier() : "");
+            const std::string topic
+                = token.type() != tkncl_t::UNDEFINED ? token.identifier() : "";
+
+            if (to_lower_ascii(topic) == "examples") {
+                const std::string text = examples_help_text();
+                console_fprintf(get_stdout_ptr(), "%s\n", text.c_str());
+                return exec_res_t::CMD_EXEC;
+            }
+
+            const std::string help_content
+                = builtin_help_t::get_instance().help(topic);
 
             console_fprintf(get_stdout_ptr(), "%s\n", help_content.c_str());
 
@@ -935,7 +991,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                 return exec_res_t::SYNTAX_ERROR;
             }
 
-            FILE* f = fopen(arg.c_str(), "r");
+            FILE* f = open_program_file(arg);
 
             if (!f) {
                 return exec_res_t::IO_ERROR;
@@ -953,7 +1009,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                 return exec_res_t::SYNTAX_ERROR;
             }
 
-            FILE* f = fopen(arg.c_str(), "r");
+            FILE* f = open_program_file(arg);
 
             if (!f) {
                 return exec_res_t::IO_ERROR;

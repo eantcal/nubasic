@@ -68,6 +68,10 @@
 // IDM >= 41000 are dinamically assigned
 #define IDM_INTERPRETER_BROWSER_FUN 41000
 
+// Sample programs (File -> Examples); IDs are IDM_EXAMPLE_FIRST + index
+#define IDM_EXAMPLE_FIRST 42000
+#define IDM_EXAMPLE_LAST 42256
+
 #define IDD_GOTOLINE 104
 #define IDI_NUBASIC_ICON 100
 #define IDI_NUBASIC_SPLASH 103

@@ -198,8 +198,122 @@ SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1.3), libgcc1 (>= 1:4.1.1)")
 SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 SET(CPACK_DEBIAN_PACKAGE_SECTION "devel")
 SET(CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
+
+if(WIN32)
+  # ---------------------------------------------------------------------------
+  # Windows MSI installer via CPack WIX generator.
+  #
+  # Prerequisites:
+  #   WiX Toolset v3.x  –  https://wixtoolset.org/releases/
+  #   candle.exe and light.exe must be on PATH.
+  #
+  # Fallback: set NUBASIC_INSTALLER=NSIS to use the old NSIS-based setup.exe
+  #   (requires makensis.exe on PATH instead).
+  #
+  # Build the installer:
+  #   cmake --build <builddir> --config Release
+  #   cd <builddir>
+  #   cpack -G WIX -C Release          # or -G NSIS with the fallback
+  # ---------------------------------------------------------------------------
+
+  set(NUBASIC_INSTALLER "WIX" CACHE STRING
+      "Installer generator for Windows: WIX (default, MSI) or NSIS (legacy setup.exe)")
+  set_property(CACHE NUBASIC_INSTALLER PROPERTY STRINGS WIX NSIS)
+
+  set(CPACK_SET_DESTDIR OFF)
+  set(CPACK_PACKAGING_INSTALL_PREFIX "")
+  set(CPACK_PACKAGE_INSTALL_DIRECTORY "nuBASIC")
+
+  if(NUBASIC_INSTALLER STREQUAL "NSIS")
+    # ---- NSIS fallback (legacy) ----
+    set(CPACK_GENERATOR "NSIS")
+    set(CPACK_NSIS_DISPLAY_NAME "nuBASIC")
+    set(CPACK_NSIS_PACKAGE_NAME "nuBASIC")
+    set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
+    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+      WriteRegStr HKCU 'Software\\\\nuBASIC' 'InstallDir' \\\"$INSTDIR\\\"
+      WriteRegStr HKCU 'Software\\\\nuBASIC' 'ExamplesDir' \\\"$INSTDIR\\\\examples\\\"
+    ")
+    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+      DeleteRegKey HKCU 'Software\\\\nuBASIC'
+    ")
+  else()
+    # ---- WIX MSI (default) ----
+    set(CPACK_GENERATOR "WIX")
+
+    # UPGRADE_GUID must never change across versions of nuBASIC — it is the
+    # stable product identity that Windows Installer uses to detect upgrades
+    # and prevent duplicate installations.
+    set(CPACK_WIX_UPGRADE_GUID "A1B2C3D4-E5F6-4789-8ABC-DEF012345678")
+
+    # Application icon shown in the installer and in Add/Remove Programs.
+    set(CPACK_WIX_PRODUCT_ICON "${CMAKE_SOURCE_DIR}/ide/win/nuBasic.ico")
+
+    # WixUI_InstallDir: lets the user choose the installation directory.
+    set(CPACK_WIX_UI_REF "WixUI_InstallDir")
+
+    # License text shown on the first page of the installer.
+    set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/cmake/License.rtf")
+
+    # Extra WiX source: adds Start Menu shortcuts, runtime registry keys and the
+    # .bas file-type association.  See cmake/WixPatch.wxs for details.
+    set(CPACK_WIX_EXTRA_SOURCES "${CMAKE_SOURCE_DIR}/cmake/WixPatch.wxs")
+
+    # URLs shown in Add/Remove Programs.
+    set(CPACK_WIX_HELP_URL  "https://www.eantcal.eu/nubasic")
+    set(CPACK_WIX_ABOUT_URL "https://www.eantcal.eu/nubasic")
+
+    # 64-bit target: CPack WIX uses CPACK_WIX_SIZEOF_VOID_P (set automatically
+    # by CMake) to select ProgramFiles64Folder vs ProgramFilesFolder.
+  endif()
+
+else()
+  SET(CPACK_COMPONENTS_ALL Libraries ApplicationData)
+endif()
  
-SET(CPACK_COMPONENTS_ALL Libraries ApplicationData)
 INCLUDE(CPack)
- 
+
+# ---------------------------------------------------------------------------
+# Visual Studio solution target: "CreateInstaller"
+#
+# Lets the developer build the MSI (or NSIS setup) directly from Visual
+# Studio without leaving the IDE:
+#   • Right-click CreateInstaller → Build
+#   • Or: cmake --build <builddir> --target CreateInstaller --config Release
+#
+# The target depends on all installed executables, so the binaries are
+# guaranteed to be up to date before cpack runs.  $<CONFIG> passes the
+# active VS configuration (Release / Debug) to cpack so the correct
+# binaries are collected.
+#
+# Both CreateInstaller and the CPack-generated PACKAGE target are grouped
+# under the "Installer" folder in Solution Explorer.
+# ---------------------------------------------------------------------------
+if(WIN32 AND MSVC)
+  # Collect the targets that must be built before packaging.
+  set(_installer_deps "")
+  foreach(_t NuBasicIDE nuBasicCLI nuWinConsole_test SciLexer)
+    if(TARGET ${_t})
+      list(APPEND _installer_deps ${_t})
+    endif()
+  endforeach()
+
+  add_custom_target(CreateInstaller
+    COMMAND "${CMAKE_CPACK_COMMAND}"
+            -G "${NUBASIC_INSTALLER}"
+            -C "$<CONFIG>"
+            --config "${CMAKE_BINARY_DIR}/CPackConfig.cmake"
+    DEPENDS ${_installer_deps}
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+    COMMENT "Building ${NUBASIC_INSTALLER} installer (${NUBASIC_INSTALLER}) for $<CONFIG>..."
+    VERBATIM
+  )
+  set_property(TARGET CreateInstaller PROPERTY FOLDER "Installer")
+
+  # Move the standard CPack PACKAGE target into the same solution folder.
+  if(TARGET PACKAGE)
+    set_property(TARGET PACKAGE PROPERTY FOLDER "Installer")
+  endif()
+endif()
+
 ENDIF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")

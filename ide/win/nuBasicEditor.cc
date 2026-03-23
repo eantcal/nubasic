@@ -13,6 +13,7 @@
 
 #include "nu_about.h"
 #include "nu_builtin_help.h"
+#include "nu_examples_paths.h"
 #include "nu_exception.h"
 #include "nu_interpreter.h"
 #include "nu_os_console.h"
@@ -30,6 +31,7 @@
 // menu closes (wParam: bit0=topmost, bit1=activate console).
 static const UINT g_wmPresentGdiConsole = WM_APP + 64;
 
+#include <filesystem>
 #include <regex>
 #include <set>
 #include <thread>
@@ -892,6 +894,16 @@ public:
     void create_funcs_menu() noexcept;
 
     /**
+     * Insert File -> Examples submenu (registry / install or dev tree).
+     */
+    void create_examples_menu() noexcept;
+
+    /**
+     * Open a sample listed under File -> Examples (menu command id).
+     */
+    void open_example_from_menu_id(int menu_id);
+
+    /**
      * Resolve function line using id of "functions" menu
      */
     int resolve_funclinenum_from_id(int id) const noexcept
@@ -1011,6 +1023,11 @@ protected:
     using func_map_t = std::map<int, int>;
     func_map_t _func_map;
     HMENU _func_submenu = (HMENU) nullptr;
+
+    HMENU _examples_submenu = (HMENU) nullptr;
+    bool _examples_menu_inserted = false;
+    int _examples_menu_insert_pos = 0;
+    std::vector<std::string> _example_menu_paths;
 
     HINSTANCE _hInstance;
     HWND _current_dialog;
@@ -1738,6 +1755,101 @@ void nu::editor_t::create_funcs_menu() noexcept
 
     AppendMenu(hmenu, MF_STRING | MF_POPUP, (UINT_PTR)_func_submenu,
         "Go to procedure");
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::create_examples_menu() noexcept
+{
+    namespace fs = std::filesystem;
+
+    if (_examples_menu_inserted || _hwnd_main == nullptr)
+        return;
+
+    HMENU hBar = ::GetMenu(_hwnd_main);
+    if (!hBar)
+        return;
+
+    HMENU hFile = ::GetSubMenu(hBar, 0);
+    if (!hFile)
+        return;
+
+    _examples_submenu = ::CreatePopupMenu();
+    if (!_examples_submenu)
+        return;
+
+    _example_menu_paths.clear();
+
+    const std::string ex = nu::examples_directory();
+    const auto entries = nu::list_example_entries();
+    int n = 0;
+
+    for (const auto& e : entries) {
+        if (n >= (IDM_EXAMPLE_LAST - IDM_EXAMPLE_FIRST))
+            break;
+
+        const fs::path full = fs::path(ex) / e.filename;
+        std::error_code ec;
+        if (!fs::is_regular_file(full, ec))
+            continue;
+
+        _example_menu_paths.push_back(full.string());
+
+        std::string label = e.filename;
+        if (!e.description.empty() && e.description != "Sample program") {
+            std::string d = e.description;
+            if (d.size() > 52)
+                d = d.substr(0, 49) + "...";
+            label += " - ";
+            label += d;
+        }
+
+        const UINT idm = IDM_EXAMPLE_FIRST + n;
+        ::AppendMenuA(_examples_submenu, MF_STRING, idm, label.c_str());
+        ++n;
+    }
+
+    if (n == 0) {
+        ::AppendMenuA(_examples_submenu, MF_STRING | MF_GRAYED | MF_DISABLED,
+            IDM_EXAMPLE_FIRST, "(No examples found — set NUBASIC_EXAMPLES)");
+        _example_menu_paths.push_back(std::string{});
+    }
+
+    // After "&Open" (index 1), before the separator
+    _examples_menu_insert_pos = 2;
+    if (!::InsertMenu(hFile, _examples_menu_insert_pos,
+            MF_BYPOSITION | MF_POPUP, (UINT_PTR)_examples_submenu,
+            "&Examples")) {
+        ::DestroyMenu(_examples_submenu);
+        _examples_submenu = nullptr;
+        _example_menu_paths.clear();
+        return;
+    }
+
+    _examples_menu_inserted = true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::open_example_from_menu_id(int menu_id)
+{
+    if (menu_id < IDM_EXAMPLE_FIRST || menu_id >= IDM_EXAMPLE_LAST)
+        return;
+
+    const size_t idx = size_t(menu_id - IDM_EXAMPLE_FIRST);
+    if (idx >= _example_menu_paths.size())
+        return;
+
+    const std::string& path = _example_menu_paths[idx];
+    if (path.empty())
+        return;
+
+    if (save_if_unsure() == IDCANCEL)
+        return;
+
+    open_document_file(path.c_str());
 }
 
 
@@ -3594,6 +3706,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         // Restore window placement and splitter position from registry
         load_settings(hWnd);
 
+        g_editor.create_examples_menu();
+
         {
             HWND hConsole = (HWND)nu_winconsole_get_hwnd();
             if (hConsole)
@@ -3640,7 +3754,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
     }
 
     case WM_COMMAND:
-        if (LOWORD(wParam) >= IDM_INTERPRETER_BROWSER_FUN) {
+        if (LOWORD(wParam) >= IDM_EXAMPLE_FIRST
+            && LOWORD(wParam) < IDM_EXAMPLE_LAST) {
+            g_editor.open_example_from_menu_id(int(LOWORD(wParam)));
+        } else if (LOWORD(wParam) >= IDM_INTERPRETER_BROWSER_FUN) {
             const auto line
                 = g_editor.resolve_funclinenum_from_id(LOWORD(wParam));
 

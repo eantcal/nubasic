@@ -104,4 +104,14 @@ target_link_libraries(NuBasicIDE PRIVATE nuwinconsole)
 # Install target
 install(TARGETS NuBasicIDE DESTINATION bin)
 
+if(TARGET SciLexer)
+  install(TARGETS SciLexer RUNTIME DESTINATION bin)
+endif()
+
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/examples/"
+  DESTINATION examples
+  FILES_MATCHING
+  PATTERN "*.bas"
+  PATTERN "manifest.txt")
+
 

@@ -29,3 +29,4 @@ Debug
 /build-nucli
 /build-fix
 /build-fix/CMakeFiles
+/build-test-install

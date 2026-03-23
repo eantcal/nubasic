@@ -1,0 +1,30 @@
+# nuBASIC examples manifest — lines: filename|short description (UTF-8)
+# Used by help examples, IDE File->Examples menu, and install layout.
+bitmap.bas|Bitmap drawing demo
+breakout.bas|Breakout (text / console)
+breakout2.bas|Breakout with GDI graphics
+breakout3.bas|Breakout with GDI and keyboard
+calc.bas|Simple calculator
+cartoon.bas|Cartoon-style graphics
+clock.bas|Analog clock
+code.bas|Code / listing demo
+conv.bas|Conversions demo
+fact.bas|Factorial (recursion)
+graph.bas|Graph plotting
+graph2.bas|More graph plotting
+guess.bas|Guessing game
+line.bas|Line drawing
+math.bas|Math samples
+minesHunter.bas|Mines / Minesweeper-style game
+nutetris.bas|Tetris-style game
+nutetris3d.bas|Tetris 3D variant
+parabola.bas|Parabola plot
+pingpong.bas|Ping-pong game
+plane.bas|Plane / 3D wireframe
+raycast3d.bas|Raycasting 3D demo
+readfile.bas|Read text file demo
+recursive.bas|Recursion demo
+rosetta.bas|Rosetta Code style task
+rosettatxt.bas|Rosetta text task
+tictactoe.bas|Tic-tac-toe
+unicode.bas|Unicode / string demo
