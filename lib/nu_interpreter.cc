@@ -485,7 +485,10 @@ std::string interpreter_t::read_line(FILE* f)
     while (!feof(f) && ferror(f) == 0) {
         char c = fgetc(f);
 
-        if (int(c) >= 32 /*&& int(c) <= 127 (implicit) */) {
+        // Cast to unsigned char so that UTF-8 bytes (>= 0x80) are not
+        // misinterpreted as negative values by the signed-char comparison,
+        // which previously caused them to be silently dropped.
+        if (static_cast<unsigned char>(c) >= 32) {
             line.push_back(c);
         }
 
@@ -509,7 +512,9 @@ std::string interpreter_t::read_line(std::stringstream& ss)
 
         ss >> std::noskipws >> c;
 
-        if (int(c) >= 32 /* && int(c) <= 127 (implicit) */) {
+        // Cast to unsigned char so that UTF-8 bytes (>= 0x80) are not
+        // misinterpreted as negative values by the signed-char comparison.
+        if (static_cast<unsigned char>(c) >= 32) {
             line.push_back(c);
         }
 

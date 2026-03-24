@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -57,9 +57,7 @@ class token_t {
     friend class base_tknzr_t;
 
 public:
-    enum class case_t { 
-        LOWER, NOCHANGE 
-    };
+    enum class case_t { LOWER, NOCHANGE };
 
     using data_ptr_t = std::shared_ptr<std::string>;
 
@@ -72,37 +70,21 @@ public:
 
     void set_identifier(const std::string& id, case_t casemode);
 
-    const std::string& identifier() const noexcept { 
-        return _identifier; 
-    }
+    const std::string& identifier() const noexcept { return _identifier; }
 
-    const std::string& org_id() const noexcept { 
-        return _org_id; 
-    }
+    const std::string& org_id() const noexcept { return _org_id; }
 
-    tkncl_t type() const noexcept { 
-        return _type; 
-    }
+    tkncl_t type() const noexcept { return _type; }
 
-    void set_type(tkncl_t cl) noexcept { 
-        _type = cl; 
-    }
+    void set_type(tkncl_t cl) noexcept { _type = cl; }
 
-    size_t position() const noexcept { 
-        return _position; 
-    }
+    size_t position() const noexcept { return _position; }
 
-    void set_position(size_t pos) noexcept { 
-        _position = pos; 
-    }
+    void set_position(size_t pos) noexcept { _position = pos; }
 
-    std::string expression() const noexcept { 
-        return *_expression_ptr; 
-    }
+    std::string expression() const noexcept { return *_expression_ptr; }
 
-    data_ptr_t expression_ptr() const noexcept { 
-        return _expression_ptr; 
-    }
+    data_ptr_t expression_ptr() const noexcept { return _expression_ptr; }
 
     token_t(token_t&& other) noexcept
         : _identifier(std::move(other._identifier))
@@ -113,7 +95,8 @@ public:
     {
     }
 
-    token_t& operator=(token_t&& other) noexcept {
+    token_t& operator=(token_t&& other) noexcept
+    {
         if (this != &other) {
             _identifier = std::move(other._identifier);
             _org_id = std::move(other._org_id);
@@ -127,8 +110,8 @@ public:
 
 protected:
     token_t(size_t pos, data_ptr_t expr_ptr) noexcept
-        : _position(pos),
-          _expression_ptr(expr_ptr)
+        : _position(pos)
+        , _expression_ptr(expr_ptr)
     {
     }
 
@@ -139,9 +122,14 @@ private:
     size_t _position = 0;
     data_ptr_t _expression_ptr;
 
-    void _set_id_lowercase() {
+    void _set_id_lowercase()
+    {
+        // Use unsigned char cast to avoid UB when tolower receives
+        // a negative value (which would happen for non-ASCII bytes
+        // on platforms where char is signed).
         std::transform(_identifier.begin(), _identifier.end(),
-            _identifier.begin(), tolower);
+            _identifier.begin(),
+            [](unsigned char c) { return static_cast<char>(tolower(c)); });
     }
 
 public:

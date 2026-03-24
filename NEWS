@@ -15,6 +15,11 @@ March 2026
 - Added a new console for Windows that does not rely on the standard Windows console application
   (it works both attached to and detached from the IDE interface)
 - Updated Scintilla to the latest version
+- Added UTF-8 support for string literals and PRINT output: characters outside ASCII (Latin Extended,
+  Cyrillic, Greek, CJK, etc.) are now correctly preserved through the tokenizer, interpreter, and
+  rendered in the GDI console. Fixes silent stripping of non-ASCII bytes in both the CLI file-loading
+  path (nu_interpreter.cc) and the IDE editor path (nuBasicEditor.cc rebuild_code).
+- Added hello_world_languages.bas example demonstrating multilingual output in 20 languages
 
 Feb 2022
 * Released nuBASIC 1.52

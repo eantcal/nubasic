@@ -2541,7 +2541,9 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) noexcept
 
         char ch = data[i];
 
-        if (ch >= ' ')
+        // Use unsigned char for the comparison so that UTF-8 bytes (>= 0x80)
+        // are not misinterpreted as negative values and silently dropped.
+        if (static_cast<unsigned char>(ch) >= ' ')
             line += ch;
 
         if (i >= (doc_size - 1) || ch == '\n'

@@ -468,6 +468,20 @@ void console_window_t::render_text(HDC hdc)
         return true;
     };
 
+    // Returns true if the segment contains characters that require GDI font
+    // substitution (i.e. outside pure 7-bit ASCII).  For such segments we
+    // skip the uniform lpDx array and let GDI use natural advance widths:
+    // - Latin Extended (e.g. é, ñ) are already monospace in Consolas, so
+    //   natural spacing == char_width — no visual difference.
+    // - CJK / emoji and other wide scripts become visible instead of being
+    //   clipped to a half-width cell (even if not perfectly grid-aligned).
+    auto has_non_ascii = [](const std::wstring& s) {
+        for (wchar_t ch : s)
+            if (ch > 0x7F)
+                return true;
+        return false;
+    };
+
     for (int y = 0; y < _config.rows; ++y) {
         int buffer_y = first_row + y;
         if (buffer_y >= _buffer->get_total_rows())
@@ -489,19 +503,23 @@ void console_window_t::render_text(HDC hdc)
                 = _config.margin_left + (int)first_ch * _config.char_width;
             SetTextColor(hdc, _config.text_color);
             SetBkColor(hdc, _config.background_color);
-            // Use ETO_OPAQUE with a rect spanning the full line width so
-            // that leading/trailing spaces are filled with the background
-            // colour.  This prevents stale pixel content (e.g. from a
-            // previous LOCATE + PRINT) from showing through the transparent
-            // space regions.
-            // Use uniform lpDx to enforce the monospace grid exactly —
-            // prevents GDI kerning from shifting characters off the cell grid.
             RECT line_rc = { _config.margin_left, y_pos,
                 _config.margin_left + _config.cols * _config.char_width,
                 y_pos + _config.char_height };
-            std::vector<INT> dx(seg_len, _config.char_width);
-            ExtTextOutW(hdc, x_pos, y_pos, ETO_OPAQUE, &line_rc, seg.c_str(),
-                seg_len, dx.data());
+            // For pure ASCII use a uniform lpDx to enforce the monospace grid
+            // and prevent GDI kerning.  For non-ASCII (Latin Extended, CJK,
+            // etc.) pass nullptr so GDI uses natural advance widths: Consolas
+            // characters are already monospace so the grid is preserved, and
+            // characters outside Consolas (e.g. Hiragana) become visible
+            // instead of being squeezed into a too-narrow cell.
+            if (has_non_ascii(seg)) {
+                ExtTextOutW(hdc, x_pos, y_pos, ETO_OPAQUE, &line_rc,
+                    seg.c_str(), seg_len, nullptr);
+            } else {
+                std::vector<INT> dx(seg_len, _config.char_width);
+                ExtTextOutW(hdc, x_pos, y_pos, ETO_OPAQUE, &line_rc,
+                    seg.c_str(), seg_len, dx.data());
+            }
         } else {
             // Selection path: render in runs of same colour.
             int x = 0;
@@ -526,10 +544,14 @@ void console_window_t::render_text(HDC hdc)
                 }
                 int x_pos
                     = _config.margin_left + run_start * _config.char_width;
-                // Uniform lpDx keeps selection highlights aligned to the grid.
-                std::vector<INT> dx(run_len, _config.char_width);
-                ExtTextOutW(hdc, x_pos, y_pos, ETO_OPAQUE, nullptr, run.c_str(),
-                    run_len, dx.data());
+                if (has_non_ascii(run)) {
+                    ExtTextOutW(hdc, x_pos, y_pos, ETO_OPAQUE, nullptr,
+                        run.c_str(), run_len, nullptr);
+                } else {
+                    std::vector<INT> dx(run_len, _config.char_width);
+                    ExtTextOutW(hdc, x_pos, y_pos, ETO_OPAQUE, nullptr,
+                        run.c_str(), run_len, dx.data());
+                }
             }
         }
     }
