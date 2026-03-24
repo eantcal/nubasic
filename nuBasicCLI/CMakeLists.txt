@@ -33,7 +33,7 @@ target_compile_features(nuBasicCLI PRIVATE cxx_std_17)
 
 target_include_directories(nuBasicCLI PRIVATE
   ${CMAKE_SOURCE_DIR}/include
-  ${CMAKE_SOURCE_DIR}/nuwinconsole
+  ${CMAKE_SOURCE_DIR}/nuWinConsole
   .
 )
 
@@ -55,8 +55,8 @@ if(MSVC)
 endif()
 
 target_link_libraries(nuBasicCLI PRIVATE
-  nubasicinterpreter
-  nuwinconsole
+  nuBasicInterpreter
+  nuWinConsole
 )
 
 install(TARGETS nuBasicCLI DESTINATION bin)

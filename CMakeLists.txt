@@ -156,14 +156,14 @@ if (NOT WIN32)
   add_executable(nubasic ${SOURCES})
   target_compile_features(nubasic PRIVATE cxx_std_17)
 
-  target_link_libraries(nubasic nubasicinterpreter ${X11_LIBRARIES} -pthread)
+  target_link_libraries(nubasic nuBasicInterpreter ${X11_LIBRARIES} -pthread)
 
   # add the install targets
   install (TARGETS nubasic DESTINATION bin)
 endif()
 
 SET(MAJOR_VERSION 1)
-SET(MINOR_VERSION 50)
+SET(MINOR_VERSION 60)
 SET(PATCH_VERSION 0)
  
 IF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
@@ -249,6 +249,13 @@ if(WIN32)
     # Application icon shown in the installer and in Add/Remove Programs.
     set(CPACK_WIX_PRODUCT_ICON "${CMAKE_SOURCE_DIR}/ide/win/nuBasic.ico")
 
+    # Banner (493x58) and dialog (493x312) bitmaps for the WiX installer UI.
+    # These are pre-scaled versions of ide/win/nubasic.bmp: the original image
+    # is centered on a white background at the correct size so WiX does not
+    # stretch or deform it.
+    set(CPACK_WIX_UI_BANNER "${CMAKE_SOURCE_DIR}/cmake/nubasic_banner.bmp")
+    set(CPACK_WIX_UI_DIALOG "${CMAKE_SOURCE_DIR}/cmake/nubasic_dialog.bmp")
+
     # WixUI_InstallDir: lets the user choose the installation directory.
     set(CPACK_WIX_UI_REF "WixUI_InstallDir")
 
@@ -292,7 +299,7 @@ INCLUDE(CPack)
 if(WIN32 AND MSVC)
   # Collect the targets that must be built before packaging.
   set(_installer_deps "")
-  foreach(_t NuBasicIDE nuBasicCLI nuWinConsole_test SciLexer)
+  foreach(_t nuBasicIDE nuBasicCLI nuWinConsole_test SciLexer)
     if(TARGET ${_t})
       list(APPEND _installer_deps ${_t})
     endif()

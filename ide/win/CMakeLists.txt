@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(NuBasicIDE)
+project(nuBasicIDE)
 
 if(NOT WIN32)
   message(WARNING "Windows IDE can only be built on Windows")
@@ -33,23 +33,24 @@ set(IDE_RESOURCES
 )
 
 # Create the executable
-add_executable(NuBasicIDE WIN32 ${IDE_SOURCES} ${IDE_HEADERS} ${IDE_RESOURCES})
+add_executable(nuBasicIDE WIN32 ${IDE_SOURCES} ${IDE_HEADERS} ${IDE_RESOURCES})
+set_target_properties(nuBasicIDE PROPERTIES OUTPUT_NAME "NuBasicIDE")
 
 # Set C++ standard
-target_compile_features(NuBasicIDE PRIVATE cxx_std_17)
+target_compile_features(nuBasicIDE PRIVATE cxx_std_17)
 
 # Include directories
 # SCINTILLA_INCLUDE_DIRS and LEXILLA_INCLUDE_DIRS are set by cmake/ScintillaFetch.cmake
-target_include_directories(NuBasicIDE PRIVATE
+target_include_directories(nuBasicIDE PRIVATE
   ${CMAKE_SOURCE_DIR}
   ${SCINTILLA_INCLUDE_DIRS}
   ${LEXILLA_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/include
-  ${CMAKE_SOURCE_DIR}/nuwinconsole
+  ${CMAKE_SOURCE_DIR}/nuWinConsole
 )
 
 # Preprocessor definitions
-target_compile_definitions(NuBasicIDE PRIVATE
+target_compile_definitions(nuBasicIDE PRIVATE
   _CRT_SECURE_NO_WARNINGS
   WIN32
   $<$<CONFIG:Debug>:_DEBUG>
@@ -59,31 +60,31 @@ target_compile_definitions(NuBasicIDE PRIVATE
 
 # Compiler options
 if(MSVC)
-  target_compile_options(NuBasicIDE PRIVATE
+  target_compile_options(nuBasicIDE PRIVATE
     /W3
     $<$<CONFIG:Release>:/O2 /Ob2>
     $<$<CONFIG:Debug>:/Od /Zi>
   )
   # Use static runtime library
-  set_property(TARGET NuBasicIDE PROPERTY
+  set_property(TARGET nuBasicIDE PROPERTY
     MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
 # Ensure SciLexer.dll is built before the IDE (when using fetched version)
-# and copy it next to NuBasicIDE.exe so it can be found at runtime.
+# and copy it next to nuBasicIDE.exe so it can be found at runtime.
 if(TARGET SciLexer)
-  add_dependencies(NuBasicIDE SciLexer)
-  add_custom_command(TARGET NuBasicIDE POST_BUILD
+  add_dependencies(nuBasicIDE SciLexer)
+  add_custom_command(TARGET nuBasicIDE POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       $<TARGET_FILE:SciLexer>
-      $<TARGET_FILE_DIR:NuBasicIDE>
-    COMMENT "Copying SciLexer.dll next to NuBasicIDE.exe"
+      $<TARGET_FILE_DIR:nuBasicIDE>
+    COMMENT "Copying SciLexer.dll next to nuBasicIDE.exe"
   )
 endif()
 
 # Link against interpreter library
-target_link_libraries(NuBasicIDE PRIVATE
-  nubasicinterpreter
+target_link_libraries(nuBasicIDE PRIVATE
+  nuBasicInterpreter
   Comctl32.lib
   kernel32.lib
   user32.lib
@@ -99,10 +100,10 @@ target_link_libraries(NuBasicIDE PRIVATE
   odbccp32.lib
 )
 
-target_link_libraries(NuBasicIDE PRIVATE nuwinconsole)
+target_link_libraries(nuBasicIDE PRIVATE nuWinConsole)
 
 # Install target
-install(TARGETS NuBasicIDE DESTINATION bin)
+install(TARGETS nuBasicIDE DESTINATION bin)
 
 if(TARGET SciLexer)
   install(TARGETS SciLexer RUNTIME DESTINATION bin)

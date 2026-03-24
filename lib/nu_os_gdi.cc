@@ -452,7 +452,10 @@ int _os_play_sound(const std::string& filename, int flag)
 
 int _os_move_window(int x, int y, int dx, int dy)
 {
-    return MoveWindow(gdi_ctx_t::_get_target_hwnd(), x, y, dx, dy, TRUE);
+    HWND hwnd = gdi_ctx_t::_get_target_hwnd();
+    if (!hwnd || (GetWindowLong(hwnd, GWL_STYLE) & WS_CHILD))
+        return 0; // embedded in IDE: no-op
+    return MoveWindow(hwnd, x, y, dx, dy, TRUE);
 }
 
 
@@ -520,8 +523,10 @@ int _os_get_window_dy() noexcept
 
 int _os_set_topmost() noexcept
 {
-    return SetWindowPos(gdi_ctx_t::_get_target_hwnd(), HWND_TOPMOST, 0, 0, 0, 0,
-               SWP_NOMOVE | SWP_NOSIZE)
+    HWND hwnd = gdi_ctx_t::_get_target_hwnd();
+    if (!hwnd || (GetWindowLong(hwnd, GWL_STYLE) & WS_CHILD))
+        return 0; // embedded in IDE: no-op
+    return SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
         ? 0
         : -1;
 }

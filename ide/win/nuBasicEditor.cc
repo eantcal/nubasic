@@ -1864,8 +1864,8 @@ void nu::editor_t::show_splash()
         return;
     }
 
-    const int wdx = 400;
-    const int wdy = 160 + GetSystemMetrics(SM_CYCAPTION);
+    const int wdx = 800;
+    const int wdy = 400 + GetSystemMetrics(SM_CYCAPTION);
 
     RECT r = { 0 };
     GetClientRect(GetDesktopWindow(), &r);
@@ -3713,7 +3713,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
             if (hConsole)
                 nu::set_gdi_target_window(hConsole);
         }
-        g_editor.show_splash();
 
         DragAcceptFiles(hWnd, TRUE);
 
@@ -4132,6 +4131,9 @@ int PASCAL WinMain(
     }
 
     RegisterWindowClass();
+
+    // Show splash before creating the main window so it appears alone.
+    g_editor.show_splash();
 
     g_editor.set_hwnd(
         ::CreateWindowEx(WS_EX_CLIENTEDGE, nu::editor::class_name, "nuBASIC",

@@ -34,6 +34,7 @@
 #include "nu_terminal_frame.h"
 #include "nu_winconsole_api.h"
 
+#include "nu_about.h"
 #include "nu_basic_defs.h"
 #include "nu_signal_handling.h"
 #include <cstdio>
@@ -130,6 +131,22 @@ static int nuBASIC_console(int argc, char* argv[])
             ::Sleep(0);
         }
     });
+
+    // Handle -a (about) before anything else: it works as a standalone flag.
+    for (int j = 1; j < argc; ++j) {
+        if (std::string(argv[j]) == "-a") {
+            char msg[512];
+            snprintf(msg, sizeof(msg),
+                "%s %s\nCopyright (C) %s  %s\n\n%s\n\nLicense: %s\nContact:  "
+                "%s",
+                nu::about::progname, nu::about::version, nu::about::copyright,
+                nu::about::author, nu::about::description, nu::about::license,
+                nu::about::contacts);
+            ::MessageBoxA(
+                0, msg, nu::about::progname, MB_ICONINFORMATION | MB_OK);
+            return 0;
+        }
+    }
 
     std::string command_line;
     bool first_command = false;
