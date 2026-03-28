@@ -4,6 +4,8 @@
 dx%=GetSWidth()
 dy%=GetSHeight()
 
+CLS
+
 Randomize
 
 While 1

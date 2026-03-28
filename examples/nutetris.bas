@@ -52,13 +52,14 @@ Sub MainLoop()
          MovePieces
       Wend
 
+      ScreenLock
       FillRect 40, 60, 220, 160, &h808080
       FillRect 20, 40, 200, 140, 0
       Rect     20, 40, 200, 140, 255
-
       TextOut 50, 55, "Game over... ", &hffffff
       TextOut 50, 75, "Would you like to ", &hffffff
       TextOut 50, 95, "play again? Y/N", &hffffff
+      ScreenUnlock
       key$ = ""
   
       While key$<>"y" and key$<>"Y"
@@ -153,10 +154,11 @@ Sub MovePieces()
    no_more_space% = 0
    collision% = 0
 
+   ScreenLock
    PutPreviewPiece piece_rnd%, 0
    TextOut 400, 135, "Next:", &hffffff
-
    DrawPreview 380, 170, pw_atom_size%
+   ScreenUnlock
 
    For y% = 0 to 19
    
@@ -239,16 +241,20 @@ Sub MovePieces()
             Beep 
 
             If PaintCompletedLines%() Then
+               ScreenLock
                DrawBoard board_offset_x%, board_offset_y%, atom_size%
+               ScreenUnlock
                MDelay 300
             End If
 
             If RemoveCompletedLines%() Then
                Beep
+               ScreenLock
                DrawBackground
                DrawBoard board_offset_x%, board_offset_y%, atom_size%
                DrawGameAreaFrame board_offset_x%, board_offset_y%, atom_size%
                DrawScoreBoard scbx%, scby%, atom_size%
+               ScreenUnlock
             End If
 
             collision% = 1
@@ -262,15 +268,17 @@ Sub MovePieces()
             old_y% = y%
             old_p% = p%
             old_r% = r%
-            
+
+            ScreenLock
             If render_on% or (y% Mod 5) = 0 Then
                DrawBoard board_offset_x%, board_offset_y%, atom_size%
             End If
             If render_on% Then
                DrawGameAreaFrame board_offset_x%, board_offset_y%, atom_size%
                DrawScoreBoard scbx%, scby%, atom_size%
-               If render_on% Then MDelay 150-(level%*10)
             End If
+            ScreenUnlock
+            If render_on% Then MDelay 150-(level%*10)
          End If
          
          If Not(render_on%) Then Exit For      

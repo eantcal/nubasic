@@ -400,19 +400,21 @@ void console_window_t::on_paint()
                 _backbuffer_height = h;
             }
 
-            if (_mem_dc)
+            if (_mem_dc) {
+                // Compose text and cursor onto the back buffer first, then do
+                // a single blit to the screen to avoid visible intermediate
+                // states (flickering).
+                render_text(_mem_dc);
+                if (_cursor_force_visible && _cursor_blink_state)
+                    render_cursor(_mem_dc);
                 BitBlt(hdc, 0, 0, w, h, _mem_dc, 0, 0, SRCCOPY);
+            }
         } else {
             HBRUSH bg = CreateSolidBrush(_config.background_color);
             FillRect(hdc, &client_rc, bg);
             DeleteObject(bg);
         }
     }
-
-    render_text(hdc);
-
-    if (_cursor_force_visible && _cursor_blink_state)
-        render_cursor(hdc);
 
     EndPaint(_hwnd, &ps);
 }
@@ -1000,7 +1002,23 @@ void console_window_t::release_offscreen_dc()
         _surface_client_locked = false;
         _surface_mutex.unlock();
     }
-    refresh(true); // GDI drawing done — force immediate repaint
+    // Skip automatic repaint when the BASIC program holds the screen lock
+    // (SCREENLOCK command).  The frame will be presented on SCREENUNLOCK or
+    // an explicit REFRESH call.
+    if (!_render_locked.load())
+        refresh(true);
+}
+
+/* -------------------------------------------------------------------------- */
+
+void console_window_t::lock_rendering() { _render_locked.store(true); }
+
+/* -------------------------------------------------------------------------- */
+
+void console_window_t::unlock_rendering()
+{
+    _render_locked.store(false);
+    refresh(true); // present the accumulated frame immediately
 }
 
 /* -------------------------------------------------------------------------- */

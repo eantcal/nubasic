@@ -38,7 +38,9 @@ End Sub
 ' -----------------------------------------------------------------------------
 
 Sub DrawBoard()
+   ScreenLock
    UpdateBoard 110, 90, cell_size%
+   ScreenUnlock
 End Sub
 
 
@@ -698,6 +700,7 @@ Sub MainLoop()
                         xmsg% = cell_size% * 2
                         ymsg% = cell_size% * 2 + cell_size% Div 2
 
+                  ScreenLock
                   FillRect xmsg% - 10, ymsg% - 10, xmsg% + 150, ymsg% + 60, Rgb(128, 128, 255)
 
                   If winSymb$ <> " " Then
@@ -713,6 +716,7 @@ Sub MainLoop()
                   End If
 
                         TextOut xmsg%, ymsg% + 30, "Click to continue", Rgb(255, 255, 255)
+                  ScreenUnlock
 
                   Exit While
 

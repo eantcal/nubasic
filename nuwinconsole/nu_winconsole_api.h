@@ -86,6 +86,13 @@ void nu_winconsole_cursor_visible(int visible);
 // Refresh/update the display
 void nu_winconsole_refresh();
 
+// Screen lock / unlock: suppress or re-enable the automatic per-primitive
+// refresh.  While locked, GDI drawing accumulates in the back-buffer without
+// updating the screen.  nu_winconsole_screenunlock() forces one immediate
+// repaint so the whole frame appears at once.
+void nu_winconsole_screenlock();
+void nu_winconsole_screenunlock();
+
 // Cancel any pending blocking input (e.g. read_line)
 void nu_winconsole_cancel_input();
 

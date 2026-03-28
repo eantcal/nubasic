@@ -53,6 +53,7 @@
 #include "nu_stmt_read_file.h"
 #include "nu_stmt_redim.h"
 #include "nu_stmt_return.h"
+#include "nu_stmt_screen.h"
 #include "nu_stmt_stop.h"
 #include "nu_stmt_struct.h"
 #include "nu_stmt_struct_element.h"
@@ -2099,6 +2100,21 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
     if (identifier == "cls") {
         --tl;
         return stmt_t::handle_t(std::make_shared<stmt_cls_t>(ctx));
+    }
+
+    if (identifier == "screenlock") {
+        --tl;
+        return stmt_t::handle_t(std::make_shared<stmt_screenlock_t>(ctx));
+    }
+
+    if (identifier == "screenunlock") {
+        --tl;
+        return stmt_t::handle_t(std::make_shared<stmt_screenunlock_t>(ctx));
+    }
+
+    if (identifier == "refresh") {
+        --tl;
+        return stmt_t::handle_t(std::make_shared<stmt_refresh_t>(ctx));
     }
 
     if (identifier == "randomize") {

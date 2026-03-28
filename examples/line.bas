@@ -18,6 +18,7 @@
 150 Next y
 160 Next x
 170 col = &h00ffffff
+175 ScreenLock
 180 For x = 0 TO 8
 190 For y = 0 TO 8
 200 Line mx%(x+ y*dx%) + kx, my%(x+ y*dx%) + ky, mx%(x + 1+ y*dx%) + kx, my%(x + 1+ y*dx%) + ky, col
@@ -32,6 +33,7 @@
 290 Line mx%(9+ 0) + kx, my%(9+ 0) + ky, mx%(9+ 0) + kx, my%(9+ 0) + ky + 80, col
 300 Line mx%(0+ 0) + kx, my%(0+ 0) + ky + 80, mx%(9+ 0) + kx, my%(9+ 0) + ky + 80, col
 310 Line mx%(9+ 0) + kx, my%(9+ 0) + ky + 80, mx%(9+ 9*dx%) + kx, my%(9+ 9*dx%) + ky + 80, col
+315 ScreenUnlock
 320 For i%=1 to 500: kk$ = InKey$(): MDelay 1: IF kk$="q" OR kk$="Q" Then End
 330 Next i%
 340 For i%=1 to 80: Print Spc(80): Next i%

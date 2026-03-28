@@ -41,7 +41,8 @@ std::set<std::string>& reserved_keywords_t::list()
         "syshour", "sysmin", "syssec", "sysyday", "syswday", "sysyear",
         "sysmonth", "boolean", "integer", "double", "float", "string", "type",
         "elseif", "setpixel", "getpixel", "struct", "integer", "double",
-        "float", "boolean", "string", "long64", "quit", "settopmost", "stop" };
+        "float", "boolean", "string", "long64", "quit", "settopmost", "stop",
+        "screenlock", "screenunlock", "refresh" };
 
     return list;
 }

@@ -78,13 +78,14 @@ Sub MainLoop()
          MovePieces
       Wend
 
+      ScreenLock
       FillRect 40, 60, 220, 160, &h808080
       FillRect 20, 40, 200, 140, 0
       Rect     20, 40, 200, 140, 255
-
       TextOut 50, 55, "Game over... ", &hffffff
       TextOut 50, 75, "Would you like to ", &hffffff
       TextOut 50, 95, "play again? Y/N", &hffffff
+      ScreenUnlock
       key$ = ""
   
       While key$<>"y" and key$<>"Y"
@@ -159,10 +160,11 @@ Sub MovePieces()
    no_more_space% = 0
    collision% = 0
 
+   ScreenLock
    PutPreviewPiece piece_rnd%, 0
    TextOut 400, 135, "Next:", &hffffff
-
    DrawPreview 380, 160, pw_atom_size%
+   ScreenUnlock
 
    For y% = 0 to 19
    
@@ -228,15 +230,19 @@ Sub MovePieces()
             Beep 
 
             If PaintCompletedLines%() Then
+               ScreenLock
                DrawBoard board_offset_x%, board_offset_y%, atom_size%
+               ScreenUnlock
                mdelay 300
             End If
 
             If RemoveCompletedLines%() Then
                Beep
+               ScreenLock
                DrawBoard board_offset_x%, board_offset_y%, atom_size%
                DrawGameAreaFrame board_offset_x%, board_offset_y%, atom_size%
                DrawScoreBoard scbx%, scby%, atom_size%
+               ScreenUnlock
             End If
 
             collision% = 1
@@ -250,7 +256,8 @@ Sub MovePieces()
             old_y% = y%
             old_p% = p%
             old_r% = r%
-            
+
+            ScreenLock
             If render_on% Or (y% Mod 5) = 0 Then
                DrawBoard board_offset_x%, board_offset_y%, atom_size%
             End If
@@ -258,18 +265,20 @@ Sub MovePieces()
                DrawGameAreaFrame board_offset_x%, board_offset_y%, atom_size%
                DrawScoreBoard scbx%, scby%, atom_size%
             End If
+            ScreenUnlock
          End If
-         
-         If Not(render_on%) Then Exit For      
+
+         If Not(render_on%) Then Exit For
       Next t%
 
-     
-      angle% = 240 + x%  
+
+      angle% = 240 + x%
       camera_x% = cell_dx% * x% + 2*cell_dx%
+      camera_y% = y%*cell_dy% + 4*cell_dy%
 
-      camera_y% = y%*cell_dy% + 4*cell_dy% 
-
-      Move3DCamera angle% 
+      ScreenLock
+      Move3DCamera angle%
+      ScreenUnlock
    Next y%
 
    If no_more_space% Then game_over% = 1

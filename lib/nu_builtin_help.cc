@@ -1055,6 +1055,36 @@ static help_content_t _help_content[] = {
         "coords x,y\n",
         "PlotImage bitmap$, x, y" },
 
+    { lang_item_t::INSTRUCTION, "screenlock",
+        "Suspends automatic screen refresh after each graphics primitive.\n"
+        "All subsequent drawing commands (Line, Rect, FillRect, Ellipse,\n"
+        "FillEllipse, TextOut, PlotImage, ...) accumulate on an off-screen\n"
+        "back buffer without being visible until ScreenUnlock is called.\n"
+        "Use ScreenLock / ScreenUnlock to compose a complete frame before\n"
+        "presenting it, eliminating per-primitive flicker.\n"
+        "\nSee also ScreenUnlock, Refresh",
+        "ScreenLock" },
+
+    { lang_item_t::INSTRUCTION, "screenunlock",
+        "Re-enables automatic screen refresh and immediately presents the\n"
+        "back buffer to the screen (equivalent to Refresh).\n"
+        "Must be paired with a preceding ScreenLock call.\n"
+        "Typical pattern:\n"
+        "  ScreenLock\n"
+        "  ... drawing commands ...\n"
+        "  ScreenUnlock\n"
+        "\nSee also ScreenLock, Refresh",
+        "ScreenUnlock" },
+
+    { lang_item_t::INSTRUCTION, "refresh",
+        "Forces an immediate blit of the off-screen back buffer to the\n"
+        "screen without changing the ScreenLock state.\n"
+        "Useful when you need to display a static frame (e.g. a game-over\n"
+        "dialog) while the render lock is still active, or before blocking\n"
+        "on keyboard input with Input$().\n"
+        "\nSee also ScreenLock, ScreenUnlock",
+        "Refresh" },
+
 #endif // ...TINY_NUBASIC_VER
 
     { lang_item_t::FUNCTION, "quit", "Quit nuBASIC interpreter\n",

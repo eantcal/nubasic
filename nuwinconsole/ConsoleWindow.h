@@ -63,6 +63,16 @@ public:
     /* Clear the back-buffer (called by CLS) */
     void clear_backbuffer();
 
+    /* Screen lock / unlock: suppress or re-enable the automatic refresh that
+     * fires after every GDI drawing primitive (LINE, RECT, …).  While locked,
+     * drawing commands accumulate in the back-buffer without updating the
+     * screen.  unlock_rendering() re-enables and forces one immediate repaint,
+     * so the whole frame appears at once with no intermediate flicker.
+     * refresh() can be called explicitly at any time to blit the current
+     * back-buffer to screen, even while the lock is active. */
+    void lock_rendering();
+    void unlock_rendering();
+
     /* Cancel any pending read_line (unblocks the waiting thread) */
     void cancel_input();
 
@@ -155,6 +165,11 @@ private:
     HBITMAP _mem_bitmap;
     int _backbuffer_width;
     int _backbuffer_height;
+
+    // When true, release_offscreen_dc() skips the automatic refresh so that
+    // multiple drawing commands accumulate in the back-buffer without causing
+    // per-primitive screen updates (SCREENLOCK / SCREENUNLOCK).
+    std::atomic<bool> _render_locked{ false };
 
     // Input handling
     // _input_queue is accessed from both threads → protected by _input_mutex.

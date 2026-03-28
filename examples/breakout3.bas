@@ -88,21 +88,20 @@ While 1
       y%=lines%*2+1
 
       Cls
-     
+
+      ScreenLock
       FillRect 0,0, 700, 600, bgColor%
-      
-
-' ------------------------------------------------------------------------------
-
-      InitWallMap lines%, columns%  
+      InitWallMap lines%, columns%
       DrawWall lines%, columns%
       brickMoveCount%=0 : Rem Full wall drawn; periodic refresh every 10 moves if no hit
-      MovePlayer akey$ 
+      MovePlayer akey$
+      ScreenUnlock
 
 ' ------------------------------------------------------------------------------
 '  Update Ball Position
 ' ------------------------------------------------------------------------------
       While 1 Do
+         ScreenLock
          EraseBall x%, y%
 
          x%=x%+a%
@@ -113,21 +112,22 @@ While 1
 '  Dispatch other events
 ' ------------------------------------------------------------------------------
 
-         If x%<=2 or x%>w%-2 Then 
+         If x%<=2 or x%>w%-2 Then
             a%=-a%
-            beep 
-         Else 
-            If y%<=lines%*2 Then 
+            beep
+         Else
+            If y%<=lines%*2 Then
                dirty% = 0
                ProcessCollision lines%, columns%
                If dirty% Then DrawWall lines%, columns% : brickMoveCount%=0
-            End If 
-         End If 
+            End If
+         End If
 
          If brickMoveCount%>=50 Then DrawWall lines%, columns% : brickMoveCount%=0
 
          DrawBall x%,y%
          DrawHud lines%, columns%
+         ScreenUnlock
 
          Rem Pace like original (~60-level%*5 ms per frame)
          fdelay% = 60 - level% * 5
@@ -136,11 +136,12 @@ While 1
 
          Rem Checks for Game Over
          If completed%<0 Then
-         
+
             l% = lines%*20
             TextOut 120, l%+40, "Game Over", c%(6)
             TextOut 120, l%+60, "Press any key to restart or "+ quit_key$ + " to QUIT", c%(6)
-         
+            Refresh
+
             a$=Input$(1)
 
             If a$=quit_key$ Then 
@@ -153,15 +154,16 @@ While 1
             Exit While
          End If
 
-         If completed%>0 Then 
+         If completed%>0 Then
             Rem Level Completed
 
-            totalscore%=totalscore%+(80*lines%) 
+            totalscore%=totalscore%+(80*lines%)
             level%=level%+1
 
             TextOut 150, lines%*20+40, "     Level Completed ",     c%(6)
             TextOut 150, lines%*20+40, "Press any key to continue", c%(6)
-           
+            Refresh
+
             a$=Input$(1)
             lives%=lives%+1 
             lines%=lines%+1 

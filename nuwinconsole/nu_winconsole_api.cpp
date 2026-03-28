@@ -289,6 +289,22 @@ void nu_winconsole_refresh()
 
 /* -------------------------------------------------------------------------- */
 
+void nu_winconsole_screenlock()
+{
+    if (g_console)
+        g_console->lock_rendering();
+}
+
+/* -------------------------------------------------------------------------- */
+
+void nu_winconsole_screenunlock()
+{
+    if (g_console)
+        g_console->unlock_rendering();
+}
+
+/* -------------------------------------------------------------------------- */
+
 void nu_winconsole_cancel_input()
 {
     if (!g_console)

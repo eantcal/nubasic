@@ -97,7 +97,9 @@ Sub MainLoop()
             offset% = 0            
          End If
 
+         ScreenLock
          Draw3DView 0, 0, yres%, Int(a%/(alpha_ratio)), ratio%
+         ScreenUnlock
       End If
    Wend
 End Sub

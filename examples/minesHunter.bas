@@ -71,18 +71,24 @@ Sub PlayTheGame()
       End If
 
       If mine_found%=0 Then
+         ScreenLock
          UpdateBoard board_offset_x%, board_offset_y%, cell_size%
          DrawScoreBoard scbx%, scby%, cell_size%
+         ScreenUnlock
       End If
 
       If mine_found% Then
+         ScreenLock
          ShowAllMines board_offset_x%, board_offset_y%, cell_size%
+         ScreenUnlock
          game_over% = 1
       End If
    End If
 
    If btn%<>0 And xm%>=scbx%+270 And ym%>=scby% And xm%<=scbx%+370 And ym%<=scby%+100 Then
+      ScreenLock
       ShowAllMines board_offset_x%, board_offset_y%, cell_size%
+      ScreenUnlock
       game_over% = 1
    End If
 
@@ -101,14 +107,14 @@ Sub MainLoop()
          PlayTheGame
       Wend
 
+      ScreenLock
       FillRect 130, 460, 310, 545, gray%
       FillRect 110, 440, 300, 540, yellow%
       Rect     110, 440, 300, 540, white%
-
       TextOut 135, 455, "Game over... ",      blue%
       TextOut 135, 475, "Would you like to ", blue%
       TextOut 135, 495, "play again? Y/N",    blue%
-
+      ScreenUnlock
       key$ = ""
   
       While key$<>"y" And key$<>"Y"
@@ -146,17 +152,16 @@ Sub SetupGame()
    game_mode% = 2
 
    While game_mode% > 1
+      ScreenLock
       CleanGameArea board_offset_x%, board_offset_y%, cell_size%
       DrawScoreBoard scbx%, scby%, cell_size%
-   
       TextOut 50, 20, "Click to choose ", white%
-   
       FillRect 40, 60, 200, 100, yellow%
       TextOut 50, 70,  "Beginner", red%
-
       FillRect 40, 120, 200, 160, yellow%
       TextOut 50, 130, "Expert", red%
-   
+      ScreenUnlock
+
       btn% = GetMouseBtn()
       x% = GetMouseX()
       y% = GetMouseY()
@@ -178,10 +183,11 @@ Sub SetupGame()
 
    MDelay 200 : ' ms
 
+   ScreenLock
    CleanGameArea board_offset_x%, board_offset_y%, cell_size%
    DrawScoreBoard scbx%, scby%, cell_size%
-
-   UpdateBoard board_offset_x%, board_offset_y%, cell_size%   
+   UpdateBoard board_offset_x%, board_offset_y%, cell_size%
+   ScreenUnlock
 End Sub
 
 

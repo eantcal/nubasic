@@ -62,18 +62,12 @@ void _os_config_term(bool echo_mode)
 
 /* -------------------------------------------------------------------------- */
 
-void _os_cls()
-{
-    nu_winconsole_cls();
-}
+void _os_cls() { nu_winconsole_cls(); }
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_locate(int y, int x)
-{
-    nu_winconsole_locate(x - 1, y - 1);
-}
+void _os_locate(int y, int x) { nu_winconsole_locate(x - 1, y - 1); }
 
 
 /* -------------------------------------------------------------------------- */
@@ -138,10 +132,22 @@ int _os_kbhit()
 
 /* -------------------------------------------------------------------------- */
 
-void _os_cursor_visible(bool on)
-{
-    nu_winconsole_cursor_visible(on ? 1 : 0);
-}
+void _os_cursor_visible(bool on) { nu_winconsole_cursor_visible(on ? 1 : 0); }
+
+
+/* -------------------------------------------------------------------------- */
+
+void _os_screenlock() { nu_winconsole_screenlock(); }
+
+
+/* -------------------------------------------------------------------------- */
+
+void _os_screenunlock() { nu_winconsole_screenunlock(); }
+
+
+/* -------------------------------------------------------------------------- */
+
+void _os_refresh() { nu_winconsole_refresh(); }
 
 
 /* -------------------------------------------------------------------------- */
@@ -347,6 +353,13 @@ int _os_kbhit()
 
     return c;
 }
+
+/* -------------------------------------------------------------------------- */
+
+// No GDI back-buffer on non-Windows: these are intentional no-ops.
+void _os_screenlock() {}
+void _os_screenunlock() {}
+void _os_refresh() {}
 
 /* -------------------------------------------------------------------------- */
 

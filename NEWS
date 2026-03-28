@@ -2,13 +2,31 @@ nuBASIC NEWS -- History of User-Visible Changes
 http://www.nubasic.eu/
 
 Author: Antonino Calderone - antonino.calderone@gmail.com
-Copyright (c) 2014-2022
+Copyright (c) 2014-2026
 
 Please send bug reports for nuBASIC and nuBASIC IDE to:
 <antonino.calderone@gmail.com>
 
 The Win32/64 build created with Visual Studio 2022 requires the
 "Visual C++ Redistributable Packages for Visual Studio 2022".
+
+April 2026
+* nuBASIC 1.61 (upcoming release)
+- Added SCREENLOCK, SCREENUNLOCK, and REFRESH instructions for flicker-free
+  graphics rendering. SCREENLOCK suspends the automatic per-primitive screen
+  refresh so that multiple drawing commands (Line, Rect, FillRect, Ellipse,
+  FillEllipse, TextOut, PlotImage, ...) accumulate on an off-screen back buffer.
+  SCREENUNLOCK presents the completed frame in a single blit. REFRESH forces an
+  immediate blit without altering the lock state (useful before blocking Input$
+  calls or game-over dialogs).
+- Fixed window repaint flickering on Windows: text and cursor are now composited
+  onto the off-screen back buffer before the single BitBlt to the screen,
+  eliminating intermediate visible states during WM_PAINT.
+- Updated all graphical example programs to use the new screen-lock pattern:
+  breakout2.bas, breakout3.bas, pingpong.bas, nutetris.bas, nutetris3d.bas,
+  raycast3d.bas, plane.bas, clock.bas, cartoon.bas, minesHunter.bas,
+  tictactoe.bas, line.bas, rosetta.bas, calc.bas.
+- Updated built-in help (HELP SCREENLOCK, HELP SCREENUNLOCK, HELP REFRESH).
 
 March 2026
 * Released nuBASIC 1.60

@@ -71,40 +71,40 @@ While 1
 
       Cls
 
+      ScreenLock
       FillRect 0,0, 700, 500, 0
-
-
-      ' -------------------------------------------------------------------------
-
-      GoSub InitWallMap  
-      GoSub DrawWall     
+      GoSub InitWallMap
+      GoSub DrawWall
       brickMoveCount%=0 : Rem Full wall drawn; periodic refresh every 10 moves if no hit
-      GoSub HandlePlayer 
+      GoSub HandlePlayer
+      ScreenUnlock 
 
 
    ' -------------------------------------------------------------------------
     Rem Update Ball
 
       While 1 do
-         FillRect x%*10, y%*10, x%*10+10, y%*10+10, 0 
+         ScreenLock
+         FillRect x%*10, y%*10, x%*10+10, y%*10+10, 0
          x%=x%+a%
          y%=y%+b%
          brickMoveCount%=brickMoveCount%+1
       ' ----------- Dispatch event to handle ----------------------------------
 
-         If x%<=2 Or x%>w%-2 Then 
+         If x%<=2 Or x%>w%-2 Then
             a%=-a%
-            Beep 
-         ElseIf y%<=lines%*2 Then 
+            Beep
+         ElseIf y%<=lines%*2 Then
             dirty% = 0
             GoSub ProcessCollision
             If dirty% Then GoSub DrawWall : brickMoveCount%=0
-         End If 
+         End If
 
          If brickMoveCount%>=50 Then GoSub DrawWall : brickMoveCount%=0
 
-         FillEllipse x%*10, y%*10, x%*10+10, y%*10+10, &h2f00ff 
+         FillEllipse x%*10, y%*10, x%*10+10, y%*10+10, &h2f00ff
          GoSub DrawHud
+         ScreenUnlock
 
          Rem Pace like original (was ~60-level%*5 ms per frame when DrawWall ran every tick)
          fdelay% = 60 - level% * 5
@@ -116,7 +116,8 @@ While 1
 
             TextOut 150, lines%*20+40, "     No more lives to spend...",        &hffffff
             TextOut 150, lines%*20+60, "Press any key to restart Or q to QUIT", &hffffff
-         
+            Refresh
+
             a$=input$(1)
 
             If a$="q" Then 
@@ -134,9 +135,10 @@ While 1
 
             totalscore%=totalscore%+(80*lines%) : level%=level%+1
 
-            TextOut 150, lines%*20+40, "     Level Completed ",     &hffffff 
-            TextOut 150, lines%*20+40, "Press any key to continue", &hffffff 
-           
+            TextOut 150, lines%*20+40, "     Level Completed ",     &hffffff
+            TextOut 150, lines%*20+40, "Press any key to continue", &hffffff
+            Refresh
+
             a$=input$(1)
             lives%=lives%+1 
             lines%=lines%+1 

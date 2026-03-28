@@ -253,7 +253,9 @@ Sub Main()
    Dim Text as String
 
    Text = "0"
+   ScreenLock
    DrawCalc 10,10, Text, 1
+   ScreenUnlock
 
    Push "0"
 
@@ -308,7 +310,9 @@ Sub Main()
             End If
          End If
 
+         ScreenLock
          DrawCalc 10,10, Text, fn = 24 or fn = 4
+         ScreenUnlock
       End If
    Wend
 

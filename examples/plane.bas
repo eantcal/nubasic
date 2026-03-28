@@ -125,7 +125,9 @@ Sub Main()
          End If
          
      
+         ScreenLock
          DrawScene x, xp, y, pt
+         ScreenUnlock
       Next x
    Wend
    

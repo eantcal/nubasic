@@ -153,13 +153,16 @@ end sub
 ' -----------------------------------------------------------------------------
 
 sub Main()
+   ScreenLock
    DrawBg
+   DrawHands getTime()
+   ScreenUnlock
 
    while (InKey()<>"q")
-     DrawHands getTime()
      Sleep 1
+     ScreenLock
      DrawBg
+     DrawHands getTime()
+     ScreenUnlock
    End While
-
-   DrawHands getTime()
 End Sub
