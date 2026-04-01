@@ -1,56 +1,89 @@
-# nubasic
-nuBASIC is an implementation of an interpreter of the BASIC programming language
+# nuBASIC
 
-![nubasicide_gtk](https://user-images.githubusercontent.com/13032534/27808819-69aaa2c2-6042-11e7-9132-675d1c71d162.png)
+nuBASIC is a modern, open-source BASIC interpreter written in C++17, available for Windows, Linux, and macOS. It is designed to be both approachable for beginners and capable enough for real programs.
 
-nuBASIC has been designed and implemented mainly for educational purposes both for C++ developers that can deal with a non-trivial example of modern C++ programming and for beginners, which may get hooked on programming. 
-
-It is suitable for simple games, educational or small business programs.
-
-Anyone who has previously worked with other BASIC languages will quickly become accustomed to nuBASIC.
-Large sections of the basic constructs of nuBASIC are compatible with other BASIC dialects.
-
-nuBASIC is also very simple. It is an excellent tool for teaching programming to a complete beginner, despite this, it has all the features of a modern programming language.
-
-It allows you to write both classic BASIC programs (which use line numbers and GoTo or GoSub control structures) and procedure oriented programs, based on procedural programming paradigm.
+![nuBASIC IDE on Linux/GTK](https://user-images.githubusercontent.com/13032534/27808819-69aaa2c2-6042-11e7-9132-675d1c71d162.png)
 
 ## Features
-- Free and Open Source (distributed under GPLv2/MIT License)
-- Easy to use and simple enough for 8-year-old-child to understand
-- Fully-developed procedural programming language
-- IDE for Windows and Linux (GTK+2)
-- Multiplatform. Runs on 32-bit and 64-bit Linux/Windows/MacOS
-- Built-in help
-- Documented (English and Italian Guides)
-- Examples include Tetris, Mine Hunter, Breakout, Calculator, TicTacToe
-- Tiny version is suitable for embedded systems
 
-## IDE
-nuBASIC IDE (Integrated Development Environment, for Windows and Linux/GTK+2) includes a syntax highlighting editor and debugger. 
+- **Structured programming** — `Sub`, `Function`, `For`, `While`, `Do…Loop While`, `If/ElIf/Else`
+- **Rich type system** — Integer, Double, Boolean, Long64, String, Byte, Any, user-defined `Struct`
+- **Arrays and hash tables** built into the language
+- **Full file I/O** — sequential, binary, and random access
+- **Graphics** — lines, rectangles, ellipses, filled shapes, text, bitmaps, pixel access (Windows GDI / Linux X11)
+- **Flicker-free rendering** — `ScreenLock` / `ScreenUnlock` / `Refresh` for double-buffered animation
+- **Mouse and keyboard input**
+- **UTF-8** string literals and console output
+- **Built-in help** — `Help <keyword>` and `Apropos <topic>` accessible from the REPL
+- **IDE** for Windows and Linux (GTK+2) with syntax highlighting, auto-completion, and integrated debugger
+- **Tiny build** for headless/embedded systems (no graphics, no external dependencies)
+- **MIT License**
 
-IDE provides comprehensive facilities to programmers for software development, like the syntax highlighting, which is the ability to recognize keywords and display them in different colors.
-Debugger lets you place breakpoints in your source code, add field watches, step through your code, run into procedures, take snapshots and monitor execution as it occurs.
+## Documentation
 
-## C++ Compiler Prerequisites
-To compile nuBASIC you will need a compiler supporting modern C++ 
-(C++17 extensions have been enabled and any further refactoring will be replacing the existing C++11/14 code by using new language features, where applicable).
-Tested on latest versions GCC, Microsoft Visual C++, (Apple) Clang.
+- **[Wiki](https://github.com/eantcal/nubasic/wiki)** — full language reference, graphics API, IDE guide, interpreter internals, and build instructions
+- **[User Guide](https://github.com/eantcal/nubasic/blob/master/docs/nubasic-guide.md)** — complete guide in a single document (v1.61)
+- **[Examples](https://github.com/eantcal/nubasic/tree/master/examples)** — ready-to-run `.bas` programs covering games, graphics, fractals, animations, and more
 
-## Windows Installation Prerequisites
-To install successfully nuBASIC (32/64 bit - packages including editor) the following software component is required on the installation computer:
-- Visual C++ Redistributable Packages are required.
+## Quick Start
 
-## Linux Installation Prerequisites
-To install nuBASIC (full version) the following software components are required on the installation system:
-- X11 - X Windowing System (including xterm, xmessage)
-- Gtk+ 2.0
-- aplay (which is generally part of most basic Linux distributions).
+```bash
+# Interactive REPL
+nubasic
 
-## Installers
-You can download installers here: https://sourceforge.net/projects/nubasic/files/latest/download
+# Run a program file
+nubasic myprogram.bas
+```
 
-## Android
-A nuBASIC version for Android (ARM) system is available at https://github.com/eantcal/nubasic/tree/termux (it includes a pre-built binary).
-This is version is not stable and relies on Termux (https://termux.com)
+```basic
+Print "Hello, world!"
+```
 
-(see also README file)
+## Building from Source
+
+nuBASIC builds with CMake 3.14+ and a C++17 compiler.
+
+**Windows (Visual Studio 2022):**
+
+```bat
+git clone https://github.com/eantcal/nubasic.git
+cd nubasic
+mkdir build && cd build
+cmake -G "Visual Studio 17 2022" ..
+cmake --build . --config Release
+```
+
+**Linux:**
+
+```sh
+git clone https://github.com/eantcal/nubasic.git
+cd nubasic
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
+sudo make install
+```
+
+**Tiny build (no graphics, no IDE):**
+
+```sh
+cmake .. -DWITH_X11=OFF -DWITH_IDE=OFF
+make -j$(nproc)
+```
+
+See the [Building from Source](https://github.com/eantcal/nubasic/wiki/Building-from-Source) wiki page for full details including macOS, iOS/iSH, CMake options, and installer creation.
+
+## Platforms
+
+| Platform | Interpreter | IDE |
+|----------|-------------|-----|
+| Windows | `nubasic.exe` | `NuBasicIDE.exe` (GDI console + Scintilla editor) |
+| Linux | `nubasic` | `nubasicide` (GTK+2 + Scintilla editor) |
+| macOS | `nubasic` | — |
+| iOS (iSH) | `nubasic` (tiny) | — |
+
+## License
+
+nuBASIC is open source under the [MIT License](https://opensource.org/licenses/MIT).
+
+Bug reports and feature requests: antonino.calderone@gmail.com
