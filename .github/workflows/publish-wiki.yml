@@ -7,6 +7,9 @@ on:
     paths:
       - 'wiki/**'
 
+permissions:
+  contents: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -14,12 +17,9 @@ jobs:
       - name: Checkout main repo
         uses: actions/checkout@v4
 
-      - name: Push wiki pages to GitHub Wiki
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}.wiki
-          path: wiki-repo
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Clone wiki repo
+        run: |
+          git clone "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git" wiki-repo
 
       - name: Sync wiki/ folder into wiki repo
         run: |
