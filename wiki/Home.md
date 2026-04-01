@@ -1,6 +1,6 @@
 # nuBASIC Wiki
 
-> Version 1.61 · http://www.eantcal.eu/nubasic
+> Version 1.61 · https://github.com/eantcal/nubasic
 > Author: Antonino Calderone — antonino.calderone@gmail.com
 
 nuBASIC is a modern, open-source BASIC interpreter written in C++17, available for Windows, Linux, and macOS.
