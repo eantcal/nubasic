@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -32,10 +32,9 @@ stmt_function_t::stmt_function_t(prog_ctx_t& ctx, const std::string& id)
     //
     const auto i = ctx.proc_prototypes.data.find(id);
 
-    syntax_error_if(
-        funcs.is_defined(id) || (i != ctx.proc_prototypes.data.end()
-                                    && i->second.first.get_line()
-                                        != ctx.compiletime_pc.get_line()),
+    syntax_error_if(funcs.is_defined(id)
+            || (i != ctx.proc_prototypes.data.end()
+                && i->second.first.get_line() != ctx.compiletime_pc.get_line()),
         "Function " + id + " already defined");
 
     // Remove an old declaration for replacing its prototype
@@ -52,28 +51,26 @@ stmt_function_t::stmt_function_t(prog_ctx_t& ctx, const std::string& id)
     ctx.procedure_metadata.compile_begin(ctx.compiletime_pc, id);
 
     // Create an execution object (using a lamda)
-    auto this_func = 
-        [](rt_prog_ctx_t& ctx, const std::string& name,
-        const func_args_t& args) -> variant_t 
-        {
-            // Run the function
-            ctx.program().run(name, args);
+    auto this_func = [](rt_prog_ctx_t& ctx, const std::string& name,
+                         const func_args_t& args) -> variant_t {
+        // Run the function
+        ctx.program().run(name, args);
 
-            // Retrieve the return value
-            const auto i = ctx.function_retval_tbl.find(name);
+        // Retrieve the return value
+        const auto i = ctx.function_retval_tbl.find(name);
 
-            syntax_error_if(i == ctx.function_retval_tbl.end(),
-                "Return value '" + name + "' not defined");
+        syntax_error_if(i == ctx.function_retval_tbl.end(),
+            "Return value '" + name + "' not defined");
 
-            auto& stack = i->second;
-            const auto ret = stack.front();
-            stack.pop_front();
+        auto& stack = i->second;
+        const auto ret = stack.front();
+        stack.pop_front();
 
-            if (stack.empty())
-                ctx.function_retval_tbl.erase(name);
+        if (stack.empty())
+            ctx.function_retval_tbl.erase(name);
 
-            return ret;
-        };
+        return ret;
+    };
 
     // Register this execution object as a function
     // (just like any other global function,
@@ -89,8 +86,8 @@ void stmt_function_t::run(rt_prog_ctx_t& ctx)
     auto& subctx = ctx.procedure_metadata;
     const auto handle = subctx.begin_find(ctx.runtime_pc);
 
-    rt_error_code_t::get_instance().throw_if(
-        !handle, ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_FUNC_UNDEF, _id);
+    rt_error_code_t::get_instance().throw_if(!handle, ctx.runtime_pc.get_line(),
+        rt_error_code_t::value_t::E_FUNC_UNDEF, _id);
 
     const auto scope_id = ctx.proc_scope.get_scope_id();
 
@@ -99,8 +96,7 @@ void stmt_function_t::run(rt_prog_ctx_t& ctx)
         handle->flag.set(instrblock_t::EXIT, true);
         ctx.go_to(handle->pc_end_stmt);
         return;
-    }
-    else {
+    } else {
         handle->flag.set(instrblock_t::EXIT, false);
     }
 
@@ -122,7 +118,8 @@ void stmt_function_t::define(const std::string& var, const std::string& vtype,
 
     auto& fproto = ctx.proc_prototypes.data[id].second;
 
-    fproto.parameters.push_back(func_param_t(var, vtype, vect_size));
+    bool ref = ctx.compiling_byref_params.erase(var) > 0;
+    fproto.parameters.push_back(func_param_t(var, vtype, vect_size, ref));
 }
 
 

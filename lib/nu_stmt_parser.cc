@@ -876,7 +876,8 @@ stmt_t::handle_t stmt_parser_t::parse_let(prog_ctx_t& ctx, nu::token_list_t& tl)
 
     nu::expr_any_t::handle_t struct_member_vector_index;
 
-    if (token.type() == tkncl_t::OPERATOR && token.identifier() == ".") {
+    // Consume all dot-separated member names: var.a.b.c ...
+    while (token.type() == tkncl_t::OPERATOR && token.identifier() == ".") {
         --tl;
         remove_blank(tl);
         syntax_error_if(tl.empty(), expr, pos);
@@ -894,9 +895,9 @@ stmt_t::handle_t stmt_parser_t::parse_let(prog_ctx_t& ctx, nu::token_list_t& tl)
 
         token = *tl.begin();
 
-        token_list_t etl;
-
+        // Optional vector index on the last member: obj.arr(i) = ...
         if (token.type() == tkncl_t::SUBEXP_BEGIN) {
+            token_list_t etl;
             move_sub_expression(tl, // source
                 etl, // destination
                 "=", tkncl_t::OPERATOR // end-of-expression
@@ -911,6 +912,10 @@ stmt_t::handle_t stmt_parser_t::parse_let(prog_ctx_t& ctx, nu::token_list_t& tl)
         }
 
         struct_member_id = true;
+
+        // If more dots follow, continue looping; otherwise stop
+        if (!(token.type() == tkncl_t::OPERATOR && token.identifier() == "."))
+            break;
     }
 
     syntax_error_if(
@@ -2168,6 +2173,50 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
 
     if (identifier == "flush") {
         return parse_generic_instruction<stmt_flush_t>(ctx, token, tl, ctx);
+    }
+
+    if (identifier == "call") {
+        // Call ProcName(arg1, arg2, ...) or Call ProcName arg1, arg2, ...
+        --tl; // consume "call"
+        remove_blank(tl);
+        syntax_error_if(tl.empty(), token.expression(), token.position());
+
+        token = *tl.begin();
+        syntax_error_if(token.type() != tkncl_t::IDENTIFIER, token.expression(),
+            token.position());
+
+        std::string proc_name = token.identifier();
+        --tl; // consume procedure name
+        remove_blank(tl);
+
+        if (tl.empty())
+            return std::make_shared<stmt_call_t>(proc_name, ctx);
+
+        token = *tl.begin();
+
+        if (token.type() == tkncl_t::SUBEXP_BEGIN) {
+            --tl; // consume "("
+            remove_blank(tl);
+
+            // Empty arg list: Call ProcName()
+            if (!tl.empty() && tl.begin()->type() == tkncl_t::SUBEXP_END) {
+                --tl; // consume ")"
+                return std::make_shared<stmt_call_t>(proc_name, ctx);
+            }
+
+            // Strip the matching closing ")" from the end of the token list
+            if (!tl.empty() && tl.rbegin()->type() == tkncl_t::SUBEXP_END)
+                tl--; // postfix --: removes last token
+
+            token = *tl.begin();
+        }
+
+        return parse_arg_list<stmt_call_t, 0>(
+            ctx, token, tl,
+            [](const token_t& t) {
+                return t.type() == tkncl_t::OPERATOR && t.identifier() == ",";
+            },
+            proc_name, ctx);
     }
 
     if (identifier == "sub") {

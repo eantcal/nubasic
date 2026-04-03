@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -35,12 +35,13 @@ protected:
 public:
     static void remove_blank(nu::token_list_t& tl);
 
-    static void extract_next_token(token_list_t& tl, token_t& token,
-        std::function<bool(const token_list_t& tl, const token_t& token)> 
-            check = [](const token_list_t& tl, const token_t& token) {
-                (void)token;
-                return tl.empty();
-            });
+    static void extract_next_token(
+        token_list_t& tl, token_t& token,
+        std::function<bool(const token_list_t& tl, const token_t& token)> check
+        = [](const token_list_t& tl, const token_t& token) {
+              (void)token;
+              return tl.empty();
+          });
 
 
     static void move_sub_expression(token_list_t& source_tl,
@@ -154,13 +155,30 @@ protected:
 
         stmt_t::handle_t handle(std::make_shared<T>(std::forward<E>(xprms)...));
 
-        while (!tl.empty() && (tl.begin()->type() != tkncl_t::OPERATOR
-                                  && tl.begin()->identifier() != end_token)) 
-        {
+        while (!tl.empty()
+            && (tl.begin()->type() != tkncl_t::OPERATOR
+                && tl.begin()->identifier() != end_token)) {
             token = *tl.begin();
 
             syntax_error_if(token.type() != tkncl_t::IDENTIFIER,
                 token.expression(), token.position());
+
+            // Detect optional ByRef / ByVal modifier before the parameter name
+            {
+                const std::string& kw = token.identifier();
+                if (kw == "byref" || kw == "byval") {
+                    bool is_byref = (kw == "byref");
+                    --tl;
+                    remove_blank(tl);
+                    syntax_error_if(
+                        tl.empty(), token.expression(), token.position());
+                    token = *tl.begin();
+                    syntax_error_if(token.type() != tkncl_t::IDENTIFIER,
+                        token.expression(), token.position());
+                    if (is_byref)
+                        ctx.compiling_byref_params.insert(token.identifier());
+                }
+            }
 
             std::string variable_name = token.identifier();
 
@@ -196,8 +214,7 @@ protected:
                 ptr->define(variable_name, type,
                     ep.compile(etl, token.position()),
                     std::forward<E>(xprms)...);
-            }
-            else {
+            } else {
 
                 T* ptr = dynamic_cast<T*>(handle.get());
                 assert(ptr);
@@ -219,7 +236,7 @@ protected:
             syntax_error_if((token.type() != tkncl_t::OPERATOR
                                 && token.type() != tkncl_t::SUBEXP_END)
                     || (token.identifier() != ","
-                                && token.identifier() != end_token),
+                        && token.identifier() != end_token),
                 token.expression(), token.position());
 
             if (token.identifier() == end_token) {
@@ -365,7 +382,8 @@ protected:
 
         syntax_error_if(tl.empty(), token.expression(), token.position());
 
-        return parse_arg_list<T, 0>(ctx, token, tl,
+        return parse_arg_list<T, 0>(
+            ctx, token, tl,
             [](const token_t& t) {
                 return t.type() == tkncl_t::OPERATOR && (t.identifier() == ",");
             },
@@ -400,11 +418,9 @@ protected:
 
                 if (token.type() == tkncl_t::SUBEXP_BEGIN) {
                     ++parenthesis_level;
-                }
-                else if (token.type() == tkncl_t::SUBEXP_END) {
+                } else if (token.type() == tkncl_t::SUBEXP_END) {
                     --parenthesis_level;
-                }
-                else if (token.type() == tkncl_t::OPERATOR) {
+                } else if (token.type() == tkncl_t::OPERATOR) {
                     if (token.identifier() == ":") {
                         if (!etl.empty())
                             args.push_back(
@@ -472,7 +488,7 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

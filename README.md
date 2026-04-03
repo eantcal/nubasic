@@ -6,7 +6,7 @@ nuBASIC is a modern, open-source BASIC interpreter written in C++17, available f
 
 ## Features
 
-- **Structured programming** — `Sub`, `Function`, `For`, `While`, `Do…Loop While`, `If/ElIf/Else`
+- **Structured programming** — `Sub`, `Function`, `For`, `While`, `Do…Loop While`, `If/ElIf/Else`; `Call` keyword; `ByRef` / `ByVal` parameter passing; `Include` / `#Include` for multi-file programs
 - **Rich type system** — Integer, Double, Boolean, Long64, String, Byte, Any, user-defined `Struct`
 - **Arrays and hash tables** built into the language
 - **Full file I/O** — sequential, binary, and random access

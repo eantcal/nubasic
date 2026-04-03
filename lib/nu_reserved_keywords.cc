@@ -42,7 +42,8 @@ std::set<std::string>& reserved_keywords_t::list()
         "sysmonth", "boolean", "integer", "double", "float", "string", "type",
         "elseif", "setpixel", "getpixel", "struct", "integer", "double",
         "float", "boolean", "string", "long64", "quit", "settopmost", "stop",
-        "screenlock", "screenunlock", "refresh" };
+        "screenlock", "screenunlock", "refresh", "byref", "byval", "call",
+        "include" };
 
     return list;
 }

@@ -61,9 +61,13 @@ BASIC program.
 | `ReDim` | `ReDim var(n)` | Resize array (clears content) |
 | `Const` | `Const name [As Type] = value` | Declare a constant |
 | `Let` | `[Let] var = expr` | Assign a value (keyword optional) |
-| `Sub` | `Sub name(params)` … `End Sub` | Define a subroutine |
-| `Function` | `Function name(params) [As Type]` … `End Function` | Define a function |
+| `Sub` | `Sub name([ByRef\|ByVal] params)` … `End Sub` | Define a subroutine |
+| `Function` | `Function name([ByRef\|ByVal] params) [As Type]` … `End Function` | Define a function |
+| `Call` | `Call name(args)` | Invoke a Sub or Function (optional keyword) |
+| `ByRef` | `ByRef param As Type` | Pass parameter by reference (mutations propagate back) |
+| `ByVal` | `ByVal param As Type` | Pass parameter by value (default) |
 | `Struct` | `Struct name` … `End Struct` | Define a composite type |
+| `Include` | `Include "file.bas"` | Load and execute another source file |
 | `End` | `End` | Stop program execution |
 | `Stop` | `Stop` | Break into REPL (resume with `Cont`) |
 

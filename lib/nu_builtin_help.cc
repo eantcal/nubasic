@@ -794,8 +794,13 @@ static help_content_t _help_content[] = {
         "The block is enclosed by a declaration statement.\n"
         "The procedure defines zero or more parameters, each of which\n"
         "represents a value it expects you to pass to it.\n"
-        "See also: Function",
-        "Sub subname ( [parameterlist] )\n"
+        "Each parameter may be preceded by ByRef or ByVal:\n"
+        "  ByVal (default) passes a copy; changes are local to the Sub.\n"
+        "  ByRef passes the variable by reference; assignments to the\n"
+        "  parameter propagate back to the caller's variable.\n"
+        "Struct-typed parameters are fully supported.\n"
+        "See also: Function, Call, ByRef, ByVal",
+        "Sub subname ( [[ByRef|ByVal] param [As Type], ...] )\n"
         "   [statement(s)]\n"
         "   [Exit Sub]\n"
         "   [statement(s)]\n"
@@ -809,14 +814,56 @@ static help_content_t _help_content[] = {
         "A function returns a value. This value is assigned to its\n"
         "own function name variable in one or more statements "
         "of the procedure.\n"
-        "See also: Sub",
-        "Function function_name ( [parameterlist] ) [as Type]\n"
+        "Each parameter may be preceded by ByRef or ByVal:\n"
+        "  ByVal (default) passes a copy; changes are local to the Function.\n"
+        "  ByRef passes the variable by reference; assignments to the\n"
+        "  parameter propagate back to the caller's variable.\n"
+        "See also: Sub, Call, ByRef, ByVal",
+        "Function fname ( [[ByRef|ByVal] param [As Type], ...] ) [As Type]\n"
         "   [statement(s)]\n"
-        "   [function_name = return-value\n"
+        "   [fname = return-value\n"
         "   [Exit Function]]\n"
         "   [statement(s)]\n"
-        "   function_name = return-value\n"
+        "   fname = return-value\n"
         "End Function\n" },
+
+    { lang_item_t::INSTRUCTION, "call",
+        "Invokes a Sub procedure. The keyword Call is optional;\n"
+        "a Sub can also be invoked by just writing its name followed by\n"
+        "the argument list (without parentheses).\n"
+        "When Call is used, arguments must be enclosed in parentheses.\n"
+        "See also: Sub, Function, ByRef, ByVal",
+        "Call subname ( [arglist] )\n"
+        "  -or-\n"
+        "subname [arglist]\n" },
+
+    { lang_item_t::INSTRUCTION, "byref",
+        "Parameter modifier for Sub and Function declarations.\n"
+        "ByRef causes the parameter to be passed by reference:\n"
+        "any assignment to the parameter inside the procedure is\n"
+        "immediately reflected in the caller's variable.\n"
+        "Applies to scalars (Integer, Double, String) and Struct types.\n"
+        "Default behaviour without a modifier is ByVal (pass by copy).\n"
+        "See also: ByVal, Sub, Function, Call",
+        "Sub|Function name( ByRef paramname [As Type] [, ...] )\n" },
+
+    { lang_item_t::INSTRUCTION, "byval",
+        "Parameter modifier for Sub and Function declarations.\n"
+        "ByVal (the default) causes the parameter to be passed by value:\n"
+        "the procedure receives a copy and changes do not affect the\n"
+        "caller's variable.\n"
+        "See also: ByRef, Sub, Function, Call",
+        "Sub|Function name( ByVal paramname [As Type] [, ...] )\n" },
+
+    { lang_item_t::INSTRUCTION, "include",
+        "Includes and compiles a secondary source file at the point of\n"
+        "the directive. Paths may be absolute or relative to the\n"
+        "directory of the including file. The directive is resolved at\n"
+        "load time; up to 64 levels of nesting are supported.\n"
+        "Both forms are accepted: Include and #Include.\n"
+        "See also: Load",
+        "Include \"filename.bas\"\n"
+        "#Include \"filename.bas\"\n" },
 
     { lang_item_t::INSTRUCTION, "let",
         "Assigns the value of an expression to a variable.\n"

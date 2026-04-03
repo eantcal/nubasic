@@ -531,63 +531,148 @@ std::string interpreter_t::read_line(std::stringstream& ss)
 
 /* -------------------------------------------------------------------------- */
 
-bool interpreter_t::load(FILE* f)
+// Parse an Include directive from a source line.
+// Accepts:  Include "path"   or  #Include "path"  (case-insensitive).
+// Returns the quoted path, or empty string if the line is not an include.
+static std::string parse_include_directive(const std::string& line)
 {
-    std::string first_line = read_line(f);
+    size_t start = line.find_first_not_of(" \t");
+    if (start == std::string::npos)
+        return "";
 
-    // skip executable script prefix line
-    if (!first_line.empty()
-        && (first_line.size() >= 3 && first_line.substr(0, 2) == "#!")) {
-        first_line = read_line(f);
-    }
+    std::string s = line.substr(start);
+    if (s.empty())
+        return "";
+
+    // Strip optional leading '#'
+    if (s[0] == '#')
+        s = s.substr(1);
+
+    // Case-insensitive "include" check
+    if (s.size() < 7)
+        return "";
+    std::string kw = s.substr(0, 7);
+    std::transform(kw.begin(), kw.end(), kw.begin(),
+        [](unsigned char c) { return (char)std::tolower(c); });
+    if (kw != "include")
+        return "";
+
+    s = s.substr(7);
+    start = s.find_first_not_of(" \t");
+    if (start == std::string::npos || s[start] != '"')
+        return "";
+
+    s = s.substr(start + 1);
+    size_t end = s.find('"');
+    if (end == std::string::npos)
+        return "";
+
+    return s.substr(0, end);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool interpreter_t::load_with_includes(
+    FILE* f, int& ln, const std::string& base_dir, int depth)
+{
+    if (depth > 64)
+        return false; // guard against infinite include recursion
 
     bool old_format = false;
 
-    if (!first_line.empty()) {
-        tokenizer_t ltknzr(first_line);
+    // Detect format from the first non-shebang line
+    {
+        std::string first = read_line(f);
+        if (!first.empty() && first.size() >= 2 && first.substr(0, 2) == "#!")
+            first = read_line(f);
 
-        if (!ltknzr.eol()) {
-            nu::token_t token(ltknzr.next());
-            skip_blank(ltknzr, token);
-
-            if (token.type() == tkncl_t::INTEGRAL)
-                old_format = true;
+        if (!first.empty()) {
+            tokenizer_t ltknzr(first);
+            if (!ltknzr.eol()) {
+                nu::token_t token(ltknzr.next());
+                skip_blank(ltknzr, token);
+                if (token.type() == tkncl_t::INTEGRAL)
+                    old_format = true;
+            }
         }
     }
 
-    // reset file ptr
     fseek(f, 0, SEEK_SET);
-
-    int ln = 0;
 
     while (!feof(f) && ferror(f) == 0) {
         std::string line = read_line(f);
 
         if (!line.empty() && ln == 0) {
-            // skip executable script prefix line
-            if (line.size() > 2 && line.substr(0, 2) == "#!") {
+            // skip shebang on very first line of the top-level file
+            if (line.size() > 1 && line.substr(0, 2) == "#!") {
                 line = read_line(f);
             }
         }
 
-        if (line.empty() && feof(f)) {
+        if (line.empty() && feof(f))
             break;
-        }
 
-        if (line.empty() && ferror(f)) {
-            fclose(f);
+        if (line.empty() && ferror(f))
             return false;
+
+        // Only process Include directives in new-format files
+        if (!old_format) {
+            std::string inc_path = parse_include_directive(line);
+            if (!inc_path.empty()) {
+                // Resolve relative to the including file's directory
+                if (!base_dir.empty() && !fs::path(inc_path).is_absolute()) {
+                    inc_path = (fs::path(base_dir) / inc_path).string();
+                }
+
+                FILE* inc_f = fopen(inc_path.c_str(), "r");
+                if (!inc_f)
+                    return false;
+
+                std::string inc_base
+                    = fs::path(inc_path).parent_path().string();
+                bool ok = load_with_includes(inc_f, ln, inc_base, depth + 1);
+                fclose(inc_f);
+                if (!ok)
+                    return false;
+
+                continue;
+            }
         }
 
         if ((!old_format || !line.empty())
-            && !update_program(line, old_format ? 0 : ++ln)) {
-            fclose(f);
+            && !update_program(line, old_format ? 0 : ++ln))
             return false;
-        }
     }
 
-    fclose(f);
     return true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool interpreter_t::load(const std::string& filepath)
+{
+    FILE* f = fopen(filepath.c_str(), "r");
+    if (!f)
+        return false;
+
+    std::string base_dir = fs::path(filepath).parent_path().string();
+    int ln = 0;
+    bool ok = load_with_includes(f, ln, base_dir);
+    fclose(f);
+    return ok;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool interpreter_t::load(FILE* f)
+{
+    int ln = 0;
+    bool ok = load_with_includes(f, ln, "");
+    fclose(f);
+    return ok;
 }
 
 
@@ -998,15 +1083,40 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                 return exec_res_t::SYNTAX_ERROR;
             }
 
-            FILE* f = open_program_file(arg);
+            // Resolve the file path (try current dir, then examples dir)
+            std::string resolved;
+            {
+                FILE* probe = fopen(arg.c_str(), "r");
+                if (probe) {
+                    fclose(probe);
+                    resolved = arg;
+                } else {
+                    const std::string ex = examples_directory();
+                    if (!ex.empty()) {
+                        fs::path p = fs::path(ex) / arg;
+                        probe = fopen(p.string().c_str(), "r");
+                        if (probe) {
+                            fclose(probe);
+                            resolved = p.string();
+                        } else if (arg.find('.') == std::string::npos) {
+                            p = fs::path(ex) / (arg + ".bas");
+                            probe = fopen(p.string().c_str(), "r");
+                            if (probe) {
+                                fclose(probe);
+                                resolved = p.string();
+                            }
+                        }
+                    }
+                }
+            }
 
-            if (!f) {
+            if (resolved.empty()) {
                 return exec_res_t::IO_ERROR;
             }
 
             clear_all();
 
-            return load(f) ? exec_res_t::CMD_EXEC : exec_res_t::IO_ERROR;
+            return load(resolved) ? exec_res_t::CMD_EXEC : exec_res_t::IO_ERROR;
         }
 
         if (cmd == "exec") {

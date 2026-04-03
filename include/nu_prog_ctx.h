@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -96,6 +96,11 @@ public:
     instrblock_metadata_t struct_metadata;
     std::string compiling_struct_name;
 
+    // Tracks which parameter names are declared ByRef in the procedure
+    // currently being compiled.  Cleared by define() after each parameter
+    // is registered.
+    std::set<std::string> compiling_byref_params;
+
     variant_t* get_struct_member_value(
         const std::string& qualified_variable_name,
         var_scope_t::handle_t& scope, size_t index = 0);
@@ -112,14 +117,10 @@ public:
     void trace_metadata(std::stringstream& ss);
 
     // Get stdout file pointer
-    FILE* get_stdout_ptr() const noexcept { 
-        return _stdout_ptr; 
-    }
+    FILE* get_stdout_ptr() const noexcept { return _stdout_ptr; }
 
     // Get stdin file pointer
-    FILE* get_stdin_ptr() const noexcept { 
-        return _stdin_ptr; 
-    }
+    FILE* get_stdin_ptr() const noexcept { return _stdin_ptr; }
 
 private:
     prog_pointer_t::stmt_number_t _stmt_id_cnt = 0;
@@ -131,7 +132,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

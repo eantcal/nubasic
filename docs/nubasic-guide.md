@@ -791,6 +791,97 @@ Functions can return strings, doubles, integers, or any other type. They can als
 by value. `Exit Function` exits early, leaving the last value assigned to the function name as
 the return value.
 
+#### ByRef and ByVal parameter qualifiers
+
+By default every parameter is passed **by value** (`ByVal`): the Sub or Function receives a
+copy of the caller's value, so mutations inside the procedure have no effect on the caller.
+Prefix a parameter with `ByRef` to pass **by reference**: the callee operates directly on the
+caller's variable, and any assignment is visible to the caller after the call returns.
+
+Both scalars and `Struct` variables can be passed `ByRef`:
+
+```basic
+Sub Swap(ByRef a% As Integer, ByRef b% As Integer)
+   Dim tmp% As Integer
+   tmp% = a%
+   a% = b%
+   b% = tmp%
+End Sub
+
+Dim x% As Integer, y% As Integer
+x% = 7 : y% = 42
+Call Swap(x%, y%)
+Print x%, y%   ' prints: 42   7
+
+' -------------------------------------------------------
+Struct Point
+   x As Double
+   y As Double
+End Struct
+
+Sub Translate(ByRef p As Point, dx As Double, dy As Double)
+   p.x = p.x + dx
+   p.y = p.y + dy
+End Sub
+
+Dim pt As Point
+pt.x = 10.0 : pt.y = 20.0
+Call Translate(pt, 3.0, -5.0)
+Print pt.x, pt.y   ' prints: 13   15
+```
+
+When `ByVal` is explicit the parameter name makes the intent clear in the source:
+
+```basic
+Sub ShowDouble(ByVal n As Integer)
+   n = n * 2
+   Print n         ' prints the doubled value
+End Sub
+
+Dim v% As Integer
+v% = 5
+Call ShowDouble(v%)
+Print v%            ' still 5 — caller's copy unchanged
+```
+
+#### Call keyword
+
+`Call` is an optional keyword that can precede any Sub or Function invocation. When `Call`
+is used, the argument list must be enclosed in parentheses:
+
+```basic
+Call ClearArea(0, 0, 640, 480)         ' same as: ClearArea 0, 0, 640, 480
+Call PrintCentered("Hello", 12, &hfff) ' same as: PrintCentered "Hello", 12, &hfff
+```
+
+Both forms are equivalent. `Call` improves readability and is familiar to programmers coming
+from Visual Basic or other BASIC dialects.
+
+#### Include directive
+
+The `Include` (or `#Include`) directive loads and executes another source file at the point
+where the directive appears. This makes it straightforward to split a program across multiple
+files or to share common library routines:
+
+```basic
+' main.bas
+Include "utils.bas"
+Include "graphics.bas"
+
+Call DrawBorder(0, 0, 639, 479)
+```
+
+```basic
+' utils.bas
+Sub DrawBorder(x1%, y1%, x2%, y2%)
+   Rect x1%, y1%, x2%, y2%, &hffffff
+End Sub
+```
+
+The file path is resolved relative to the directory containing the file that issues the
+directive. `Include` is processed at load time, so all definitions in the included file are
+available to the rest of the including file.
+
 ### 4.5 Structures
 
 A `Struct` defines a composite data type that groups several named fields under one name.

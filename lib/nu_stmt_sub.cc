@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -28,7 +28,8 @@ stmt_sub_t::stmt_sub_t(prog_ctx_t& ctx, const std::string& id)
 
     const auto found = i != ctx.proc_prototypes.data.end();
 
-    syntax_error_if(found && i->second.first.get_line() != ctx.compiletime_pc.get_line(),
+    syntax_error_if(
+        found && i->second.first.get_line() != ctx.compiletime_pc.get_line(),
         "Sub-routine " + id + " already defined");
 
     // Remove old declaration for replacing its prototype
@@ -50,8 +51,8 @@ void stmt_sub_t::run(rt_prog_ctx_t& ctx)
     auto& subctx = ctx.procedure_metadata;
     const auto handle = subctx.begin_find(ctx.runtime_pc);
 
-    rt_error_code_t::get_instance().throw_if(
-        !handle, ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_SUB_UNDEF, _id);
+    rt_error_code_t::get_instance().throw_if(!handle, ctx.runtime_pc.get_line(),
+        rt_error_code_t::value_t::E_SUB_UNDEF, _id);
 
     const auto scope_id = ctx.proc_scope.get_scope_id();
 
@@ -60,8 +61,7 @@ void stmt_sub_t::run(rt_prog_ctx_t& ctx)
         handle->flag.set(instrblock_t::EXIT, true);
         ctx.go_to(handle->pc_end_stmt);
         return;
-    }
-    else {
+    } else {
         handle->flag.set(instrblock_t::EXIT, false);
     }
 
@@ -81,10 +81,10 @@ void stmt_sub_t::define(const std::string& var, const std::string& vtype,
 
     _vars_rep_check.insert(var);
 
-    // TODO VAR prototype must include types
     auto& fproto = ctx.proc_prototypes.data[id].second;
 
-    fproto.parameters.emplace_back(func_param_t(var, vtype, vect_size));
+    bool ref = ctx.compiling_byref_params.erase(var) > 0;
+    fproto.parameters.emplace_back(func_param_t(var, vtype, vect_size, ref));
 }
 
 

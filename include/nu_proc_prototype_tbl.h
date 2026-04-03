@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -34,12 +34,14 @@ struct func_param_t {
     std::string var_name; // variable name
     std::string type_name; // variable type name
     expr_any_t::handle_t vsize;
+    bool by_ref = false; // true when declared ByRef
 
     func_param_t(const std::string& vname, const std::string& tname,
-        expr_any_t::handle_t vsz)
+        expr_any_t::handle_t vsz, bool ref = false)
         : var_name(vname)
         , type_name(tname)
         , vsize(vsz)
+        , by_ref(ref)
     {
     }
 
@@ -86,7 +88,7 @@ struct struct_prototype_tbl_t {
 
 
 /* -------------------------------------------------------------------------- */
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

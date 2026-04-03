@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -95,20 +95,22 @@ public:
     void trace_rtdata(std::stringstream& ss);
 
     // Set running statement error number
-    void set_errno(int errno_) noexcept { 
-        _errno = errno_; 
-    }
+    void set_errno(int errno_) noexcept { _errno = errno_; }
 
     // Get last error number of running program
-    int get_errno() const noexcept { 
-        return _errno; 
-    }
+    int get_errno() const noexcept { return _errno; }
 
     // Trace nested procedure calls
     return_stack_t return_stack;
 
     // Used by IDE to evaluate expressions
     variant_t exported_result;
+
+    // ByRef writeback stack.  One frame per active CALL.  Each entry is a
+    // pair of {callee_param_name, caller_variable_name} (qualified names like
+    // "obj.field" are handled via get_struct_member_value).
+    using byref_entry_t = std::pair<std::string, std::string>;
+    std::deque<std::vector<byref_entry_t>> byref_writeback_stack;
 
 private:
     runnable_t& _program_code;
@@ -121,7 +123,7 @@ private:
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

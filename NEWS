@@ -12,6 +12,20 @@ The Win32/64 build created with Visual Studio 2022 requires the
 
 April 2026
 * Released nuBASIC 1.61
+- Added ByRef / ByVal parameter qualifiers for Sub and Function definitions.
+  ByRef passes the caller's variable by reference so mutations inside the
+  procedure propagate back; ByVal (the default) passes by value.  Both
+  scalars (Integer, Double, String, …) and user-defined Struct variables
+  can be passed ByRef.
+- Added support for the Call keyword: `Call ProcName(arg1, arg2)` is now
+  a fully supported alternative to the bare `ProcName arg1, arg2` syntax.
+- Added the Include / #Include directive: `Include "filename.bas"` loads
+  and executes another source file at the point of the directive, enabling
+  multi-file programs and shared library files.
+- Added byref, byval, call, and include to the set of reserved keywords
+  so they cannot be used as user-defined variable or procedure names.
+- Updated built-in help: `Help ByRef`, `Help ByVal`, `Help Call`, and
+  `Help Include` now display documentation for the new language features.
 - Added SCREENLOCK, SCREENUNLOCK, and REFRESH instructions for flicker-free
   graphics rendering. SCREENLOCK suspends the automatic per-primitive screen
   refresh so that multiple drawing commands (Line, Rect, FillRect, Ellipse,

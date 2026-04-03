@@ -802,6 +802,98 @@ Le funzioni possono restituire stringhe, double, interi o qualsiasi altro tipo. 
 restituire array per valore. `Exit Function` esce anticipatamente, lasciando come valore di
 ritorno l'ultimo valore assegnato al nome della funzione.
 
+#### Qualificatori di parametro ByRef e ByVal
+
+Per impostazione predefinita ogni parametro viene passato **per valore** (`ByVal`): il Sub o
+la Function riceve una copia del valore del chiamante, quindi le modifiche interne alla
+procedura non hanno effetto sul chiamante. Anteporre `ByRef` a un parametro per passarlo
+**per riferimento**: il chiamato opera direttamente sulla variabile del chiamante, e qualsiasi
+assegnazione è visibile al chiamante dopo il ritorno dalla chiamata.
+
+Sia i valori scalari sia le variabili `Struct` possono essere passati con `ByRef`:
+
+```basic
+Sub Scambia(ByRef a% As Integer, ByRef b% As Integer)
+   Dim tmp% As Integer
+   tmp% = a%
+   a% = b%
+   b% = tmp%
+End Sub
+
+Dim x% As Integer, y% As Integer
+x% = 7 : y% = 42
+Call Scambia(x%, y%)
+Print x%, y%   ' stampa: 42   7
+
+' -------------------------------------------------------
+Struct Punto
+   x As Double
+   y As Double
+End Struct
+
+Sub Trasla(ByRef p As Punto, dx As Double, dy As Double)
+   p.x = p.x + dx
+   p.y = p.y + dy
+End Sub
+
+Dim pt As Punto
+pt.x = 10.0 : pt.y = 20.0
+Call Trasla(pt, 3.0, -5.0)
+Print pt.x, pt.y   ' stampa: 13   15
+```
+
+Quando `ByVal` è esplicito, il nome del parametro chiarisce l'intento nel codice sorgente:
+
+```basic
+Sub MostraIlDoppio(ByVal n As Integer)
+   n = n * 2
+   Print n         ' stampa il valore raddoppiato
+End Sub
+
+Dim v% As Integer
+v% = 5
+Call MostraIlDoppio(v%)
+Print v%            ' ancora 5 — la copia del chiamante non è modificata
+```
+
+#### La parola chiave Call
+
+`Call` è una parola chiave opzionale che può precedere qualsiasi invocazione di Sub o
+Function. Quando si usa `Call`, la lista degli argomenti deve essere racchiusa tra parentesi:
+
+```basic
+Call ClearArea(0, 0, 640, 480)         ' equivale a: ClearArea 0, 0, 640, 480
+Call PrintCentered("Ciao", 12, &hfff)  ' equivale a: PrintCentered "Ciao", 12, &hfff
+```
+
+Entrambe le forme sono equivalenti. `Call` migliora la leggibilità ed è familiare ai
+programmatori provenienti da Visual Basic o altri dialetti BASIC.
+
+#### Direttiva Include
+
+La direttiva `Include` (o `#Include`) carica ed esegue un altro file sorgente nel punto in
+cui appare la direttiva. Ciò rende semplice suddividere un programma in più file o
+condividere routine di libreria comuni:
+
+```basic
+' principale.bas
+Include "utilità.bas"
+Include "grafica.bas"
+
+Call DisegnaCornice(0, 0, 639, 479)
+```
+
+```basic
+' utilità.bas
+Sub DisegnaCornice(x1%, y1%, x2%, y2%)
+   Rect x1%, y1%, x2%, y2%, &hffffff
+End Sub
+```
+
+Il percorso del file viene risolto rispetto alla directory contenente il file che emette la
+direttiva. `Include` viene elaborato al momento del caricamento, quindi tutte le definizioni
+nel file incluso sono disponibili al resto del file che lo include.
+
 ### 4.5 Strutture
 
 Un `Struct` definisce un tipo di dati composito che raggruppa diversi campi con nome sotto un

@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -112,21 +112,39 @@ variant_t prog_ctx_t::resolve_struct_element(const std::string& variable_name,
     size_t variable_vect_index, const std::string& element_name,
     size_t element_vect_index, std::string& err_msg)
 {
-    auto scope = proc_scope.get(proc_scope.get_type(variable_name));
+    // variable_name may be a multi-level path like "seg.a" when
+    // expr_struct_access_t is nested.  Use get_struct_member_value to navigate
+    // to the parent, then look up element_name on that result.
+    var_scope_t::handle_t scope;
+    variant_t* value = nullptr;
 
-    if (!scope || !scope->is_defined(variable_name)) {
-        err_msg = "Variable '" + variable_name + "' undefined";
-        return variant_t();
+    if (variable_name.find('.') != std::string::npos) {
+        // Multi-level path (e.g. "seg.a"): navigate to the nested struct first,
+        // then look up element_name on its result.
+        value = get_struct_member_value(
+            variable_name, scope, variable_vect_index);
+        if (!value) {
+            err_msg = "Variable '" + variable_name + "' undefined";
+            return variant_t();
+        }
+    } else {
+        scope = proc_scope.get(proc_scope.get_type(variable_name));
+
+        if (!scope || !scope->is_defined(variable_name)) {
+            err_msg = "Variable '" + variable_name + "' undefined";
+            return variant_t();
+        }
+
+        value = &(*scope)[variable_name].first;
     }
 
-    variant_t value = (*scope)[variable_name].first;
-
-    if (!value.is_struct()) {
+    if (!value->is_struct()) {
         err_msg = "Variable '" + variable_name + "' is not a Struct";
         return variant_t();
     }
 
-    auto member_handle = value.struct_member(element_name, variable_vect_index);
+    auto member_handle
+        = value->struct_member(element_name, variable_vect_index);
 
     if (!member_handle) {
         err_msg = "Variable '" + variable_name + "' has not member named '"
@@ -245,7 +263,7 @@ void prog_ctx_t::trace_metadata(std::stringstream& ss)
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

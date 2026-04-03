@@ -303,6 +303,52 @@ Print Clamp(1.5, 0.0, 1.0)
 Print Greeting$("World")
 ```
 
+### ByRef and ByVal
+
+Parameters are **by value** (`ByVal`) by default — the procedure receives a copy and changes
+do not affect the caller. Prefix a parameter with `ByRef` to pass by reference: mutations
+inside the procedure propagate back to the caller's variable.
+
+```basic
+Sub Swap(ByRef a% As Integer, ByRef b% As Integer)
+   Dim tmp% As Integer
+   tmp% = a% : a% = b% : b% = tmp%
+End Sub
+
+Dim x% As Integer, y% As Integer
+x% = 7 : y% = 42
+Call Swap(x%, y%)
+Print x%, y%   ' 42   7
+```
+
+Struct variables can also be passed `ByRef`:
+
+```basic
+Sub Translate(ByRef p As Point, dx As Double, dy As Double)
+   p.x = p.x + dx
+   p.y = p.y + dy
+End Sub
+```
+
+### Call keyword
+
+`Call` is an optional keyword before any Sub/Function invocation. When used, arguments must
+be enclosed in parentheses:
+
+```basic
+Call ClearArea(0, 0, 640, 480)   ' same as: ClearArea 0, 0, 640, 480
+```
+
+### Include directive
+
+`Include "filename.bas"` (also `#Include`) loads and executes another source file at the
+point of the directive — useful for splitting programs across multiple files:
+
+```basic
+Include "utils.bas"
+Call DrawBorder(0, 0, 639, 479)
+```
+
 ---
 
 ## Structures
