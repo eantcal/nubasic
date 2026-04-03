@@ -93,6 +93,10 @@ public:
     // Grow the column count of all rows (only expands, never shrinks)
     void resize_cols(int new_cols);
 
+    // Update the visible row count and re-anchor screen_top so the cursor
+    // stays at the bottom of the new viewport (called after window resize).
+    void set_rows(int new_rows);
+
     /* --------------------------------------------------------------------------
      */
     /* Thread Safety */

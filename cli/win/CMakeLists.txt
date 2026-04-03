@@ -33,7 +33,7 @@ target_compile_features(nuBasicCLI PRIVATE cxx_std_17)
 
 target_include_directories(nuBasicCLI PRIVATE
   ${CMAKE_SOURCE_DIR}/include
-  ${CMAKE_SOURCE_DIR}/nuWinConsole
+  ${CMAKE_SOURCE_DIR}/console/win
   .
 )
 

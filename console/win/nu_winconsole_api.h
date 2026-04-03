@@ -96,6 +96,20 @@ void nu_winconsole_screenunlock();
 // Cancel any pending blocking input (e.g. read_line)
 void nu_winconsole_cancel_input();
 
+// Returns 1 if the console is currently in graphics mode (GDI primitives have
+// been drawn and the text overlay is suppressed).
+int nu_winconsole_is_graphics_mode();
+
+// CLI-only helper: overlays "Press any key to continue..." at the bottom of
+// the current graphics frame so the user can see it and dismiss it.
+// No-op if the console is not in graphics mode or not yet initialised.
+void nu_winconsole_show_graphics_end_prompt();
+
+// Restore text mode after a graphics program ends: clears the graphics layer
+// and re-enables the text/cursor overlay so the console prompt is visible.
+// No-op if already in text mode.
+void nu_winconsole_restore_text_mode();
+
 // Enable/disable mouse-driven text selection and the right-click copy menu.
 // The Windows IDE turns this off while a program runs with the console
 // embedded.

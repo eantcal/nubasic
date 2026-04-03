@@ -311,3 +311,17 @@ void console_buffer_t::resize_cols(int new_cols)
 }
 
 /* -------------------------------------------------------------------------- */
+
+void console_buffer_t::set_rows(int new_rows)
+{
+    std::lock_guard<std::mutex> lock(_mutex);
+    if (new_rows <= 0 || new_rows == _rows)
+        return;
+    _rows = new_rows;
+    // Re-anchor _screen_top so the cursor stays at (or near) the bottom of the
+    // new viewport.  The invariant is: cursor_y in [_screen_top,
+    // _screen_top+_rows).
+    _screen_top = std::max(0, _cursor_y - _rows + 1);
+}
+
+/* -------------------------------------------------------------------------- */

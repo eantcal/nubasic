@@ -11,7 +11,7 @@ The Win32/64 build created with Visual Studio 2022 requires the
 "Visual C++ Redistributable Packages for Visual Studio 2022".
 
 April 2026
-* nuBASIC 1.61 (upcoming release)
+* Released nuBASIC 1.61
 - Added SCREENLOCK, SCREENUNLOCK, and REFRESH instructions for flicker-free
   graphics rendering. SCREENLOCK suspends the automatic per-primitive screen
   refresh so that multiple drawing commands (Line, Rect, FillRect, Ellipse,
@@ -27,6 +27,17 @@ April 2026
   raycast3d.bas, plane.bas, clock.bas, cartoon.bas, minesHunter.bas,
   tictactoe.bas, line.bas, rosetta.bas, calc.bas.
 - Updated built-in help (HELP SCREENLOCK, HELP SCREENUNLOCK, HELP REFRESH).
+- CLI: after a graphics program ends, the console automatically overlays a
+  "Press any key to continue..." prompt on the graphics frame and waits for a
+  key before restoring text mode. No explicit keypress code is needed in
+  BASIC programs.
+- Fixed rosetta.bas, parabola.bas, bitmap.bas: removed manual keypress code
+  now handled automatically by the CLI; rosetta.bas timing messages are now
+  drawn with TextOut at distinct positions so they no longer overlap.
+- IDE: fixed "Evaluate Selection" (F11) freezing after displaying a result or
+  error. The timer that dismisses the annotation was incorrectly re-invoking the
+  evaluation every three seconds instead of clearing it; errors also caused a
+  stale annotation to be shown. Both issues are now resolved.
 
 March 2026
 * Released nuBASIC 1.60

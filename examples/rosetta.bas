@@ -1,4 +1,3 @@
-#!/usr/local/bin/nubasic
 ' Rosetta.bas - This file is part of nuBASIC
 ' See http://rosettacode.org/wiki/Mandelbrot_set
 
@@ -6,7 +5,7 @@ Cls
 MoveWindow GetWindowX(), GetWindowY(), 800, 600
 FillRect 0,0,800,600,0
 
-Print "Started  at  "; SysTime$()
+TextOut 4, 4, "Started at " + SysTime$(), Rgb(255,255,0)
 h% = SysHour()
 m% = SysMin()
 s% = SysSec()
@@ -33,11 +32,9 @@ For x0 = -2 TO 2 Step .013
    ScreenUnlock
 Next x0
 
-
-Print "Completed at "; SysTime$()
-
 s% = SysSec()-s%
 m% = SysMin()-m%
 h% = SysHour()-h%
 
-Print "Elapsed seconds "; s%+m%*60+h%*3600
+TextOut 4, 22, "Completed at " + SysTime$(), Rgb(255,255,0)
+TextOut 4, 40, "Elapsed sec: " + Str$(s%+m%*60+h%*3600), Rgb(255,255,0)

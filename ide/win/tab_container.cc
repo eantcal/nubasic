@@ -7,8 +7,8 @@
 //
 
 #include "tab_container.h"
+#include "nu_winconsole_api.h"
 #include "textinfobox.h"
-#include "../../nuwinconsole/nu_winconsole_api.h"
 
 #include <cassert>
 

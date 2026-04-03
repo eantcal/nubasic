@@ -107,14 +107,14 @@ if (NOT WIN32)
   endif()
 endif()
 
-# Windows: nuwinconsole must be added BEFORE add_subdirectory(lib) so the
-# nuwinconsole target exists when the interpreter links against it.
+# Windows: console/win must be added BEFORE add_subdirectory(lib) so the
+# nuWinConsole target exists when the interpreter links against it.
 if (WIN32)
   option(WITH_WIN_IDE "Windows IDE" ON)
 
   # Build the GDI console library (always enabled on Windows non-TINY builds)
   if (NOT _nubasic_tiny)
-    add_subdirectory(nuwinconsole)
+    add_subdirectory(console/win)
   endif()
 endif()
 
@@ -130,7 +130,7 @@ if (WIN32)
   endif()
 
   if (NOT _nubasic_tiny)
-    add_subdirectory(nuBasicCLI)
+    add_subdirectory(cli/win)
   endif()
 endif()
 
@@ -149,7 +149,7 @@ link_directories(${lib_BINARY_DIR})
 
 # Build Unix/Linux console executable
 if (NOT WIN32)
-  file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
+  file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/cli/unix/*.cc")
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17" )
 
@@ -163,7 +163,7 @@ if (NOT WIN32)
 endif()
 
 SET(MAJOR_VERSION 1)
-SET(MINOR_VERSION 60)
+SET(MINOR_VERSION 61)
 SET(PATCH_VERSION 0)
  
 IF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
@@ -177,7 +177,7 @@ SET(CPACK_PACKAGE_DESCRIPTION "nuBASIC")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "nuBASIC Interpreter")
 SET(CPACK_PACKAGE_VENDOR "Antonino Calderone")
 SET(CPACK_PACKAGE_CONTACT "antonino.calderone@gmail.com")
-SET(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://www.eantcal.eu/nubasic")
+SET(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/eantcal/nubasic")
 
 SET(CPACK_PACKAGE_VERSION_MAJOR "${MAJOR_VERSION}")
 SET(CPACK_PACKAGE_VERSION_MINOR "${MINOR_VERSION}")
@@ -267,8 +267,8 @@ if(WIN32)
     set(CPACK_WIX_EXTRA_SOURCES "${CMAKE_SOURCE_DIR}/cmake/WixPatch.wxs")
 
     # URLs shown in Add/Remove Programs.
-    set(CPACK_WIX_HELP_URL  "https://www.eantcal.eu/nubasic")
-    set(CPACK_WIX_ABOUT_URL "https://www.eantcal.eu/nubasic")
+    set(CPACK_WIX_HELP_URL  "https://github.com/eantcal/nubasic")
+    set(CPACK_WIX_ABOUT_URL "https://github.com/eantcal/nubasic")
 
     # 64-bit target: CPack WIX uses CPACK_WIX_SIZEOF_VOID_P (set automatically
     # by CMake) to select ProgramFiles64Folder vs ProgramFilesFolder.

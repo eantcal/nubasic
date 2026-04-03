@@ -225,6 +225,26 @@ static int nuBASIC_console(int argc, char* argv[])
         nuBASIC.get_and_reset_break_event();
         const auto res = exec_command(nuBASIC, command);
 
+        // If the program ran any GDI graphics, show a visible "Press any key"
+        // prompt overlaid on the graphics frame so the user can dismiss it,
+        // then wait for the key before restoring the text console.
+        if (nu_winconsole_is_graphics_mode()) {
+            nu_winconsole_show_graphics_end_prompt();
+            while (!nu_winconsole_key_available()
+                && !nu_winconsole_vkey_available()) {
+                if (!nu_winconsole_process_messages())
+                    break; // window closed
+                Sleep(10);
+            }
+            // Consume the key so it doesn't bleed into the REPL input.
+            if (nu_winconsole_key_available())
+                nu_winconsole_get_key();
+            else if (nu_winconsole_vkey_available())
+                nu_winconsole_get_vkey();
+        }
+
+        nu_winconsole_restore_text_mode();
+
         switch (res) {
         case nu::interpreter_t::exec_res_t::IO_ERROR:
             nu_winconsole_printf(

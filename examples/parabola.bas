@@ -25,7 +25,7 @@
    While 1
       y=(x^2) * zoomfact  : Rem Curve law
 
-      If x>xw% div 2 Then End
+      If x>xw% div 2 Then Exit While
 
       y%=yw% div 2-y
       x=x+0.5

@@ -19,6 +19,4 @@ End If
 
 Close #1
 
-PlotImage file$, 0, 0 
-
-End
+PlotImage file$, 0, 0

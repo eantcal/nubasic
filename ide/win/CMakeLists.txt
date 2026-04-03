@@ -46,7 +46,7 @@ target_include_directories(nuBasicIDE PRIVATE
   ${SCINTILLA_INCLUDE_DIRS}
   ${LEXILLA_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/include
-  ${CMAKE_SOURCE_DIR}/nuWinConsole
+  ${CMAKE_SOURCE_DIR}/console/win
 )
 
 # Preprocessor definitions

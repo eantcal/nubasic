@@ -63,6 +63,8 @@ console_window_t::console_window_t(HINSTANCE hInstance)
     , _hfont(nullptr)
     , _cursor_blink_state(true)
     , _cursor_force_visible(true)
+    , _gfx_dc(nullptr)
+    , _gfx_bitmap(nullptr)
     , _mem_dc(nullptr)
     , _mem_bitmap(nullptr)
     , _backbuffer_width(0)
@@ -94,6 +96,12 @@ console_window_t::~console_window_t()
         if (_hfont)
             DeleteObject(_hfont);
         _hfont = nullptr;
+        if (_gfx_bitmap)
+            DeleteObject(_gfx_bitmap);
+        _gfx_bitmap = nullptr;
+        if (_gfx_dc)
+            DeleteDC(_gfx_dc);
+        _gfx_dc = nullptr;
         if (_mem_bitmap)
             DeleteObject(_mem_bitmap);
         _mem_bitmap = nullptr;
@@ -377,36 +385,69 @@ void console_window_t::on_paint()
             _surface_mutex, std::defer_lock);
         if (surf_lock.try_lock()) {
             if (!_mem_dc || _backbuffer_width != w || _backbuffer_height != h) {
-                HDC new_dc = CreateCompatibleDC(hdc);
-                HBITMAP new_bmp = CreateCompatibleBitmap(hdc, w, h);
-                SelectObject(new_dc, new_bmp);
-
-                HBRUSH bg = CreateSolidBrush(_config.background_color);
-                RECT rc = { 0, 0, w, h };
-                FillRect(new_dc, &rc, bg);
-                DeleteObject(bg);
-
+                // --- Composite layer (never held by external callers) ---
+                HDC new_mem = CreateCompatibleDC(hdc);
+                HBITMAP new_mem_bmp = CreateCompatibleBitmap(hdc, w, h);
+                SelectObject(new_mem, new_mem_bmp);
+                {
+                    HBRUSH bg = CreateSolidBrush(_config.background_color);
+                    RECT rc = { 0, 0, w, h };
+                    FillRect(new_mem, &rc, bg);
+                    DeleteObject(bg);
+                }
                 if (_mem_dc) {
-                    BitBlt(new_dc, 0, 0, std::min(w, _backbuffer_width),
-                        std::min(h, _backbuffer_height), _mem_dc, 0, 0,
-                        SRCCOPY);
                     DeleteDC(_mem_dc);
                     DeleteObject(_mem_bitmap);
                 }
+                _mem_dc = new_mem;
+                _mem_bitmap = new_mem_bmp;
 
-                _mem_dc = new_dc;
-                _mem_bitmap = new_bmp;
+                // --- Graphics layer (persistent GDI drawing surface) ---
+                HDC new_gfx = CreateCompatibleDC(hdc);
+                HBITMAP new_gfx_bmp = CreateCompatibleBitmap(hdc, w, h);
+                SelectObject(new_gfx, new_gfx_bmp);
+                {
+                    HBRUSH bg = CreateSolidBrush(_config.background_color);
+                    RECT rc = { 0, 0, w, h };
+                    FillRect(new_gfx, &rc, bg);
+                    DeleteObject(bg);
+                }
+                if (_gfx_dc) {
+                    // Preserve existing graphics content at the new size.
+                    BitBlt(new_gfx, 0, 0, std::min(w, _backbuffer_width),
+                        std::min(h, _backbuffer_height), _gfx_dc, 0, 0,
+                        SRCCOPY);
+                    DeleteDC(_gfx_dc);
+                    DeleteObject(_gfx_bitmap);
+                }
+                _gfx_dc = new_gfx;
+                _gfx_bitmap = new_gfx_bmp;
+
                 _backbuffer_width = w;
                 _backbuffer_height = h;
             }
 
             if (_mem_dc) {
-                // Compose text and cursor onto the back buffer first, then do
-                // a single blit to the screen to avoid visible intermediate
-                // states (flickering).
-                render_text(_mem_dc);
-                if (_cursor_force_visible && _cursor_blink_state)
-                    render_cursor(_mem_dc);
+                // Compositing order:
+                //   1. Blit graphics layer onto composite (preserves GDI
+                //   drawing).
+                //   2. Overlay text rows (render_text fills every row rect, so
+                //      blank rows clear stale characters without touching
+                //      _gfx_dc).
+                //   3. Blit composite to screen in one shot (no flicker).
+                if (_gfx_dc)
+                    BitBlt(_mem_dc, 0, 0, w, h, _gfx_dc, 0, 0, SRCCOPY);
+                else {
+                    HBRUSH bg = CreateSolidBrush(_config.background_color);
+                    RECT rc = { 0, 0, w, h };
+                    FillRect(_mem_dc, &rc, bg);
+                    DeleteObject(bg);
+                }
+                if (!_graphics_mode.load()) {
+                    render_text(_mem_dc);
+                    if (_cursor_force_visible && _cursor_blink_state)
+                        render_cursor(_mem_dc);
+                }
                 BitBlt(hdc, 0, 0, w, h, _mem_dc, 0, 0, SRCCOPY);
             }
         } else {
@@ -494,10 +535,18 @@ void console_window_t::render_text(HDC hdc)
         int y_pos = _config.margin_top + y * _config.char_height;
 
         if (!has_sel) {
-            // Skip blank lines — nothing to draw.
+            RECT line_rc = { _config.margin_left, y_pos,
+                _config.margin_left + _config.cols * _config.char_width,
+                y_pos + _config.char_height };
             size_t first_ch = line.find_first_not_of(L' ');
-            if (first_ch == std::wstring::npos)
+            if (first_ch == std::wstring::npos) {
+                // Blank row: fill its rect to erase any stale text pixels.
+                // GDI graphics drawn outside the text margin are preserved.
+                SetBkColor(hdc, _config.background_color);
+                ExtTextOutW(hdc, _config.margin_left, y_pos, ETO_OPAQUE,
+                    &line_rc, nullptr, 0, nullptr);
                 continue;
+            }
             size_t last_ch = line.find_last_not_of(L' ');
             std::wstring seg = line.substr(first_ch, last_ch - first_ch + 1);
             int seg_len = (int)seg.size();
@@ -505,9 +554,6 @@ void console_window_t::render_text(HDC hdc)
                 = _config.margin_left + (int)first_ch * _config.char_width;
             SetTextColor(hdc, _config.text_color);
             SetBkColor(hdc, _config.background_color);
-            RECT line_rc = { _config.margin_left, y_pos,
-                _config.margin_left + _config.cols * _config.char_width,
-                y_pos + _config.char_height };
             // For pure ASCII use a uniform lpDx to enforce the monospace grid
             // and prevent GDI kerning.  For non-ASCII (Latin Extended, CJK,
             // etc.) pass nullptr so GDI uses natural advance widths: Consolas
@@ -601,8 +647,10 @@ void console_window_t::on_size(int width, int height)
     if (_config.char_height > 0) {
         int visible = (height - _config.margin_top - _config.margin_bottom)
             / _config.char_height;
-        if (visible > 0)
+        if (visible > 0) {
             _config.rows = visible;
+            _buffer->set_rows(visible);
+        }
     }
     if (_config.char_width > 0) {
         int visible = (width - _config.margin_left - _config.margin_right)
@@ -812,6 +860,17 @@ void console_window_t::on_char(WPARAM ch)
             return;
         }
 
+        // Restore text mode: clear the graphics layer and re-enable the text
+        // overlay so the console prompt is visible after the program stops.
+        if (_graphics_mode.load()) {
+            _graphics_mode.store(false);
+            if (_gfx_dc) {
+                HBRUSH bg = CreateSolidBrush(_config.background_color);
+                RECT rc = { 0, 0, _backbuffer_width, _backbuffer_height };
+                FillRect(_gfx_dc, &rc, bg);
+                DeleteObject(bg);
+            }
+        }
         if (_ctrlc_callback)
             _ctrlc_callback();
         InvalidateRect(_hwnd, nullptr, FALSE);
@@ -956,7 +1015,7 @@ HDC console_window_t::get_offscreen_dc()
 
     _surface_mutex.lock();
 
-    if (!_mem_dc) {
+    if (!_gfx_dc) {
         HDC hdc = GetDC(_hwnd);
         if (!hdc) {
             _surface_mutex.unlock();
@@ -966,32 +1025,34 @@ HDC console_window_t::get_offscreen_dc()
         int w = _config.window_width > 0 ? _config.window_width : 640;
         int h = _config.window_height > 0 ? _config.window_height : 400;
 
-        _mem_dc = CreateCompatibleDC(hdc);
-        _mem_bitmap = CreateCompatibleBitmap(hdc, w, h);
-        if (!_mem_dc || !_mem_bitmap) {
-            if (_mem_bitmap)
-                DeleteObject(_mem_bitmap);
-            if (_mem_dc)
-                DeleteDC(_mem_dc);
-            _mem_dc = nullptr;
-            _mem_bitmap = nullptr;
+        _gfx_dc = CreateCompatibleDC(hdc);
+        _gfx_bitmap = CreateCompatibleBitmap(hdc, w, h);
+        if (!_gfx_dc || !_gfx_bitmap) {
+            if (_gfx_bitmap)
+                DeleteObject(_gfx_bitmap);
+            if (_gfx_dc)
+                DeleteDC(_gfx_dc);
+            _gfx_dc = nullptr;
+            _gfx_bitmap = nullptr;
             ReleaseDC(_hwnd, hdc);
             _surface_mutex.unlock();
             return nullptr;
         }
-        SelectObject(_mem_dc, _mem_bitmap);
+        SelectObject(_gfx_dc, _gfx_bitmap);
         _backbuffer_width = w;
         _backbuffer_height = h;
 
         HBRUSH bg = CreateSolidBrush(_config.background_color);
         RECT rc = { 0, 0, w, h };
-        FillRect(_mem_dc, &rc, bg);
+        FillRect(_gfx_dc, &rc, bg);
         DeleteObject(bg);
 
         ReleaseDC(_hwnd, hdc);
     }
     _surface_client_locked = true;
-    return _mem_dc;
+    _graphics_mode.store(
+        true); // entering graphics mode — suppress text overlay
+    return _gfx_dc;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1023,17 +1084,91 @@ void console_window_t::unlock_rendering()
 
 /* -------------------------------------------------------------------------- */
 
+void console_window_t::restore_text_mode()
+{
+    if (!_hwnd || !_graphics_mode.load())
+        return;
+    std::lock_guard<std::recursive_mutex> surf_lock(_surface_mutex);
+    _graphics_mode.store(false);
+    if (_gfx_dc) {
+        HBRUSH bg = CreateSolidBrush(_config.background_color);
+        RECT rc = { 0, 0, _backbuffer_width, _backbuffer_height };
+        FillRect(_gfx_dc, &rc, bg);
+        DeleteObject(bg);
+    }
+    refresh(true);
+}
+
+/* -------------------------------------------------------------------------- */
+
+void console_window_t::show_graphics_end_prompt()
+{
+    if (!_hwnd)
+        return;
+
+    const wchar_t* msg = L"  Press any key to continue...  ";
+    const int msg_len = (int)wcslen(msg);
+
+    std::lock_guard<std::recursive_mutex> surf_lock(_surface_mutex);
+
+    // Lazily initialise the GDI layer if the program never called
+    // get_offscreen_dc (e.g. it used only ScreenLock/Unlock wrappers that
+    // already did so).
+    if (!_gfx_dc) {
+        HDC hdc = GetDC(_hwnd);
+        if (!hdc)
+            return;
+        int w = _config.window_width > 0 ? _config.window_width : 640;
+        int h = _config.window_height > 0 ? _config.window_height : 400;
+        _gfx_dc = CreateCompatibleDC(hdc);
+        _gfx_bitmap = CreateCompatibleBitmap(hdc, w, h);
+        if (_gfx_dc && _gfx_bitmap) {
+            SelectObject(_gfx_dc, _gfx_bitmap);
+            _backbuffer_width = w;
+            _backbuffer_height = h;
+        }
+        ReleaseDC(_hwnd, hdc);
+        if (!_gfx_dc)
+            return;
+    }
+
+    // Draw a black background strip at the very bottom of the graphics layer.
+    const int strip_h = _config.char_height + 6;
+    const int strip_y = _backbuffer_height - strip_h;
+    {
+        HBRUSH bg = CreateSolidBrush(RGB(0, 0, 0));
+        RECT rc = { 0, strip_y, _backbuffer_width, _backbuffer_height };
+        FillRect(_gfx_dc, &rc, bg);
+        DeleteObject(bg);
+    }
+
+    // Draw the message in yellow over the black strip.
+    if (_hfont) {
+        HFONT old_font = (HFONT)SelectObject(_gfx_dc, _hfont);
+        SetTextColor(_gfx_dc, RGB(255, 255, 0));
+        SetBkMode(_gfx_dc, TRANSPARENT);
+        TextOutW(_gfx_dc, 4, strip_y + 3, msg, msg_len);
+        SelectObject(_gfx_dc, old_font);
+    }
+
+    refresh(true);
+}
+
+/* -------------------------------------------------------------------------- */
+
 void console_window_t::clear_backbuffer()
 {
     if (!_hwnd)
         return;
     std::lock_guard<std::recursive_mutex> surf_lock(_surface_mutex);
-    if (!_mem_dc)
+    if (!_gfx_dc)
         return;
     HBRUSH bg = CreateSolidBrush(_config.background_color);
     RECT rc = { 0, 0, _backbuffer_width, _backbuffer_height };
-    FillRect(_mem_dc, &rc, bg);
+    FillRect(_gfx_dc, &rc, bg);
     DeleteObject(bg);
+    // CLS returns to text mode: text overlay is restored.
+    _graphics_mode.store(false);
 }
 
 /* -------------------------------------------------------------------------- */

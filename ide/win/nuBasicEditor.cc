@@ -24,8 +24,8 @@
 #include "textinfobox.h"
 #include "toolbar.h"
 
-#include "../../nuwinconsole/nu_winconsole_api.h"
 #include "nu_os_gdi.h"
+#include "nu_winconsole_api.h"
 
 // Posted after IDM_DEBUG_TOPMOST / similar so focus isn't stolen back when the
 // menu closes (wParam: bit0=topmost, bit1=activate console).
@@ -2404,7 +2404,15 @@ bool nu::editor_t::evaluate_expression(const std::string& expression)
     expr += expression;
     expr += "\" ";
 
-    if (exec_interpreter_cmd(expr, false)) {
+    // Reset exported_result so we can detect whether __eval_export ran
+    // successfully (on error the exception handler returns early and the
+    // field stays UNDEFINED).
+    interpreter().get_rt_ctx().exported_result = nu::variant_t{};
+
+    exec_interpreter_cmd(expr, false);
+
+    if (interpreter().get_rt_ctx().exported_result.get_type()
+        != nu::variable_t::type_t::UNDEFINED) {
         auto result = interpreter().get_rt_ctx().exported_result.to_str();
 
         std::string annotation = "\r\n";
@@ -2418,11 +2426,9 @@ bool nu::editor_t::evaluate_expression(const std::string& expression)
             (LPARAM)annotation.c_str());
 
         SetTimer(get_main_hwnd(), TIMER_EVAL_SELECTION, 3000, 0);
-
-        return true;
     }
 
-    return false;
+    return true;
 }
 
 
@@ -3726,7 +3732,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         case nu::editor_t::TIMER_EVAL_SELECTION:
             KillTimer(
                 g_editor.get_main_hwnd(), nu::editor_t::TIMER_EVAL_SELECTION);
-            g_editor.eval_sel();
+            g_editor.send_command(SCI_ANNOTATIONCLEARALL);
             break;
 
         case nu::editor_t::TIMER_CTX_HELP:

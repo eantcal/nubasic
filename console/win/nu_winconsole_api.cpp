@@ -248,6 +248,29 @@ int nu_winconsole_key_available()
 
 /* -------------------------------------------------------------------------- */
 
+void nu_winconsole_restore_text_mode()
+{
+    if (g_console)
+        g_console->restore_text_mode();
+}
+
+/* -------------------------------------------------------------------------- */
+
+int nu_winconsole_is_graphics_mode()
+{
+    return (g_console && g_console->is_graphics_mode()) ? 1 : 0;
+}
+
+/* -------------------------------------------------------------------------- */
+
+void nu_winconsole_show_graphics_end_prompt()
+{
+    if (g_console)
+        g_console->show_graphics_end_prompt();
+}
+
+/* -------------------------------------------------------------------------- */
+
 void nu_winconsole_cls()
 {
     if (!g_console)

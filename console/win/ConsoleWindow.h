@@ -76,6 +76,19 @@ public:
     /* Cancel any pending read_line (unblocks the waiting thread) */
     void cancel_input();
 
+    /* Restore text mode after a graphics program finishes:
+     * clears the graphics layer and re-enables the text overlay. */
+    void restore_text_mode();
+
+    /* Returns true if the console is currently in graphics mode. */
+    bool is_graphics_mode() const noexcept { return _graphics_mode.load(); }
+
+    /* CLI-only: overlay "Press any key to continue..." on the graphics layer
+     * at the bottom of the screen so the user knows how to dismiss it.
+     * Draws directly onto _gfx_dc so the prompt appears on top of any GDI
+     * content already there.  Follows this call with a key-wait loop. */
+    void show_graphics_end_prompt();
+
     /* Input Operations */
 
     // Blocking line input. May be called from a worker thread: WM_CHAR is
@@ -156,12 +169,21 @@ private:
     bool _cursor_blink_state; // current blink phase (used for painting)
     bool _cursor_force_visible; // set_cursor_visible() override
 
-    // Double buffering (worker GDI vs UI WM_PAINT must not touch concurrently).
-    // Recursive: CLS / clear_backbuffer may run while GDI holds the surface
-    // lock.
+    // Two-layer back-buffer:
+    //   _gfx_dc   — persistent graphics layer; GDI primitives (Line, Rect, …)
+    //               draw here.  Never cleared by text rendering.
+    //   _mem_dc   — composite layer; on every WM_PAINT: _gfx_dc is blitted onto
+    //               _mem_dc first, then render_text() overlays text on top.
+    //               This DC is never handed to external callers.
+    //
+    // Concurrent access: _surface_mutex protects both DCs.  get_offscreen_dc()
+    // acquires the lock and sets _surface_client_locked; on_paint() uses
+    // try_lock so it never blocks the UI thread.
     std::recursive_mutex _surface_mutex;
-    bool _surface_client_locked = false; // get_offscreen_dc held lock for GDI
-    HDC _mem_dc;
+    bool _surface_client_locked = false; // get_offscreen_dc holds the lock
+    HDC _gfx_dc; // graphics layer (source for GDI primitives)
+    HBITMAP _gfx_bitmap;
+    HDC _mem_dc; // composite layer (blitted to screen)
     HBITMAP _mem_bitmap;
     int _backbuffer_width;
     int _backbuffer_height;
@@ -170,6 +192,12 @@ private:
     // multiple drawing commands accumulate in the back-buffer without causing
     // per-primitive screen updates (SCREENLOCK / SCREENUNLOCK).
     std::atomic<bool> _render_locked{ false };
+
+    // Graphics mode: true after the first GDI primitive is drawn into _gfx_dc.
+    // While true, render_text() / render_cursor() are suppressed so that the
+    // graphics layer is fully visible.  Resets to false on clear_backbuffer()
+    // (CLS), which signals a return to text mode.
+    std::atomic<bool> _graphics_mode{ false };
 
     // Input handling
     // _input_queue is accessed from both threads → protected by _input_mutex.

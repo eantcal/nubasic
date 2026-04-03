@@ -1,4 +1,3 @@
-#!/usr/local/bin/nubasic
 ' graph.bas - This file is part of nuBASIC
 
 dx%=GetSWidth()

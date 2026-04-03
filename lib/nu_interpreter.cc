@@ -482,19 +482,20 @@ std::string interpreter_t::read_line(FILE* f)
 {
     std::string line;
 
-    while (!feof(f) && ferror(f) == 0) {
-        char c = fgetc(f);
+    while (ferror(f) == 0) {
+        int c = fgetc(f);
+
+        if (c == EOF)
+            break;
+
+        if (c == '\n')
+            break;
 
         // Cast to unsigned char so that UTF-8 bytes (>= 0x80) are not
         // misinterpreted as negative values by the signed-char comparison,
         // which previously caused them to be silently dropped.
-        if (static_cast<unsigned char>(c) >= 32) {
-            line.push_back(c);
-        }
-
-        if (c == '\n') {
-            break;
-        }
+        if (static_cast<unsigned char>(c) >= 32)
+            line.push_back(static_cast<char>(c));
     }
 
     return line;
@@ -507,20 +508,21 @@ std::string interpreter_t::read_line(std::stringstream& ss)
 {
     std::string line;
 
-    while (!ss.bad() && !ss.eof()) {
+    while (!ss.bad()) {
         char c(0);
 
         ss >> std::noskipws >> c;
 
+        if (ss.fail())
+            break;
+
+        if (c == '\n')
+            break;
+
         // Cast to unsigned char so that UTF-8 bytes (>= 0x80) are not
         // misinterpreted as negative values by the signed-char comparison.
-        if (static_cast<unsigned char>(c) >= 32) {
+        if (static_cast<unsigned char>(c) >= 32)
             line.push_back(c);
-        }
-
-        if (c == '\n') {
-            break;
-        }
     }
 
     return line;

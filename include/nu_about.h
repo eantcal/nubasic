@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -32,10 +32,10 @@ namespace about {
 #endif
     static const char* const author = "Antonino Calderone";
     static const char* const contacts = PACKAGE_BUGREPORT;
-    static const char* const homepage = "http://www.nubasic.eu";
+    static const char* const homepage = "https://github.com/eantcal/nubasic";
     static const char* const license = "The MIT License (MIT)";
     static const char* const version = PACKAGE_VERSION;
-    static const char* const copyright = "2014-2024";
+    static const char* const copyright = "2014-2026";
     static const char* const description
         = "nuBASIC is a programming language from the BASIC family.\n"
           "nuBASIC has been written in C++ and distributed under MIT License."
@@ -44,12 +44,12 @@ namespace about {
           "any graphics, sound, mouse or windows manager support."
 #endif
         ;
-}
+} // namespace about
 
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
