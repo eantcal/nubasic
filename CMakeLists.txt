@@ -121,7 +121,10 @@ endif()
 add_subdirectory(lib)
 
 # Scintilla editor component (downloaded or local fallback)
-include(cmake/ScintillaFetch.cmake)
+# Only needed when building an IDE (Windows or GTK); skip on macOS CLI-only builds.
+if (WIN32 OR (WITH_IDE AND NOT WIN32 AND NOT APPLE))
+  include(cmake/ScintillaFetch.cmake)
+endif()
 
 # Windows IDE and console executables (depend on lib, so added after it)
 if (WIN32)
@@ -141,7 +144,7 @@ if (WITH_IDE AND NOT WIN32)
     message("Error: GTK2 not found, cannot build gtk2 version")
   else()
     add_subdirectory(ide/gtk)
-  endif() 
+  endif()
 endif()
 
 include_directories(include ${X11_INCLUDE_DIR})
