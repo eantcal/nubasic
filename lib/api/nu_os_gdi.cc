@@ -439,6 +439,19 @@ int _os_get_mouse_btn() noexcept
 
 /* -------------------------------------------------------------------------- */
 
+variant_t _os_get_mouse_state()
+{
+    variant_t result("mouse", variant_t::struct_data_t{});
+    result.define_struct_member("x", variant_t(integer_t(_os_get_mouse_x())));
+    result.define_struct_member("y", variant_t(integer_t(_os_get_mouse_y())));
+    result.define_struct_member(
+        "btn", variant_t(integer_t(_os_get_mouse_btn())));
+    return result;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 int _os_msg_box(const std::string& title, const std::string& message, int flg)
 {
     (void)flg; // not yet used
@@ -1224,6 +1237,19 @@ int _os_get_mouse_btn() noexcept
     bool res = ctx.get_mouse_event(btn, pos);
 
     return res ? btn : 0;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+variant_t _os_get_mouse_state()
+{
+    variant_t result("mouse", variant_t::struct_data_t{});
+    result.define_struct_member("x", variant_t(integer_t(_os_get_mouse_x())));
+    result.define_struct_member("y", variant_t(integer_t(_os_get_mouse_y())));
+    result.define_struct_member(
+        "btn", variant_t(integer_t(_os_get_mouse_btn())));
+    return result;
 }
 
 

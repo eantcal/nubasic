@@ -113,6 +113,25 @@ void _os_beep() { putc(7, stdout); }
 
 /* -------------------------------------------------------------------------- */
 
+variant_t _os_get_datetime_struct()
+{
+    const auto* t = _get_local_tm();
+    variant_t result("datetime", variant_t::struct_data_t{});
+    result.define_struct_member(
+        "year", variant_t(integer_t(t->tm_year + 1900)));
+    result.define_struct_member("month", variant_t(integer_t(t->tm_mon + 1)));
+    result.define_struct_member("day", variant_t(integer_t(t->tm_mday)));
+    result.define_struct_member("hour", variant_t(integer_t(t->tm_hour)));
+    result.define_struct_member("minute", variant_t(integer_t(t->tm_min)));
+    result.define_struct_member("second", variant_t(integer_t(t->tm_sec)));
+    result.define_struct_member("wday", variant_t(integer_t(t->tm_wday)));
+    result.define_struct_member("yday", variant_t(integer_t(t->tm_yday)));
+    return result;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 } // namespace nu
 
 

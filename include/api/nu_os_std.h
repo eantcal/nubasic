@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -89,6 +89,12 @@ int _os_get_time();
 //! Returns local-time in the format "DDD MMM DN HH:MM:SS YYYY"
 std::string _os_get_systime();
 
+//! Returns a DateTime struct with all date/time fields at once.
+//! Fields: year, month (1-12), day (1-31), hour (0-23), minute (0-59),
+//!         second (0-59), wday (0-6, Sunday=0), yday (0-365).
+//! Replaces the individual SysYear/SysMonth/... functions (deprecated v2.0).
+variant_t _os_get_datetime_struct();
+
 //! Deletes a file
 int _os_erase_file(const std::string& filepath);
 
@@ -140,14 +146,14 @@ enum {
     vk_Delete
 };
 
-//! Reads the key pressed from input and returns 
+//! Reads the key pressed from input and returns
 //! it as an int (special keys are mapped as vk_xxxx), or EOF in case of error.
 int _os_get_vkey();
 
 
 /* -------------------------------------------------------------------------- */
 
-} // nu
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

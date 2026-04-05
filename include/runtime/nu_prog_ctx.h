@@ -113,6 +113,11 @@ public:
 
     void clear_metadata();
 
+    // Pre-register built-in struct prototypes (DateTime, Mouse) so that
+    // "Dim x As DateTime" and "Dim m As Mouse" work without a user-written
+    // Struct definition.  Called at construction and after clear_metadata().
+    void register_builtin_struct_prototypes();
+
     // Print-out traces of control-structures and procedure metadata
     void trace_metadata(std::stringstream& ss);
 

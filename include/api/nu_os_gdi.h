@@ -127,6 +127,12 @@ int _os_get_mouse_x() noexcept;
 int _os_get_mouse_y() noexcept;
 int _os_get_mouse_btn() noexcept;
 
+//! Returns a Mouse struct with all pointer state at once.
+//! Fields: x (pixels from left), y (pixels from top),
+//!         btn (0=none, 1=left, 2=middle, 4=right).
+//! Replaces the individual GetMouseX/Y/Btn functions (deprecated v2.0).
+variant_t _os_get_mouse_state();
+
 int _os_msg_box(const std::string& title, const std::string& message, int flg);
 int _os_play_sound(const std::string& filename, int flg);
 int _os_move_window(int x, int y, int dx, int dy);
