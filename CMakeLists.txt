@@ -121,8 +121,10 @@ endif()
 add_subdirectory(lib)
 
 # Scintilla editor component (downloaded or local fallback)
-# Only needed when building an IDE (Windows or GTK); skip on macOS CLI-only builds.
-if (WIN32 OR (WITH_IDE AND NOT WIN32 AND NOT APPLE))
+# Only needed when building an IDE (Windows or GTK); skip when:
+#   - building on macOS (CLI-only)
+#   - building a tiny version (X11/GTK not available on Linux)
+if (WIN32 OR (WITH_IDE AND NOT _nubasic_tiny AND NOT WIN32 AND NOT APPLE))
   include(cmake/ScintillaFetch.cmake)
 endif()
 
@@ -137,8 +139,8 @@ if (WIN32)
   endif()
 endif()
 
-# GTK IDE for Unix/Linux
-if (WITH_IDE AND NOT WIN32)
+# GTK IDE for Unix/Linux (skip entirely in tiny mode — GTK/X11 unavailable)
+if (WITH_IDE AND NOT _nubasic_tiny AND NOT WIN32)
   include (${CMAKE_ROOT}/Modules/FindGTK2.cmake)
   if(NOT GTK2_FOUND)
     message("Error: GTK2 not found, cannot build gtk2 version")
@@ -176,14 +178,14 @@ endif()
 SET(MAJOR_VERSION 1)
 SET(MINOR_VERSION 61)
 SET(PATCH_VERSION 0)
- 
+
 IF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
 INCLUDE(InstallRequiredSystemLibraries)
- 
+
 SET(CPACK_SET_DESTDIR "on")
 SET(CPACK_PACKAGING_INSTALL_PREFIX "/tmp")
 SET(CPACK_GENERATOR "DEB")
- 
+
 SET(CPACK_PACKAGE_DESCRIPTION "nuBASIC")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "nuBASIC Interpreter")
 SET(CPACK_PACKAGE_VENDOR "Antonino Calderone")
@@ -195,7 +197,7 @@ SET(CPACK_PACKAGE_VERSION_MINOR "${MINOR_VERSION}")
 SET(CPACK_PACKAGE_VERSION_PATCH "${PATCH_VERSION}")
 SET(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${MAJOR_VERSION}.${MINOR_VERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
 SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${MAJOR_VERSION}.${MINOR_VERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
- 
+
 IF(USE_X11)
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libx11-dev (>=2:1.3.2)")
 ENDIF()
@@ -205,7 +207,7 @@ IF(USE_GTK2)
 ENDIF()
 
 SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1.3), libgcc1 (>= 1:4.1.1)")
- 
+
 SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 SET(CPACK_DEBIAN_PACKAGE_SECTION "devel")
 SET(CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
@@ -288,7 +290,7 @@ if(WIN32)
 else()
   SET(CPACK_COMPONENTS_ALL Libraries ApplicationData)
 endif()
- 
+
 INCLUDE(CPack)
 
 # ---------------------------------------------------------------------------
@@ -335,3 +337,4 @@ if(WIN32 AND MSVC)
 endif()
 
 ENDIF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
+
