@@ -30,13 +30,21 @@ if(NOT SCINTILLA_LOCAL)
     message(STATUS "Scintilla: fetching version ${SCINTILLA_VERSION} (scintilla${_sci_ver}.zip)")
     message(STATUS "Lexilla:   fetching version ${LEXILLA_VERSION}   (lexilla${_lex_ver}.zip)")
 
+    # DOWNLOAD_EXTRACT_TIMESTAMP requires CMake >= 3.24; guard it to stay
+    # compatible with the CMake 3.22 shipped by Ubuntu 22.04.
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24")
+        set(_fetch_extra DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+    else()
+        set(_fetch_extra "")
+    endif()
+
     FetchContent_Declare(scintilla_dl
         URL "https://www.scintilla.org/scintilla${_sci_ver}.zip"
-        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+        ${_fetch_extra}
     )
     FetchContent_Declare(lexilla_dl
         URL "https://www.scintilla.org/lexilla${_lex_ver}.zip"
-        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+        ${_fetch_extra}
     )
     FetchContent_MakeAvailable(scintilla_dl lexilla_dl)
 
@@ -169,3 +177,4 @@ if(_build_scintilla)
     endif()
 
 endif() # _build_scintilla
+
