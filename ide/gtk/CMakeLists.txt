@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 
-set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++17" )
+set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++20" )
 
 include (${CMAKE_ROOT}/Modules/FindX11.cmake)
 include (${CMAKE_ROOT}/Modules/FindGTK2.cmake)
@@ -55,7 +55,7 @@ link_directories(${lib_BINARY_DIR})
 file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
 
 add_executable(nubasicide ${SOURCES})
-target_compile_features(nubasicide PRIVATE cxx_std_17)
+target_compile_features(nubasicide PRIVATE cxx_std_20)
 
 # Link against the CMake-built Scintilla target (set by cmake/ScintillaFetch.cmake)
 # Falls back to the prebuilt .a if SCINTILLA_LOCAL=ON

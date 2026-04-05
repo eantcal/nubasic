@@ -171,6 +171,9 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
 
             case variant_t::type_t::UNDEFINED:
             case variant_t::type_t::STRUCT:
+            case variant_t::type_t::BYTEVECTOR:
+            case variant_t::type_t::ANY:
+            case variant_t::type_t::OBJECT:
                 rt_error_code_t::get_instance().throw_if(true,
                     ctx.runtime_pc.get_line(),
                     rt_error_code_t::value_t::E_TYPE_ILLEGAL, "'" + name + "'");

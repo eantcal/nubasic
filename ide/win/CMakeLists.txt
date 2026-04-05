@@ -37,7 +37,7 @@ add_executable(nuBasicIDE WIN32 ${IDE_SOURCES} ${IDE_HEADERS} ${IDE_RESOURCES})
 set_target_properties(nuBasicIDE PROPERTIES OUTPUT_NAME "NuBasicIDE")
 
 # Set C++ standard
-target_compile_features(nuBasicIDE PRIVATE cxx_std_17)
+target_compile_features(nuBasicIDE PRIVATE cxx_std_20)
 
 # Include directories
 # SCINTILLA_INCLUDE_DIRS and LEXILLA_INCLUDE_DIRS are set by cmake/ScintillaFetch.cmake

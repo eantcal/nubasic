@@ -109,10 +109,32 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t& ctx)
         check_type(forctx.step.get_type());
         check_type(forctx.end_counter.get_type());
 
+        // Check the initial loop condition before entering the body.
+        // If start already fails (e.g. FOR i=1 TO 0), skip the body entirely.
+        const bool initial_condition = bool(
+            (forctx.step.to_double() > 0)
+            ? (val <= forctx.end_counter)
+            : (val >= forctx.end_counter));
+
+        if (!initial_condition) {
+            // Mark EXIT so the matching NEXT statement exits immediately,
+            // then jump to NEXT so it can clean up the loop context.
+            const auto skip_handle =
+                ctx.for_loop_metadata.begin_find(forctx.pc_for_stmt);
+            if (skip_handle) {
+                skip_handle->flag.set(instrblock_t::EXIT, true);
+                ctx.go_to(skip_handle->pc_end_stmt);
+            } else {
+                ctx.go_to_next(); // fallback (should not happen)
+            }
+            forctx.flag.set(for_loop_ctx_t::FLG_FIRST_EXEC, false);
+            return;
+        }
+
         ctx.go_to_next();
         forctx.flag.set(for_loop_ctx_t::FLG_FIRST_EXEC, false);
 
-        const auto handle = ctx.for_loop_metadata.begin_find(ctx.runtime_pc);
+        const auto handle = ctx.for_loop_metadata.begin_find(forctx.pc_for_stmt);
 
         if (handle) {
             handle->flag.set(instrblock_t::EXIT, false);

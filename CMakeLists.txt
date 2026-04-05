@@ -8,7 +8,7 @@ endif()
 
 # GCC/Clang-specific global flags (MSVC uses its own conventions)
 if(NOT MSVC)
-  set(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++17")
+  set(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++20")
   set(CMAKE_CXX_FLAGS_DEBUG "-g")
   set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
@@ -147,17 +147,25 @@ if (WITH_IDE AND NOT WIN32)
   endif()
 endif()
 
-include_directories(include ${X11_INCLUDE_DIR})
+include_directories(include
+  include/parser
+  include/ast
+  include/statements
+  include/runtime
+  include/types
+  include/api
+  include/util
+  ${X11_INCLUDE_DIR})
 link_directories(${lib_BINARY_DIR})
 
 # Build Unix/Linux console executable
 if (NOT WIN32)
   file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/cli/unix/*.cc")
 
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17" )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20" )
 
   add_executable(nubasic ${SOURCES})
-  target_compile_features(nubasic PRIVATE cxx_std_17)
+  target_compile_features(nubasic PRIVATE cxx_std_20)
 
   target_link_libraries(nubasic nuBasicInterpreter ${X11_LIBRARIES} -pthread)
 

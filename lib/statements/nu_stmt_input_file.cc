@@ -40,8 +40,7 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
         std::string svalue;
         int ivalue = 0;
         long long llvalue = 0;
-        float fvalue = 0.0F;
-        double dvalue = 0.0L;
+        double dvalue = 0.0;
 
         switch (vtype) {
         case nu::variable_t::type_t::INTEGER:

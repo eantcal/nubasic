@@ -27,7 +27,7 @@ set(LIB_HEADERS
 add_library(nuWinConsole STATIC ${LIB_SOURCES} ${LIB_HEADERS})
 
 # Set C++ standard for library
-target_compile_features(nuWinConsole PUBLIC cxx_std_17)
+target_compile_features(nuWinConsole PUBLIC cxx_std_20)
 
 # Include directories for library (PUBLIC so consumers can use them)
 target_include_directories(nuWinConsole PUBLIC

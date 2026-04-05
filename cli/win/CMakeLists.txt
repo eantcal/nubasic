@@ -29,7 +29,7 @@ add_executable(nuBasicCLI WIN32
 # Keep executable name `nubasic.exe` (IDE and scripts invoke `nubasic`).
 set_target_properties(nuBasicCLI PROPERTIES OUTPUT_NAME "nubasic")
 
-target_compile_features(nuBasicCLI PRIVATE cxx_std_17)
+target_compile_features(nuBasicCLI PRIVATE cxx_std_20)
 
 target_include_directories(nuBasicCLI PRIVATE
   ${CMAKE_SOURCE_DIR}/include

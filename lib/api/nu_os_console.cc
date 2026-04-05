@@ -9,11 +9,9 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_os_console.h"
+#include "nu_unicode.h"
 #include <cstdio>
-
-#include <codecvt>
 #include <iostream>
-#include <locale>
 #include <string>
 
 /* -------------------------------------------------------------------------- */
@@ -235,8 +233,7 @@ void _os_init()
 
 void _os_u16write(const std::u16string& output)
 {
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
-    std::string bs = convert.to_bytes(output);
+    std::string bs = nu::u16_to_utf8(output);
     printf("%s", bs.c_str());
 }
 
