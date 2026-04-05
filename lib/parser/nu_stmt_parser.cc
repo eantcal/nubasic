@@ -2107,6 +2107,17 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
         return stmt_t::handle_t(std::make_shared<stmt_cls_t>(ctx));
     }
 
+    if (identifier == "screen") {
+        --tl;
+        remove_blank(tl);
+        return parse_arg_list<stmt_screen_t, 0>(
+            ctx, token, tl,
+            [](const token_t& t) {
+                return t.type() == tkncl_t::OPERATOR && t.identifier() == ",";
+            },
+            ctx);
+    }
+
     if (identifier == "screenlock") {
         --tl;
         return stmt_t::handle_t(std::make_shared<stmt_screenlock_t>(ctx));

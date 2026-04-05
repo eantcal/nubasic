@@ -33,6 +33,13 @@ target_compile_features(nuBasicCLI PRIVATE cxx_std_20)
 
 target_include_directories(nuBasicCLI PRIVATE
   ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/include/api
+  ${CMAKE_SOURCE_DIR}/include/ast
+  ${CMAKE_SOURCE_DIR}/include/parser
+  ${CMAKE_SOURCE_DIR}/include/runtime
+  ${CMAKE_SOURCE_DIR}/include/statements
+  ${CMAKE_SOURCE_DIR}/include/types
+  ${CMAKE_SOURCE_DIR}/include/util
   ${CMAKE_SOURCE_DIR}/console/win
   .
 )

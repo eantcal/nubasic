@@ -84,7 +84,7 @@ End Sub
 ' -----------------------------------------------------------------------------
 Sub DrawBackground()
 ' -----------------------------------------------------------------------------
-   PlotImage "nutrisbg.bmp", 0,0
+   PlotImage "nutetrisbg.bmp", 0,0
 End Sub
 
 
@@ -105,7 +105,7 @@ Sub SetupGame()
    DrawCleanGameArea board_offset_x%, board_offset_y%, atom_size%
    DrawScoreBoard scbx%, scby%, atom_size%
    
-   TextOut 30, 40, "Welcome to nuTris " + version$, &hffffff
+   TextOut 30, 40, "Welcome to nuTetris " + version$, &hffffff
    
    TextOut 30, 70, "    To play press: ", &hffffff
    

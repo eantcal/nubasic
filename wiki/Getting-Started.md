@@ -69,6 +69,7 @@ look up a keyword:
 ```
 Help               ' list all keywords grouped by category
 Help Print         ' full description and syntax of Print
+Help Screen        ' description of the Screen mode command
 Help ScreenLock    ' description of the ScreenLock instruction
 Help examples      ' list installed example programs with load/run hints
 Apropos mouse      ' search all help descriptions for the word "mouse"

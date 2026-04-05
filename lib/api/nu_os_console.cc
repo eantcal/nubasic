@@ -22,6 +22,7 @@
 /* -------------------------------------------------------------------------- */
 
 #include <windows.h>
+#include <conio.h>
 
 #include <locale.h>
 
@@ -30,6 +31,16 @@
 /* -------------------------------------------------------------------------- */
 
 namespace nu {
+
+/* -------------------------------------------------------------------------- */
+
+// Screen mode:
+//   0 = text/hybrid — I/O via real Windows console (headless-safe, for tests)
+//   1 = GDI console  — I/O and graphics through the custom GDI window (default)
+static int g_screen_mode = 1;
+
+void _os_set_screen_mode(int mode) { g_screen_mode = mode; }
+int  _os_get_screen_mode()         { return g_screen_mode; }
 
 
 /* -------------------------------------------------------------------------- */
@@ -46,7 +57,14 @@ void _os_init()
 
 void _os_u16write(const std::u16string& output)
 {
-    nu_winconsole_write_w((const wchar_t*)output.c_str());
+    if (g_screen_mode == 0) {
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        DWORD written = 0;
+        WriteConsoleW(hOut, output.c_str(),
+            static_cast<DWORD>(output.size()), &written, nullptr);
+    } else {
+        nu_winconsole_write_w((const wchar_t*)output.c_str());
+    }
 }
 
 
@@ -60,18 +78,55 @@ void _os_config_term(bool echo_mode)
 
 /* -------------------------------------------------------------------------- */
 
-void _os_cls() { nu_winconsole_cls(); }
+void _os_cls()
+{
+    if (g_screen_mode == 0) {
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        if (GetConsoleScreenBufferInfo(hOut, &csbi)) {
+            DWORD cells = csbi.dwSize.X * csbi.dwSize.Y;
+            DWORD written = 0;
+            COORD origin = { 0, 0 };
+            FillConsoleOutputCharacterA(hOut, ' ', cells, origin, &written);
+            FillConsoleOutputAttribute(
+                hOut, csbi.wAttributes, cells, origin, &written);
+            SetConsoleCursorPosition(hOut, origin);
+        }
+    } else {
+        nu_winconsole_cls();
+    }
+}
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_locate(int y, int x) { nu_winconsole_locate(x - 1, y - 1); }
+void _os_locate(int y, int x)
+{
+    if (g_screen_mode == 0) {
+        COORD pos = { static_cast<SHORT>(x - 1), static_cast<SHORT>(y - 1) };
+        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+    } else {
+        nu_winconsole_locate(x - 1, y - 1);
+    }
+}
 
 
 /* -------------------------------------------------------------------------- */
 
 std::string _os_input_str(int n)
 {
+    if (g_screen_mode == 0) {
+        std::string result;
+        result.reserve(n);
+        for (int i = 0; i < n; ++i) {
+            int ch = _getch();
+            if (ch == 0x03) break; // ETX / Ctrl+C
+            if (ch > 0 && ch < 256)
+                result += static_cast<char>(ch & 0xff);
+        }
+        return result;
+    }
+
     std::string result;
     for (int i = 0; i < n; ++i) {
         while (!nu_winconsole_key_available()) {
@@ -95,6 +150,16 @@ std::string _os_input_str(int n)
 std::string _os_input(FILE* finput_ptr)
 {
     if (finput_ptr == stdin) {
+        if (g_screen_mode == 0) {
+            char buffer[4096];
+            if (fgets(buffer, sizeof(buffer), stdin)) {
+                std::string s(buffer);
+                if (!s.empty() && s.back() == '\n')
+                    s.pop_back();
+                return s;
+            }
+            return "";
+        }
         char buffer[4096];
         int len = nu_winconsole_read_line(buffer, sizeof(buffer));
         if (len > 0)
@@ -124,28 +189,51 @@ std::string _os_input(FILE* finput_ptr)
 
 int _os_kbhit()
 {
+    if (g_screen_mode == 0)
+        return _kbhit() ? _getch() : 0;
     return nu_winconsole_key_available() ? nu_winconsole_get_key() : 0;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_cursor_visible(bool on) { nu_winconsole_cursor_visible(on ? 1 : 0); }
+void _os_cursor_visible(bool on)
+{
+    if (g_screen_mode == 0) {
+        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_CURSOR_INFO ci = { 25, on ? TRUE : FALSE };
+        SetConsoleCursorInfo(hOut, &ci);
+    } else {
+        nu_winconsole_cursor_visible(on ? 1 : 0);
+    }
+}
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_screenlock() { nu_winconsole_screenlock(); }
+void _os_screenlock()
+{
+    if (g_screen_mode != 0)
+        nu_winconsole_screenlock();
+}
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_screenunlock() { nu_winconsole_screenunlock(); }
+void _os_screenunlock()
+{
+    if (g_screen_mode != 0)
+        nu_winconsole_screenunlock();
+}
 
 
 /* -------------------------------------------------------------------------- */
 
-void _os_refresh() { nu_winconsole_refresh(); }
+void _os_refresh()
+{
+    if (g_screen_mode != 0)
+        nu_winconsole_refresh();
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -357,6 +445,11 @@ int _os_kbhit()
 void _os_screenlock() {}
 void _os_screenunlock() {}
 void _os_refresh() {}
+
+// Screen mode is a Windows-only concept; on Linux/macOS always text mode.
+static int g_screen_mode = 0;
+void _os_set_screen_mode(int mode) { g_screen_mode = mode; }
+int  _os_get_screen_mode()         { return g_screen_mode; }
 
 /* -------------------------------------------------------------------------- */
 

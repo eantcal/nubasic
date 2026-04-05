@@ -11,6 +11,7 @@ nuBASIC is a modern, open-source BASIC interpreter written in C++17, available f
 - **Arrays and hash tables** built into the language
 - **Full file I/O** — sequential, binary, and random access
 - **Graphics** — lines, rectangles, ellipses, filled shapes, text, bitmaps, pixel access (Windows GDI / Linux X11)
+- **Screen mode switching** — `Screen 0` (text/headless) / `Screen 1` (GDI graphics), like GW-BASIC `SCREEN`
 - **Flicker-free rendering** — `ScreenLock` / `ScreenUnlock` / `Refresh` for double-buffered animation
 - **Mouse and keyboard input**
 - **UTF-8** string literals and console output
@@ -72,6 +73,28 @@ make -j$(nproc)
 ```
 
 See the [Building from Source](https://github.com/eantcal/nubasic/wiki/Building-from-Source) wiki page for full details including macOS, iOS/iSH, CMake options, and installer creation.
+
+## Running the Test Suite
+
+Tests live in the `tests/` directory as `test_*.bas` files.  They use
+`Screen 0` (text mode) so output goes to stdout without needing a GUI.
+
+**Windows (PowerShell):**
+```powershell
+.\tests\run_tests.ps1 -Interpreter .\build\release\Release\nubasic.exe
+```
+
+**From Visual Studio:** right-click the **RunTests** target → Build.
+
+**Linux / macOS (Bash):**
+```sh
+./tests/run_tests.sh --interpreter ./build/release/nubasic
+```
+
+Or via CMake:
+```sh
+cmake --build build/release --target RunTests
+```
 
 ## Platforms
 

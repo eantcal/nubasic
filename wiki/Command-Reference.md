@@ -135,6 +135,7 @@ BASIC program.
 | `SetPixel` | `SetPixel x,y,color` | Draw a single pixel |
 | `TextOut` | `TextOut x,y,text$,color` | Draw text at pixel coordinates |
 | `PlotImage` | `PlotImage bitmap$,x,y` | Draw a BMP image |
+| `Screen` | `Screen mode` | Set console/graphics mode (0=text, 1=GDI) |
 | `ScreenLock` | `ScreenLock` | Suspend screen refresh (begin compositing frame) |
 | `ScreenUnlock` | `ScreenUnlock` | Present back buffer to screen (end frame) |
 | `Refresh` | `Refresh` | Force immediate blit (lock state unchanged) |

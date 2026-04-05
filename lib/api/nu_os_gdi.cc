@@ -17,6 +17,7 @@
 
 #include "nu_os_gdi.h"
 #include "nu_exception.h"
+#include "nu_os_console.h"
 #include "nu_os_std.h"
 #include "nu_rt_prog_ctx.h"
 #include "nu_stdtype.h"
@@ -148,6 +149,8 @@ public:
 
 int os_textout_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
 {
+    if (nu::_os_get_screen_mode() == 0)
+        return 0;
     (void)ctx;
 
     enum { X, Y, TEXT, COL, NARGS };
@@ -191,6 +194,8 @@ int os_textout_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
 
 int os_line_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 {
+    if (nu::_os_get_screen_mode() == 0)
+        return 0;
     (void)ctx;
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
@@ -213,6 +218,8 @@ int os_line_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
 int os_set_pixel_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 {
+    if (nu::_os_get_screen_mode() == 0)
+        return 0;
     (void)ctx;
 
     enum { X, Y, COL, NARGS };
@@ -234,6 +241,8 @@ int os_set_pixel_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
 int os_rect_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 {
+    if (nu::_os_get_screen_mode() == 0)
+        return 0;
     (void)ctx;
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
@@ -254,6 +263,8 @@ int os_rect_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
 int os_ellipse_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 {
+    if (nu::_os_get_screen_mode() == 0)
+        return 0;
     (void)ctx;
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
@@ -274,6 +285,8 @@ int os_ellipse_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
 int os_fillrect_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 {
+    if (nu::_os_get_screen_mode() == 0)
+        return 0;
     (void)ctx;
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
@@ -294,6 +307,8 @@ int os_fillrect_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
 int os_fillellipse_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 {
+    if (nu::_os_get_screen_mode() == 0)
+        return 0;
     (void)ctx;
 
     enum { X1, Y1, X2, Y2, COL, NARGS };
@@ -314,6 +329,8 @@ int os_fillellipse_t::operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args)
 
 int os_plotimage_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
 {
+    if (nu::_os_get_screen_mode() == 0)
+        return 0;
     (void)ctx;
 
     enum { FNAME, X, Y, NARGS };
@@ -356,6 +373,8 @@ int os_plotimage_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
 
 int _os_get_screen_width() noexcept
 {
+    if (_os_get_screen_mode() == 0)
+        return 0;
     RECT r = { 0 };
     GetClientRect(gdi_ctx_t::_get_target_hwnd(), &r);
     return r.right - r.left;
@@ -366,6 +385,8 @@ int _os_get_screen_width() noexcept
 
 int _os_get_screen_height() noexcept
 {
+    if (_os_get_screen_mode() == 0)
+        return 0;
     RECT r = { 0 };
     GetClientRect(gdi_ctx_t::_get_target_hwnd(), &r);
     return r.bottom - r.top;

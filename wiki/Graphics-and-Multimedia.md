@@ -93,6 +93,38 @@ TextOut 10, 10, "nuBASIC Graphics Demo", &hFFFFFF
 
 ---
 
+## Screen Mode (SCREEN command)
+
+The `Screen` statement switches the console/graphics mode at runtime,
+similar to GW-BASIC's `SCREEN` command.
+
+| Mode | Instruction | Behaviour |
+|------|-------------|-----------|
+| 0 | `Screen 0` | **Text / hybrid mode** — text I/O via the real Windows console (stdout/stdin); all GDI drawing commands are silent no-ops.  No GDI window is required.  Ideal for scripts, CI pipelines and regression tests. |
+| 1 | `Screen 1` | **GDI console mode** (default) — text I/O and graphics go through the custom GDI window, as in previous nuBASIC versions. |
+
+The CLI flag `-t` / `--text-mode` pre-sets `Screen 0` before the
+interpreter starts, so programs that never call `Screen 1` can run
+fully headless:
+
+```
+nubasic.exe -t -e tests/test_math.bas
+```
+
+Example — switching modes at runtime:
+
+```basic
+Screen 0          ' text mode: Print/Input use the real console
+Print "Hello from text mode"
+Screen 1          ' back to GDI: drawing commands are active again
+Line 0, 0, 200, 200, RGB(255, 0, 0)
+```
+
+> **Tip for test files**: add `Screen 0` as the very first statement so
+> the test runner can capture `Print` output without a GUI window.
+
+---
+
 ## Flicker-free Rendering
 
 ### The Problem

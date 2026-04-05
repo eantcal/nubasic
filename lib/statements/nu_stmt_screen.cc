@@ -41,4 +41,15 @@ void stmt_refresh_t::run(rt_prog_ctx_t& ctx)
 
 /* -------------------------------------------------------------------------- */
 
+void stmt_screen_t::run(rt_prog_ctx_t& ctx)
+{
+    if (!_args.empty()) {
+        int mode = static_cast<int>(_args.front().first->eval(ctx).to_int());
+        _os_set_screen_mode(mode);
+    }
+    ctx.go_to_next();
+}
+
+/* -------------------------------------------------------------------------- */
+
 } // namespace nu

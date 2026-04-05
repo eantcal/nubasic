@@ -335,3 +335,37 @@ if(WIN32 AND MSVC)
 endif()
 
 ENDIF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
+
+# ---------------------------------------------------------------------------
+# RunTests target — runs all tests/test_*.bas through the interpreter in
+# text mode (-t) and prints a pass/fail report to stdout.
+#
+# From Visual Studio: right-click RunTests → Build
+# From command line:  cmake --build <builddir> --target RunTests --config Release
+#
+# The target depends on nuBasicCLI so the interpreter is always up to date
+# before the suite runs.
+# ---------------------------------------------------------------------------
+if(WIN32 AND MSVC)
+  add_custom_target(RunTests
+    COMMAND powershell -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/tests/run_tests.ps1"
+            -Interpreter "$<TARGET_FILE:nuBasicCLI>"
+            -TestDir     "${CMAKE_SOURCE_DIR}/tests"
+    DEPENDS nuBasicCLI
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    COMMENT "Running nuBASIC regression tests..."
+    VERBATIM
+  )
+  set_property(TARGET RunTests PROPERTY FOLDER "Tests")
+elseif(NOT WIN32)
+  add_custom_target(RunTests
+    COMMAND bash "${CMAKE_SOURCE_DIR}/tests/run_tests.sh"
+            --interpreter "$<TARGET_FILE:nubasic>"
+            --testdir     "${CMAKE_SOURCE_DIR}/tests"
+    DEPENDS nubasic
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    COMMENT "Running nuBASIC regression tests..."
+    VERBATIM
+  )
+endif()

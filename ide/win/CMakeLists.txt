@@ -24,7 +24,7 @@ set(IDE_HEADERS
   textinfobox.h
   tab_container.h
   toolbar.h
-  ${CMAKE_SOURCE_DIR}/include/stb_image.h
+  ${CMAKE_SOURCE_DIR}/include/util/stb_image.h
 )
 
 # Resource files
@@ -46,6 +46,13 @@ target_include_directories(nuBasicIDE PRIVATE
   ${SCINTILLA_INCLUDE_DIRS}
   ${LEXILLA_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/include/api
+  ${CMAKE_SOURCE_DIR}/include/ast
+  ${CMAKE_SOURCE_DIR}/include/parser
+  ${CMAKE_SOURCE_DIR}/include/runtime
+  ${CMAKE_SOURCE_DIR}/include/statements
+  ${CMAKE_SOURCE_DIR}/include/types
+  ${CMAKE_SOURCE_DIR}/include/util
   ${CMAKE_SOURCE_DIR}/console/win
 )
 

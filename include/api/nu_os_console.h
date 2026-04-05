@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -38,8 +38,14 @@ void _os_screenlock();
 void _os_screenunlock();
 void _os_refresh();
 
+// Screen mode:
+//   0 = text/hybrid: I/O via real console, GDI ops are no-ops (headless-safe)
+//   1 = GDI console:  I/O and graphics through the custom GDI window (default)
+void _os_set_screen_mode(int mode);
+int _os_get_screen_mode();
+
 /* -------------------------------------------------------------------------- */
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

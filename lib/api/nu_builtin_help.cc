@@ -1102,6 +1102,30 @@ static help_content_t _help_content[] = {
         "coords x,y\n",
         "PlotImage bitmap$, x, y" },
 
+    { lang_item_t::INSTRUCTION, "screen",
+        "Selects the console/graphics mode, like GW-BASIC SCREEN.\n"
+        "\n"
+        "  Screen 0  — Text/hybrid mode.\n"
+        "              All text I/O (Print, Input) goes to the real Windows\n"
+        "              console (stdout/stdin).  GDI drawing commands (Line,\n"
+        "              Rect, TextOut, ...) become silent no-ops.  This mode\n"
+        "              is headless-safe: no GDI window is required and the\n"
+        "              output can be captured by scripts or CI pipelines.\n"
+        "              Also activated via the CLI flag  -t / --text-mode.\n"
+        "\n"
+        "  Screen 1  — GDI console mode (default).\n"
+        "              All text I/O and graphics go through the custom GDI\n"
+        "              window.  This is the normal interactive mode.\n"
+        "\n"
+        "Example:\n"
+        "  Screen 0          ' switch to text mode\n"
+        "  Print \"Hello\"     ' written to real console\n"
+        "  Line 0,0,100,100,RGB(255,0,0)  ' silently ignored\n"
+        "  Screen 1          ' back to GDI mode\n"
+        "\n"
+        "See also ScreenLock, ScreenUnlock, Refresh",
+        "Screen mode" },
+
     { lang_item_t::INSTRUCTION, "screenlock",
         "Suspends automatic screen refresh after each graphics primitive.\n"
         "All subsequent drawing commands (Line, Rect, FillRect, Ellipse,\n"
