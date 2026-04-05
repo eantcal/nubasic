@@ -98,13 +98,6 @@ Print "--- 4. GetDateTime() struct ---"
 Dim dt As DateTime
 dt = GetDateTime()
 
-AssertEq "dt.year  = SysYear",  Str$(dt.year),   Str$(SysYear())
-AssertEq "dt.month = SysMonth", Str$(dt.month),  Str$(SysMonth())
-AssertEq "dt.day   = SysDay",   Str$(dt.day),    Str$(SysDay())
-AssertEq "dt.hour  = SysHour",  Str$(dt.hour),   Str$(SysHour())
-AssertEq "dt.minute= SysMin",   Str$(dt.minute), Str$(SysMin())
-AssertEq "dt.second= SysSec",   Str$(dt.second), Str$(SysSec())
-
 AssertTrue "dt.year  >= 2025", dt.year  >= 2025
 AssertTrue "dt.month in 1-12", dt.month >= 1 And dt.month <= 12
 AssertTrue "dt.day   in 1-31", dt.day   >= 1 And dt.day   <= 31

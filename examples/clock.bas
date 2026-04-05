@@ -48,9 +48,11 @@ End
 ' -----------------------------------------------------------------------------
 
 Function getTime() as time_hhmmss
-  getTime.hh = SysHour()
-  getTime.mm = SysMin()
-  getTime.ss = SysSec()
+  Dim _dt As DateTime
+  _dt = GetDateTime()
+  getTime.hh = _dt.hour
+  getTime.mm = _dt.minute
+  getTime.ss = _dt.second
 end Function
 
 

@@ -1,6 +1,6 @@
 # nuBASIC — User Guide
 
-> Version 1.61 · http://www.nubasic.eu/
+> Version 1.62 · http://www.nubasic.eu/
 > Author: Antonino Calderone — antonino.calderone@gmail.com
 
 ---
@@ -923,6 +923,32 @@ enemies(0).name$ = "Goblin"
 enemies(0).pos.x = 50
 ```
 
+#### Built-in struct types
+
+The interpreter pre-registers two struct types that are available in every program without
+any `Struct` definition:
+
+**`DateTime`** — returned by `GetDateTime()`:
+
+```basic
+Dim dt As DateTime
+dt = GetDateTime()
+Print dt.year; "/"; dt.month; "/"; dt.day; "  "; dt.hour; ":"; dt.minute; ":"; dt.second
+```
+
+Fields: `year`, `month` (1–12), `day` (1–31), `hour` (0–23), `minute` (0–59),
+`second` (0–59), `wday` (0=Sunday), `yday` (0–365).
+
+**`Mouse`** — returned by `GetMouse()` (full build only):
+
+```basic
+Dim m As Mouse
+m = GetMouse()
+If m.btn = 1 Then Print "Left click at "; m.x; ", "; m.y
+```
+
+Fields: `x`, `y` (pixels), `btn` (0=none, 1=left, 2=middle, 4=right).
+
 ### 4.6 Arrays
 
 Arrays store multiple values of the same type under a single name, accessed by a numeric
@@ -1432,17 +1458,28 @@ key$ = Input$(1)
 ### 5.3 Mouse Input
 
 nuBASIC programs can read the mouse position and button state at any point. Mouse input is
-polled — there is no event queue — so typical usage is to call the mouse functions once per
-frame inside the main loop and act on the values returned.
+polled — there is no event queue — so typical usage is to call `GetMouse()` once per frame
+inside the main loop and act on the struct fields returned.
 
-`GetMouseBtn()` returns a bitmask: bit 0 set (value 1) for the left button, bit 1 (value 2)
-for the middle button, bit 2 (value 4) for the right button. A value of 0 means no button
-is pressed.
+#### GetMouse() — preferred
+
+`GetMouse()` captures position and button state in a single call and returns a `Mouse` struct.
+The `Mouse` type is pre-registered by the interpreter, so no `Struct` definition is needed:
 
 ```basic
-btn% = GetMouseBtn()   ' 0=none, 1=left, 2=middle, 4=right
-x%   = GetMouseX()     ' cursor X in pixels from left edge of window
-y%   = GetMouseY()     ' cursor Y in pixels from top edge of window
+Dim m As Mouse
+m = GetMouse()
+' m.x   — cursor X in pixels from left edge of window
+' m.y   — cursor Y in pixels from top edge of window
+' m.btn — 0=none, 1=left, 2=middle, 4=right
+```
+
+#### Legacy scalar functions *(deprecated — removed in v2.0)*
+
+```basic
+btn% = GetMouseBtn()   ' use GetMouse().btn instead
+x%   = GetMouseX()     ' use GetMouse().x   instead
+y%   = GetMouseY()     ' use GetMouse().y   instead
 ```
 
 #### Hit-testing a button region
@@ -1460,12 +1497,11 @@ FillRect bx1%, by1%, bx2%, by2%, &hffff00
 TextOut bx1%+20, by1%+15, "Click me", &h000000
 
 ' Main interaction loop
+Dim m As Mouse
 While 1
-   btn% = GetMouseBtn()
-   mx%  = GetMouseX()
-   my%  = GetMouseY()
+   m = GetMouse()
 
-   If btn% = 1 And mx% >= bx1% And mx% <= bx2% And my% >= by1% And my% <= by2% Then
+   If m.btn = 1 And m.x >= bx1% And m.x <= bx2% And m.y >= by1% And m.y <= by2% Then
       Print "Button clicked!"
       MDelay 200    ' debounce — wait for release
    End If
@@ -1481,12 +1517,14 @@ Cls
 FillRect 0, 0, 640, 480, &h000000
 TextOut 10, 10, "Hold left button and draw. Press Q to quit.", &hffffff
 
+Dim m As Mouse
 While 1
    key$ = InKey$()
    If key$ = "q" Or key$ = "Q" Then Exit While
 
-   If GetMouseBtn() = 1 Then
-      SetPixel GetMouseX(), GetMouseY(), &hffffff
+   m = GetMouse()
+   If m.btn = 1 Then
+      SetPixel m.x, m.y, &hffffff
    End If
 
    MDelay 5
@@ -1771,16 +1809,17 @@ BASIC program.
 
 | Function | Returns | Description |
 |----------|---------|-------------|
+| `GetDateTime()` | DateTime struct | All date/time fields: `year`, `month`, `day`, `hour`, `minute`, `second`, `wday`, `yday` |
 | `SysTime$()` | String | Current local time and date as a string |
 | `Time()` | Integer | Seconds elapsed since the Unix Epoch |
-| `SysHour()` | Integer | Current hour (0–23) |
-| `SysMin()` | Integer | Current minute (0–59) |
-| `SysSec()` | Integer | Current second (0–59) |
-| `SysDay()` | Integer | Day of the month (1–31) |
-| `SysMonth()` | Integer | Month (0–11; January = 0) |
-| `SysYear()` | Integer | Full year (e.g. 2026) |
-| `SysWDay()` | Integer | Day of week (0=Sunday … 6=Saturday) |
-| `SysYDay()` | Integer | Day of year (1–365) |
+| `SysHour()` | Integer | Current hour (0–23) *(deprecated v2.0 — use `GetDateTime().hour`)* |
+| `SysMin()` | Integer | Current minute (0–59) *(deprecated v2.0 — use `GetDateTime().minute`)* |
+| `SysSec()` | Integer | Current second (0–59) *(deprecated v2.0 — use `GetDateTime().second`)* |
+| `SysDay()` | Integer | Day of the month (1–31) *(deprecated v2.0 — use `GetDateTime().day`)* |
+| `SysMonth()` | Integer | Month (1–12) *(deprecated v2.0 — use `GetDateTime().month`)* |
+| `SysYear()` | Integer | Full year (e.g. 2026) *(deprecated v2.0 — use `GetDateTime().year`)* |
+| `SysWDay()` | Integer | Day of week (0=Sunday … 6=Saturday) *(deprecated v2.0 — use `GetDateTime().wday`)* |
+| `SysYDay()` | Integer | Day of year (0–365) *(deprecated v2.0 — use `GetDateTime().yday`)* |
 | `GetPlatId()` | Integer | 1 = Windows, 2 = Linux/other |
 | `GetAppPath$()` | String | Full path of the nuBASIC executable |
 | `Ver$()` | String | nuBASIC version string |
@@ -1791,9 +1830,10 @@ BASIC program.
 |----------|---------|-------------|
 | `Rgb(r,g,b)` | Integer | Compose an RGB color from 0–255 components |
 | `GetPixel(x,y)` | Integer | Read the color of a pixel |
-| `GetMouseX()` | Integer | Mouse cursor X in pixels |
-| `GetMouseY()` | Integer | Mouse cursor Y in pixels |
-| `GetMouseBtn()` | Integer | Mouse button bitmask (1=left, 2=middle, 4=right) |
+| `GetMouse()` | Mouse struct | All pointer state: `x`, `y`, `btn` |
+| `GetMouseX()` | Integer | Mouse cursor X in pixels *(deprecated v2.0 — use `GetMouse().x`)* |
+| `GetMouseY()` | Integer | Mouse cursor Y in pixels *(deprecated v2.0 — use `GetMouse().y`)* |
+| `GetMouseBtn()` | Integer | Mouse button bitmask (1=left, 2=middle, 4=right) *(deprecated v2.0 — use `GetMouse().btn`)* |
 | `GetSWidth()` | Integer | Width of the drawable client area in pixels |
 | `GetSHeight()` | Integer | Height of the drawable client area in pixels |
 | `GetWindowX()` | Integer | Window left edge position on screen |
@@ -2202,6 +2242,35 @@ Version 1.60 was the largest infrastructure release since the original:
 - An **MSI installer** was introduced, enabling proper Windows Add/Remove Programs
   integration, desktop shortcuts, and clean uninstallation.
 - Scintilla was updated to its latest version.
+
+### Struct-returning functions, Screen mode, regression tests (April 2026, v1.62)
+
+Version 1.62 introduced new built-in functions that return all their values in a single struct,
+a headless text mode for scripting and CI pipelines, and the first automated regression test suite.
+
+**`GetDateTime()`** replaces the individual scalar date/time accessors with a struct-typed return
+value. It returns a `DateTime` struct with fields `year`, `month`, `day`, `hour`, `minute`,
+`second`, `wday`, and `yday`. The `DateTime` type is pre-registered at interpreter startup —
+`Dim dt As DateTime` works without a user-written `Struct` block. The individual functions
+`SysYear`, `SysMonth`, `SysDay`, `SysHour`, `SysMin`, `SysSec`, `SysWDay`, and `SysYDay` are
+deprecated and will be removed in nuBASIC v2.0.
+
+**`GetMouse()`** replaces `GetMouseX`, `GetMouseY`, and `GetMouseBtn` with a `Mouse` struct
+(`x`, `y`, `btn`). The `Mouse` type is also pre-registered. The individual functions are
+deprecated and will be removed in nuBASIC v2.0.
+
+**`SCREEN` statement** — `Screen 0` switches to text/headless mode: I/O goes through the real
+console (stdout/stdin) and all GDI drawing calls are silent no-ops. `Screen 1` restores full
+GDI console mode. Mirrors the GW-BASIC `SCREEN` command.
+
+**`-t` / `--text-mode` CLI flag** activates `Screen 0` before the interpreter starts and
+reconnects the CRT stdio streams to the caller's inherited Win32 handles (pipe, redirect,
+terminal), allowing test runners and CI pipelines to capture output without a GUI window. The
+interpreter exits after executing a batch command instead of blocking on stdin.
+
+**Regression test suite** — `tests/run_tests.ps1` (PowerShell) and `tests/run_tests.sh` (Bash)
+run every `test_*.bas` with `-t -e` and report per-suite and overall pass/fail counts. A
+`RunTests` CMake/VS target invokes the appropriate script. Ten test suites are included.
 
 ### Flicker-free graphics rendering (April 2026, v1.61)
 

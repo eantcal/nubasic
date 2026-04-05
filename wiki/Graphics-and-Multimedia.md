@@ -199,10 +199,24 @@ key$ = Input$(1)
 
 Mouse input is polled — there is no event queue.
 
+### GetMouse() — preferred
+
+`GetMouse()` captures the full pointer state in a single call and returns a `Mouse` struct:
+
 ```basic
-btn% = GetMouseBtn()   ' 0=none, 1=left, 2=middle, 4=right
-x%   = GetMouseX()     ' cursor X in pixels from left edge
-y%   = GetMouseY()     ' cursor Y in pixels from top edge
+Dim m As Mouse
+m = GetMouse()
+' m.x   — cursor X in pixels from left edge
+' m.y   — cursor Y in pixels from top edge
+' m.btn — 0=none, 1=left, 2=middle, 4=right
+```
+
+### Legacy scalar functions *(deprecated, removed in v2.0)*
+
+```basic
+btn% = GetMouseBtn()   ' use GetMouse().btn instead
+x%   = GetMouseX()     ' use GetMouse().x   instead
+y%   = GetMouseY()     ' use GetMouse().y   instead
 ```
 
 ### Hit-testing a Button Region
@@ -214,12 +228,10 @@ bx2% = 200 :  by2% = 100
 FillRect bx1%, by1%, bx2%, by2%, &hffff00
 TextOut bx1%+20, by1%+15, "Click me", &h000000
 
+Dim m As Mouse
 While 1
-   btn% = GetMouseBtn()
-   mx%  = GetMouseX()
-   my%  = GetMouseY()
-
-   If btn% = 1 And mx% >= bx1% And mx% <= bx2% And my% >= by1% And my% <= by2% Then
+   m = GetMouse()
+   If m.btn = 1 And m.x >= bx1% And m.x <= bx2% And m.y >= by1% And m.y <= by2% Then
       Print "Button clicked!"
       MDelay 200
    End If
@@ -233,11 +245,13 @@ Wend
 Cls
 FillRect 0, 0, 640, 480, &h000000
 
+Dim m As Mouse
 While 1
    key$ = InKey$()
    If key$ = "q" Or key$ = "Q" Then Exit While
-   If GetMouseBtn() = 1 Then
-      SetPixel GetMouseX(), GetMouseY(), &hffffff
+   m = GetMouse()
+   If m.btn = 1 Then
+      SetPixel m.x, m.y, &hffffff
    End If
    MDelay 5
 Wend

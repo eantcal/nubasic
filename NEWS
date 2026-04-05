@@ -11,6 +11,40 @@ The Win32/64 build created with Visual Studio 2022 requires the
 "Visual C++ Redistributable Packages for Visual Studio 2022".
 
 April 2026
+* Released nuBASIC 1.62
+- Added GetDateTime() built-in function returning a DateTime struct with all
+  date/time fields in a single call (year, month, day, hour, minute, second,
+  wday, yday). Preferred over the individual SysYear/SysMonth/SysDay/SysHour/
+  SysMin/SysSec/SysWDay/SysYDay functions, which are now deprecated and will
+  be removed in nuBASIC v2.0.
+- Added GetMouse() built-in function returning a Mouse struct with all pointer
+  state in a single call (x, y, btn). Preferred over the individual
+  GetMouseX/GetMouseY/GetMouseBtn functions, which are now deprecated and will
+  be removed in nuBASIC v2.0.
+- The DateTime and Mouse struct types are pre-registered by the interpreter at
+  startup, so "Dim dt As DateTime" and "Dim m As Mouse" work without a
+  user-written Struct block.
+- Added SCREEN statement: SCREEN 0 switches to text/headless mode (I/O via
+  the real console, all GDI drawing commands are silent no-ops — ideal for
+  scripts, CI pipelines, and regression tests); SCREEN 1 restores full GDI
+  console mode. Mirrors the GW-BASIC SCREEN command.
+- Added -t / --text-mode CLI flag: activates SCREEN 0 before the interpreter
+  starts. stdout/stderr are routed to the caller's inherited handles (pipe,
+  redirect, terminal) so test runners and CI pipelines can capture output
+  without a GUI window. The interpreter exits cleanly after a batch command
+  instead of blocking on stdin.
+- Added PowerShell (tests/run_tests.ps1) and Bash (tests/run_tests.sh)
+  regression test runners. Each runner executes every test_*.bas file with
+  -t -e, parses PASS/FAIL lines and the summary line, and reports per-suite
+  and total results to stdout. A RunTests CMake/VS target invokes the
+  appropriate script from Visual Studio or cmake --build.
+- Added regression tests: test_math, test_strings, test_arrays,
+  test_control_flow, test_procedures, test_types, test_struct,
+  test_struct_byref_file, test_struct_array, test_file_io.
+- Deprecated built-in help entries now carry a "DEPRECATED (v2.0)" note
+  pointing to the replacement function.
+
+April 2026
 * Released nuBASIC 1.61
 - Added ByRef / ByVal parameter qualifiers for Sub and Function definitions.
   ByRef passes the caller's variable by reference so mutations inside the

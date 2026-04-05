@@ -104,6 +104,40 @@ Version 1.60 was the largest infrastructure release since the original:
   shortcuts, and clean uninstallation.
 - Scintilla updated to its latest version.
 
+## Struct-returning Functions, Screen Mode, Regression Tests (April 2026, v1.62)
+
+Version 1.62 introduced new built-in functions that return all their values in a single struct
+rather than requiring multiple calls, a headless text mode for scripting and CI, and the first
+automated regression test suite.
+
+**`GetDateTime()` and `GetMouse()`** replace the individual scalar accessors with struct-typed
+return values. `GetDateTime()` returns a `DateTime` struct with fields `year`, `month`, `day`,
+`hour`, `minute`, `second`, `wday`, and `yday`. `GetMouse()` returns a `Mouse` struct with fields
+`x`, `y`, and `btn`. Both struct types are pre-registered at interpreter startup so that
+`Dim dt As DateTime` and `Dim m As Mouse` work without a user-written `Struct` block. The
+previous individual functions (`SysYear`, `SysMonth`, `SysDay`, `SysHour`, `SysMin`, `SysSec`,
+`SysWDay`, `SysYDay`, `GetMouseX`, `GetMouseY`, `GetMouseBtn`) are deprecated and will be
+removed in nuBASIC v2.0.
+
+**`SCREEN` statement** — `Screen 0` switches to text/headless mode: all I/O goes through the
+real Windows console (stdout/stdin) and every GDI drawing call is a silent no-op. `Screen 1`
+restores full GDI console mode. Mirrors the GW-BASIC `SCREEN` command.
+
+**`-t` / `--text-mode` CLI flag** activates `Screen 0` before the interpreter starts and
+reconnects the CRT stdio streams to the caller's inherited Win32 handles (pipe, redirect,
+terminal), allowing test runners and CI pipelines to capture `Print` output without opening a
+GUI window. The interpreter exits cleanly after executing a batch command instead of blocking
+on stdin.
+
+**Regression test suite** — `tests/run_tests.ps1` (PowerShell) and `tests/run_tests.sh` (Bash)
+execute every `test_*.bas` file in the `tests/` directory with `-t -e`, parse `PASS`/`FAIL`
+lines and the summary printed by each test, and report per-suite and overall totals. A
+`RunTests` CMake/Visual Studio target invokes the appropriate script from the IDE or from
+`cmake --build`. Ten test suites are included: math, strings, arrays, control flow, procedures,
+types, struct (ByRef), struct (file), struct arrays, and file I/O.
+
+---
+
 ## Flicker-free Graphics Rendering (April 2026, v1.61)
 
 Version 1.61 addressed per-primitive screen flicker in animated programs. Before this release,

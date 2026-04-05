@@ -4,9 +4,11 @@
 Cls
 
 Print "Started  at  "; SysTime$()
-h% = SysHour()
-m% = SysMin()
-s% = SysSec()
+Dim _t0 As DateTime
+_t0 = GetDateTime()
+h% = _t0.hour
+m% = _t0.minute
+s% = _t0.second
 
 For x0 = -2 TO 2 Step 0.013
    For y0 = -1.5 TO 1.5 Step 0.013
@@ -35,8 +37,10 @@ Next x0
 
 Print "Completed at "; SysTime$()
 
-s% = SysSec()-s%
-m% = SysMin()-m%
-h% = SysHour()-h%
+Dim _t1 As DateTime
+_t1 = GetDateTime()
+s% = _t1.second - s%
+m% = _t1.minute - m%
+h% = _t1.hour - h%
 
 Print "Elapsed seconds "; s%+m%*60+h%*3600

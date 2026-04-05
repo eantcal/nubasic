@@ -1,6 +1,6 @@
 # nuBASIC Wiki
 
-> Version 1.61 · https://github.com/eantcal/nubasic
+> Version 1.62 · https://github.com/eantcal/nubasic
 > Author: Antonino Calderone — antonino.calderone@gmail.com
 
 nuBASIC is a modern, open-source BASIC interpreter written in C++17, available for Windows, Linux, and macOS.
@@ -18,7 +18,7 @@ nuBASIC is a modern, open-source BASIC interpreter written in C++17, available f
 | [Graphics and Multimedia](Graphics-and-Multimedia) | Drawing primitives, flicker-free rendering, mouse input, sound, window management |
 | [Command Reference](Command-Reference) | Console commands, instructions, built-in functions, operator table |
 | [IDE](IDE) | Syntax highlighting editor, keyboard commands, debugger, bookmarks, auto-completion |
-| [History and Evolution](History-and-Evolution) | Release history from v0.1 (2014) to v1.61 (2026) |
+| [History and Evolution](History-and-Evolution) | Release history from v0.1 (2014) to v1.62 (2026) |
 | [Interpreter Internals](Interpreter-Internals) | Architecture, tokenizer, parser, expression evaluator, variant type, extending built-ins |
 | [Building from Source](Building-from-Source) | CMake build on Windows, Linux, macOS, iOS; installer creation |
 

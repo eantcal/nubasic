@@ -384,6 +384,44 @@ enemies(0).name$ = "Goblin"
 enemies(0).pos.x = 50
 ```
 
+### Built-in Struct Types
+
+The interpreter pre-registers two struct types that are available without any `Struct`
+definition in your program:
+
+**`DateTime`** — returned by `GetDateTime()`, holds all date/time fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `year` | Integer | Full year (e.g. 2026) |
+| `month` | Integer | Month 1–12 |
+| `day` | Integer | Day of month 1–31 |
+| `hour` | Integer | Hour 0–23 |
+| `minute` | Integer | Minute 0–59 |
+| `second` | Integer | Second 0–59 |
+| `wday` | Integer | Day of week: 0=Sunday … 6=Saturday |
+| `yday` | Integer | Day of year 0–365 |
+
+```basic
+Dim dt As DateTime
+dt = GetDateTime()
+Print dt.year; "/"; dt.month; "/"; dt.day; "  "; dt.hour; ":"; dt.minute
+```
+
+**`Mouse`** — returned by `GetMouse()`, holds all pointer state (full build only):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `x` | Integer | Cursor X in pixels from left edge |
+| `y` | Integer | Cursor Y in pixels from top edge |
+| `btn` | Integer | Button mask: 0=none, 1=left, 2=middle, 4=right |
+
+```basic
+Dim m As Mouse
+m = GetMouse()
+If m.btn = 1 Then Print "Left click at "; m.x; ", "; m.y
+```
+
 ---
 
 ## Arrays

@@ -4,7 +4,7 @@
 
 ---
 
-nuBASIC is a modern, open-source BASIC interpreter written in C++11, created by Antonino
+nuBASIC is a modern, open-source BASIC interpreter written in C++20, created by Antonino
 Calderone and first released in 2014. It is firmly rooted in the BASIC tradition — interactive,
 welcoming, and immediately productive — while adding the structured programming features and
 graphical capabilities that contemporary programs require.
@@ -28,7 +28,9 @@ What nuBASIC adds on top of the classic BASIC foundation:
 - **Full file I/O** — sequential, binary, and random-access
 - **Graphics** — lines, rectangles, ellipses, filled shapes, pixel access, bitmaps, text
 - **Double-buffered rendering** — `ScreenLock`/`ScreenUnlock`/`Refresh` for flicker-free animation
-- **Mouse input** — position and button state readable from BASIC code
+- **Screen mode switching** — `Screen 0` (text/headless, stdout/stdin) / `Screen 1` (GDI); `-t` flag for CI pipelines
+- **Mouse input** — `GetMouse()` returns a `Mouse` struct with `x`, `y`, `btn` in one call
+- **Date/time** — `GetDateTime()` returns a `DateTime` struct with all fields in one call
 - **UTF-8** string literals and console output, including escape sequences for Unicode characters
 - **Built-in interactive help** — `Help keyword` and `Apropos topic` from the REPL
 
@@ -160,10 +162,13 @@ Next x0
 - Arrays and hash tables
 - Full file I/O (sequential, binary, and random access)
 - Graphics: lines, rectangles, ellipses, text, bitmaps, pixel access
-- Flicker-free double-buffered rendering (`ScreenLock` / `ScreenUnlock`)
-- Mouse and keyboard input
+- Flicker-free double-buffered rendering (`ScreenLock` / `ScreenUnlock` / `Refresh`)
+- Screen mode switching: `Screen 0` (headless/text) / `Screen 1` (GDI); `-t` CLI flag for CI
+- Mouse and keyboard input via `GetMouse()` struct function
+- Date/time via `GetDateTime()` struct function
 - UTF-8 string literals and console output
 - Built-in help (`Help`, `Apropos`) accessible directly from the REPL
+- Automated regression test suite (`tests/run_tests.ps1` / `run_tests.sh`)
 
 ---
 

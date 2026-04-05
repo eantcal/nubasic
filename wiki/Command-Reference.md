@@ -234,16 +234,17 @@ BASIC program.
 
 | Function | Returns | Description |
 |----------|---------|-------------|
+| `GetDateTime()` | DateTime struct | All date/time fields in one call: `year`, `month`, `day`, `hour`, `minute`, `second`, `wday`, `yday` |
 | `SysTime$()` | String | Current local time and date as a string |
 | `Time()` | Integer | Seconds elapsed since the Unix Epoch |
-| `SysHour()` | Integer | Current hour (0–23) |
-| `SysMin()` | Integer | Current minute (0–59) |
-| `SysSec()` | Integer | Current second (0–59) |
-| `SysDay()` | Integer | Day of the month (1–31) |
-| `SysMonth()` | Integer | Month (0–11; January = 0) |
-| `SysYear()` | Integer | Full year (e.g. 2026) |
-| `SysWDay()` | Integer | Day of week (0=Sunday … 6=Saturday) |
-| `SysYDay()` | Integer | Day of year (1–365) |
+| `SysHour()` | Integer | Current hour (0–23) *(deprecated v2.0 — use `GetDateTime().hour`)* |
+| `SysMin()` | Integer | Current minute (0–59) *(deprecated v2.0 — use `GetDateTime().minute`)* |
+| `SysSec()` | Integer | Current second (0–59) *(deprecated v2.0 — use `GetDateTime().second`)* |
+| `SysDay()` | Integer | Day of the month (1–31) *(deprecated v2.0 — use `GetDateTime().day`)* |
+| `SysMonth()` | Integer | Month (1–12) *(deprecated v2.0 — use `GetDateTime().month`)* |
+| `SysYear()` | Integer | Full year (e.g. 2026) *(deprecated v2.0 — use `GetDateTime().year`)* |
+| `SysWDay()` | Integer | Day of week (0=Sunday … 6=Saturday) *(deprecated v2.0 — use `GetDateTime().wday`)* |
+| `SysYDay()` | Integer | Day of year (0–365) *(deprecated v2.0 — use `GetDateTime().yday`)* |
 | `GetPlatId()` | Integer | 1 = Windows, 2 = Linux/other |
 | `GetAppPath$()` | String | Full path of the nuBASIC executable |
 | `Ver$()` | String | nuBASIC version string |
@@ -254,9 +255,10 @@ BASIC program.
 |----------|---------|-------------|
 | `Rgb(r,g,b)` | Integer | Compose an RGB color from 0–255 components |
 | `GetPixel(x,y)` | Integer | Read the color of a pixel |
-| `GetMouseX()` | Integer | Mouse cursor X in pixels |
-| `GetMouseY()` | Integer | Mouse cursor Y in pixels |
-| `GetMouseBtn()` | Integer | Mouse button bitmask (1=left, 2=middle, 4=right) |
+| `GetMouse()` | Mouse struct | All pointer state in one call: `x`, `y`, `btn` |
+| `GetMouseX()` | Integer | Mouse cursor X in pixels *(deprecated v2.0 — use `GetMouse().x`)* |
+| `GetMouseY()` | Integer | Mouse cursor Y in pixels *(deprecated v2.0 — use `GetMouse().y`)* |
+| `GetMouseBtn()` | Integer | Mouse button bitmask (1=left, 2=middle, 4=right) *(deprecated v2.0 — use `GetMouse().btn`)* |
 | `GetSWidth()` | Integer | Width of the drawable client area in pixels |
 | `GetSHeight()` | Integer | Height of the drawable client area in pixels |
 | `GetWindowX()` | Integer | Window left edge position on screen |

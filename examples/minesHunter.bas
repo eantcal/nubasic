@@ -54,9 +54,11 @@ MainLoop
 ' -----------------------------------------------------------------------------
 Sub PlayTheGame()
 ' -----------------------------------------------------------------------------
-   btn% = GetMouseBtn()
-   xm% = GetMouseX()
-   ym% = GetMouseY()
+   Dim _m As Mouse
+   _m = GetMouse()
+   btn% = _m.btn
+   xm% = _m.x
+   ym% = _m.y
    x% = xm% div cell_size%
    y% = ym% div cell_size%
 
@@ -148,7 +150,9 @@ Sub SetupGame()
    MoveWindow GetWindowX(),GetWindowY(),500,600
    FillRect 0,0,600,800,black%
    
-   btn% = GetMouseBtn()
+   Dim _ms As Mouse
+   _ms = GetMouse()
+   btn% = _ms.btn
    game_mode% = 2
 
    While game_mode% > 1
@@ -162,9 +166,10 @@ Sub SetupGame()
       TextOut 50, 130, "Expert", red%
       ScreenUnlock
 
-      btn% = GetMouseBtn()
-      x% = GetMouseX()
-      y% = GetMouseY()
+      _ms = GetMouse()
+      btn% = _ms.btn
+      x% = _ms.x
+      y% = _ms.y
 
       If btn%>0 and x%>=40 And x%<=200 And y%>=60 And y%<=100 Then
          game_mode% = 0  

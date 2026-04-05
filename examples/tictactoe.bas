@@ -623,16 +623,19 @@ Sub GetDifficultSettings()
    FillRect 140, 220, 300, 260, Rgb(255,255,0)
    TextOut 150, 230, "Expert", Rgb(255,0,0)
    
-   btn% = GetMouseBtn()
+   Dim _m As Mouse
+   _m = GetMouse()
+   btn% = _m.btn
    expertMode% = 2
 
    While expertMode% > 1
       btn% = 0
 
-      While btn% = 0 
-         btn% = GetMouseBtn()
-         x% = GetMouseX()
-         y% = GetMouseY()
+      While btn% = 0
+         _m = GetMouse()
+         btn% = _m.btn
+         x% = _m.x
+         y% = _m.y
       Wend
 
       If x%>=140 And x%<=300 And y%>=160 And y%<=200 Then
@@ -654,6 +657,7 @@ Sub MainLoop()
     ' -----------------------------------------------------------------------------
     ' Main Loop
     ' -----------------------------------------------------------------------------
+    Dim _m As Mouse
 
     FillRect 0, 0, 600, 480, 0
 
@@ -675,9 +679,10 @@ Sub MainLoop()
 
         While 1
 
-            btn% = GetMouseBtn()
-            xm% = GetMouseX()
-            ym% = GetMouseY()
+            _m = GetMouse()
+            btn% = _m.btn
+            xm% = _m.x
+            ym% = _m.y
 
             If btn% Then
 
@@ -725,7 +730,9 @@ Sub MainLoop()
             End If
       Wend
 
-      While GetMouseBtn() = 0 
+      _m = GetMouse()
+      While _m.btn = 0
+         _m = GetMouse()
       Wend
 
       Delay 1

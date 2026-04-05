@@ -11,9 +11,10 @@ nuBASIC is a modern, open-source BASIC interpreter written in C++17, available f
 - **Arrays and hash tables** built into the language
 - **Full file I/O** — sequential, binary, and random access
 - **Graphics** — lines, rectangles, ellipses, filled shapes, text, bitmaps, pixel access (Windows GDI / Linux X11)
-- **Screen mode switching** — `Screen 0` (text/headless) / `Screen 1` (GDI graphics), like GW-BASIC `SCREEN`
+- **Screen mode switching** — `Screen 0` (text/headless) / `Screen 1` (GDI graphics), like GW-BASIC `SCREEN`; `-t` CLI flag for CI/scripting
 - **Flicker-free rendering** — `ScreenLock` / `ScreenUnlock` / `Refresh` for double-buffered animation
-- **Mouse and keyboard input**
+- **Mouse and keyboard input** — `GetMouse()` returns a `Mouse` struct (`x`, `y`, `btn`) in one call
+- **Date/time** — `GetDateTime()` returns a `DateTime` struct with all fields in one call
 - **UTF-8** string literals and console output
 - **Built-in help** — `Help <keyword>` and `Apropos <topic>` accessible from the REPL
 - **IDE** for Windows and Linux (GTK+2) with syntax highlighting, auto-completion, and integrated debugger
@@ -42,7 +43,7 @@ Print "Hello, world!"
 
 ## Building from Source
 
-nuBASIC builds with CMake 3.14+ and a C++17 compiler.
+nuBASIC builds with CMake 3.14+ and a C++20 compiler.
 
 **Windows (Visual Studio 2022):**
 

@@ -169,9 +169,11 @@ Function MouseToFn(x as Integer, y as Integer) as Integer
    Dim lx as Integer, ly as Integer  
    Dim r as Integer, c as Integer  
 
-   mx = GetMouseX()
-   my = GetMouseY()
-   btn = GetMouseBtn()
+   Dim _m As Mouse
+   _m = GetMouse()
+   mx = _m.x
+   my = _m.y
+   btn = _m.btn
    MouseToFn = -1
 
    For r = 0 to 5

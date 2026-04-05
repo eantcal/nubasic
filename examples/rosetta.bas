@@ -6,9 +6,11 @@ MoveWindow GetWindowX(), GetWindowY(), 800, 600
 FillRect 0,0,800,600,0
 
 TextOut 4, 4, "Started at " + SysTime$(), Rgb(255,255,0)
-h% = SysHour()
-m% = SysMin()
-s% = SysSec()
+Dim _t0 As DateTime
+_t0 = GetDateTime()
+h% = _t0.hour
+m% = _t0.minute
+s% = _t0.second
 
 For x0 = -2 TO 2 Step .013
    ScreenLock
@@ -32,9 +34,11 @@ For x0 = -2 TO 2 Step .013
    ScreenUnlock
 Next x0
 
-s% = SysSec()-s%
-m% = SysMin()-m%
-h% = SysHour()-h%
+Dim _t1 As DateTime
+_t1 = GetDateTime()
+s% = _t1.second - s%
+m% = _t1.minute - m%
+h% = _t1.hour - h%
 
 TextOut 4, 22, "Completed at " + SysTime$(), Rgb(255,255,0)
 TextOut 4, 40, "Elapsed sec: " + Str$(s%+m%*60+h%*3600), Rgb(255,255,0)
