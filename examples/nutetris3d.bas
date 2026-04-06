@@ -76,6 +76,7 @@ Sub MainLoop()
 
       While Not(game_over%) 
          MovePieces
+         MDelay 50
       Wend
 
       ScreenLock
@@ -125,9 +126,9 @@ Sub SetupGame()
    
    TextOut 30, 70, "    To play press: ", &hffffff
    
-   TextOut 30, 100, " 4        - Move left", &hffffff
-   TextOut 30, 120, " 6        - Move right", &hffffff
-   TextOut 30, 140, " 8 / 5    - Rotate", &hffffff
+   TextOut 30, 100, " Left     - Move left", &hffffff
+   TextOut 30, 120, " Right    - Move right", &hffffff
+   TextOut 30, 140, " Up       - Rotate", &hffffff
    TextOut 30, 160, " SPACEBAR - Drop ", &hffffff
     
    TextOut 30, 190, " (CTRL+C break the game)", &hffffff
@@ -169,9 +170,24 @@ Sub MovePieces()
    For y% = 0 to 19
    
       For t% = 0 to 3
-         k$ = InKey$()
-         
-         If k$="8" Then 
+         key% = 0
+         k$ = ""
+         do
+            tempk% = GetVKey()
+            if tempk%>0 then key%=tempk%
+         loop while tempk%>0
+
+         if key%<30 then
+            if key%=10 then k$="4"
+            if key%=11 then k$="8"
+            if key%=12 then k$="6"
+            if key%=13 then k$="2"
+            if key%<=0 then k$=""
+         else
+            k$ = chr(key%)
+         end if
+
+         If k$="8" Then
             rr% = r% + 1
             If rr% > 3 Then rr% = 0
             If Not(isPieceColliding%(x%,y%+4,p%, rr%)) Then 
