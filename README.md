@@ -1,8 +1,6 @@
 # nuBASIC
 
-nuBASIC is a modern, open-source BASIC interpreter written in C++17, available for Windows, Linux, and macOS. It is designed to be both approachable for beginners and capable enough for real programs.
-
-![nuBASIC IDE on Linux/GTK](https://user-images.githubusercontent.com/13032534/27808819-69aaa2c2-6042-11e7-9132-675d1c71d162.png)
+nuBASIC is a modern, open-source BASIC interpreter written in modern C++, available for Windows, Linux, and macOS. It is designed to be both approachable for beginners and capable enough for real programs.
 
 ## Features
 
@@ -111,3 +109,10 @@ cmake --build build/release --target RunTests
 nuBASIC is open source under the [MIT License](https://opensource.org/licenses/MIT).
 
 Bug reports and feature requests: antonino.calderone@gmail.com
+
+<img width="1080" height="983" alt="nuBASIC IDE for Windows" src="https://github.com/user-attachments/assets/b2f1e0cf-8304-44e3-b6dc-e0f9b421a48f" />
+
+<html><br><br></html>
+
+![nuBASIC IDE on Linux/GTK](https://user-images.githubusercontent.com/13032534/27808819-69aaa2c2-6042-11e7-9132-675d1c71d162.png)
+
