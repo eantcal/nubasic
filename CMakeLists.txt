@@ -254,6 +254,11 @@ if(WIN32)
     # ---- WIX MSI (default) ----
     set(CPACK_GENERATOR "WIX")
 
+    # perMachine: installs to Program Files (requires UAC elevation);
+    # creates uninstall entry in HKLM so nuBASIC appears in Settings → Apps
+    # for all users on the machine.
+    set(CPACK_WIX_INSTALL_SCOPE "perMachine")
+
     # UPGRADE_GUID must never change across versions of nuBASIC — it is the
     # stable product identity that Windows Installer uses to detect upgrades
     # and prevent duplicate installations.
@@ -269,15 +274,19 @@ if(WIN32)
     set(CPACK_WIX_UI_BANNER "${CMAKE_SOURCE_DIR}/cmake/nubasic_banner.bmp")
     set(CPACK_WIX_UI_DIALOG "${CMAKE_SOURCE_DIR}/cmake/nubasic_dialog.bmp")
 
-    # WixUI_InstallDir: lets the user choose the installation directory.
-    set(CPACK_WIX_UI_REF "WixUI_InstallDir")
+    # WixUI_Mondo: shows Repair/Remove when already installed (maintenance mode).
+    # Trade-off: no custom install-directory page (installs to ProgramFiles\nuBASIC).
+    set(CPACK_WIX_UI_REF "WixUI_Mondo")
 
     # License text shown on the first page of the installer.
     set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/cmake/License.rtf")
 
-    # Extra WiX source: adds Start Menu shortcuts, runtime registry keys and the
-    # .bas file-type association.  See cmake/WixPatch.wxs for details.
-    set(CPACK_WIX_EXTRA_SOURCES "${CMAKE_SOURCE_DIR}/cmake/WixPatch.wxs")
+    # WiX v3 Fragment GC silently drops sections that have no symbol
+    # reachable from the product root.  Shortcuts in virtual folders
+    # (ProgramMenuFolder, DesktopFolder) are injected *after* CPack
+    # generates the WXS files by cmake/PatchWixMSI.ps1, which patches
+    # directories.wxs and features.wxs and then relinks the MSI.
+    # cmake/WixPatch.wxs documents the content for reference only.
 
     # URLs shown in Add/Remove Programs.
     set(CPACK_WIX_HELP_URL  "https://github.com/eantcal/nubasic")
@@ -318,14 +327,54 @@ if(WIN32 AND MSVC)
     endif()
   endforeach()
 
-  add_custom_target(CreateInstaller
+  # Locate WiX Toolset v3 candle/light for the post-CPack patch step.
+  # Typical install: "C:/Program Files (x86)/WiX Toolset v3.xx/bin/"
+  find_program(WIX_CANDLE candle
+    HINTS
+      "C:/Program Files (x86)/WiX Toolset v3.14/bin"
+      "C:/Program Files (x86)/WiX Toolset v3.11/bin"
+      "C:/Program Files (x86)/WiX Toolset v3.10/bin"
+    DOC "WiX Toolset candle.exe compiler")
+  find_program(WIX_LIGHT light
+    HINTS
+      "C:/Program Files (x86)/WiX Toolset v3.14/bin"
+      "C:/Program Files (x86)/WiX Toolset v3.11/bin"
+      "C:/Program Files (x86)/WiX Toolset v3.10/bin"
+    DOC "WiX Toolset light.exe linker")
+
+  set(_wix_pkg_dir
+      "${CMAKE_BINARY_DIR}/_CPack_Packages/win64/WIX")
+  set(_msi_out
+      "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}_${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}.msi")
+
+  # Base command list — always run CPack first.
+  set(_installer_cmds
     COMMAND "${CMAKE_CPACK_COMMAND}"
             -G "${NUBASIC_INSTALLER}"
             -C "$<CONFIG>"
             --config "${CMAKE_BINARY_DIR}/CPackConfig.cmake"
+  )
+
+  if(NUBASIC_INSTALLER STREQUAL "WIX" AND WIX_CANDLE AND WIX_LIGHT)
+    # After CPack produces the base MSI, patch directories.wxs and
+    # features.wxs to inject Start Menu / Desktop shortcuts, registry
+    # keys, and .bas file association; then recompile + relink.
+    list(APPEND _installer_cmds
+      COMMAND powershell
+              -NoProfile -ExecutionPolicy Bypass
+              -File "${CMAKE_SOURCE_DIR}/cmake/PatchWixMSI.ps1"
+              -WixPkgDir "${_wix_pkg_dir}"
+              -Candle    "${WIX_CANDLE}"
+              -Light     "${WIX_LIGHT}"
+              -MsiOutput "${_msi_out}"
+    )
+  endif()
+
+  add_custom_target(CreateInstaller
+    ${_installer_cmds}
     DEPENDS ${_installer_deps}
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-    COMMENT "Building ${NUBASIC_INSTALLER} installer (${NUBASIC_INSTALLER}) for $<CONFIG>..."
+    COMMENT "Building ${NUBASIC_INSTALLER} installer for $<CONFIG>..."
     VERBATIM
   )
   set_property(TARGET CreateInstaller PROPERTY FOLDER "Installer")

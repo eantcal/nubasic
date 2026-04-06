@@ -1,155 +1,125 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  WixPatch.wxs  –  nuBASIC MSI post-processing fragment
-  ======================================================
-  This file is consumed by CPack's WIX generator via
-  CPACK_WIX_PATCH_FILE.  It is merged with the auto-generated
-  product description AFTER CPack has built the file/directory
-  tree.
+  WixPatch.wxs  -  nuBASIC WiX extra source
+  ==========================================
+  Consumed by CPack via CPACK_WIX_EXTRA_SOURCES.
+  Standard WiX v3 fragment file compiled alongside the CPack-generated WXS.
 
-  Key CPack WIX conventions used here:
-    INSTALL_ROOT   – Directory ID for the package installation root
-                     (e.g. C:\Program Files\nuBASIC\).
-                     CPack sets WIXUI_INSTALLDIR="INSTALL_ROOT".
-    CM_PACKAGE     – The root Feature ID that CPack creates for all
-                     installed components.  New components must be
-                     referenced here to appear in the installer.
+  ProgramMenuFolder and DesktopFolder are declared under TARGETDIR so WiX
+  can resolve them as standard Windows Installer virtual folders.
+
+  All components are wired into ProductFeature (the ID CPack generates for
+  the root feature) via FeatureRef so WiX includes them and does not
+  garbage-collect the fragments.
 -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 
   <!-- ============================================================
-       Start Menu folder with shortcuts for IDE, CLI and Uninstall
+       Start Menu folder: Programs\nuBASIC
        ============================================================ -->
   <Fragment>
-    <DirectoryRef Id="ProgramMenuFolder">
-      <Directory Id="NuBASIC_MenuDir" Name="nuBASIC">
+    <DirectoryRef Id="TARGETDIR">
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="NuBASIC_MenuDir" Name="nuBASIC">
+          <Component Id="CM_COMP_StartMenuShortcuts"
+                     Guid="{B3D7E2A1-4F8C-4A9B-8E2F-1A2B3C4D5E6F}">
+            <CreateFolder/>
+            <Shortcut Id="NuBASIC_IDE_Link"
+                      Name="nuBASIC IDE"
+                      Description="nuBASIC Integrated Development Environment"
+                      Target="[INSTALL_ROOT]bin\NuBasicIDE.exe"
+                      WorkingDirectory="INSTALL_ROOT"/>
+            <Shortcut Id="NuBASIC_CLI_Link"
+                      Name="nuBASIC Console"
+                      Description="nuBASIC Command-Line Interpreter"
+                      Target="[INSTALL_ROOT]bin\nubasic.exe"
+                      WorkingDirectory="INSTALL_ROOT"/>
+            <Shortcut Id="NuBASIC_Uninstall_Link"
+                      Name="Uninstall nuBASIC"
+                      Target="[SystemFolder]msiexec.exe"
+                      Arguments="/x [ProductCode]"/>
+            <RemoveFolder Id="NuBASIC_MenuDir_Remove"
+                          Directory="NuBASIC_MenuDir"
+                          On="uninstall"/>
+          </Component>
+        </Directory>
+      </Directory>
 
-        <Component Id="CM_COMP_StartMenuShortcuts"
-                   Guid="{B3D7E2A1-4F8C-4A9B-8E2F-1A2B3C4D5E6F}">
-
-          <!-- nuBASIC IDE shortcut -->
-          <Shortcut Id="NuBASIC_IDE_Link"
+      <!-- Desktop shortcut.
+           DesktopFolder is system-managed: no CreateFolder/RemoveFolder.
+           Registry value used as KeyPath. -->
+      <Directory Id="DesktopFolder">
+        <Component Id="CM_COMP_DesktopShortcut"
+                   Guid="{E4A5B6C7-8901-4DEF-0123-456789ABCDEF}">
+          <Shortcut Id="NuBASIC_Desktop_Link"
                     Name="nuBASIC IDE"
                     Description="nuBASIC Integrated Development Environment"
                     Target="[INSTALL_ROOT]bin\NuBasicIDE.exe"
-                    WorkingDirectory="INSTALL_ROOT" />
-
-          <!-- nuBASIC CLI shortcut -->
-          <Shortcut Id="NuBASIC_CLI_Link"
-                    Name="nuBASIC Console"
-                    Description="nuBASIC Command-Line Interpreter"
-                    Target="[INSTALL_ROOT]bin\nubasic.exe"
-                    WorkingDirectory="INSTALL_ROOT" />
-
-          <!-- Uninstall shortcut -->
-          <Shortcut Id="NuBASIC_Uninstall_Link"
-                    Name="Uninstall nuBASIC"
-                    Target="[SystemFolder]msiexec.exe"
-                    Arguments="/x [ProductCode]" />
-
-          <!-- Registry key path (required for registry-only components) -->
+                    WorkingDirectory="INSTALL_ROOT"/>
           <RegistryValue Root="HKCU"
                          Key="Software\nuBASIC"
-                         Name="StartMenuInstalled"
+                         Name="DesktopShortcut"
                          Type="integer"
                          Value="1"
-                         KeyPath="yes" />
-
-          <!-- Remove the nuBASIC sub-folder from the Start Menu on uninstall -->
-          <RemoveFolder Id="NuBASIC_MenuDir_Remove"
-                        Directory="NuBASIC_MenuDir"
-                        On="uninstall" />
-
+                         KeyPath="yes"/>
         </Component>
       </Directory>
     </DirectoryRef>
   </Fragment>
 
   <!-- ============================================================
-       Runtime registry values
-         HKCU\Software\nuBASIC\InstallDir   – install root path
-         HKCU\Software\nuBASIC\ExamplesDir  – examples sub-folder
-       These are read at startup by the IDE and the CLI to locate
-       built-in example files.
+       Registry keys and .bas file association
        ============================================================ -->
   <Fragment>
     <DirectoryRef Id="INSTALL_ROOT">
       <Component Id="CM_COMP_RegistryKeys"
                  Guid="{C2E3F4A5-6789-4BCD-EF01-234567890ABC}">
-
-        <RegistryValue Root="HKCU"
+        <RegistryValue Root="HKLM"
                        Key="Software\nuBASIC"
                        Name="InstallDir"
                        Type="string"
                        Value="[INSTALL_ROOT]"
-                       KeyPath="yes" />
-
-        <RegistryValue Root="HKCU"
+                       KeyPath="yes"/>
+        <RegistryValue Root="HKLM"
                        Key="Software\nuBASIC"
                        Name="ExamplesDir"
                        Type="string"
-                       Value="[INSTALL_ROOT]examples\" />
-
+                       Value="[INSTALL_ROOT]examples\"/>
       </Component>
-    </DirectoryRef>
-  </Fragment>
 
-  <!-- ============================================================
-       .bas file-type association
-       Opens nuBASICFile documents with NuBasicIDE.exe.
-       Written to HKCU\Software\Classes so no elevation is needed
-       and the association applies to the installing user.
-       ============================================================ -->
-  <Fragment>
-    <DirectoryRef Id="INSTALL_ROOT">
       <Component Id="CM_COMP_BASFileAssoc"
                  Guid="{D3F4A5B6-7890-4CDE-F012-34567890BCDE}">
-
-        <!-- .bas extension → ProgID -->
         <RegistryValue Root="HKCU"
                        Key="Software\Classes\.bas"
                        Type="string"
                        Value="nuBASICFile"
-                       KeyPath="yes" />
-
-        <!-- ProgID description -->
+                       KeyPath="yes"/>
         <RegistryValue Root="HKCU"
                        Key="Software\Classes\nuBASICFile"
                        Type="string"
-                       Value="nuBASIC Source File" />
-
-        <!-- Icon: first icon in NuBasicIDE.exe -->
+                       Value="nuBASIC Source File"/>
         <RegistryValue Root="HKCU"
                        Key="Software\Classes\nuBASICFile\DefaultIcon"
                        Type="string"
-                       Value="[INSTALL_ROOT]bin\NuBasicIDE.exe,0" />
-
-        <!-- Open verb: launch IDE with the file path as argument -->
+                       Value="[INSTALL_ROOT]bin\NuBasicIDE.exe,0"/>
         <RegistryValue Root="HKCU"
                        Key="Software\Classes\nuBASICFile\shell\open\command"
                        Type="string"
-                       Value="&quot;[INSTALL_ROOT]bin\NuBasicIDE.exe&quot; &quot;%1&quot;" />
-
-        <!-- Notify the shell about the new association -->
-        <RegistryValue Root="HKCU"
-                       Key="Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.bas\UserChoice"
-                       Name="ProgId"
-                       Type="string"
-                       Value="nuBASICFile" />
-
+                       Value="&quot;[INSTALL_ROOT]bin\NuBasicIDE.exe&quot; &quot;%1&quot;"/>
       </Component>
     </DirectoryRef>
   </Fragment>
 
   <!-- ============================================================
-       Wire all new components into the root CPack feature so they
-       are included in the default installation.
+       Wire all components into ProductFeature — prevents WiX v3
+       garbage-collection and ensures everything is installed.
        ============================================================ -->
   <Fragment>
-    <FeatureRef Id="CM_PACKAGE">
-      <ComponentRef Id="CM_COMP_StartMenuShortcuts" />
-      <ComponentRef Id="CM_COMP_RegistryKeys" />
-      <ComponentRef Id="CM_COMP_BASFileAssoc" />
+    <FeatureRef Id="ProductFeature">
+      <ComponentRef Id="CM_COMP_StartMenuShortcuts"/>
+      <ComponentRef Id="CM_COMP_DesktopShortcut"/>
+      <ComponentRef Id="CM_COMP_RegistryKeys"/>
+      <ComponentRef Id="CM_COMP_BASFileAssoc"/>
     </FeatureRef>
   </Fragment>
 
