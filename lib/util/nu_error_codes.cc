@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -31,15 +31,13 @@ void rt_error_code_t::throw_exc(
     class err_t : public error_code_t {
         const value_t _err = value_t::E_INTERNAL;
 
-        public:
-            err_t(value_t err)
-                : _err(err)
-            {
-            }
+    public:
+        err_t(value_t err)
+            : _err(err)
+        {
+        }
 
-            int get() const noexcept { 
-                return int(_err); 
-            }
+        int get() const noexcept { return int(_err); }
     };
 
     std::string errmsg = stmt.empty() ? "" : stmt + " ";
@@ -110,7 +108,8 @@ rt_error_code_t::rt_error_code_t()
     e[value_t::E_EXIT_OUTSIDE_FORBLK] = "Exit For outside For-loop";
     e[value_t::E_NO_LABEL] = "missing label";
     e[value_t::E_LABEL_NOT_DEF] = "label not defined";
-    e[value_t::E_IMPL_CNT_NOT_ALLOWED] = "implicit counter not allowed in nested loops";
+    e[value_t::E_IMPL_CNT_NOT_ALLOWED]
+        = "implicit counter not allowed in nested loops";
     e[value_t::E_EXIT_SUB_OUTSIDE_SUB] = "Exit Sub/Function outside procedure";
     e[value_t::E_MISSING_END_SUB] = "missing End Sub/Function statement";
     e[value_t::E_EXIT_WHILE_OUT] = "Exit While outside While loop";
@@ -125,6 +124,9 @@ rt_error_code_t::rt_error_code_t()
     e[value_t::E_STRUCT_UNDEF] = "Struct not defined";
     e[value_t::E_NO_MATCH_STRUCT] = "matching Struct statement not defined";
     e[value_t::E_INV_DATA_SEPARATOR] = "invalid separator";
+    e[value_t::E_CLASS_UNDEF] = "Class not defined";
+    e[value_t::E_NO_MATCH_CLASS] = "matching Class statement not found";
+    e[value_t::E_MEMBER_ACCESS] = "cannot access private member";
 }
 
 
@@ -172,4 +174,4 @@ void syntax_error_if(bool condition, const std::string& msg)
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu

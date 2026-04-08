@@ -129,8 +129,11 @@ public:
    }
 
    explicit variant_t(const struct_variant_t& value, const size_t vect_size = 0)
-      : variant_t(value.get(), type_t::STRUCT, vect_size)
+      : _type(type_t::STRUCT)
+      , _struct_data_type_name(value.get())
    {
+      _struct_data.resize(1 > vect_size ? 1 : vect_size);
+      _vector_type = vect_size > 0;
    }
 
    static void copy_struct_data(struct_data_t& dst, const struct_data_t& src);

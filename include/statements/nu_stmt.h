@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -47,9 +47,7 @@ public:
     stmt_t(prog_ctx_t& ctx) noexcept;
 
 
-    int get_stmt_id() const noexcept { 
-        return _stmt_id; 
-    }
+    int get_stmt_id() const noexcept { return _stmt_id; }
 
 
     enum class stmt_cl_t {
@@ -68,7 +66,9 @@ public:
         DO_END,
         ELSE,
         STRUCT_BEGIN,
-        STRUCT_END
+        STRUCT_END,
+        CLASS_BEGIN,
+        CLASS_END
     };
 
     using handle_t = std::shared_ptr<stmt_t>;
@@ -88,7 +88,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

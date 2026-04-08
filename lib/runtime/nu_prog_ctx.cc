@@ -44,9 +44,12 @@ void prog_ctx_t::clear_metadata()
     proc_prototypes.data.clear();
     struct_prototypes.data.clear();
     struct_metadata.clear();
+    class_metadata.clear();
     prog_label.clear();
     compiletime_pc.reset();
     compiling_struct_name.clear();
+    compiling_class_name.clear();
+    class_member_visibility.clear();
     stop_metadata.pc_stop_stmt.clear();
 
     // Remove user-defined-functions
@@ -72,25 +75,38 @@ void prog_ctx_t::register_builtin_struct_prototypes()
     // Replaces the individual SysYear/SysMonth/... functions (deprecated v2.0).
     {
         variant_t proto("datetime", variant_t::struct_data_t{});
-        proto.define_struct_member("year",   variant_t(string_t(), variable_t::type_t::INTEGER));
-        proto.define_struct_member("month",  variant_t(string_t(), variable_t::type_t::INTEGER));
-        proto.define_struct_member("day",    variant_t(string_t(), variable_t::type_t::INTEGER));
-        proto.define_struct_member("hour",   variant_t(string_t(), variable_t::type_t::INTEGER));
-        proto.define_struct_member("minute", variant_t(string_t(), variable_t::type_t::INTEGER));
-        proto.define_struct_member("second", variant_t(string_t(), variable_t::type_t::INTEGER));
-        proto.define_struct_member("wday",   variant_t(string_t(), variable_t::type_t::INTEGER));
-        proto.define_struct_member("yday",   variant_t(string_t(), variable_t::type_t::INTEGER));
-        struct_prototypes.data["datetime"] = std::make_pair(prog_pointer_t{}, proto);
+        proto.define_struct_member(
+            "year", variant_t(string_t(), variable_t::type_t::INTEGER));
+        proto.define_struct_member(
+            "month", variant_t(string_t(), variable_t::type_t::INTEGER));
+        proto.define_struct_member(
+            "day", variant_t(string_t(), variable_t::type_t::INTEGER));
+        proto.define_struct_member(
+            "hour", variant_t(string_t(), variable_t::type_t::INTEGER));
+        proto.define_struct_member(
+            "minute", variant_t(string_t(), variable_t::type_t::INTEGER));
+        proto.define_struct_member(
+            "second", variant_t(string_t(), variable_t::type_t::INTEGER));
+        proto.define_struct_member(
+            "wday", variant_t(string_t(), variable_t::type_t::INTEGER));
+        proto.define_struct_member(
+            "yday", variant_t(string_t(), variable_t::type_t::INTEGER));
+        struct_prototypes.data["datetime"]
+            = std::make_pair(prog_pointer_t{}, proto);
     }
 
     // Mouse — pointer position and button state in one struct.
     // Replaces the individual GetMouseX/Y/Btn functions (deprecated v2.0).
     {
         variant_t proto("mouse", variant_t::struct_data_t{});
-        proto.define_struct_member("x",   variant_t(string_t(), variable_t::type_t::INTEGER));
-        proto.define_struct_member("y",   variant_t(string_t(), variable_t::type_t::INTEGER));
-        proto.define_struct_member("btn", variant_t(string_t(), variable_t::type_t::INTEGER));
-        struct_prototypes.data["mouse"] = std::make_pair(prog_pointer_t{}, proto);
+        proto.define_struct_member(
+            "x", variant_t(string_t(), variable_t::type_t::INTEGER));
+        proto.define_struct_member(
+            "y", variant_t(string_t(), variable_t::type_t::INTEGER));
+        proto.define_struct_member(
+            "btn", variant_t(string_t(), variable_t::type_t::INTEGER));
+        struct_prototypes.data["mouse"]
+            = std::make_pair(prog_pointer_t{}, proto);
     }
 }
 

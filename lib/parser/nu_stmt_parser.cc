@@ -16,6 +16,7 @@
 #include "nu_stmt_beep.h"
 #include "nu_stmt_block.h"
 #include "nu_stmt_call.h"
+#include "nu_stmt_class.h"
 #include "nu_stmt_close.h"
 #include "nu_stmt_cls.h"
 #include "nu_stmt_const.h"
@@ -25,6 +26,7 @@
 #include "nu_stmt_do.h"
 #include "nu_stmt_else.h"
 #include "nu_stmt_end.h"
+#include "nu_stmt_endclass.h"
 #include "nu_stmt_endfunction.h"
 #include "nu_stmt_endif.h"
 #include "nu_stmt_endstruct.h"
@@ -44,6 +46,7 @@
 #include "nu_stmt_let.h"
 #include "nu_stmt_locate.h"
 #include "nu_stmt_loop_while.h"
+#include "nu_stmt_method_call.h"
 #include "nu_stmt_next.h"
 #include "nu_stmt_on_goto.h"
 #include "nu_stmt_open.h"
@@ -895,8 +898,19 @@ stmt_t::handle_t stmt_parser_t::parse_let(prog_ctx_t& ctx, nu::token_list_t& tl)
 
         token = *tl.begin();
 
-        // Optional vector index on the last member: obj.arr(i) = ...
+        // Optional vector index on the last member OR method call with args
         if (token.type() == tkncl_t::SUBEXP_BEGIN) {
+            // If no '=' follows at top level, this is a method call:
+            // obj.Method(args)
+            if (!has_top_level_assign(tl)) {
+                auto dot_pos = identifier.rfind('.');
+                std::string obj_name = identifier.substr(0, dot_pos);
+                std::string method_name = identifier.substr(dot_pos + 1);
+                return parse_method_call_stmt(
+                    ctx, token, tl, obj_name, method_name);
+            }
+
+            // Otherwise it's an array member subscript: obj.arr(i) = ...
             token_list_t etl;
             move_sub_expression(tl, // source
                 etl, // destination
@@ -916,6 +930,16 @@ stmt_t::handle_t stmt_parser_t::parse_let(prog_ctx_t& ctx, nu::token_list_t& tl)
         // If more dots follow, continue looping; otherwise stop
         if (!(token.type() == tkncl_t::OPERATOR && token.identifier() == "."))
             break;
+    }
+
+    // If we built a dotted name but the next token is not '=', this is a
+    // method call without parentheses (e.g. "obj.Method" or "obj.Method arg")
+    if (struct_member_id
+        && (token.type() != tkncl_t::OPERATOR || token.identifier() != "=")) {
+        auto dot_pos = identifier.rfind('.');
+        std::string obj_name = identifier.substr(0, dot_pos);
+        std::string method_name = identifier.substr(dot_pos + 1);
+        return parse_method_call_stmt(ctx, token, tl, obj_name, method_name);
     }
 
     syntax_error_if(
@@ -1124,6 +1148,11 @@ stmt_t::handle_t stmt_parser_t::parse_procedure(
     syntax_error_if(!variable_t::is_valid_name(id, false),
         id + " is an invalid identifier");
 
+    // When inside a class body, mangle the name as "ClassName.MethodName"
+    if (!ctx.compiling_class_name.empty()) {
+        id = ctx.compiling_class_name + "." + id;
+    }
+
     token = *tl.begin();
 
     syntax_error_if(token.type() != tkncl_t::SUBEXP_BEGIN, token.expression(),
@@ -1199,6 +1228,10 @@ stmt_t::handle_t stmt_parser_t::parse_procedure(
         ptr->define_ret_type(ret_type, ctx, array_size);
     }
 
+    // Register visibility when inside a class body
+    if (!ctx.compiling_class_name.empty()) {
+        ctx.class_member_visibility[id] = ctx.compiling_class_member_is_public;
+    }
 
     return stmt_handle;
 }
@@ -1326,6 +1359,147 @@ stmt_t::handle_t stmt_parser_t::parse_struct_element(
     return stmt_t::handle_t(
         std::make_shared<stmt_struct_element_t>(ctx, id, type, size));
 }
+
+
+/* -------------------------------------------------------------------------- */
+
+bool stmt_parser_t::has_top_level_assign(const token_list_t& tl)
+{
+    int depth = 0;
+    for (const auto& tok : tl.data()) {
+        if (tok.type() == tkncl_t::SUBEXP_BEGIN)
+            ++depth;
+        else if (tok.type() == tkncl_t::SUBEXP_END)
+            --depth;
+        else if (depth == 0 && tok.type() == tkncl_t::OPERATOR
+            && tok.identifier() == "=")
+            return true;
+    }
+    return false;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+stmt_t::handle_t stmt_parser_t::parse_method_call_stmt(prog_ctx_t& ctx,
+    token_t token, token_list_t& tl, const std::string& obj_name,
+    const std::string& method_name)
+{
+    // If the argument list is wrapped in parentheses, strip them
+    if (!tl.empty() && tl.begin()->type() == tkncl_t::SUBEXP_BEGIN) {
+        --tl; // consume "("
+        remove_blank(tl);
+
+        // Empty arg list: obj.Method()
+        if (!tl.empty() && tl.begin()->type() == tkncl_t::SUBEXP_END) {
+            --tl; // consume ")"
+            return stmt_t::handle_t(std::make_shared<stmt_method_call_t>(
+                obj_name, method_name, ctx));
+        }
+
+        // Strip the matching closing ")" from the end
+        if (!tl.empty() && tl.rbegin()->type() == tkncl_t::SUBEXP_END)
+            tl--; // postfix --: removes last token
+
+        if (!tl.empty())
+            token = *tl.begin();
+    }
+
+    if (tl.empty()) {
+        return stmt_t::handle_t(
+            std::make_shared<stmt_method_call_t>(obj_name, method_name, ctx));
+    }
+
+    return parse_arg_list<stmt_method_call_t, 0>(
+        ctx, token, tl,
+        [](const token_t& t) {
+            return t.type() == tkncl_t::OPERATOR && t.identifier() == ",";
+        },
+        obj_name, method_name, ctx);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+stmt_t::handle_t stmt_parser_t::parse_class(
+    prog_ctx_t& ctx, nu::token_t token, nu::token_list_t& tl)
+{
+    // Skip keyword CLASS
+    --tl;
+    remove_blank(tl);
+    syntax_error_if(tl.empty(), token.expression(), token.position());
+
+    token = *tl.begin();
+
+    syntax_error_if(token.type() != tkncl_t::IDENTIFIER, token.expression(),
+        token.position());
+
+    const std::string id = token.identifier();
+
+    syntax_error_if(
+        !variable_t::is_valid_name(id, true), id + " is an invalid class name");
+
+    --tl;
+    remove_blank(tl);
+    syntax_error_if(!tl.empty(), token.expression(), token.position());
+
+    ctx.compiling_class_name = id;
+
+    return stmt_t::handle_t(std::make_shared<stmt_class_t>(ctx, id));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+stmt_t::handle_t stmt_parser_t::parse_class_member(
+    prog_ctx_t& ctx, nu::token_t token, nu::token_list_t& tl)
+{
+    // Consume optional Public/Private modifier
+    bool is_public = true;
+
+    if (token.identifier() == "public") {
+        is_public = true;
+        --tl;
+        remove_blank(tl);
+        syntax_error_if(tl.empty(), token.expression(), token.position());
+        token = *tl.begin();
+    } else if (token.identifier() == "private") {
+        is_public = false;
+        --tl;
+        remove_blank(tl);
+        syntax_error_if(tl.empty(), token.expression(), token.position());
+        token = *tl.begin();
+    }
+
+    ctx.compiling_class_member_is_public = is_public;
+
+    const std::string& id = token.identifier();
+
+    // Method declaration
+    if (id == "sub") {
+        return parse_procedure<stmt_sub_t>(ctx, token, tl);
+    }
+
+    if (id == "function") {
+        return parse_procedure<stmt_function_t>(ctx, token, tl);
+    }
+
+    // Data member declaration: treated like a struct element
+    // Peek the field name before parse_struct_element consumes it
+    const std::string field_name = token.identifier();
+
+    const std::string saved_struct = ctx.compiling_struct_name;
+    ctx.compiling_struct_name = ctx.compiling_class_name;
+    auto handle = parse_struct_element(ctx, token, tl);
+    ctx.compiling_struct_name = saved_struct;
+
+    // Register access level for the field
+    ctx.class_member_visibility[ctx.compiling_class_name + "." + field_name]
+        = is_public;
+
+    return handle;
+}
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -1894,10 +2068,14 @@ stmt_t::handle_t stmt_parser_t::parse_end(
             return stmt_t::handle_t(std::make_shared<stmt_endfunction_t>(ctx));
         } else if (id == "struct") {
             ctx.compiling_struct_name.clear();
-            ;
 
             --tl;
             return stmt_t::handle_t(std::make_shared<stmt_endstruct_t>(ctx));
+        } else if (id == "class") {
+            ctx.compiling_class_name.clear();
+
+            --tl;
+            return stmt_t::handle_t(std::make_shared<stmt_endclass_t>(ctx));
         } else {
             syntax_error(token.expression(), token.position());
         }
@@ -1949,6 +2127,18 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
         if (!((token.identifier() == "end" || token.identifier() == "rem")
                 && token.type() == tkncl_t::IDENTIFIER)) {
             return parse_struct_element(ctx, token, tl);
+        }
+    }
+
+    // Inside a class body (but not inside a method body): redirect to class
+    // member parsing.  procedure_metadata.is_building() is true once "Sub" or
+    // "Function" inside the class has been opened, so we stop redirecting for
+    // the duration of that method body.
+    if (!ctx.compiling_class_name.empty()
+        && !ctx.procedure_metadata.is_building()) {
+        if (!((identifier == "end" || identifier == "rem")
+                && token.type() == tkncl_t::IDENTIFIER)) {
+            return parse_class_member(ctx, token, tl);
         }
     }
 
@@ -2236,6 +2426,10 @@ stmt_t::handle_t stmt_parser_t::parse_stmt(
 
     if (identifier == "struct") {
         return parse_struct(ctx, token, tl);
+    }
+
+    if (identifier == "class") {
+        return parse_class(ctx, token, tl);
     }
 
     if (identifier == "function") {

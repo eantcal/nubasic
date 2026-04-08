@@ -100,6 +100,26 @@ protected:
         prog_ctx_t& ctx, token_t token, token_list_t& tl);
 
 
+    //! parse a Class definition
+    stmt_t::handle_t parse_class(
+        prog_ctx_t& ctx, token_t token, token_list_t& tl);
+
+
+    //! parse a member (field or method) inside a Class body
+    stmt_t::handle_t parse_class_member(
+        prog_ctx_t& ctx, token_t token, token_list_t& tl);
+
+
+    //! parse an object method call: obj.Method(args)
+    stmt_t::handle_t parse_method_call_stmt(prog_ctx_t& ctx, token_t token,
+        token_list_t& tl, const std::string& obj_name,
+        const std::string& method_name);
+
+
+    //! return true if '=' appears at parenthesis depth 0 in tl
+    static bool has_top_level_assign(const token_list_t& tl);
+
+
     //! parse a label list
     stmt_on_goto_t::label_list_t parse_label_list(
         prog_ctx_t& ctx, token_t token, token_list_t& tl);
@@ -124,34 +144,48 @@ protected:
                 token.type() != tc, token.expression(), token.position());
         };
 
-        auto get_type
-            = [&](std::string& type, const std::string& variable_name) {
-                  type = variable_t::typename_by_type(
-                      variable_t::type_by_name(variable_name));
+        auto get_type = [&](std::string& type,
+                            const std::string& variable_name) {
+            type = variable_t::typename_by_type(
+                variable_t::type_by_name(variable_name));
 
-                  if (!tl.empty()) {
-                      token = *tl.begin();
+            if (!tl.empty()) {
+                token = *tl.begin();
 
-                      if (token.type() == tkncl_t::IDENTIFIER
-                          && token.identifier() == "as") {
-                          --tl;
-                          remove_blank(tl);
+                if (token.type() == tkncl_t::IDENTIFIER
+                    && token.identifier() == "as") {
+                    --tl;
+                    remove_blank(tl);
 
-                          syntax_error_if(
-                              tl.empty(), token.expression(), token.position());
+                    syntax_error_if(
+                        tl.empty(), token.expression(), token.position());
 
-                          token = *tl.begin();
+                    token = *tl.begin();
 
-                          syntax_error_if(token.type() != tkncl_t::IDENTIFIER,
-                              token.expression(), token.position());
+                    syntax_error_if(token.type() != tkncl_t::IDENTIFIER,
+                        token.expression(), token.position());
 
-                          type = token.identifier();
+                    type = token.identifier();
 
-                          --tl;
-                          remove_blank(tl);
-                      }
-                  }
-              };
+                    // Handle "As New ClassName": skip the "New" keyword
+                    if (type == "new") {
+                        --tl;
+                        remove_blank(tl);
+                        syntax_error_if(
+                            tl.empty(), token.expression(), token.position());
+                        token = *tl.begin();
+                        syntax_error_if(token.type() != tkncl_t::IDENTIFIER,
+                            token.expression(), token.position());
+                        type = token.identifier();
+                        --tl;
+                        remove_blank(tl);
+                    } else {
+                        --tl;
+                        remove_blank(tl);
+                    }
+                }
+            }
+        };
 
         stmt_t::handle_t handle(std::make_shared<T>(std::forward<E>(xprms)...));
 

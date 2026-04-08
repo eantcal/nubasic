@@ -1,0 +1,53 @@
+//
+// This file is part of nuBASIC
+// Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+// All rights reserved.
+// Licensed under the MIT License.
+// See COPYING file in the project root for full license information.
+//
+
+/* -------------------------------------------------------------------------- */
+
+#ifndef __NU_STMT_CLASS_H__
+#define __NU_STMT_CLASS_H__
+
+
+/* -------------------------------------------------------------------------- */
+
+#include "nu_stmt.h"
+#include "nu_var_scope.h"
+#include "nu_variable.h"
+
+#include <string>
+
+
+/* -------------------------------------------------------------------------- */
+
+namespace nu {
+
+
+/* -------------------------------------------------------------------------- */
+
+class stmt_class_t : public stmt_t {
+public:
+    stmt_class_t() = delete;
+    stmt_class_t(const stmt_class_t&) = delete;
+    stmt_class_t& operator=(const stmt_class_t&) = delete;
+
+    stmt_class_t(prog_ctx_t& ctx, const std::string& id);
+
+    virtual stmt_cl_t get_cl() const noexcept override;
+    virtual void run(rt_prog_ctx_t& ctx) override;
+
+protected:
+    std::string _id;
+};
+
+
+/* -------------------------------------------------------------------------- */
+} // namespace nu
+
+
+/* -------------------------------------------------------------------------- */
+
+#endif //__NU_STMT_CLASS_H__

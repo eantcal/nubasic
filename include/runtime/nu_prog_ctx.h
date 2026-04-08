@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <deque>
 #include <list>
+#include <map>
 #include <memory>
 #include <set>
 #include <sstream>
@@ -95,6 +96,14 @@ public:
     // Struct metadata (created compiling BASIC source code)
     instrblock_metadata_t struct_metadata;
     std::string compiling_struct_name;
+
+    // Class metadata (created compiling BASIC source code)
+    instrblock_metadata_t class_metadata;
+    std::string compiling_class_name;
+    bool compiling_class_member_is_public = true;
+
+    // Class member access visibility: "ClassName.MemberName" -> is_public
+    std::map<std::string, bool> class_member_visibility;
 
     // Tracks which parameter names are declared ByRef in the procedure
     // currently being compiled.  Cleared by define() after each parameter

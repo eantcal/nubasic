@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -21,9 +21,9 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <set>
 #include <sstream>
 #include <stack>
-#include <set>
 
 
 /* -------------------------------------------------------------------------- */
@@ -41,9 +41,7 @@ struct instrblock_t {
 
     enum { EXIT };
 
-    instrblock_t() noexcept { 
-        flag.define(EXIT); 
-    }
+    instrblock_t() noexcept { flag.define(EXIT); }
 
     instrblock_t(const instrblock_t&) = default;
     instrblock_t& operator=(const instrblock_t&) = default;
@@ -76,13 +74,12 @@ protected:
     end_tbl_t exit_tbl; // exit-line -> begin line
 
 public:
-    bool empty() const noexcept { 
-        return begin_tbl.empty(); 
-    }
+    bool empty() const noexcept { return begin_tbl.empty(); }
 
-    size_t get_exit_point_cnt() const noexcept { 
-        return exit_tbl.size(); 
-    }
+    // Returns true when there is at least one open (unfinished) block
+    bool is_building() const noexcept { return !build_stack.empty(); }
+
+    size_t get_exit_point_cnt() const noexcept { return exit_tbl.size(); }
 
 
     void trace(std::stringstream& ss, bool include_else = false);
@@ -142,7 +139,7 @@ struct if_instrblock_metadata_t {
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

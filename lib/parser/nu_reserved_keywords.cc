@@ -43,7 +43,7 @@ std::set<std::string>& reserved_keywords_t::list()
         "elseif", "setpixel", "getpixel", "struct", "integer", "double",
         "float", "boolean", "string", "long64", "quit", "settopmost", "stop",
         "screenlock", "screenunlock", "refresh", "byref", "byval", "call",
-        "include" };
+        "include", "class", "new", "public", "private" };
 
     return list;
 }

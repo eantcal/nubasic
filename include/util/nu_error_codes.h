@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -70,15 +70,17 @@ public:
         E_NO_MATCH_FOR,
         E_STRUCT_UNDEF,
         E_NO_MATCH_STRUCT,
-        E_INV_DATA_SEPARATOR
+        E_INV_DATA_SEPARATOR,
+        E_CLASS_UNDEF,
+        E_NO_MATCH_CLASS,
+        E_MEMBER_ACCESS
     };
 
 
     void throw_exc(int line, value_t errcode, const std::string& stmt);
 
 
-    void throw_if(
-        bool cond, int line, value_t errcode, const std::string& stmt)
+    void throw_if(bool cond, int line, value_t errcode, const std::string& stmt)
     {
         if (cond)
             throw_exc(line, errcode, stmt);
@@ -86,7 +88,7 @@ public:
 
 
     std::string message(value_t);
-    
+
     static rt_error_code_t& get_instance() noexcept;
 
 private:
@@ -120,7 +122,7 @@ void syntax_error_if(bool cond, const std::string& expr, size_t pos,
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
