@@ -105,6 +105,12 @@ public:
     // Class member access visibility: "ClassName.MemberName" -> is_public
     std::map<std::string, bool> class_member_visibility;
 
+    // Single-inheritance chain: derived class name -> direct base class name
+    std::map<std::string, std::string> class_bases;
+
+    // Methods declared Overridable (reserved for future strict enforcement)
+    std::set<std::string> class_overridable_methods;
+
     // Tracks which parameter names are declared ByRef in the procedure
     // currently being compiled.  Cleared by define() after each parameter
     // is registered.

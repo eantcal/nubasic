@@ -68,7 +68,8 @@ public:
         STRUCT_BEGIN,
         STRUCT_END,
         CLASS_BEGIN,
-        CLASS_END
+        CLASS_END,
+        INHERITS
     };
 
     using handle_t = std::shared_ptr<stmt_t>;

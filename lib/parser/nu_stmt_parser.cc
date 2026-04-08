@@ -41,6 +41,7 @@
 #include "nu_stmt_gosub.h"
 #include "nu_stmt_goto.h"
 #include "nu_stmt_if_then_else.h"
+#include "nu_stmt_inherits.h"
 #include "nu_stmt_input.h"
 #include "nu_stmt_input_file.h"
 #include "nu_stmt_let.h"
@@ -1473,7 +1474,37 @@ stmt_t::handle_t stmt_parser_t::parse_class_member(
 
     ctx.compiling_class_member_is_public = is_public;
 
-    const std::string& id = token.identifier();
+    // Consume optional Overridable / Overrides keyword before Sub/Function
+    if (token.identifier() == "overridable") {
+        ctx.class_overridable_methods.insert(ctx.compiling_class_name + "."
+            + ""); // placeholder; full name known after Sub
+        --tl;
+        remove_blank(tl);
+        syntax_error_if(tl.empty(), token.expression(), token.position());
+        token = *tl.begin();
+    } else if (token.identifier() == "overrides") {
+        --tl;
+        remove_blank(tl);
+        syntax_error_if(tl.empty(), token.expression(), token.position());
+        token = *tl.begin();
+    }
+
+    const std::string id = token.identifier();
+
+    // Inherits BaseClass
+    if (id == "inherits") {
+        --tl; // consume "inherits"
+        remove_blank(tl);
+        syntax_error_if(tl.empty(), token.expression(), token.position());
+        token = *tl.begin();
+        syntax_error_if(token.type() != tkncl_t::IDENTIFIER, token.expression(),
+            token.position());
+        const std::string base_name = token.identifier();
+        --tl;
+        remove_blank(tl);
+        return stmt_t::handle_t(
+            std::make_shared<stmt_inherits_t>(ctx, base_name));
+    }
 
     // Method declaration
     if (id == "sub") {
@@ -2072,10 +2103,10 @@ stmt_t::handle_t stmt_parser_t::parse_end(
             --tl;
             return stmt_t::handle_t(std::make_shared<stmt_endstruct_t>(ctx));
         } else if (id == "class") {
-            ctx.compiling_class_name.clear();
-
             --tl;
-            return stmt_t::handle_t(std::make_shared<stmt_endclass_t>(ctx));
+            auto h = stmt_t::handle_t(std::make_shared<stmt_endclass_t>(ctx));
+            ctx.compiling_class_name.clear();
+            return h;
         } else {
             syntax_error(token.expression(), token.position());
         }

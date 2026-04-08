@@ -167,7 +167,7 @@ AssertEq "second secret", p4.Name, "Beta"
 Print ""
 Print "Results: " + Str$(pass%) + " passed,  " + Str$(fail%) + " failed"
 If fail% = 0 Then
-    Print "ALL TESTS PASSED"
+Print "ALL TESTS PASSED"
 Else
-    Print "SOME TESTS FAILED"
+Print "SOME TESTS FAILED"
 End If

@@ -50,6 +50,8 @@ void prog_ctx_t::clear_metadata()
     compiling_struct_name.clear();
     compiling_class_name.clear();
     class_member_visibility.clear();
+    class_bases.clear();
+    class_overridable_methods.clear();
     stop_metadata.pc_stop_stmt.clear();
 
     // Remove user-defined-functions

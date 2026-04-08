@@ -53,29 +53,58 @@ void stmt_method_call_t::run(rt_prog_ctx_t& ctx)
     const std::string class_name = obj_ptr->struct_type_name();
     const std::string mangled = class_name + "." + _method_name;
 
-    // Check access (public/private)
+    // Walk the inheritance chain to find the method.
+    // Override semantics are natural: the derived class method is found first.
+    auto i = ctx.proc_prototypes.data.cend();
     {
-        auto vis_it = ctx.class_member_visibility.find(mangled);
+        std::string cls = class_name;
+        while (!cls.empty()) {
+            const std::string key = cls + "." + _method_name;
+
+            // Private ancestor methods are not callable by external callers.
+            if (cls != class_name) {
+                auto vis_it = ctx.class_member_visibility.find(key);
+                if (vis_it != ctx.class_member_visibility.end()
+                    && !vis_it->second) {
+                    auto base_it = ctx.class_bases.find(cls);
+                    if (base_it == ctx.class_bases.end())
+                        break;
+                    cls = base_it->second;
+                    continue;
+                }
+            }
+
+            auto it = ctx.proc_prototypes.data.find(key);
+            if (it != ctx.proc_prototypes.data.end()) {
+                i = it;
+                break;
+            }
+            auto base_it = ctx.class_bases.find(cls);
+            if (base_it == ctx.class_bases.end())
+                break;
+            cls = base_it->second;
+        }
+    }
+    rt_error_if(i == ctx.proc_prototypes.data.cend(),
+        rt_error_code_t::value_t::E_SUB_UNDEF, mangled);
+
+    // Check access (public/private) for the resolved method
+    {
+        auto vis_it = ctx.class_member_visibility.find(i->first);
         if (vis_it != ctx.class_member_visibility.end() && !vis_it->second) {
-            // Private: only callable from within the same class
             const std::string scope_id = ctx.proc_scope.get_scope_id();
             const bool same_class = !scope_id.empty()
                 && scope_id.size() > class_name.size()
                 && scope_id.substr(0, class_name.size() + 1)
                     == class_name + ".";
             rt_error_if(!same_class, rt_error_code_t::value_t::E_MEMBER_ACCESS,
-                mangled);
+                i->first);
         }
     }
 
-    // Look up the method prototype
-    const auto i = ctx.proc_prototypes.data.find(mangled);
-    rt_error_if(i == ctx.proc_prototypes.data.end(),
-        rt_error_code_t::value_t::E_SUB_UNDEF, mangled);
-
     const auto& prototype = i->second.second;
     rt_error_if(prototype.parameters.size() != _args.size(),
-        rt_error_code_t::value_t::E_WRG_NUM_ARGS, mangled);
+        rt_error_code_t::value_t::E_WRG_NUM_ARGS, i->first);
 
     // Evaluate arguments
     std::vector<variant_t> values;
@@ -107,11 +136,11 @@ void stmt_method_call_t::run(rt_prog_ctx_t& ctx)
         ctx.byref_writeback_stack.push_back(std::move(frame));
     }
 
-    // Jump to method body
+    // Jump to method body; use the resolved method's key for scope naming
     ctx.set_return_line(
         std::make_pair(ctx.runtime_pc.get_line(), get_stmt_id()));
     ctx.go_to(i->second.first);
-    ctx.proc_scope.enter_scope(mangled, false);
+    ctx.proc_scope.enter_scope(i->first, false);
 
     // Inject "Me" as a copy of the object into the callee scope
     auto callee_scope = ctx.proc_scope.get();
