@@ -104,6 +104,30 @@ Version 1.60 was the largest infrastructure release since the original:
   shortcuts, and clean uninstallation.
 - Scintilla updated to its latest version.
 
+## Breaking Changes: Removed Deprecated APIs, Parser Refactor (April 2026, v2.0)
+
+Version 2.0 removes all deprecated built-in functions announced in v1.62 and refactors the
+statement parser internals.
+
+**Removed deprecated scalar date/time functions** — `SysDay`, `SysMonth`, `SysYear`, `SysWDay`,
+`SysYDay`, `SysHour`, `SysMin`, `SysSec` are gone. Use `GetDateTime()` which returns a `DateTime`
+struct with all fields in a single call.
+
+**Removed deprecated scalar mouse functions** — `GetMouseX`, `GetMouseY`, `GetMouseBtn` are gone.
+Use `GetMouse()` which returns a `Mouse` struct with fields `x`, `y`, and `btn`.
+
+**Statement parser refactored** — the monolithic `stmt_parser_t` class has been renamed to
+`statement_parser_t` and its source split into three focused files: `nu_parser_io.cc` (I/O
+statements), `nu_parser_flow.cc` (control-flow statements), and `nu_parser_struct.cc`
+(struct/class statements). The public header is now `include/parser/nu_statement_parser.h`.
+
+**Bug fixes**:
+- `Print #n` with a space between `Print` and `#n` now works correctly.
+- `On expr GoTo lbl1, lbl2, ...` now dispatches to all labels in the list, not only the first.
+- `lbl: statement` inline syntax after an `On...GoTo` dispatch no longer raises a syntax error.
+
+---
+
 ## Struct-returning Functions, Screen Mode, Regression Tests (April 2026, v1.62)
 
 Version 1.62 introduced new built-in functions that return all their values in a single struct
@@ -116,8 +140,8 @@ return values. `GetDateTime()` returns a `DateTime` struct with fields `year`, `
 `x`, `y`, and `btn`. Both struct types are pre-registered at interpreter startup so that
 `Dim dt As DateTime` and `Dim m As Mouse` work without a user-written `Struct` block. The
 previous individual functions (`SysYear`, `SysMonth`, `SysDay`, `SysHour`, `SysMin`, `SysSec`,
-`SysWDay`, `SysYDay`, `GetMouseX`, `GetMouseY`, `GetMouseBtn`) are deprecated and will be
-removed in nuBASIC v2.0.
+`SysWDay`, `SysYDay`, `GetMouseX`, `GetMouseY`, `GetMouseBtn`) were deprecated in v1.62 and
+removed in v2.0.
 
 **`SCREEN` statement** — `Screen 0` switches to text/headless mode: all I/O goes through the
 real Windows console (stdout/stdin) and every GDI drawing call is a silent no-op. `Screen 1`

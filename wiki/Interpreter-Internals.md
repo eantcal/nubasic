@@ -34,7 +34,7 @@ The interpreter follows the classical pipeline: source text → tokens → abstr
 | **Token List** | `token_list_t` | `include/nu_token_list.h` |
 | **Expression Parser** | `expr_parser_t` | `include/nu_expr_parser.h` |
 | **Expression node base** | `expr_any_t` | `include/nu_expr_any.h` |
-| **Statement Parser** | `stmt_parser_t` | `include/nu_stmt_parser.h` |
+| **Statement Parser** | `statement_parser_t` | `include/parser/nu_statement_parser.h` |
 | **Statement base** | `stmt_t` | `include/nu_stmt.h` |
 | **Static Program Context** | `prog_ctx_t` | `include/nu_prog_ctx.h` |
 | **Runtime Program Context** | `rt_prog_ctx_t` | `include/nu_rt_prog_ctx.h` |

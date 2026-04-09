@@ -22,7 +22,7 @@ nuBASIC is a modern, open-source BASIC interpreter written in modern C++, availa
 ## Documentation
 
 - **[Wiki](https://github.com/eantcal/nubasic/wiki)** — full language reference, graphics API, IDE guide, interpreter internals, and build instructions
-- **[User Guide](https://github.com/eantcal/nubasic/blob/master/docs/nubasic-guide.md)** — complete guide in a single document (v1.61)
+- **[User Guide](https://github.com/eantcal/nubasic/blob/master/docs/nubasic-guide.md)** — complete guide in a single document (v2.0)
 - **[Examples](https://github.com/eantcal/nubasic/tree/master/examples)** — ready-to-run `.bas` programs covering games, graphics, fractals, animations, and more
 
 ## Quick Start

@@ -10,6 +10,23 @@ Please send bug reports for nuBASIC and nuBASIC IDE to:
 The Win32/64 build created with Visual Studio 2022 requires the
 "Visual C++ Redistributable Packages for Visual Studio 2022".
 
+2026 (WIP)
+* Released nuBASIC 2.0
+- Removed all deprecated scalar date/time built-in functions: SysDay, SysMonth,
+  SysYear, SysWDay, SysYDay, SysHour, SysMin, SysSec. Use GetDateTime() instead.
+- Removed all deprecated scalar mouse built-in functions: GetMouseX, GetMouseY,
+  GetMouseBtn. Use GetMouse() instead.
+- Refactored the statement parser: class renamed from stmt_parser_t to
+  statement_parser_t; source split into nu_parser_io.cc, nu_parser_flow.cc, and
+  nu_parser_struct.cc for maintainability.
+- Fixed Print #n syntax: "Print #1 s$" (space between Print and #n) now works
+  identically to "Print#1 s$".
+- Fixed On...GoTo: multiple labels in the label list were not parsed correctly
+  (only the first label was recognized). Now all labels are dispatched correctly.
+- Fixed On...GoTo: inline label+statement syntax "lbl: stmt" on the same logical
+  line following an On...GoTo dispatch no longer raises a syntax error.
+- Added regression tests for On...GoTo (all three dispatch indices).
+
 April 2026
 * Released nuBASIC 1.62
 - Added GetDateTime() built-in function returning a DateTime struct with all
