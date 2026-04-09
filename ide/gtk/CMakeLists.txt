@@ -65,10 +65,10 @@ target_compile_features(nubasicide PRIVATE cxx_std_20)
 # Link against the CMake-built Scintilla target (set by cmake/ScintillaFetch.cmake)
 # Falls back to the prebuilt .a if SCINTILLA_LOCAL=ON
 if(TARGET scintilla)
-    target_link_libraries(nubasicide nubasicinterpreter scintilla mipjson ${X11_LIBRARIES} ${GTK2_LIBRARIES} -pthread)
+    target_link_libraries(nubasicide nuBasicInterpreter scintilla mipjson ${X11_LIBRARIES} ${GTK2_LIBRARIES} -pthread)
 else()
     # SCINTILLA_LOCAL fallback: use the prebuilt scintilla.a
-    target_link_libraries(nubasicide nubasicinterpreter
+    target_link_libraries(nubasicide nuBasicInterpreter
         "${CMAKE_SOURCE_DIR}/ide/scintilla/bin/scintilla.a"
         mipjson ${X11_LIBRARIES} ${GTK2_LIBRARIES} -pthread)
 endif()
