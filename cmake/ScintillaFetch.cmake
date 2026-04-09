@@ -174,6 +174,9 @@ if(_build_scintilla)
         )
 
         target_compile_features(scintilla PRIVATE cxx_std_17)
+
+        # Suppress warnings from third-party Scintilla/GTK2 code
+        target_compile_options(scintilla PRIVATE -w)
     endif()
 
 endif() # _build_scintilla

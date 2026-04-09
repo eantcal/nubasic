@@ -34,6 +34,9 @@
 
 #include "mip_json_parser.h"
 
+#include "ILexer.h"
+#include "Lexilla.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <gtk/gtk.h>
@@ -489,7 +492,8 @@ struct app_t : public nu::dialog_search_t::observer_t {
         ed.cmd(SCI_SETCARETPERIOD, nu::editor_t::DEF_CARETPERIOD, 0);
 
         ed.cmd(SCI_SETUSETABS, 0, 0L);
-        ed.cmd(SCI_SETLEXER, SCLEX_VB);
+        ILexer5* lexer = CreateLexer("vb");
+        ed.cmd(SCI_SETILEXER, 0, (sptr_t)lexer);
 
         static std::string keywords;
         for (const auto& keyword : nu::reserved_keywords_t::list()) {
