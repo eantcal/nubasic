@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 2.8.12)
 
-set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++20" )
-
 include (${CMAKE_ROOT}/Modules/FindX11.cmake)
 include (${CMAKE_ROOT}/Modules/FindGTK2.cmake)
 
@@ -36,12 +34,19 @@ endif()
 
 add_subdirectory(mipjson)
 
-set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GTK2_DEFINITIONS} -std=c++14 -Wmissing-field-initializers" )
+set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GTK2_DEFINITIONS} -Wmissing-field-initializers" )
 
 # SCINTILLA_INCLUDE_DIRS and LEXILLA_INCLUDE_DIRS are set by cmake/ScintillaFetch.cmake
 include_directories(
     ../../
     ../../include
+    ../../include/parser
+    ../../include/ast
+    ../../include/statements
+    ../../include/runtime
+    ../../include/types
+    ../../include/api
+    ../../include/util
     mipjson/include
     mipjson/miptknzr/include
     ${SCINTILLA_INCLUDE_DIRS}
