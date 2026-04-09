@@ -395,57 +395,22 @@ int _os_get_screen_height() noexcept
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_mouse_x() noexcept
-{
-    POINT pt = { 0 };
-    GetPhysicalCursorPos(&pt);
-    MapWindowPoints(NULL, gdi_ctx_t::_get_target_hwnd(), &pt, 1);
-    return pt.x;
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-int _os_get_mouse_y() noexcept
-{
-    POINT pt = { 0 };
-    GetPhysicalCursorPos(&pt);
-    MapWindowPoints(NULL, gdi_ctx_t::_get_target_hwnd(), &pt, 1);
-    return pt.y;
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-int _os_get_mouse_btn() noexcept
-{
-    int ret = 0;
-
-    if (GetAsyncKeyState(VK_LBUTTON)) {
-        ret |= 1;
-    }
-
-    if (GetAsyncKeyState(VK_RBUTTON)) {
-        ret |= 4;
-    }
-
-    if (GetAsyncKeyState(VK_MBUTTON)) {
-        ret |= 2;
-    }
-
-    return ret;
-}
-
-
-/* -------------------------------------------------------------------------- */
-
 variant_t _os_get_mouse_state()
 {
+    POINT pt = { 0 };
+    GetPhysicalCursorPos(&pt);
+    MapWindowPoints(NULL, gdi_ctx_t::_get_target_hwnd(), &pt, 1);
+    int btn = 0;
+    if (GetAsyncKeyState(VK_LBUTTON))
+        btn |= 1;
+    if (GetAsyncKeyState(VK_RBUTTON))
+        btn |= 4;
+    if (GetAsyncKeyState(VK_MBUTTON))
+        btn |= 2;
     variant_t result("mouse", variant_t::struct_data_t{});
-    result.define_struct_member("x", variant_t(integer_t(_os_get_mouse_x())));
-    result.define_struct_member("y", variant_t(integer_t(_os_get_mouse_y())));
-    result.define_struct_member(
-        "btn", variant_t(integer_t(_os_get_mouse_btn())));
+    result.define_struct_member("x", variant_t(integer_t(pt.x)));
+    result.define_struct_member("y", variant_t(integer_t(pt.y)));
+    result.define_struct_member("btn", variant_t(integer_t(btn)));
     return result;
 }
 
@@ -1200,55 +1165,16 @@ int _os_get_screen_width() noexcept
 
 /* -------------------------------------------------------------------------- */
 
-int _os_get_mouse_x() noexcept
-{
-    mouse_ctx_t ctx;
-    int btn = 0;
-    std::pair<int, int> pos = { 0, 0 };
-
-    bool res = ctx.get_mouse_event(btn, pos);
-
-    return res ? pos.first : 0;
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-int _os_get_mouse_y() noexcept
-{
-    mouse_ctx_t ctx;
-    int btn = 0;
-    std::pair<int, int> pos = { 0, 0 };
-
-    bool res = ctx.get_mouse_event(btn, pos);
-
-    return res ? pos.second : 0;
-}
-
-
-/* -------------------------------------------------------------------------- */
-
-int _os_get_mouse_btn() noexcept
-{
-    mouse_ctx_t ctx;
-    int btn = 0;
-    std::pair<int, int> pos = { 0, 0 };
-
-    bool res = ctx.get_mouse_event(btn, pos);
-
-    return res ? btn : 0;
-}
-
-
-/* -------------------------------------------------------------------------- */
-
 variant_t _os_get_mouse_state()
 {
+    mouse_ctx_t ctx;
+    int btn = 0;
+    std::pair<int, int> pos = { 0, 0 };
+    ctx.get_mouse_event(btn, pos);
     variant_t result("mouse", variant_t::struct_data_t{});
-    result.define_struct_member("x", variant_t(integer_t(_os_get_mouse_x())));
-    result.define_struct_member("y", variant_t(integer_t(_os_get_mouse_y())));
-    result.define_struct_member(
-        "btn", variant_t(integer_t(_os_get_mouse_btn())));
+    result.define_struct_member("x", variant_t(integer_t(pos.first)));
+    result.define_struct_member("y", variant_t(integer_t(pos.second)));
+    result.define_struct_member("btn", variant_t(integer_t(btn)));
     return result;
 }
 
@@ -1356,8 +1282,6 @@ int _os_set_topmost() noexcept
 
 } // namespace nu
 
-
-/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 

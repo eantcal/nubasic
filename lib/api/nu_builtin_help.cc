@@ -436,58 +436,12 @@ static help_content_t _help_content[] = {
         "  second — second 0-59\n"
         "  wday   — weekday 0-6 (0=Sunday)\n"
         "  yday   — day of year 0-365\n"
-        "Preferred over the individual SysYear/SysMonth/... functions, "
-        "which are deprecated and will be removed in nuBASIC v2.0.\n"
         "Example:\n"
         "  Dim dt As DateTime\n"
         "  dt = GetDateTime()\n"
         "  Print dt.year; \"/\"; dt.month; \"/\"; dt.day",
         "Dim dt As DateTime\ndt = GetDateTime()\nPrint dt.year; \"/\"; "
         "dt.month; \"/\"; dt.day\n" },
-
-    { lang_item_t::FUNCTION, "sysmonth",
-        "Returns the month (1-12) for the system date, according to local "
-        "time.\n"
-        "DEPRECATED (v2.0): use GetDateTime().month instead.",
-        "SysMonth()" },
-
-    { lang_item_t::FUNCTION, "sysyear",
-        "Returns the year for the system date, according to local time.\n"
-        "DEPRECATED (v2.0): use GetDateTime().year instead.",
-        "SysYear()" },
-
-    { lang_item_t::FUNCTION, "sysday",
-        "Returns the day of month (1-31) for the system date, according to "
-        "local time.\n"
-        "DEPRECATED (v2.0): use GetDateTime().day instead.",
-        "SysDay()" },
-
-    { lang_item_t::FUNCTION, "syswday",
-        "Returns the week day (0-6, Sunday=0) for the system date, according "
-        "to local time.\n"
-        "DEPRECATED (v2.0): use GetDateTime().wday instead.",
-        "SysWDay()" },
-
-    { lang_item_t::FUNCTION, "sysyday",
-        "Returns the day of year (0-365) for the system date, according to "
-        "local time.\n"
-        "DEPRECATED (v2.0): use GetDateTime().yday instead.",
-        "SysYDay()" },
-
-    { lang_item_t::FUNCTION, "syshour",
-        "Returns the hour (0-23) of the current time.\n"
-        "DEPRECATED (v2.0): use GetDateTime().hour instead.",
-        "SysHour()" },
-
-    { lang_item_t::FUNCTION, "sysmin",
-        "Returns the minute (0-59) of the current hour.\n"
-        "DEPRECATED (v2.0): use GetDateTime().minute instead.",
-        "SysMin()" },
-
-    { lang_item_t::FUNCTION, "syssec",
-        "Returns the second (0-59) of the current minute.\n"
-        "DEPRECATED (v2.0): use GetDateTime().second instead.",
-        "SysSec()" },
 
     { lang_item_t::FUNCTION, "systime",
         "returns a local time and date in the "
@@ -1011,29 +965,12 @@ static help_content_t _help_content[] = {
         "  x   — cursor X in pixels from the left edge of the window\n"
         "  y   — cursor Y in pixels from the top edge of the window\n"
         "  btn — button mask: 0=none, 1=left, 2=middle, 4=right\n"
-        "Preferred over the individual GetMouseX/Y/Btn functions, "
-        "which are deprecated and will be removed in nuBASIC v2.0.\n"
         "Example:\n"
         "  Dim m As Mouse\n"
         "  m = GetMouse()\n"
         "  If m.btn = 1 Then Print \"Left click at\"; m.x; \",\"; m.y",
         "Dim m As Mouse\nm = GetMouse()\nIf m.btn = 1 Then Print \"Click at\"; "
         "m.x; \",\"; m.y\n" },
-
-    { lang_item_t::FUNCTION, "getmousex",
-        "Returns the current X position of the mouse in pixels.\n"
-        "DEPRECATED (v2.0): use GetMouse().x instead.",
-        "GetMouseX()" },
-
-    { lang_item_t::FUNCTION, "getmousey",
-        "Returns the current Y position of the mouse in pixels.\n"
-        "DEPRECATED (v2.0): use GetMouse().y instead.",
-        "GetMouseY()" },
-
-    { lang_item_t::FUNCTION, "getmousebtn",
-        "Returns the mouse button state: 1=left, 2=middle, 4=right, 0=none.\n"
-        "DEPRECATED (v2.0): use GetMouse().btn instead.",
-        "GetMouseBtn()" },
 
     { lang_item_t::FUNCTION, "getsheight",
         "Gets height in pixels of nuBASIC working window client area",

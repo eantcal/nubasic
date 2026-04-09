@@ -74,7 +74,6 @@ void prog_ctx_t::clear_metadata()
 void prog_ctx_t::register_builtin_struct_prototypes()
 {
     // DateTime — all date/time fields in one struct.
-    // Replaces the individual SysYear/SysMonth/... functions (deprecated v2.0).
     {
         variant_t proto("datetime", variant_t::struct_data_t{});
         proto.define_struct_member(
@@ -98,7 +97,6 @@ void prog_ctx_t::register_builtin_struct_prototypes()
     }
 
     // Mouse — pointer position and button state in one struct.
-    // Replaces the individual GetMouseX/Y/Btn functions (deprecated v2.0).
     {
         variant_t proto("mouse", variant_t::struct_data_t{});
         proto.define_struct_member(

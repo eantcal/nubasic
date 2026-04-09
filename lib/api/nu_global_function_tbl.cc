@@ -1460,39 +1460,6 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
         fmap["getwindowdy"] = functor_getwindowdy;
 
 
-        auto functor_getmousex = [](rt_prog_ctx_t& ctx, const std::string& name,
-                                     const nu::func_args_t& args) {
-            (void)ctx;
-            check_arg_num(args, 0, name);
-            return nu::variant_t(integer_t(_os_get_mouse_x()));
-        };
-
-        fmap["getmousex"] = functor_getmousex;
-
-
-        auto functor_getmousey = [](rt_prog_ctx_t& ctx, const std::string& name,
-                                     const nu::func_args_t& args) {
-            (void)ctx;
-            check_arg_num(args, 0, name);
-            return nu::variant_t(integer_t(_os_get_mouse_y()));
-        };
-
-        fmap["getmousey"] = functor_getmousey;
-
-
-        auto functor_getmousebtn
-            = [](rt_prog_ctx_t& ctx, const std::string& name,
-                  const nu::func_args_t& args) {
-                  (void)ctx;
-                  check_arg_num(args, 0, name);
-                  return nu::variant_t(integer_t(_os_get_mouse_btn()));
-              };
-
-        fmap["getmousebtn"] = functor_getmousebtn;
-
-        // GetMouse() — returns a Mouse struct with x, y, btn fields at once.
-        // Preferred over the individual GetMouseX/Y/Btn functions (deprecated
-        // v2.0).
         auto functor_getmouse = [](rt_prog_ctx_t& ctx, const std::string& name,
                                     const nu::func_args_t& args) {
             (void)ctx;
@@ -1559,33 +1526,13 @@ global_function_tbl_t& global_function_tbl_t::get_instance()
         fmap["ver$"] = functor_ver;
 
 
-#define NUBASIC_DEF_FTIME(__item)                                              \
-    auto functor_get_##__item                                                  \
-        = [](rt_prog_ctx_t& ctx, const std::string& name,                      \
-              const nu::func_args_t& args) {                                   \
-              (void)ctx;                                                       \
-              check_arg_num(args, 0, name);                                    \
-              return nu::variant_t(integer_t(nu::_os_get_##__item()));         \
-          };
+        auto functor_get_time = [](rt_prog_ctx_t& ctx, const std::string& name,
+                                    const nu::func_args_t& args) {
+            (void)ctx;
+            check_arg_num(args, 0, name);
+            return nu::variant_t(integer_t(nu::_os_get_time()));
+        };
 
-        NUBASIC_DEF_FTIME(day);
-        NUBASIC_DEF_FTIME(month);
-        NUBASIC_DEF_FTIME(year);
-        NUBASIC_DEF_FTIME(wday);
-        NUBASIC_DEF_FTIME(yday);
-        NUBASIC_DEF_FTIME(hour);
-        NUBASIC_DEF_FTIME(min);
-        NUBASIC_DEF_FTIME(sec);
-        NUBASIC_DEF_FTIME(time);
-
-        fmap["sysday"] = functor_get_day;
-        fmap["sysmonth"] = functor_get_month;
-        fmap["sysyear"] = functor_get_year;
-        fmap["syswday"] = functor_get_wday;
-        fmap["sysyday"] = functor_get_yday;
-        fmap["syshour"] = functor_get_hour;
-        fmap["sysmin"] = functor_get_min;
-        fmap["syssec"] = functor_get_sec;
         fmap["time"] = functor_get_time;
 
         auto functor_sys_time = [](rt_prog_ctx_t& ctx, const std::string& name,

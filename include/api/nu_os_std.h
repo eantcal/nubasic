@@ -59,30 +59,6 @@ void _os_randomize();
 
 // Date and time
 
-//! Returns local-time day in the range 1-31
-int _os_get_day();
-
-//! Returns local-time month in the range 1-12
-int _os_get_month();
-
-//! Returns local-time year since 1900
-int _os_get_year();
-
-//! Returns local-time week day in the range 0-6 (0 - Sunday)
-int _os_get_wday();
-
-//! Returns local-time year day in the range 0-365
-int _os_get_yday();
-
-//! Returns local-time hour in the range 0-23
-int _os_get_hour();
-
-//! Returns local-time minute of hour in the range 0-59
-int _os_get_min();
-
-//! Returns local-time second of hour in the range 0-59
-int _os_get_sec();
-
 //! Returns local-time in seconds since 1st of Gen-1900
 int _os_get_time();
 

@@ -8,8 +8,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __NU_STMT_PARSER_H__
-#define __NU_STMT_PARSER_H__
+#ifndef __NU_STATEMENT_PARSER_H__
+#define __NU_STATEMENT_PARSER_H__
 
 #include "nu_var_scope.h"
 
@@ -27,7 +27,7 @@
 /* -------------------------------------------------------------------------- */
 
 namespace nu {
-class stmt_parser_t {
+class statement_parser_t {
 protected:
     prog_pointer_t::line_number_t _parsing_line = 0;
     prog_pointer_t::stmt_number_t _parsing_stmt = 0;
@@ -511,9 +511,9 @@ protected:
         token_list_t& tl, token_list_t& vect_etl);
 
 public:
-    stmt_parser_t() = default;
-    stmt_parser_t(const stmt_parser_t&) = default;
-    stmt_parser_t& operator=(const stmt_parser_t&) = default;
+    statement_parser_t() = default;
+    statement_parser_t(const statement_parser_t&) = default;
+    statement_parser_t& operator=(const statement_parser_t&) = default;
 
     stmt_t::handle_t compile_line(nu::expr_tknzr_t& st, prog_ctx_t& ctx);
     stmt_t::handle_t compile_line(nu::token_list_t& tl, prog_ctx_t& ctx);

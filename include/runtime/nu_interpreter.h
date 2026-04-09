@@ -16,7 +16,7 @@
 
 #include "nu_basic_defs.h"
 #include "nu_program.h"
-#include "nu_stmt_parser.h"
+#include "nu_statement_parser.h"
 #include "nu_tokenizer.h"
 
 #include <cstdio>
@@ -220,7 +220,7 @@ private:
     prog_line_t _prog_line;
     source_line_t _source_line;
     rt_prog_ctx_t _prog_ctx;
-    nu::stmt_parser_t _parser;
+    nu::statement_parser_t _parser;
     FILE* _stdout_ptr;
     FILE* _stdin_ptr;
 };

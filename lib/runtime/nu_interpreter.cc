@@ -1231,7 +1231,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         if (cmd == "break") {
             token_list_t tl;
             tknzr.get_tknlst(tl);
-            stmt_parser_t::remove_blank(tl);
+            statement_parser_t::remove_blank(tl);
 
             if (tl.empty()) {
                 for (auto& b : _breakpoints) {
@@ -1248,7 +1248,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
             if (token.type() == tkncl_t::INTEGRAL) {
                 line = nu::stoi(token.identifier());
                 --tl;
-                stmt_parser_t::remove_blank(tl);
+                statement_parser_t::remove_blank(tl);
 
                 if (tl.empty()) {
                     return set_breakpoint(line, breakpoint_cond_t("", nullptr));
