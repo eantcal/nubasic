@@ -208,29 +208,35 @@ Next ii%
 AssertEq "nested 3x3 iterations", Str$(cnt%), "9"
 
 ' -----------------------------------------------------------------------
-' 10. ON GOTO
+' 10. ON GOTO — label list, inline label+statement, out-of-range fall-through
 ' -----------------------------------------------------------------------
 Print "--- 10. ON GOTO ---"
 
 Dim selector% As Integer
 r$ = ""
 ' ON GOTO is 0-based: selector%=0 -> Case1, 1 -> Case2, 2 -> Case3
-selector% = 1
-On selector% GoTo Case1, Case2, Case3
+selector% = 0 : On selector% GoTo Case1, Case2, Case3
+Case1: r$ = "one"   : GoTo EndSel0
+Case2: r$ = "two"   : GoTo EndSel0
+Case3: r$ = "three"
+EndSel0:
+AssertEq "on goto idx=0 -> one", r$, "one"
 
-Case1:
-    r$ = "one"
-    GoTo EndSelect
+r$ = ""
+selector% = 1 : On selector% GoTo Case1b, Case2b, Case3b
+Case1b: r$ = "one"   : GoTo EndSel1
+Case2b: r$ = "two"   : GoTo EndSel1
+Case3b: r$ = "three"
+EndSel1:
+AssertEq "on goto idx=1 -> two", r$, "two"
 
-Case2:
-    r$ = "two"
-    GoTo EndSelect
-
-Case3:
-    r$ = "three"
-
-EndSelect:
-AssertEq "on goto case 2 (0-based idx=1)", r$, "two"
+r$ = ""
+selector% = 2 : On selector% GoTo Case1c, Case2c, Case3c
+Case1c: r$ = "one"   : GoTo EndSel2
+Case2c: r$ = "two"   : GoTo EndSel2
+Case3c: r$ = "three"
+EndSel2:
+AssertEq "on goto idx=2 -> three", r$, "three"
 
 ' -----------------------------------------------------------------------
 ' Summary

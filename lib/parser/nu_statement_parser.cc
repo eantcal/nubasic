@@ -358,6 +358,11 @@ stmt_t::handle_t statement_parser_t::parse_label(
         --tl; // consume ':'
         remove_blank(tl);
 
+        // If more statements follow on the same logical line (e.g. "lbl: x=1"),
+        // parse them now so parse_block doesn't require an extra ':' separator.
+        if (!tl.empty())
+            return parse_block(ctx, tl);
+
         return stmt_t::handle_t(std::make_shared<stmt_empty_t>(ctx));
     }
 

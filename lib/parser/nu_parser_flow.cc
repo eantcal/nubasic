@@ -330,7 +330,7 @@ stmt_on_goto_t::label_list_t statement_parser_t::parse_label_list(
 
     while (!tl.empty()
         && (tl.begin()->type() != tkncl_t::OPERATOR
-            && tl.begin()->identifier() != ":")) {
+            || tl.begin()->identifier() != ":")) {
         token = *tl.begin();
 
         syntax_error_if(token.type() != tkncl_t::IDENTIFIER, token.expression(),
