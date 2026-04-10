@@ -26,6 +26,40 @@
 
 namespace nu {
 
+namespace {
+
+    bool consume_qualified_callable_name(token_list_t& tl, std::string& name,
+        const std::string& expr, size_t pos)
+    {
+        if (tl.empty()) {
+            return false;
+        }
+
+        auto token = *tl.begin();
+
+        if (token.type() != tkncl_t::OPERATOR || token.identifier() != "::") {
+            return false;
+        }
+
+        --tl;
+        statement_parser_t::remove_blank(tl);
+        syntax_error_if(tl.empty(), expr, pos);
+
+        token = *tl.begin();
+        syntax_error_if(token.type() != tkncl_t::IDENTIFIER, token.expression(),
+            token.position());
+
+        name += "::";
+        name += token.identifier();
+
+        --tl;
+        statement_parser_t::remove_blank(tl);
+
+        return true;
+    }
+
+} // namespace
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -127,6 +161,83 @@ stmt_t::handle_t statement_parser_t::parse_mdelay(
 
 /* -------------------------------------------------------------------------- */
 
+stmt_t::handle_t statement_parser_t::parse_using(
+    prog_ctx_t& ctx, token_t token, nu::token_list_t& tl)
+{
+    --tl;
+    remove_blank(tl);
+
+    syntax_error_if(tl.empty(), token.expression(), token.position());
+    token = *tl.begin();
+    syntax_error_if(token.type() != tkncl_t::IDENTIFIER, token.expression(),
+        token.position());
+
+    const std::string module_name = token.identifier();
+
+    --tl;
+    remove_blank(tl);
+    syntax_error_if(!tl.empty(), token.expression(), token.position());
+
+    return stmt_t::handle_t(std::make_shared<stmt_using_t>(ctx, module_name));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+stmt_t::handle_t statement_parser_t::parse_include(
+    prog_ctx_t& ctx, token_t token, nu::token_list_t& tl)
+{
+    --tl;
+    remove_blank(tl);
+
+    syntax_error_if(tl.empty(), token.expression(), token.position());
+    token = *tl.begin();
+    syntax_error_if(token.type() != tkncl_t::STRING_LITERAL, token.expression(),
+        token.position());
+
+    const std::string module_name = token.identifier();
+
+    --tl;
+    remove_blank(tl);
+    syntax_error_if(!tl.empty(), token.expression(), token.position());
+
+    return stmt_t::handle_t(std::make_shared<stmt_using_t>(ctx, module_name));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+stmt_t::handle_t statement_parser_t::parse_syntax(
+    prog_ctx_t& ctx, token_t token, nu::token_list_t& tl)
+{
+    --tl;
+    remove_blank(tl);
+
+    syntax_error_if(tl.empty(), token.expression(), token.position());
+    token = *tl.begin();
+    syntax_error_if(token.type() != tkncl_t::IDENTIFIER, token.expression(),
+        token.position());
+
+    prog_ctx_t::syntax_mode_t mode;
+
+    if (token.identifier() == "legacy") {
+        mode = prog_ctx_t::syntax_mode_t::LEGACY;
+    } else if (token.identifier() == "modern") {
+        mode = prog_ctx_t::syntax_mode_t::MODERN;
+    } else {
+        syntax_error(token.expression(), token.position());
+    }
+
+    --tl;
+    remove_blank(tl);
+    syntax_error_if(!tl.empty(), token.expression(), token.position());
+
+    return stmt_t::handle_t(std::make_shared<stmt_syntax_t>(ctx, mode));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 stmt_t::handle_t statement_parser_t::parse_expr(
     prog_ctx_t& ctx, token_t token, nu::token_list_t& tl)
 {
@@ -217,6 +328,38 @@ stmt_t::handle_t statement_parser_t::parse_let(
 
     --tl;
     remove_blank(tl);
+
+    if (consume_qualified_callable_name(tl, identifier, expr, pos)) {
+        if (tl.empty()) {
+            return stmt_t::handle_t(
+                std::make_shared<stmt_call_t>(identifier, ctx));
+        }
+
+        token = *tl.begin();
+
+        if (token.type() == tkncl_t::SUBEXP_BEGIN) {
+            --tl;
+            remove_blank(tl);
+
+            if (!tl.empty() && tl.begin()->type() == tkncl_t::SUBEXP_END) {
+                --tl;
+                return std::make_shared<stmt_call_t>(identifier, ctx);
+            }
+
+            if (!tl.empty() && tl.rbegin()->type() == tkncl_t::SUBEXP_END) {
+                tl--;
+            }
+
+            token = *tl.begin();
+        }
+
+        return parse_arg_list<stmt_call_t, 0>(
+            ctx, token, tl,
+            [](const token_t& t) {
+                return t.type() == tkncl_t::OPERATOR && t.identifier() == ",";
+            },
+            identifier, ctx);
+    }
 
     if (tl.empty()) {
         return stmt_t::handle_t(std::make_shared<stmt_call_t>(identifier, ctx));
@@ -321,7 +464,8 @@ stmt_t::handle_t statement_parser_t::parse_let(
 
     move_sub_expression(tl, etl, ":", tkncl_t::OPERATOR);
 
-    syntax_error_if(!variable_t::is_valid_name(identifier, false),
+    syntax_error_if(!struct_member_id && identifier != "me"
+            && !variable_t::is_valid_name(identifier, false),
         identifier + " is an invalid identifier");
 
     return stmt_t::handle_t(std::make_shared<stmt_let_t>(ctx, identifier,
@@ -490,6 +634,9 @@ stmt_t::handle_t statement_parser_t::parse_end(
             auto h = stmt_t::handle_t(std::make_shared<stmt_endclass_t>(ctx));
             ctx.compiling_class_name.clear();
             return h;
+        } else if (id == "select") {
+            --tl;
+            return stmt_t::handle_t(std::make_shared<stmt_end_select_t>(ctx));
         } else {
             syntax_error(token.expression(), token.position());
         }
@@ -792,6 +939,18 @@ stmt_t::handle_t statement_parser_t::parse_stmt(
         return parse_mdelay(ctx, token, tl);
     }
 
+    if (identifier == "using") {
+        return parse_using(ctx, token, tl);
+    }
+
+    if (identifier == "include") {
+        return parse_include(ctx, token, tl);
+    }
+
+    if (identifier == "syntax") {
+        return parse_syntax(ctx, token, tl);
+    }
+
     if (identifier == "input") {
         return parse_input(ctx, token, tl);
     }
@@ -855,6 +1014,14 @@ stmt_t::handle_t statement_parser_t::parse_stmt(
 
     if (identifier == "elif" || identifier == "elseif") {
         return parse_elif_stmt(ctx, token, tl);
+    }
+
+    if (identifier == "select") {
+        return parse_select_case(ctx, token, tl);
+    }
+
+    if (identifier == "case") {
+        return parse_case_stmt(ctx, token, tl);
     }
 
     if (identifier == "for") {
@@ -971,6 +1138,9 @@ stmt_t::handle_t statement_parser_t::parse_stmt(
         std::string proc_name = token.identifier();
         --tl; // consume procedure name
         remove_blank(tl);
+
+        consume_qualified_callable_name(
+            tl, proc_name, token.expression(), token.position());
 
         if (tl.empty())
             return std::make_shared<stmt_call_t>(proc_name, ctx);

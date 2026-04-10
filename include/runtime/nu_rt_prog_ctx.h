@@ -106,6 +106,10 @@ public:
     // Used by IDE to evaluate expressions
     variant_t exported_result;
 
+    // SELECT CASE runtime state: keyed by the SELECT CASE statement's PC
+    std::map<prog_pointer_t, variant_t> select_case_values;
+    std::map<prog_pointer_t, bool> select_case_matched;
+
     // ByRef writeback stack.  One frame per active CALL.  Each entry is a
     // pair of {callee_param_name, caller_variable_name} (qualified names like
     // "obj.field" are handled via get_struct_member_value).

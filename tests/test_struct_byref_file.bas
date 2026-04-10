@@ -4,7 +4,7 @@ Dim fail% As Integer
 pass% = 0
 fail% = 0
 
-Open "c:\Users\acalderone\AppData\Local\Temp\nubasic_test_result.txt" For Output As #1
+Open "nubasic_test_result.txt" For Output As #1
 
 Sub WriteLog(s$)
     Print #1, s$

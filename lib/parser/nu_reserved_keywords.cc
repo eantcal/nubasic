@@ -44,7 +44,8 @@ std::set<std::string>& reserved_keywords_t::list()
         "float", "boolean", "string", "long64", "quit", "settopmost", "stop",
         "screenlock", "screenunlock", "refresh", "byref", "byval", "call",
         "include", "class", "new", "public", "private", "inherits",
-        "overridable", "overrides" };
+        "overridable", "overrides", "select", "case", "me", "using", "syntax",
+        "legacy", "modern" };
 
     return list;
 }

@@ -9,6 +9,7 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_prog_ctx.h"
+#include "nu_builtin_registry.h"
 #include "nu_global_function_tbl.h"
 #include "nu_os_std.h"
 
@@ -27,6 +28,7 @@ prog_ctx_t::prog_ctx_t(FILE* stdout_ptr, FILE* stdin_ptr)
     , _stdin_ptr(stdin_ptr)
 {
     register_builtin_struct_prototypes();
+    set_syntax_mode(syntax_mode_t::LEGACY);
 }
 
 
@@ -40,6 +42,7 @@ void prog_ctx_t::clear_metadata()
     while_metadata.clear();
     do_loop_while_metadata.clear();
     if_metadata.clear();
+    select_case_metadata.clear();
     procedure_metadata.clear();
     proc_prototypes.data.clear();
     struct_prototypes.data.clear();
@@ -63,9 +66,105 @@ void prog_ctx_t::clear_metadata()
 
     function_tbl.clear();
 
+    clear_builtin_module_imports();
+    _syntax_mode = syntax_mode_t::LEGACY;
+    import_all_builtin_modules();
+
     _stmt_id_cnt = 0;
 
     register_builtin_struct_prototypes();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void prog_ctx_t::clear_builtin_module_imports()
+{
+    auto& funcs = global_function_tbl_t::get_instance();
+
+    for (const auto& alias_name : _imported_builtin_aliases) {
+        if (function_tbl.find(alias_name) == function_tbl.end()) {
+            funcs.erase(alias_name);
+        }
+    }
+
+    for (const auto* module : get_builtin_modules()) {
+        if (!module) {
+            continue;
+        }
+
+        for (const auto& export_name : module->exports()) {
+            if (function_tbl.find(export_name) == function_tbl.end()) {
+                funcs.erase(export_name);
+            }
+        }
+    }
+
+    _imported_builtin_aliases.clear();
+    _imported_builtin_modules.clear();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void prog_ctx_t::import_builtin_module(const std::string& module_name)
+{
+    const auto* module = find_builtin_module(module_name);
+
+    if (!module) {
+        throw exception_t("Module '" + module_name + "' is not defined");
+    }
+
+    auto& funcs = global_function_tbl_t::get_instance();
+
+    for (const auto& export_name : module->exports()) {
+        const std::string qualified_name = module_name + "::" + export_name;
+
+        if (!funcs.is_defined(qualified_name)) {
+            throw exception_t("Module '" + module_name
+                + "' has an incomplete registration for '" + export_name + "'");
+        }
+
+        if (funcs.is_defined(export_name)) {
+            if (_imported_builtin_aliases.find(export_name)
+                != _imported_builtin_aliases.end()) {
+                continue;
+            }
+
+            throw exception_t("Cannot import module '" + module_name
+                + "': symbol '" + export_name + "' is already defined");
+        }
+
+        funcs.define(export_name, funcs[qualified_name]);
+        _imported_builtin_aliases.insert(export_name);
+    }
+
+    _imported_builtin_modules.insert(module_name);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void prog_ctx_t::import_all_builtin_modules()
+{
+    for (const auto* module : get_builtin_modules()) {
+        if (module) {
+            import_builtin_module(module->name());
+        }
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void prog_ctx_t::set_syntax_mode(syntax_mode_t mode)
+{
+    clear_builtin_module_imports();
+    _syntax_mode = mode;
+
+    if (mode == syntax_mode_t::LEGACY) {
+        import_all_builtin_modules();
+    }
 }
 
 
@@ -222,6 +321,26 @@ variant_t prog_ctx_t::resolve_struct_element(const std::string& variable_name,
 
 void prog_ctx_t::trace_metadata(std::stringstream& ss)
 {
+    ss << "Syntax mode : "
+       << (_syntax_mode == syntax_mode_t::LEGACY ? "legacy" : "modern")
+       << std::endl;
+
+    if (!_imported_builtin_modules.empty()) {
+        ss << "Imported modules : ";
+
+        auto it = _imported_builtin_modules.begin();
+        while (it != _imported_builtin_modules.end()) {
+            ss << *it;
+            ++it;
+
+            if (it != _imported_builtin_modules.end()) {
+                ss << ", ";
+            }
+        }
+
+        ss << std::endl;
+    }
+
     ss << "Explicit line number reference detected: "
        << (prog_label.get_explicit_line_reference_mode() ? "Y" : "N")
        << std::endl;

@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -42,8 +42,8 @@
 #define NU_BASIC_WORD_OPS                                                      \
     {                                                                          \
         "bxor", "band", "bshr", "bshl", "bor", NU_BASIC_OP_INC,                \
-            NU_BASIC_OP_DEC, "mod", "div", "xor", "and", "or", "<>", "<=",     \
-            ">="                                                               \
+            NU_BASIC_OP_DEC, "::", "mod", "div", "xor", "and", "or", "<>",     \
+            "<=", ">="                                                         \
     }
 #define NU_BASIC_BEGIN_SUBEXPR '('
 #define NU_BASIC_END_SUBEXPR ')'
@@ -51,7 +51,10 @@
 #define NU_BASIC_END_STRING "\""
 #define NU_BASIC_ESCAPE_CHAR '\\'
 
-#define NU_BASIC_LINE_COMMENT { "'" }
+#define NU_BASIC_LINE_COMMENT                                                  \
+    {                                                                          \
+        "'"                                                                    \
+    }
 
 
 /* -------------------------------------------------------------------------- */

@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -28,6 +28,33 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
+// Fold `IDENTIFIER :: IDENTIFIER (` into a single `namespace::func` identifier
+// before the syntax tree sees `::`.  The syntax tree has no precedence rule for
+// `::` and would raise a syntax error if it encountered it as a bare operator.
+static void merge_namespace_qualifier(token_list_t& tl)
+{
+    for (size_t i = 0; i + 3 < tl.size();) {
+        if (tl[i].type() == tkncl_t::IDENTIFIER
+            && tl[i + 1].type() == tkncl_t::OPERATOR
+            && tl[i + 1].identifier() == "::"
+            && tl[i + 2].type() == tkncl_t::IDENTIFIER
+            && tl[i + 3].type() == tkncl_t::SUBEXP_BEGIN) {
+            token_t merged = tl[i];
+            merged.set_identifier(
+                tl[i].identifier() + "::" + tl[i + 2].identifier(),
+                token_t::case_t::LOWER);
+            tl.data()[i] = merged;
+            tl.data().erase(tl.begin() + i + 1, tl.begin() + i + 3);
+            // Don't advance i: check the merged token again
+        } else {
+            ++i;
+        }
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 expr_any_t::handle_t expr_parser_t::compile(expr_tknzr_t& tknzr)
 {
     token_list_t tl;
@@ -39,6 +66,7 @@ expr_any_t::handle_t expr_parser_t::compile(expr_tknzr_t& tknzr)
     expr_syntax_tree_t est;
 
     fix_minus_prefixed_expressions(tl);
+    merge_namespace_qualifier(tl);
 
     // Finally parse the expression tree in order to generate
     // an executable object
@@ -58,6 +86,7 @@ expr_any_t::handle_t expr_parser_t::compile(token_list_t tl, size_t expr_pos)
     expr_syntax_tree_t est;
 
     fix_minus_prefixed_expressions(tl);
+    merge_namespace_qualifier(tl);
     convert_subscription_brackets(tl);
     tl = est(tl);
 
@@ -84,8 +113,7 @@ variant_t::type_t expr_parser_t::get_type(const token_t& t)
     }
 
     if (t.type() == tkncl_t::IDENTIFIER
-        && (t.identifier() == "true" || t.identifier() == "false")) 
-    {
+        && (t.identifier() == "true" || t.identifier() == "false")) {
         return variant_t::type_t::BOOLEAN;
     }
 
@@ -110,11 +138,10 @@ expr_any_t::handle_t expr_parser_t::parse_operand(token_list_t& tl)
     case tkncl_t::OPERATOR:
 
         // ++<identifier> / --<identifier>
-        if (tl.size() > 1 && (tl[0].identifier() == NU_BASIC_OP_INC || 
-            tl[0].identifier() == NU_BASIC_OP_DEC) 
-            && 
-            tl[1].type() == tkncl_t::IDENTIFIER) 
-        {
+        if (tl.size() > 1
+            && (tl[0].identifier() == NU_BASIC_OP_INC
+                || tl[0].identifier() == NU_BASIC_OP_DEC)
+            && tl[1].type() == tkncl_t::IDENTIFIER) {
             auto ret_handle
                 = std::make_shared<expr_unary_op_t>(tl[0].identifier(),
                     std::make_shared<expr_var_t>(tl[1].identifier()));
@@ -127,6 +154,18 @@ expr_any_t::handle_t expr_parser_t::parse_operand(token_list_t& tl)
         break;
 
     case tkncl_t::IDENTIFIER:
+
+        if (tl.size() > 3 && tl[1].type() == tkncl_t::OPERATOR
+            && tl[1].identifier() == "::" && tl[2].type() == tkncl_t::IDENTIFIER
+            && tl[3].type() == tkncl_t::SUBEXP_BEGIN) {
+            token_t merged = tl[0];
+            merged.set_identifier(
+                tl[0].identifier() + "::" + tl[2].identifier(),
+                token_t::case_t::LOWER);
+            tl.data()[0] = merged;
+            tl.data().erase(tl.begin() + 1, tl.begin() + 3);
+            t = *tl.begin();
+        }
 
         // <identifier>+"(" => function
         if (tl.size() > 1 && tl[1].type() == tkncl_t::SUBEXP_BEGIN) {
@@ -171,8 +210,7 @@ expr_any_t::handle_t expr_parser_t::parse_operand(token_list_t& tl)
                     function_name.substr(0, function_name.size() - 1),
                     function_args);
 
-            } 
-            else {
+            } else {
                 // Create an executable object for the parsed function
                 ret_handle = std::make_shared<expr_function_t>(
                     function_name, function_args);
@@ -183,8 +221,7 @@ expr_any_t::handle_t expr_parser_t::parse_operand(token_list_t& tl)
             // NO : return the handle to executable object
             return tl.empty() ? ret_handle : parse(tl, ret_handle);
 
-        } 
-        else {
+        } else {
             std::string id = t.identifier();
             expr_any_t::handle_t ret_handle;
 
@@ -193,8 +230,7 @@ expr_any_t::handle_t expr_parser_t::parse_operand(token_list_t& tl)
 
                 ret_handle = expr_any_t::handle_t(
                     std::make_shared<expr_literal_t>(variant_t(true)));
-            } 
-            else if (id == "false") {
+            } else if (id == "false") {
                 tl.data().erase(tl.begin());
 
                 ret_handle = expr_any_t::handle_t(
@@ -211,14 +247,13 @@ expr_any_t::handle_t expr_parser_t::parse_operand(token_list_t& tl)
 
                 ret_handle = expr_any_t::handle_t(
                     std::make_shared<expr_literal_t>(integer_t(variant_t(n))));
-            } 
-            else {
+            } else {
                 std::string id = t.identifier();
 
                 if (id.size() > 1 && *id.rbegin() == NU_BASIC_BEGIN_SUBSCR)
                     id = id.substr(0, id.size() - 1);
 
-                if (!variable_t::is_valid_name(id, false)) {
+                if (id != "me" && !variable_t::is_valid_name(id, false)) {
                     syntax_error(t.expression(), t.position(),
                         "\"" + id + "\" is an invalid identifier");
                 }
@@ -239,20 +274,20 @@ expr_any_t::handle_t expr_parser_t::parse_operand(token_list_t& tl)
     case tkncl_t::INTEGRAL:
     case tkncl_t::REAL:
     case tkncl_t::STRING_LITERAL: {
-            // Remove token from tl
-            tl.data().erase(tl.begin());
+        // Remove token from tl
+        tl.data().erase(tl.begin());
 
-            // Generates a literal using a "variant" instance
-            // for the executable object
-            expr_any_t::handle_t ret_handle(std::make_shared<expr_literal_t>(
+        // Generates a literal using a "variant" instance
+        // for the executable object
+        expr_any_t::handle_t ret_handle(std::make_shared<expr_literal_t>(
 
-                variant_t(t.identifier(), get_type(t))));
+            variant_t(t.identifier(), get_type(t))));
 
-            // Check if we have other to parse
-            // YES: call recursively parse()
-            // NO : return the handle to executable object
-            return tl.empty() ? ret_handle : parse(tl, ret_handle);
-        }
+        // Check if we have other to parse
+        // YES: call recursively parse()
+        // NO : return the handle to executable object
+        return tl.empty() ? ret_handle : parse(tl, ret_handle);
+    }
 
     case tkncl_t::SUBEXP_BEGIN:
 
@@ -273,11 +308,10 @@ expr_any_t::handle_t expr_parser_t::parse_operand(token_list_t& tl)
             // YES: call recursively parse()
             // NO : return the handle to executable object
             return tl.empty() ? h : parse(tl, h);
-        } 
-        else {
+        } else {
             return expr_any_t::handle_t(std::make_shared<expr_empty_t>());
         }
-        
+
     default:
         break;
     }
@@ -358,7 +392,7 @@ void expr_parser_t::fix_real_numbers(token_list_t& rtl)
 {
     const auto tl_size = rtl.size();
 
-    if (tl_size < 3) 
+    if (tl_size < 3)
         return;
 
     token_list_t tl(std::move(rtl));
@@ -408,15 +442,14 @@ void expr_parser_t::fix_minus_prefixed_expressions(token_list_t& rtl)
 
     token_list_t tl;
 
-    for (size_t i = 0; i < tl_size-1; ++i) {
-        auto & tk1 = rtl[i];
-        auto & tk2 = rtl[i+1];
+    for (size_t i = 0; i < tl_size - 1; ++i) {
+        auto& tk1 = rtl[i];
+        auto& tk2 = rtl[i + 1];
 
         tl += tk1;
 
-        if ((tk1.type() == tkncl_t::OPERATOR && tk1.identifier()!="-") &&
-            (tk2.type() == tkncl_t::OPERATOR && tk2.identifier()=="-"))
-        {
+        if ((tk1.type() == tkncl_t::OPERATOR && tk1.identifier() != "-")
+            && (tk2.type() == tkncl_t::OPERATOR && tk2.identifier() == "-")) {
             auto tkn(tk1);
             tkn.set_identifier("0", token_t::case_t::NOCHANGE);
             tkn.set_type(tkncl_t::INTEGRAL);
@@ -426,7 +459,6 @@ void expr_parser_t::fix_minus_prefixed_expressions(token_list_t& rtl)
         if (i == tl_size - 2) {
             tl += tk2;
         }
-       
     }
 
     rtl = std::move(tl);
@@ -446,8 +478,7 @@ void expr_parser_t::reduce_brackets(token_list_t& rtl)
         if (substr.size() == (rtl.size())) {
             --rtl; // remove head token
             rtl--; // remove tail token
-        } 
-        else {
+        } else {
             break;
         }
     }
@@ -483,8 +514,7 @@ void expr_parser_t::convert_subscription_brackets(token_list_t& rtl)
                 token.set_identifier(
                     NU_BASIC_BEGIN_SUBEXPR_OP, nu::token_t::case_t::LOWER);
             }
-        }
-        else if (token.type() == tkncl_t::SUBSCR_END) {
+        } else if (token.type() == tkncl_t::SUBSCR_END) {
             token.set_type(tkncl_t::SUBEXP_END);
 
             if (token.identifier() == NU_BASIC_END_SUBSCR_OP) {
@@ -498,7 +528,7 @@ void expr_parser_t::convert_subscription_brackets(token_list_t& rtl)
 
 /* -------------------------------------------------------------------------- */
 
-} // namespace
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

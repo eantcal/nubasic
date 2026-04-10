@@ -5,6 +5,7 @@
 40 Rem Init variables
 50 Dim wall%(64)
 60 a=Rnd(-1) : w%=64 : h%=20 : completed%=0 : lives%=10
+65 vkey_left%=10 : vkey_right%=12
 70 lives%=10
 80 a%=1 : b%=1 : player% = w%/2-2 : akey$=""
 90 x%=Int(w%*Rnd(1)/2)+5
@@ -39,8 +40,13 @@
 350 If y%>h% Then 
 360 GoSub 990
 370 End if
-380 akey$=inkey$()
-390 If len(akey$)>0 Then 
+380 vkey%=0
+382 Do
+384   tempvkey%=GetVKey()
+386   If tempvkey%>0 Then vkey%=tempvkey%
+388 Loop While tempvkey%>0
+390 akey$=InKey$()
+392 If vkey%>0 or len(akey$)>0 Then 
 400   GoSub 440 : Rem Draw player
 410 End if
 412 GoSub 562 : Rem HUD text only (score/lives) without redrawing bricks
@@ -48,8 +54,8 @@
 420 GoTo 170
 430 Rem
 440 Rem Draw Player
-450   If akey$="m" Then player%=player%+1
-460   If akey$="n" Then player%=player%-1
+450   If vkey%=vkey_right% Then player%=player%+1
+460   If vkey%=vkey_left% Then player%=player%-1
 470   If akey$="q" Then End
 480   If player%<1 Then player%=1 Else If player%>w%-6 Then player%=w%-6
 490   Locate h%+2, player% : Print " ====== "
@@ -69,8 +75,8 @@
 567   If cleft%<=0 Then completed%=1
 568   Locate 5, w%+2 : Print "Lives: "; lives%
 569   Locate 7, w%+2 : Print "Score: "; (lines%*8-cleft%)*10
-570   Locate 10, w%+2 : Print "[n]-LEFT"
-571   Locate 11, w%+2 : Print "[m]-RIGHT"
+570   Locate 10, w%+2 : Print "[LEFT]-MOVE"
+571   Locate 11, w%+2 : Print "[RIGHT]-MOVE"
 572   Locate 12, w%+2 : Print "[q]-QUIT"
 573   Return
 580 Rem Wall
@@ -89,8 +95,8 @@
 710   If counter%<=0 Then completed%=1
 720   Locate 5, w%+2 : Print "Lives: "; lives%
 730   Locate 7, w%+2 : Print "Score: "; (lines%*8-counter%)*10
-740   Locate 10, w%+2 : Print "[n]-LEFT"
-750   Locate 11, w%+2 : Print "[m]-RIGHT"
+740   Locate 10, w%+2 : Print "[LEFT]-MOVE"
+750   Locate 11, w%+2 : Print "[RIGHT]-MOVE"
 760   Locate 12, w%+2 : Print "[q]-QUIT"
 770   Return
 780 Rem Init wall map

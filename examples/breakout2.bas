@@ -10,6 +10,8 @@
 '
 Dim wall%(128)
 Dim c%(8) 
+vkey_left%=10
+vkey_right%=12
 
 ' -------------------------------------------------------------------------
 ' Setup Colors
@@ -34,7 +36,7 @@ Locate 3, 10
 Print "                  Welcome to nuBreakout2..."
 
 Locate 4, 10 
-Print " To play press key n to move left Or key m move right, q to quit" 
+Print " Use LEFT/RIGHT arrows to move, q to quit" 
 
 Delay 3
 
@@ -150,8 +152,14 @@ While 1
 
          If y%>h% Then GoSub ProcessPlayerBallCollision
          
+         vkey%=0
+         Do
+            tempvkey%=GetVKey()
+            If tempvkey%>0 Then vkey%=tempvkey%
+         Loop While tempvkey%>0
+
          akey$=InKey$()
-         If Len(akey$)>0 Then 
+         If vkey%>0 Or Len(akey$)>0 Then 
             GoSub HandlePlayer
          End If
       End While
@@ -164,8 +172,8 @@ End While : ' Game loop
 
 ' -------------------------------------------------------------------------
 HandlePlayer:
-   If akey$="m" Then player%=player%+1
-   If akey$="n" Then player%=player%-1
+   If vkey%=vkey_right% Then player%=player%+1
+   If vkey%=vkey_left% Then player%=player%-1
    If akey$="q" Then End
    If player%<1 Then player%=1 Else If player%>w%-8 Then player%=w%-8
 

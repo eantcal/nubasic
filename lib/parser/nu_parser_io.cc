@@ -89,7 +89,7 @@ stmt_t::handle_t statement_parser_t::parse_print(
             return t.type() == tkncl_t::OPERATOR
                 && (t.identifier() == "," || t.identifier() == ";");
         },
-        ctx, is_write, fd);
+        ctx, fd, false, is_write);
 }
 
 

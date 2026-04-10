@@ -20,20 +20,23 @@
 txtinfobox_t::txtinfobox_t(const HWND hParentWnd, const HINSTANCE hInst,
     const std::string& fontName, const int fontSize, const DWORD dwStyle)
 {
-    // Use RichEdit instead of plain EDIT for better formatting support
-    _ctrl_hwnd = CreateWindowEx(WS_EX_CLIENTEDGE | WS_EX_DLGMODALFRAME,
-        "RICHEDIT", // Use RichEdit control
-        NULL, // Window text
-        WS_CHILD | WS_VISIBLE | dwStyle | WS_HSCROLL
-            | WS_VSCROLL, // Window style
-        0, // x coordinate of the upper-left corner
-        0, // y coordinate of the upper-left corner
-        CW_USEDEFAULT, // Width of the edit control window
-        CW_USEDEFAULT, // Height of the edit control window
-        hParentWnd, // Window handle to parent window
-        (HMENU) nullptr, // Control identifier
-        hInst, // Instance handle
-        NULL);
+    // Prefer RichEdit 2.0+ so the Output tab can style error headers.
+    LoadLibraryA("Riched20.dll");
+    LoadLibraryA("RichEd32.dll");
+
+    const char* class_names[] = { "RichEdit20A", "RICHEDIT" };
+
+    for (const auto* class_name : class_names) {
+        _ctrl_hwnd = CreateWindowExA(WS_EX_CLIENTEDGE | WS_EX_DLGMODALFRAME,
+            class_name, NULL,
+            WS_CHILD | WS_VISIBLE | dwStyle | WS_HSCROLL | WS_VSCROLL, 0, 0,
+            CW_USEDEFAULT, CW_USEDEFAULT, hParentWnd, (HMENU) nullptr, hInst,
+            NULL);
+
+        if (_ctrl_hwnd) {
+            break;
+        }
+    }
 
     assert(_ctrl_hwnd);
 
@@ -51,7 +54,7 @@ txtinfobox_t::txtinfobox_t(const HWND hParentWnd, const HINSTANCE hInst,
     lFont.lfOutPrecision = OUT_DEFAULT_PRECIS;
     lFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
     lFont.lfQuality = ANTIALIASED_QUALITY;
-    lFont.lfPitchAndFamily = VARIABLE_PITCH | FF_SWISS;
+    lFont.lfPitchAndFamily = FIXED_PITCH | FF_MODERN;
 
     strncpy(lFont.lfFaceName, fontName.c_str(), sizeof(lFont.lfFaceName) - 1);
 

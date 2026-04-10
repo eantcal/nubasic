@@ -11,6 +11,7 @@
 #include "nu_interpreter.h"
 #include "nu_about.h"
 #include "nu_builtin_help.h"
+#include "nu_builtin_registry.h"
 #include "nu_examples_paths.h"
 #include "nu_os_console.h"
 #include "nu_os_std.h"
@@ -620,6 +621,14 @@ bool interpreter_t::load_with_includes(
         if (!old_format) {
             std::string inc_path = parse_include_directive(line);
             if (!inc_path.empty()) {
+                if (find_builtin_module(inc_path) != nullptr) {
+                    if (!update_program("Using " + inc_path, ++ln))
+                        return false;
+
+                    _source_line[ln] = line;
+                    continue;
+                }
+
                 // Resolve relative to the including file's directory
                 if (!base_dir.empty() && !fs::path(inc_path).is_absolute()) {
                     inc_path = (fs::path(base_dir) / inc_path).string();

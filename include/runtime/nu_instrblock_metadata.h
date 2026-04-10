@@ -139,6 +139,32 @@ struct if_instrblock_metadata_t {
 
 /* -------------------------------------------------------------------------- */
 
+// SELECT CASE compile-time metadata
+
+struct select_case_instrblock_t {
+    prog_pointer_t pc_select_stmt;
+    prog_pointer_t pc_end_select_stmt;
+    std::list<prog_pointer_t> case_list; // all CASE PCs in source order
+    bool has_case_else = false;
+    prog_pointer_t pc_case_else;
+
+    void clear();
+};
+
+
+/* -------------------------------------------------------------------------- */
+
+struct select_case_instrblock_metadata_t {
+    std::stack<prog_pointer_t> pc_stack;
+    std::map<prog_pointer_t, select_case_instrblock_t> data;
+    std::map<prog_pointer_t, prog_pointer_t> block_to_select_line_tbl;
+
+    void clear();
+};
+
+
+/* -------------------------------------------------------------------------- */
+
 } // namespace nu
 
 

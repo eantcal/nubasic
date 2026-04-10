@@ -299,6 +299,15 @@ protected:
     stmt_t::handle_t parse_mdelay(
         prog_ctx_t& ctx, token_t token, nu::token_list_t& tl);
 
+    stmt_t::handle_t parse_using(
+        prog_ctx_t& ctx, token_t token, nu::token_list_t& tl);
+
+    stmt_t::handle_t parse_include(
+        prog_ctx_t& ctx, token_t token, nu::token_list_t& tl);
+
+    stmt_t::handle_t parse_syntax(
+        prog_ctx_t& ctx, token_t token, nu::token_list_t& tl);
+
 
     //! parse If .. Then .. Else  statement
     stmt_t::handle_t parse_if_then_else(
@@ -307,6 +316,16 @@ protected:
 
     //! parse ElIf  statement
     stmt_t::handle_t parse_elif_stmt(
+        prog_ctx_t& ctx, token_t token, token_list_t& tl);
+
+
+    //! parse Select Case <expression> statement
+    stmt_t::handle_t parse_select_case(
+        prog_ctx_t& ctx, token_t token, token_list_t& tl);
+
+
+    //! parse Case [...] / Case Else statement
+    stmt_t::handle_t parse_case_stmt(
         prog_ctx_t& ctx, token_t token, token_list_t& tl);
 
 

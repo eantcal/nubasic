@@ -491,4 +491,199 @@ stmt_t::handle_t statement_parser_t::parse_goto_gosub(
 
 /* -------------------------------------------------------------------------- */
 
+stmt_t::handle_t statement_parser_t::parse_select_case(
+    prog_ctx_t& ctx, token_t token, token_list_t& tl)
+{
+    // consume "select"
+    --tl;
+    remove_blank(tl);
+
+    syntax_error_if(tl.empty(), token.expression(), token.position());
+
+    token = *tl.begin();
+
+    syntax_error_if(
+        token.identifier() != "case" || token.type() != tkncl_t::IDENTIFIER,
+        token.expression(), token.position());
+
+    // consume "case"
+    --tl;
+    remove_blank(tl);
+
+    syntax_error_if(tl.empty(), token.expression(), token.position());
+
+    token = *tl.begin();
+
+    expr_parser_t ep;
+    expr_any_t::handle_t expression = ep.compile(tl, token.position());
+    tl.clear();
+
+    return stmt_t::handle_t(
+        std::make_shared<stmt_select_case_t>(ctx, expression));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+stmt_t::handle_t statement_parser_t::parse_case_stmt(
+    prog_ctx_t& ctx, token_t token, token_list_t& tl)
+{
+    // consume "case"
+    --tl;
+    remove_blank(tl);
+
+    syntax_error_if(tl.empty(), token.expression(), token.position());
+
+    token = *tl.begin();
+
+    // CASE ELSE
+    if (token.identifier() == "else" && token.type() == tkncl_t::IDENTIFIER) {
+        --tl;
+        return stmt_t::handle_t(std::make_shared<stmt_case_t>(ctx));
+    }
+
+    // CASE <condition-list>
+    stmt_case_t::conditions_t conditions;
+
+    while (!tl.empty()) {
+        remove_blank(tl);
+        if (tl.empty())
+            break;
+
+        token = *tl.begin();
+
+        // IS <op> <expr>
+        if (token.identifier() == "is" && token.type() == tkncl_t::IDENTIFIER) {
+            --tl;
+            remove_blank(tl);
+            syntax_error_if(tl.empty(), token.expression(), token.position());
+
+            token = *tl.begin();
+            std::string op = token.identifier();
+
+            syntax_error_if(token.type() != tkncl_t::OPERATOR
+                    || (op != ">" && op != ">=" && op != "<" && op != "<="
+                        && op != "=" && op != "<>"),
+                token.expression(), token.position());
+
+            --tl;
+            remove_blank(tl);
+
+            // Collect tokens until "," at depth 0
+            expr_parser_t ep;
+            token_list_t etl;
+            int depth = 0;
+
+            while (!tl.empty()) {
+                const token_t tok(*tl.begin());
+
+                if (tok.type() == tkncl_t::SUBEXP_BEGIN)
+                    ++depth;
+                else if (tok.type() == tkncl_t::SUBEXP_END)
+                    --depth;
+                else if (depth == 0 && tok.type() == tkncl_t::OPERATOR
+                    && tok.identifier() == ",") {
+                    --tl;
+                    break;
+                }
+
+                etl += tok;
+                --tl;
+                remove_blank(tl);
+            }
+
+            case_condition_t cond;
+            cond.kind = case_condition_t::kind_t::IS_COMPARISON;
+            cond.op = op;
+            cond.expr1 = ep.compile(etl, token.position());
+            conditions.push_back(std::move(cond));
+        } else {
+            // <expr> [To <expr>]
+            expr_parser_t ep;
+            token_list_t etl;
+            int depth = 0;
+            bool found_to = false;
+            bool found_comma = false;
+
+            while (!tl.empty()) {
+                const token_t tok(*tl.begin());
+
+                if (tok.type() == tkncl_t::SUBEXP_BEGIN)
+                    ++depth;
+                else if (tok.type() == tkncl_t::SUBEXP_END)
+                    --depth;
+                else if (depth == 0) {
+                    if (tok.identifier() == "to"
+                        && tok.type() == tkncl_t::IDENTIFIER) {
+                        --tl;
+                        found_to = true;
+                        break;
+                    }
+                    if (tok.type() == tkncl_t::OPERATOR
+                        && tok.identifier() == ",") {
+                        --tl;
+                        found_comma = true;
+                        break;
+                    }
+                }
+
+                etl += tok;
+                --tl;
+                remove_blank(tl);
+            }
+
+            auto expr1 = ep.compile(etl, token.position());
+
+            if (found_to) {
+                remove_blank(tl);
+                token_list_t etl2;
+                int depth2 = 0;
+
+                while (!tl.empty()) {
+                    const token_t tok(*tl.begin());
+
+                    if (tok.type() == tkncl_t::SUBEXP_BEGIN)
+                        ++depth2;
+                    else if (tok.type() == tkncl_t::SUBEXP_END)
+                        --depth2;
+                    else if (depth2 == 0 && tok.type() == tkncl_t::OPERATOR
+                        && tok.identifier() == ",") {
+                        --tl;
+                        break;
+                    }
+
+                    etl2 += tok;
+                    --tl;
+                    remove_blank(tl);
+                }
+
+                auto expr2 = ep.compile(etl2, token.position());
+
+                case_condition_t cond;
+                cond.kind = case_condition_t::kind_t::RANGE;
+                cond.expr1 = std::move(expr1);
+                cond.expr2 = std::move(expr2);
+                conditions.push_back(std::move(cond));
+            } else {
+                case_condition_t cond;
+                cond.kind = case_condition_t::kind_t::EQUAL;
+                cond.expr1 = std::move(expr1);
+                conditions.push_back(std::move(cond));
+            }
+
+            if (!found_to && !found_comma) {
+                break; // consumed to end of token list
+            }
+        }
+
+        remove_blank(tl);
+    }
+
+    return stmt_t::handle_t(
+        std::make_shared<stmt_case_t>(ctx, std::move(conditions)));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 } // namespace nu

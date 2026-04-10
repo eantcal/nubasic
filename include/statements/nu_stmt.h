@@ -69,7 +69,10 @@ public:
         STRUCT_END,
         CLASS_BEGIN,
         CLASS_END,
-        INHERITS
+        INHERITS,
+        SELECT_CASE_BEGIN,
+        SELECT_CASE_END,
+        CASE_OF
     };
 
     using handle_t = std::shared_ptr<stmt_t>;

@@ -34,6 +34,7 @@ static const UINT g_wmPresentGdiConsole = WM_APP + 64;
 #include <filesystem>
 #include <regex>
 #include <set>
+#include <sstream>
 #include <thread>
 #include <vector>
 
@@ -158,6 +159,250 @@ namespace editor {
 
 /* -------------------------------------------------------------------------- */
 
+namespace {
+
+    constexpr COLORREF kErrorHeaderText = RGB(110, 0, 0);
+    constexpr COLORREF kErrorHeaderBack = RGB(255, 236, 236);
+    constexpr COLORREF kErrorBodyText = RGB(0, 0, 0);
+    constexpr COLORREF kErrorLineBack = RGB(255, 232, 232);
+    constexpr COLORREF kErrorIndicatorColor = RGB(210, 0, 0);
+    constexpr int kErrorIndicator = 0;
+
+    struct parsed_error_t {
+        std::string summary;
+        std::string details;
+        int column = 0;
+        int highlight_length = 1;
+    };
+
+    static std::string trim_copy(const std::string& value)
+    {
+        const auto begin = value.find_first_not_of(" \t\r\n");
+        if (begin == std::string::npos) {
+            return "";
+        }
+
+        const auto end = value.find_last_not_of(" \t\r\n");
+        return value.substr(begin, end - begin + 1);
+    }
+
+    static std::string normalize_newlines(const std::string& text)
+    {
+        std::string normalized;
+        normalized.reserve(text.size());
+
+        for (size_t i = 0; i < text.size(); ++i) {
+            if (text[i] == '\r') {
+                normalized.push_back('\n');
+                if (i + 1 < text.size() && text[i + 1] == '\n') {
+                    ++i;
+                }
+            } else {
+                normalized.push_back(text[i]);
+            }
+        }
+
+        return normalized;
+    }
+
+    static std::vector<std::string> split_lines(const std::string& text)
+    {
+        std::vector<std::string> lines;
+        std::stringstream ss(text);
+        std::string line;
+
+        while (std::getline(ss, line)) {
+            lines.push_back(line);
+        }
+
+        return lines;
+    }
+
+    static std::string join_lines(
+        const std::vector<std::string>& lines, size_t first)
+    {
+        std::string joined;
+
+        for (size_t i = first; i < lines.size(); ++i) {
+            if (!joined.empty()) {
+                joined += "\n";
+            }
+            joined += lines[i];
+        }
+
+        return joined;
+    }
+
+    static std::string make_output_timestamp()
+    {
+        SYSTEMTIME st;
+        GetLocalTime(&st);
+
+        char buffer[64] = { 0 };
+        sprintf(buffer, "%02i-%02i-%i %02i:%02i:%02i", st.wDay, st.wMonth,
+            st.wYear, st.wHour, st.wMinute, st.wSecond);
+
+        return buffer;
+    }
+
+    static parsed_error_t parse_error_message(const std::string& raw_message)
+    {
+        parsed_error_t parsed;
+        std::string normalized = normalize_newlines(raw_message);
+
+        while (!normalized.empty()
+            && (normalized.back() == '\n' || normalized.back() == '\r')) {
+            normalized.pop_back();
+        }
+
+        if (normalized.empty()) {
+            parsed.summary = "Error";
+            return parsed;
+        }
+
+        const auto lines = split_lines(normalized);
+        parsed.summary = trim_copy(lines.empty() ? normalized : lines.front());
+
+        static const std::regex s_column_regex(
+            R"(^(.*?)(?:\s+at\s+\((\d+)\):)\s*$)", std::regex::icase);
+
+        std::smatch match;
+        if (std::regex_match(parsed.summary, match, s_column_regex)) {
+            parsed.summary = trim_copy(match[1].str());
+            parsed.column = std::stoi(match[2].str());
+        }
+
+        if (lines.size() > 2) {
+            const auto& caret_line = lines[2];
+            const auto caret_begin = caret_line.find('^');
+
+            if (caret_begin != std::string::npos) {
+                if (parsed.column <= 0) {
+                    parsed.column = static_cast<int>(caret_begin) + 1;
+                }
+
+                auto caret_end = caret_begin;
+                while (caret_end < caret_line.size()
+                    && caret_line[caret_end] == '^') {
+                    ++caret_end;
+                }
+
+                parsed.highlight_length = std::max<int>(
+                    1, static_cast<int>(caret_end - caret_begin));
+            }
+        }
+
+        parsed.details = lines.size() > 1 ? join_lines(lines, 1) : "";
+
+        if (parsed.summary.empty()) {
+            parsed.summary = "Error";
+        }
+
+        return parsed;
+    }
+
+    static std::string build_error_body(
+        const std::string& label, const parsed_error_t& parsed)
+    {
+        if (!parsed.details.empty()) {
+            if (!label.empty() && parsed.summary != label
+                && parsed.details.rfind(parsed.summary, 0) != 0) {
+                return parsed.summary + "\n" + parsed.details;
+            }
+
+            return parsed.details;
+        }
+
+        if (!parsed.summary.empty() && parsed.summary != label) {
+            return parsed.summary;
+        }
+
+        return "";
+    }
+
+    static std::string build_error_header(
+        const std::string& label, int line, const parsed_error_t& parsed)
+    {
+        std::string header = make_output_timestamp();
+        header += " | ";
+        header += label.empty() ? parsed.summary : label;
+
+        if (line > 0 || parsed.column > 0) {
+            header += " | ";
+
+            if (line > 0) {
+                header += "line ";
+                header += std::to_string(line);
+            }
+
+            if (parsed.column > 0) {
+                if (line > 0) {
+                    header += ", ";
+                }
+                header += "column ";
+                header += std::to_string(parsed.column);
+            }
+        }
+
+        return header;
+    }
+
+    static std::string build_popup_error_text(
+        const std::string& label, int line, const parsed_error_t& parsed)
+    {
+        std::string popup = label.empty() ? parsed.summary : label;
+
+        if (line > 0 || parsed.column > 0) {
+            popup += " at ";
+
+            if (line > 0) {
+                popup += "line ";
+                popup += std::to_string(line);
+            }
+
+            if (parsed.column > 0) {
+                if (line > 0) {
+                    popup += ", ";
+                }
+                popup += "column ";
+                popup += std::to_string(parsed.column);
+            }
+
+            popup += ":";
+        }
+
+        const auto body = build_error_body(label, parsed);
+        if (!body.empty()) {
+            popup += "\n";
+            popup += body;
+        }
+
+        return popup;
+    }
+
+    static void prepend_rich_text(HWND h_infobox, const std::string& text,
+        DWORD effects, COLORREF text_color, bool use_background = false,
+        COLORREF background_color = 0)
+    {
+        CHARFORMAT2A char_format = { 0 };
+        char_format.cbSize = sizeof(char_format);
+        char_format.dwMask
+            = CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_COLOR | CFM_BACKCOLOR;
+        char_format.dwEffects = effects;
+        char_format.crTextColor = text_color;
+        char_format.crBackColor
+            = use_background ? background_color : GetSysColor(COLOR_WINDOW);
+
+        SendMessage(
+            h_infobox, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&char_format);
+        SendMessage(h_infobox, EM_REPLACESEL, 0, (LPARAM)text.c_str());
+    }
+
+} // namespace
+
+
+/* -------------------------------------------------------------------------- */
+
 /* -------------------------------------------------------------------------- */
 
 //! nuBasic Editor application implementation
@@ -260,6 +505,12 @@ public:
      * Append a string to info box
      */
     void add_info(std::string msg, DWORD message_style);
+
+    /**
+     * Append a formatted error block to the output tab and return popup text
+     */
+    std::string add_error_info(
+        const std::string& label, int line, const std::string& raw_message);
 
     /**
      * Clear info box content to clipboard
@@ -510,6 +761,9 @@ public:
     {
         send_command(SCI_MARKERDELETEALL, int(marker_t::PROGCOUNTER), 0);
         send_command(SCI_MARKERDELETEALL, int(marker_t::LINESELECTION), 0);
+        send_command(SCI_SETINDICATORCURRENT, kErrorIndicator, 0);
+        send_command(
+            SCI_INDICATORCLEARRANGE, 0, send_command(SCI_GETTEXTLENGTH, 0, 0));
         send_command(SCI_LINESCROLLDOWN, 0, 0);
         send_command(SCI_LINESCROLLUP, 0, 0);
     }
@@ -522,7 +776,7 @@ public:
     /**
      * Show error line
      */
-    bool show_error_line(int line) noexcept;
+    bool show_error_line(int line, int column = 0, int length = 0) noexcept;
 
     /**
      * Remove a bookmark at given line
@@ -1364,7 +1618,7 @@ void nu::editor_t::add_info(std::string msg, DWORD message_style)
     CHARFORMAT char_format = { 0 };
 
     char_format.cbSize = sizeof(char_format);
-    char_format.dwMask = CFM_BOLD | CFM_ITALIC | CFE_UNDERLINE;
+    char_format.dwMask = CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE;
 
     SendMessage(h_infobox, EM_GETCHARFORMAT, 0, (LPARAM)&char_format);
 
@@ -1397,6 +1651,44 @@ void nu::editor_t::add_info(std::string msg, DWORD message_style)
 
 /* -------------------------------------------------------------------------- */
 
+std::string nu::editor_t::add_error_info(
+    const std::string& label, int line, const std::string& raw_message)
+{
+    const auto parsed = parse_error_message(raw_message);
+    const auto body = build_error_body(label, parsed);
+    const auto popup = build_popup_error_text(label, line, parsed);
+
+    if (line > 0) {
+        show_error_line(line, parsed.column, parsed.highlight_length);
+    }
+
+    HWND h_infobox = get_infobox_handle();
+    if (h_infobox) {
+        SendMessage(h_infobox, EM_SCROLL, (LPARAM)SB_TOP, 0);
+        SendMessage(h_infobox, EM_SETSEL, 0, 0);
+
+        prepend_rich_text(h_infobox,
+            build_error_header(label, line, parsed) + "\n", CFE_BOLD,
+            kErrorHeaderText, true, kErrorHeaderBack);
+
+        if (!body.empty()) {
+            prepend_rich_text(h_infobox, body + "\n\n", 0, kErrorBodyText);
+        } else {
+            prepend_rich_text(h_infobox, "\n", 0, kErrorBodyText);
+        }
+    }
+
+    extern tab_container_t* g_tab_container;
+    if (g_tab_container) {
+        g_tab_container->switch_to_tab(tab_container_t::tab_id_t::OUTPUT);
+    }
+
+    return popup;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 bool nu::editor_t::build_basic_line(
     const std::string& line, const int line_num, const bool dump_err_msg)
 {
@@ -1407,16 +1699,11 @@ bool nu::editor_t::build_basic_line(
             return true;
 
         if (!g_editor.interpreter().update_program(line, line_num)) {
-            std::string msg = "Syntax Error at line ";
-            msg += line_num ? std::to_string(line_num) : "\r\n";
-            msg += line_num ? "" : line;
-
-            show_error_line(line_num);
-
             if (dump_err_msg) {
-                g_editor.add_info("\n" + msg + "\n", CFM_BOLD | CFM_ITALIC);
-                MessageBox(
-                    get_main_hwnd(), msg.c_str(), "Syntax Error", MB_ICONERROR);
+                const auto popup = g_editor.add_error_info(
+                    "Syntax Error", line_num, "Syntax Error");
+                MessageBox(get_main_hwnd(), popup.c_str(), "Syntax Error",
+                    MB_ICONERROR);
             }
 
             return false;
@@ -1433,13 +1720,13 @@ bool nu::editor_t::build_basic_line(
 
         char lbuf[2048] = { 0 };
 
-        _snprintf(lbuf, sizeof(lbuf) - 1, "Error #%i at %i %s\n",
-            e.get_error_code(), line, e.what());
+        _snprintf(lbuf, sizeof(lbuf) - 1, "%s", e.what());
 
-        show_error_line(line);
-        g_editor.add_info(lbuf, CFM_BOLD | CFM_ITALIC);
+        const auto popup = g_editor.add_error_info(
+            "Runtime Error #" + std::to_string(e.get_error_code()), line, lbuf);
 
-        ::MessageBox(get_main_hwnd(), lbuf, "Syntax Error", MB_ICONERROR);
+        ::MessageBox(
+            get_main_hwnd(), popup.c_str(), "Runtime Error", MB_ICONERROR);
 
         return false;
     }
@@ -1451,19 +1738,12 @@ bool nu::editor_t::build_basic_line(
         char lbuf[2048] = { 0 };
 
         const auto line = g_editor.interpreter().get_cur_line_n();
+        _snprintf(lbuf, sizeof(lbuf) - 1, "%s", e.what());
 
-        if (line > 0) {
-            _snprintf(
-                lbuf, sizeof(lbuf) - 1, "At line %i: %s\n", line, e.what());
+        const auto popup = g_editor.add_error_info("Syntax Error", line, lbuf);
 
-            show_error_line(line);
-        } else {
-            _snprintf(lbuf, sizeof(lbuf) - 1, "%s\n", e.what());
-        }
-
-        g_editor.add_info(lbuf, CFM_BOLD | CFM_ITALIC);
-
-        ::MessageBox(get_main_hwnd(), lbuf, "Error", MB_ICONERROR);
+        ::MessageBox(
+            get_main_hwnd(), popup.c_str(), "Syntax Error", MB_ICONERROR);
 
         return false;
     }
@@ -2035,7 +2315,7 @@ bool nu::editor_t::show_execution_point(int line) noexcept
 
 /* -------------------------------------------------------------------------- */
 
-bool nu::editor_t::show_error_line(int line) noexcept
+bool nu::editor_t::show_error_line(int line, int column, int length) noexcept
 {
     remove_prog_cnt_marker();
 
@@ -2043,14 +2323,39 @@ bool nu::editor_t::show_error_line(int line) noexcept
         line = 1;
     }
 
-    if (send_command(SCI_POSITIONFROMLINE, line - 1, 0) >= 0) {
+    const auto line_pos = send_command(SCI_POSITIONFROMLINE, line - 1, 0);
+
+    if (line_pos >= 0) {
         const auto l = int(marker_t::LINESELECTION);
 
         send_command(SCI_MARKERDEFINE, l, SC_MARK_BACKGROUND);
-        send_command(SCI_MARKERSETBACK, l, RGB(255, 0, 0));
+        send_command(SCI_MARKERSETBACK, l, kErrorLineBack);
         send_command(SCI_MARKERADD, line - 1, l);
 
         go_to_line(line);
+
+        if (column > 0) {
+            auto start = line_pos + column - 1;
+            const auto line_end
+                = send_command(SCI_GETLINEENDPOSITION, line - 1, 0);
+
+            start = std::max<LRESULT>(line_pos, start);
+
+            if (line_end > start) {
+                auto fill_length = std::max<LRESULT>(1, length);
+                fill_length = std::min<LRESULT>(fill_length, line_end - start);
+
+                send_command(SCI_SETINDICATORCURRENT, kErrorIndicator, 0);
+                send_command(
+                    SCI_INDICSETSTYLE, kErrorIndicator, INDIC_STRAIGHTBOX);
+                send_command(
+                    SCI_INDICSETFORE, kErrorIndicator, kErrorIndicatorColor);
+                send_command(SCI_INDICSETALPHA, kErrorIndicator, 90);
+                send_command(SCI_INDICSETUNDER, kErrorIndicator, TRUE);
+                send_command(SCI_INDICATORFILLRANGE, start, fill_length);
+                send_command(SCI_GOTOPOS, start, 0);
+            }
+        }
 
         update_ui();
     } else {
@@ -2198,35 +2503,20 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
         try {
             g_editor.interpreter().exec_command(cmd);
         } catch (nu::runtime_error_t& e) {
-            char buf[2048] = { 0 };
             int line = e.get_line_num();
             line = line <= 0 ? g_editor.interpreter().get_cur_line_n() : line;
 
-            _snprintf(buf, sizeof(buf) - 1, "Runtime Error #%i at %i %s\n",
-                e.get_error_code(), line, e.what());
+            const auto popup = g_editor.add_error_info(
+                "Runtime Error #" + std::to_string(e.get_error_code()), line,
+                e.what());
 
-            g_editor.add_info(buf, CFM_BOLD | CFM_ITALIC);
-            nu_winconsole_write(buf);
-            // Switch to Output panel so the error is immediately visible.
-            if (g_tab_container)
-                g_tab_container->switch_to_tab(
-                    tab_container_t::tab_id_t::OUTPUT);
+            nu_winconsole_write((popup + "\n").c_str());
 
         } catch (std::exception& e) {
-            char buf[2048] = { 0 };
+            const auto popup = g_editor.add_error_info("Syntax Error",
+                g_editor.interpreter().get_cur_line_n(), e.what());
 
-            if (g_editor.interpreter().get_cur_line_n() > 0)
-                _snprintf(buf, sizeof(buf) - 1, "At line %i: %s\n",
-                    g_editor.interpreter().get_cur_line_n(), e.what());
-            else
-                _snprintf(buf, sizeof(buf) - 1, "%s\n", e.what());
-
-            g_editor.add_info(buf, CFM_BOLD | CFM_ITALIC);
-            nu_winconsole_write(buf);
-            // Switch to Output panel so the error is immediately visible.
-            if (g_tab_container)
-                g_tab_container->switch_to_tab(
-                    tab_container_t::tab_id_t::OUTPUT);
+            nu_winconsole_write((popup + "\n").c_str());
         }
 
         // Signal the main thread that the interpreter has finished.
@@ -2599,8 +2889,21 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) noexcept
 
     _need_build = false;
 
-    g_editor.add_info("Build succeeded\n", CFM_ITALIC);
+    {
+        std::stringstream ss;
+        interpreter().get_rt_ctx().trace_metadata(ss);
+        const auto meta_str = ss.str();
+        if (!meta_str.empty()) {
+            add_info(meta_str, 0);
+        }
+    }
 
+    add_info("Build succeeded\n", CFM_ITALIC);
+
+    extern tab_container_t* g_tab_container;
+    if (g_tab_container) {
+        g_tab_container->switch_to_tab(tab_container_t::tab_id_t::OUTPUT);
+    }
 
     return true;
 }
@@ -2664,17 +2967,12 @@ void nu::editor_t::set_title()
     std::string s_title = "nuBASIC";
     s_title += " - File name: '";
     s_title += _full_path_str + "'";
+    s_title += "   Ln:" + std::to_string(get_current_line());
+    s_title += "  Col:" + std::to_string(get_current_colum());
+    if (g_editor.is_dirty())
+        s_title += "  <Mod>";
 
     ::SetWindowText(_hwnd_main, s_title.c_str());
-
-    if (g_tab_container && g_tab_container->get_infobox()) {
-        std::stringstream os;
-        os << "Ln " << get_current_line() << "\r\n";
-        os << "Col " << get_current_colum() << "\r\n";
-        if (g_editor.is_dirty())
-            os << "<Mod>";
-        g_tab_container->get_infobox()->update(os);
-    }
 }
 
 
@@ -3666,7 +3964,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         InitCommonControls();
 
         // Load RichEdit Control Library
-        HMODULE h_RichLib = LoadLibrary("RichEd32.Dll");
+        HMODULE h_RichLib = LoadLibraryA("Riched20.dll");
+        if (!h_RichLib) {
+            h_RichLib = LoadLibraryA("RichEd32.Dll");
+        }
 
         if (!h_RichLib) {
             MessageBox(hWnd, "Cannot load rich edit control library", "Error",

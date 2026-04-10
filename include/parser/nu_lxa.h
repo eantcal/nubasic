@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -48,21 +48,13 @@ public:
     lxa_atom_t(const lxa_atom_t&) = default;
     lxa_atom_t& operator=(const lxa_atom_t&) = default;
 
-    void register_pattern(const T& pattern) { 
-        _plist.insert(pattern); 
-    }
+    void register_pattern(const T& pattern) { _plist.insert(pattern); }
 
-    void remove_pattern(const T& pattern) { 
-        _plist.erase(pattern); 
-    }
+    void remove_pattern(const T& pattern) { _plist.erase(pattern); }
 
-    void reset() override { 
-        _data.clear(); 
-    }
+    void reset() override { _data.clear(); }
 
-    const std::string& data() const override { 
-        return _data; 
-    }
+    const std::string& data() const override { return _data; }
 };
 
 
@@ -78,7 +70,8 @@ public:
 
     bool accept(char c) override;
 
-    void reset() override {
+    void reset() override
+    {
         lxa_atom_t<std::string>::reset();
         keyword_matches = false;
     }
@@ -121,15 +114,19 @@ public:
     void reset() override;
     const std::string& data() const override;
 
-    bool string_complete() const { 
-        return _end_found == _end_quote; 
+    bool string_complete() const { return _end_found == _end_quote; }
+
+    // True while we are inside a string (opening quote seen, closing not yet).
+    bool in_string() const
+    {
+        return _begin_found == _begin_quote && _end_found != _end_quote;
     }
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-} // namespace
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

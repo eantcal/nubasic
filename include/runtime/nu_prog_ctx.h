@@ -44,6 +44,8 @@ namespace nu {
 
 class prog_ctx_t {
 public:
+    enum class syntax_mode_t { LEGACY, MODERN };
+
     prog_ctx_t() = delete;
     prog_ctx_t(const prog_ctx_t&) = delete;
     prog_ctx_t& operator=(const prog_ctx_t&) = delete;
@@ -87,6 +89,9 @@ public:
     // IF-statement metadata (created compiling source code)
     if_instrblock_metadata_t if_metadata;
 
+    // SELECT CASE metadata (created compiling BASIC source code)
+    select_case_instrblock_metadata_t select_case_metadata;
+
     // Procedure metadata (created compiling BASIC source code)
     instrblock_metadata_t procedure_metadata;
 
@@ -128,6 +133,19 @@ public:
 
     void clear_metadata();
 
+    void set_syntax_mode(syntax_mode_t mode);
+    syntax_mode_t get_syntax_mode() const noexcept { return _syntax_mode; }
+
+    void import_builtin_module(const std::string& module_name);
+    void import_all_builtin_modules();
+    void clear_builtin_module_imports();
+    bool is_builtin_module_imported(
+        const std::string& module_name) const noexcept
+    {
+        return _imported_builtin_modules.find(module_name)
+            != _imported_builtin_modules.end();
+    }
+
     // Pre-register built-in struct prototypes (DateTime, Mouse) so that
     // "Dim x As DateTime" and "Dim m As Mouse" work without a user-written
     // Struct definition.  Called at construction and after clear_metadata().
@@ -144,6 +162,10 @@ public:
 
 private:
     prog_pointer_t::stmt_number_t _stmt_id_cnt = 0;
+
+    syntax_mode_t _syntax_mode = syntax_mode_t::LEGACY;
+    std::set<std::string> _imported_builtin_modules;
+    std::set<std::string> _imported_builtin_aliases;
 
     // STD I/O file pointers
     FILE* _stdout_ptr = stdout;

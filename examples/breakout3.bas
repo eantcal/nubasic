@@ -29,8 +29,6 @@ playerColor% = c%(1)
 
 ' -----------------------------------------------------------------------------
 ' Setup player keys
-left_key$  = "n" : Rem move player left
-right_key$ = "m" : Rem move player right
 quit_key$  = "q" : Rem exit game
 
 vkey_right% = 12
@@ -44,8 +42,8 @@ Cls
 Print "Welcome to nuBreakout3..."
 Print
 Print "To play press"
-Print "  '"; left_key$; "' or LEFT ARROW to move left, "
-Print "  '"; right_key$; "' or RIGHT ARROW to move right And "
+Print "  LEFT ARROW to move left, "
+Print "  RIGHT ARROW to move right And "
 Print "  '"; quit_key$ ; "' to quit" 
 
 Delay 3
@@ -184,9 +182,9 @@ While 1
          if vkey%<=0 then 
             akey$= ""
          elif vkey%=vkey_left% then 
-            akey$ = "n"
+            akey$ = "left"
          elseif vkey%=vkey_right% then 
-            akey$ = "m"
+            akey$ = "right"
          else
             akey$ = chr(vkey%)
          end if
@@ -206,8 +204,8 @@ End While : ' Game loop
 ' ------------------------------------------------------------------------------
 Sub MovePlayer(thekey$)
 ' ------------------------------------------------------------------------------
-   If thekey$=right_key$ Then player%=player%+1
-   If thekey$=left_key$ Then player%=player%-1
+   If thekey$="right" Then player%=player%+1
+   If thekey$="left" Then player%=player%-1
 
    If thekey$=quit_key$ Then 
       Cls 

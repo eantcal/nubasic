@@ -20,6 +20,9 @@
 #include <WinUser.h>
 #include <malloc.h>
 #include <memory.h>
+#ifndef RICHEDIT_VER
+#define RICHEDIT_VER 0x0300
+#endif
 #include <richedit.h>
 #include <stdio.h>
 #include <stdlib.h>

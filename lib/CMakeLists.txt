@@ -12,7 +12,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include/api)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include/util)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../)
 
-file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
 add_library(nuBasicInterpreter STATIC ${SOURCES})
 target_compile_features(nuBasicInterpreter PRIVATE cxx_std_20)
 

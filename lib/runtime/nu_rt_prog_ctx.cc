@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -112,6 +112,10 @@ void rt_prog_ctx_t::clear_rtdata()
     // Clear function return-value table
     function_retval_tbl.clear();
 
+    // Clear SELECT CASE runtime state
+    select_case_values.clear();
+    select_case_matched.clear();
+
     // Clear hash tables
     hash_tbls.clear();
 
@@ -132,8 +136,7 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
     if (li != _source_line.end()) {
         ss << std::setw(5) << runtime_pc.get_line() << " ";
         ss << " " << li->second << std::endl;
-    }
-    else {
+    } else {
         ss << "Current line : " << runtime_pc.get_line() << std::endl;
     }
 
@@ -143,7 +146,7 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
     ss << "End request pending: "
        << (flag[rt_prog_ctx_t::FLG_END_REQUEST] ? "Y" : "N") << std::endl;
     ss << "Stop request pending: "
-        << (flag[rt_prog_ctx_t::FLG_STOP_REQUEST] ? "Y" : "N") << std::endl;
+       << (flag[rt_prog_ctx_t::FLG_STOP_REQUEST] ? "Y" : "N") << std::endl;
     ss << "Return request pending: "
        << (flag[rt_prog_ctx_t::FLG_RETURN_REQUEST] ? "Y" : "N") << std::endl;
     ss << "Skip-till-NEXT request pending: "
@@ -153,7 +156,7 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
     ss << "Step mode on: " << (step_mode_active ? "Y" : "N") << std::endl;
 
     const auto var = proc_scope.get();
-    const auto &scope_id = proc_scope.get_scope_id();
+    const auto& scope_id = proc_scope.get_scope_id();
 
     if (!scope_id.empty() && !var->empty()) {
         ss << "Variables";
@@ -172,18 +175,21 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
     if (!hash_tbls.empty()) {
         ss << "Hash Tables:" << std::endl;
 
-        for (const auto & tbl : hash_tbls) {
-            ss << "hash['" << tbl.first << "'](" << tbl.second.size() << ") = " << std::endl;
+        for (const auto& tbl : hash_tbls) {
+            ss << "hash['" << tbl.first << "'](" << tbl.second.size()
+               << ") = " << std::endl;
 
             if (!tbl.second.empty()) {
                 auto it = tbl.second.begin();
 
-                for (size_t i = 0; it != tbl.second.end() && i < 10; ++i, ++it) {
+                for (size_t i = 0; it != tbl.second.end() && i < 10;
+                     ++i, ++it) {
                     ss << "\t" << it->first << ":" << it->second << std::endl;
                 }
 
-                if (tbl.second.size()>10) {
-                    ss << "\t" << "..." << std::endl;
+                if (tbl.second.size() > 10) {
+                    ss << "\t"
+                       << "..." << std::endl;
                 }
             }
         }
@@ -191,7 +197,8 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
 
     if (!read_data_store.empty()) {
         ss << "Read-Data store:" << std::endl;
-        ss << "\t" << "Index = " << read_data_store_index << std::endl;
+        ss << "\t"
+           << "Index = " << read_data_store_index << std::endl;
 
         size_t size = read_data_store.size();
         if (size > 10)
@@ -202,7 +209,8 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
         }
 
         if (size > 10) {
-            ss << "\t" << "..." << std::endl;
+            ss << "\t"
+               << "..." << std::endl;
         }
     }
 
@@ -240,7 +248,7 @@ void return_stack_t::trace(std::stringstream& ss)
 {
     ss << "RETURN stack: ";
 
-    for (const auto &e : *this) {
+    for (const auto& e : *this) {
         ss << e.first << " (stmt_id=" << e.second << ") ";
     }
 

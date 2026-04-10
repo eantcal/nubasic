@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -151,7 +151,8 @@ instrblock_t::handle_t instrblock_metadata_t::begin_find(
 
 /* -------------------------------------------------------------------------- */
 
-instrblock_t::handle_t instrblock_metadata_t::end_find(const prog_pointer_t& pc) const
+instrblock_t::handle_t instrblock_metadata_t::end_find(
+    const prog_pointer_t& pc) const
 {
     const auto i = end_tbl.find(pc.get_line());
     return i == end_tbl.end() ? nullptr : begin_find(i->second);
@@ -235,5 +236,32 @@ std::ostream& operator<<(std::ostream& os, const stop_instr_metadata_t& md)
     return os;
 }
 
+
+/* -------------------------------------------------------------------------- */
+
+void select_case_instrblock_t::clear()
+{
+    case_list.clear();
+    has_case_else = false;
+    pc_select_stmt.reset();
+    pc_end_select_stmt.reset();
+    pc_case_else.reset();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void select_case_instrblock_metadata_t::clear()
+{
+    data.clear();
+    block_to_select_line_tbl.clear();
+
+    while (!pc_stack.empty()) {
+        pc_stack.pop();
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
 
 } // namespace nu
