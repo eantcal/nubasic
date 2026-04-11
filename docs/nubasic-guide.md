@@ -166,10 +166,10 @@ What nuBASIC adds on top of the classic BASIC foundation:
 The Windows build provides a dedicated GDI-based console window that renders text and graphics
 natively, works both standalone and embedded inside the nuBASIC IDE, and supports all graphical
 APIs including pixel-level drawing. The Linux build uses the terminal for text and X11 for
-graphics. A *tiny* build variant (without graphics, sound, or window manager support) is also
+graphics. A *console* build variant (without graphics, sound, or window manager support) is also
 available for constrained environments.
 
-### The Console Mode and the Tiny Build
+### The Console Mode and the Console Build
 
 #### Console mode
 
@@ -227,9 +227,9 @@ and pixel-level graphics in the same surface. The window can be moved and resize
 a program using `MoveWindow`. On Linux, the terminal handles text I/O while an X11 window
 provides the graphical surface when graphics instructions are used.
 
-#### The Tiny build
+#### The console build
 
-The **tiny build** is a stripped-down variant of nuBASIC compiled without graphics, sound,
+The **console build** is a stripped-down variant of nuBASIC compiled without graphics, sound,
 mouse, or window manager support. All graphical instructions (`Line`, `FillRect`, `TextOut`,
 `ScreenLock`, `PlotImage`, …) and their related functions (`GetMouseX`, `GetSWidth`,
 `MoveWindow`, `PlaySound`, `MsgBox`, …) are absent.
@@ -239,7 +239,7 @@ string and math functions, file I/O, hash tables, `Sub`/`Function`, `Struct`, an
 console mode with all debugging commands. Programs that do not use graphics run identically
 on both builds.
 
-The tiny build is the right choice when:
+The console build is the right choice when:
 
 - Running on a **headless server** or an embedded system with no display
 - **Scripting** text-processing or file-manipulation tasks where graphics are irrelevant
@@ -1264,7 +1264,7 @@ Print Eval(expr$)       ' 36 — evaluated with x=5
 ## 5. Graphics and Multimedia
 
 All graphics functions are available in the full build (Windows GDI or Linux/X11). They are
-absent in the *tiny* build, which targets minimal environments.
+absent in the *console* build, which targets minimal environments.
 
 The coordinate system has its origin at the **top-left** corner of the working window client
 area, with X increasing to the right and Y increasing downward. All coordinates are in pixels.
@@ -2943,7 +2943,7 @@ produces three distinct artefacts depending on the target platform:
 | `NuBasicIDE.exe` + `SciLexer.dll` | Windows | Graphical IDE with integrated debugger |
 | `nubasicide` | Linux | GTK+2 graphical IDE |
 
-A *tiny* build — interpreter only, no graphics, no IDE — is also available for embedded and
+A *console* build — interpreter only, no graphics, no IDE — is also available for embedded and
 minimal environments.
 
 ---
@@ -3040,7 +3040,7 @@ cmake --build .
 > compiler errors about missing headers, open a *Developer Command Prompt* (which runs
 > `vcvarsall.bat` automatically) before invoking CMake.
 
-#### Console-only (tiny) build on Windows
+#### Console-only build on Windows
 
 To build only `nubasic.exe` without the IDE:
 
@@ -3097,7 +3097,7 @@ This produces:
 /usr/local/bin/nubasicide   # GTK IDE
 ```
 
-#### Console-only (tiny) build on Linux
+#### Console-only build on Linux
 
 To build only the command-line interpreter without X11 or GTK:
 
@@ -3106,9 +3106,9 @@ cmake .. -DWITH_X11=OFF -DWITH_IDE=OFF
 make -j$(nproc)
 ```
 
-This enables the `TINY_NUBASIC_VER` preprocessor flag, which strips all graphics, sound,
-and IDE components. The resulting `nubasic` binary has no external dependencies beyond the
-C++ runtime.
+This enables the `TINY_NUBASIC_VER` preprocessor flag (console build mode), which strips
+all graphics, sound, and IDE components. The resulting `nubasic` binary has no external
+dependencies beyond the C++ runtime.
 
 #### IDE only, no console build
 
@@ -3157,7 +3157,7 @@ sudo make install
 ### 10.6 Building on iOS with iSH
 
 [iSH](https://ish.app) is an Alpine Linux shell environment for iOS/iPadOS. It supports the
-tiny console build of nuBASIC.
+console build of nuBASIC.
 
 Install iSH from the App Store, then inside its shell:
 

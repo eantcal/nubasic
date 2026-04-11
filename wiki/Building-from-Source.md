@@ -12,7 +12,7 @@ nuBASIC is written in C++17 and builds with CMake 3.14 or later.
 | `NuBasicIDE.exe` + `SciLexer.dll` | Windows | Graphical IDE with integrated debugger |
 | `nubasicide` | Linux | GTK+2 graphical IDE |
 
-A *tiny* build — interpreter only, no graphics, no IDE — is also available for embedded and
+A *console* build — interpreter only, no graphics, no IDE — is also available for embedded and
 minimal environments.
 
 ---
@@ -95,7 +95,7 @@ cmake --build .
 > **Note:** Open a *Developer Command Prompt* (which runs `vcvarsall.bat`) before invoking CMake
 > to ensure the MSVC toolchain is available on `PATH`.
 
-### Console-only (Tiny) Build on Windows
+### Console-only Build on Windows
 
 ```bat
 cmake -G "Visual Studio 17 2022" -DWITH_WIN_IDE=OFF ..
@@ -148,15 +148,15 @@ Produces:
 /usr/local/bin/nubasicide   # GTK IDE
 ```
 
-### Console-only (Tiny) Build on Linux
+### Console-only Build on Linux
 
 ```sh
 cmake .. -DWITH_X11=OFF -DWITH_IDE=OFF
 make -j$(nproc)
 ```
 
-This enables `TINY_NUBASIC_VER`, stripping all graphics, sound, and IDE components.
-The resulting binary has no external dependencies beyond the C++ runtime.
+This enables `TINY_NUBASIC_VER` (console build mode), stripping all graphics, sound, and IDE
+components. The resulting binary has no external dependencies beyond the C++ runtime.
 
 ---
 
@@ -187,7 +187,7 @@ sudo make install
 ## Building on iOS with iSH
 
 [iSH](https://ish.app) is an Alpine Linux shell environment for iOS/iPadOS. It supports the
-tiny console build.
+console build.
 
 ```sh
 apk add g++ make cmake git

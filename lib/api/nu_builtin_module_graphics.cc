@@ -27,10 +27,14 @@ namespace {
 
         const builtin_export_list_t& exports() const noexcept override
         {
+#ifndef TINY_NUBASIC_VER
             static const builtin_export_list_t module_exports
                 = { "getswidth", "getsheight", "getwindowx", "getwindowy",
                       "getwindowdx", "getwindowdy", "getmouse", "settopmost",
                       "msgbox", "playsound", "movewindow", "getpixel", "rgb" };
+#else
+            static const builtin_export_list_t module_exports = { "rgb" };
+#endif
             return module_exports;
         }
 

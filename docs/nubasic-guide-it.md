@@ -169,10 +169,10 @@ Ciò che nuBASIC aggiunge rispetto alla classica base BASIC:
 La versione Windows fornisce una finestra console dedicata basata su GDI che renderizza testo e
 grafica nativamente, funziona sia autonomamente sia incorporata nell'IDE di nuBASIC, e supporta
 tutte le API grafiche incluso il disegno a livello di pixel. La versione Linux usa il terminale
-per il testo e X11 per la grafica. È disponibile anche una variante *tiny* (senza grafica, audio
+per il testo e X11 per la grafica. È disponibile anche una variante *console* (senza grafica, audio
 o supporto per il gestore di finestre) per ambienti con risorse limitate.
 
-### La modalità console e la versione Tiny
+### La modalità console e la build console
 
 #### Modalità console
 
@@ -233,9 +233,9 @@ spostata e ridimensionata dall'interno di un programma usando `MoveWindow`. Su L
 terminale gestisce l'I/O testuale mentre una finestra X11 fornisce la superficie grafica quando
 vengono usate istruzioni grafiche.
 
-#### La versione Tiny
+#### La build console
 
-La **versione tiny** è una variante semplificata di nuBASIC compilata senza supporto per grafica,
+La **build console** è una variante semplificata di nuBASIC compilata senza supporto per grafica,
 audio, mouse o gestore di finestre. Tutte le istruzioni grafiche (`Line`, `FillRect`, `TextOut`,
 `ScreenLock`, `PlotImage`, …) e le relative funzioni (`GetMouseX`, `GetSWidth`,
 `MoveWindow`, `PlaySound`, `MsgBox`, …) sono assenti.
@@ -245,7 +245,7 @@ tutte le funzioni per stringhe e matematica, I/O su file, tabelle hash, `Sub`/`F
 e la modalità console completa con tutti i comandi di debug. I programmi che non usano la grafica
 funzionano in modo identico su entrambe le versioni.
 
-La versione tiny è la scelta giusta quando:
+La build console è la scelta giusta quando:
 
 - Si esegue su un **server headless** o un sistema embedded senza display
 - Si effettua **scripting** per operazioni di elaborazione testi o manipolazione file dove la grafica è irrilevante
@@ -1252,7 +1252,7 @@ Print Eval(expr$)       ' 36 — valutato con x=5
 ## 5. Grafica e Multimedia
 
 Tutte le funzioni grafiche sono disponibili nella versione completa (Windows GDI o Linux/X11). Sono
-assenti nella versione *tiny*, orientata agli ambienti minimali.
+assenti nella *build console*, orientata agli ambienti minimali.
 
 Il sistema di coordinate ha l'origine nell'angolo **in alto a sinistra** dell'area client della finestra
 di lavoro, con X che cresce verso destra e Y che cresce verso il basso. Tutte le coordinate sono in pixel.
@@ -3093,9 +3093,9 @@ cmake .. -DWITH_X11=OFF -DWITH_IDE=OFF
 make -j$(nproc)
 ```
 
-Questo attiva il flag del preprocessore `TINY_NUBASIC_VER`, che rimuove tutti i componenti
-grafici, audio e IDE. Il binario `nubasic` risultante non ha dipendenze esterne oltre al
-runtime C++.
+Questo attiva il flag del preprocessore `TINY_NUBASIC_VER` (modalità build console), che rimuove
+tutti i componenti grafici, audio e IDE. Il binario `nubasic` risultante non ha dipendenze esterne
+oltre al runtime C++.
 
 #### Solo IDE, senza build da console
 

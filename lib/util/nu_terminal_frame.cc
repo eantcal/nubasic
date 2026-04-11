@@ -54,12 +54,19 @@ int create_terminal_frame(int argc, char* argv[])
     static char xterm_prog[] = NU_BASIC_XTERM_EXECBIN;
     static char xterm_earg[] = NU_BASIC_XTERM_EXECOPT;
 
-    if (argc > 1 && strcmp(argv[1], NU_BASIC_XTERM_NOFRAME_SWITCH) == 0) {
-        return 0;
+    // Check all args: -nx, -t / --text-mode, or -e mean non-interactive mode
+    for (int i = 1; i < argc; ++i) {
+        if (strcmp(argv[i], NU_BASIC_XTERM_NOFRAME_SWITCH) == 0
+            || strcmp(argv[i], "-t") == 0
+            || strcmp(argv[i], "--text-mode") == 0
+            || (argv[i][0] == '-' && argv[i][1] == NU_BASIC_EXEC_MACRO && argv[i][2] == '\0'))
+        {
+            return 0;
+        }
     }
 
-    else if (argc > 0
-        && (argc < 2 || strcmp(argv[1], NU_BASIC_XTERM_FRAME_SWITCH))) 
+    if (argc > 0
+        && (argc < 2 || strcmp(argv[1], NU_BASIC_XTERM_FRAME_SWITCH)))
     {
         std::string progname = argv[0];
         progname += " ";

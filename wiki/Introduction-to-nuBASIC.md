@@ -39,10 +39,10 @@ What nuBASIC adds on top of the classic BASIC foundation:
 The Windows build provides a dedicated GDI-based console window that renders text and graphics
 natively, works both standalone and embedded inside the nuBASIC IDE, and supports all graphical
 APIs including pixel-level drawing. The Linux build uses the terminal for text and X11 for
-graphics. A *tiny* build variant (without graphics, sound, or window manager support) is also
+graphics. A *console* build variant (without graphics, sound, or window manager support) is also
 available for constrained environments.
 
-## Console Mode and the Tiny Build
+## Console Mode and the Console Build
 
 ### Console Mode
 
@@ -87,15 +87,15 @@ The console mode command set includes everything needed for a complete edit-run-
 | Help | `Help`, `Apropos`, `Ver`, `Meta` |
 | System | `!` (shell), `Exit` |
 
-### The Tiny Build
+### The Console Build
 
-The **tiny build** is a stripped-down variant of nuBASIC compiled without graphics, sound,
+The **console build** is a stripped-down variant of nuBASIC compiled without graphics, sound,
 mouse, or window manager support. All graphical instructions and their related functions are
 absent. What remains is a fully functional text-mode interpreter: the complete language core,
 all string and math functions, file I/O, hash tables, `Sub`/`Function`, `Struct`, and the full
 console mode with all debugging commands.
 
-The tiny build is the right choice when:
+The console build is the right choice when:
 
 - Running on a **headless server** or an embedded system with no display
 - **Scripting** text-processing or file-manipulation tasks
