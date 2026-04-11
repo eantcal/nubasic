@@ -144,6 +144,7 @@ static int nuBASIC_console(int argc, char* argv[])
     }
 
     std::string command;
+    const bool batch_mode = !command_line.empty();
 
     if (command_line.empty()) {
         const auto ver_str = nuBASIC.version();
@@ -168,6 +169,10 @@ static int nuBASIC_console(int argc, char* argv[])
 
         nuBASIC.get_and_reset_break_event();
         const auto res = exec_command(nuBASIC, command);
+
+        // In batch mode (-e / -l from command line), exit after the command
+        if (batch_mode)
+            break;
 
         switch (res) {
         case nu::interpreter_t::exec_res_t::IO_ERROR:
