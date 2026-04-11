@@ -29,6 +29,60 @@ void stmt_method_call_t::run(rt_prog_ctx_t& ctx)
             cond, ctx.runtime_pc.get_line(), err, desc);
     };
 
+    // Check for static method call: ClassName.Method(args)
+    // A static call is recognized when _obj_name is a known class prototype
+    // (not a variable in scope) and the mangled name is in
+    // class_static_methods.
+    {
+        const std::string static_key = _obj_name + "." + _method_name;
+        if (ctx.class_static_methods.count(static_key) > 0) {
+            auto proto_it = ctx.proc_prototypes.data.find(static_key);
+            rt_error_if(proto_it == ctx.proc_prototypes.data.end(),
+                rt_error_code_t::value_t::E_SUB_UNDEF, static_key);
+
+            const auto& prototype = proto_it->second.second;
+            rt_error_if(prototype.parameters.size() != _args.size(),
+                rt_error_code_t::value_t::E_WRG_NUM_ARGS, static_key);
+
+            // Evaluate arguments
+            std::vector<variant_t> values;
+            values.reserve(_args.size());
+            for (const auto& arg : _args)
+                values.emplace_back(
+                    arg.first ? arg.first->eval(ctx) : variant_t(""));
+
+            // Build ByRef writeback frame (no "me" entry — no instance)
+            {
+                std::vector<rt_prog_ctx_t::byref_entry_t> frame;
+                auto parg = prototype.parameters.begin();
+                auto aarg = _args.begin();
+                for (; parg != prototype.parameters.end(); ++parg, ++aarg) {
+                    if (parg->by_ref && aarg->first) {
+                        const std::string caller_var = aarg->first->name();
+                        if (!caller_var.empty())
+                            frame.emplace_back(parg->var_name, caller_var);
+                    }
+                }
+                ctx.byref_writeback_stack.push_back(std::move(frame));
+            }
+
+            ctx.set_return_line(
+                std::make_pair(ctx.runtime_pc.get_line(), get_stmt_id()));
+            ctx.go_to(proto_it->second.first);
+            ctx.proc_scope.enter_scope(static_key, false);
+
+            // Bind formal parameters (no "Me" injection for static methods)
+            auto callee_scope = ctx.proc_scope.get();
+            auto arg_it = prototype.parameters.begin();
+            for (const auto& val : values) {
+                callee_scope->define(
+                    arg_it->var_name, var_value_t(val, VAR_ACCESS_RW));
+                ++arg_it;
+            }
+            return;
+        }
+    }
+
     // Resolve the object variable to get its class name
     variant_t* obj_ptr = nullptr;
     var_scope_t::handle_t obj_scope;

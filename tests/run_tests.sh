@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
-# run_tests.sh — nuBASIC regression test runner (Bash)
+# run_tests.sh — nuBASIC regression test runner
 #
 # Usage:
 #   ./run_tests.sh [--interpreter <path>] [--testdir <path>]
 #
-# If --interpreter is not given, the script searches common build output
-# locations relative to the repo root.
+# Test-file meta-comments (first 5 lines of each .bas file):
+#   ' ARGS: arg1 arg2   — extra CLI args passed to the interpreter
+#   ' OUTFILE: name.txt — read test output from this file instead of stdout
+#   ' SKIP               — skip this test with a note
 #
-# Exit code: 0 = all tests passed, 1 = one or more failures.
+# Exit code: 0 = all passed, 1 = one or more failures.
 
-set -euo pipefail
+set -u
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -17,20 +19,24 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 INTERPRETER=""
 TEST_DIR="$SCRIPT_DIR"
 
-# ── parse args ────────────────────────────────────────────────────────────────
+# ── parse CLI args ────────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --interpreter|-i) INTERPRETER="$2"; shift 2 ;;
         --testdir|-d)     TEST_DIR="$2";    shift 2 ;;
-        *) echo "Unknown option: $1"; exit 1 ;;
+        *) echo "Unknown option: $1" >&2; exit 1 ;;
     esac
 done
 
 # ── locate interpreter ────────────────────────────────────────────────────────
 if [[ -z "$INTERPRETER" ]]; then
     CANDIDATES=(
-        "$REPO_ROOT/build/release/Release/nubasic.exe"
+        "$REPO_ROOT/build/nubasic"
+        "$REPO_ROOT/build/Release/nubasic"
+        "$REPO_ROOT/build/Debug/nubasic"
         "$REPO_ROOT/build/release/nubasic"
+        "$REPO_ROOT/build/release/Release/nubasic"
+        "$REPO_ROOT/build/release/Release/nubasic.exe"
         "$REPO_ROOT/build/debug/Debug/nubasic.exe"
         "$REPO_ROOT/build/debug/nubasic"
         "$REPO_ROOT/x64/Release/nubasic.exe"
@@ -39,106 +45,178 @@ if [[ -z "$INTERPRETER" ]]; then
     for c in "${CANDIDATES[@]}"; do
         if [[ -x "$c" ]]; then INTERPRETER="$c"; break; fi
     done
+
+    # Last resort: search anywhere under the repo tree
+    if [[ -z "$INTERPRETER" ]]; then
+        INTERPRETER=$(find "$REPO_ROOT" -type f \( -name "nubasic" -o -name "nubasic.exe" \) \
+                      ! -path "*/CMakeFiles/*" 2>/dev/null | head -1)
+    fi
 fi
 
 if [[ -z "$INTERPRETER" || ! -x "$INTERPRETER" ]]; then
-    echo "ERROR: nubasic interpreter not found. Build the project first, or pass --interpreter <path>."
-    exit 1
-fi
-
-# ── collect test files ────────────────────────────────────────────────────────
-mapfile -t TEST_FILES < <(find "$TEST_DIR" -maxdepth 1 -name "test_*.bas" | sort)
-
-if [[ ${#TEST_FILES[@]} -eq 0 ]]; then
-    echo "ERROR: No test_*.bas files found in $TEST_DIR"
+    echo "ERROR: nubasic not found. Build first, or use --interpreter <path>." >&2
     exit 1
 fi
 
 # ── helpers ───────────────────────────────────────────────────────────────────
-WIDTH=72
-SEP=$(printf '%*s' "$WIDTH" '' | tr ' ' '-')
-HDR=$(printf '%*s' "$WIDTH" '' | tr ' ' '=')
 
-total_pass=0
-total_fail=0
-suite_pass=0
-suite_fail=0
+# Strip ANSI/VT escape sequences (BSD sed compatible)
+strip_ansi() {
+    sed $'s/\x1b\\[[0-9;]*[a-zA-Z]//g'
+}
+
+# Run the interpreter; return exit code via global RUN_EXIT.
+# Prints cleaned output to stdout.
+RUN_EXIT=0
+run_interp() {
+    local bas_file="$1"; shift
+    local raw
+    RUN_EXIT=0
+    raw=$(TERM=xterm "$INTERPRETER" -t -e "$bas_file" "$@" 2>&1) || RUN_EXIT=$?
+    printf '%s' "$raw" | strip_ansi
+}
+
+# Count occurrences of a regex in a string; sets COUNT (never fails).
+count_matches() {
+    local text="$1" pattern="$2"
+    COUNT=$(printf '%s' "$text" | grep -cE "$pattern" 2>/dev/null) || COUNT=0
+}
+
+# Extract first integer before/after a keyword; sets N (never fails).
+extract_int_before() {
+    local text="$1" keyword="$2"
+    N=$(printf '%s' "$text" | grep -oE "[0-9]+ $keyword" | grep -oE "^[0-9]+" | tail -1) || true
+    N=${N:-0}
+}
+
+# Read a meta-comment "' KEY: value" or "' KEY" from first 5 lines of a file.
+read_meta() {
+    local file="$1" key="$2"
+    head -5 "$file" 2>/dev/null \
+        | grep -i "^[[:space:]]*'[[:space:]]*${key}" \
+        | head -1 \
+        | sed "s/^[[:space:]]*'[[:space:]]*${key}[[:space:]]*:*[[:space:]]*//"
+}
+
+# ── collect test files (bash 3 compatible) ───────────────────────────────────
+TEST_FILES=()
+while IFS= read -r f; do
+    TEST_FILES+=("$f")
+done < <(find "$TEST_DIR" -maxdepth 1 -name "test_*.bas" 2>/dev/null | sort)
+
+if [[ ${#TEST_FILES[@]} -eq 0 ]]; then
+    echo "ERROR: No test_*.bas files found in $TEST_DIR" >&2
+    exit 1
+fi
+
+# ── formatting ────────────────────────────────────────────────────────────────
+W=72
+SEP=$(printf '%*s' "$W" '' | tr ' ' '-')
+HDR=$(printf '%*s' "$W" '' | tr ' ' '=')
+
+total_pass=0; total_fail=0
+suite_pass=0; suite_fail=0; suite_skip=0
 failed_suites=()
 
 echo ""
 echo "$HDR"
-echo " nuBASIC Regression Test Suite"
-echo " Interpreter : $INTERPRETER"
-echo " Test dir    : $TEST_DIR"
+printf ' nuBASIC Regression Test Suite\n'
+printf ' Interpreter : %s\n' "$INTERPRETER"
+printf ' Test dir    : %s\n' "$TEST_DIR"
 echo "$HDR"
 
-# ── run each test suite ───────────────────────────────────────────────────────
+# ── run suites ────────────────────────────────────────────────────────────────
 for f in "${TEST_FILES[@]}"; do
     name=$(basename "$f" .bas)
-
     echo ""
     echo "$SEP"
-    echo " Suite: $name"
+    printf ' Suite: %s\n' "$name"
     echo "$SEP"
 
-    # Run interpreter in text mode so I/O goes to stdout/stderr
-    output=$("$INTERPRETER" -t -e "$f" 2>&1) || true
-    exit_code=$?
-
-    # Echo all output
-    while IFS= read -r line; do echo "  $line"; done <<< "$output"
-
-    # Parse "Results: N passed,  M failed"
-    suite_p=0
-    suite_f=0
-    if results=$(echo "$output" | grep -oE "Results:[^0-9]*([0-9]+)[^0-9]+([0-9]+)" | head -1); then
-        suite_p=$(echo "$results" | grep -oE "[0-9]+" | head -1)
-        suite_f=$(echo "$results" | grep -oE "[0-9]+" | tail -1)
-        # If both numbers are the same (1 number matched), reparse
-        suite_p=$(echo "$output" | grep -oP "(?<=Results:\s{0,10})(\d+)(?=\s+passed)" | head -1 || echo 0)
-        suite_f=$(echo "$output" | grep -oP "(\d+)(?=\s+failed)" | head -1 || echo 0)
+    # ── meta: SKIP ────────────────────────────────────────────────────────────
+    skip_val=$(read_meta "$f" "SKIP")
+    if [[ -n "$skip_val" ]]; then
+        printf '  [SKIPPED] %s\n' "${skip_val}"
+        suite_skip=$(( suite_skip + 1 ))
+        continue
     fi
-    suite_p=${suite_p:-0}
-    suite_f=${suite_f:-0}
 
-    # Fallback: count PASS/FAIL lines
-    if [[ "$suite_p" -eq 0 && "$suite_f" -eq 0 ]]; then
-        suite_p=$(echo "$output" | grep -cE "^\s+PASS\b" || true)
-        suite_f=$(echo "$output" | grep -cE "^\s+FAIL\b" || true)
+    # ── meta: ARGS ────────────────────────────────────────────────────────────
+    extra_args=()
+    args_line=$(read_meta "$f" "ARGS")
+    if [[ -n "$args_line" ]]; then
+        # Split on spaces; works for simple tokens without quoting
+        IFS=' ' read -r -a extra_args <<< "$args_line"
+    fi
+
+    # ── meta: OUTFILE ─────────────────────────────────────────────────────────
+    outfile=$(read_meta "$f" "OUTFILE")
+
+    # ── run ───────────────────────────────────────────────────────────────────
+    output=$(cd "$TEST_DIR" && run_interp "$f" "${extra_args[@]+"${extra_args[@]}"}") || true
+    interp_exit=$RUN_EXIT
+
+    # If the test writes results to a side file, append its content
+    if [[ -n "$outfile" && -f "$TEST_DIR/$outfile" ]]; then
+        output+=$'\n'"$(cat "$TEST_DIR/$outfile")"
+        rm -f "$TEST_DIR/$outfile"
+    fi
+
+    # ── print output (indented) ───────────────────────────────────────────────
+    while IFS= read -r line; do printf '  %s\n' "$line"; done <<< "$output"
+
+    # ── parse pass/fail counts ────────────────────────────────────────────────
+    suite_p=0; suite_f=0
+
+    if printf '%s' "$output" | grep -qE "Results:.*passed" 2>/dev/null; then
+        extract_int_before "$output" "passed"; suite_p=$N
+        extract_int_before "$output" "failed"; suite_f=$N
+    else
+        # Fallback: count PASS / FAIL assertion lines
+        count_matches "$output" "^[[:space:]]+PASS"; suite_p=$COUNT
+        count_matches "$output" "^[[:space:]]+FAIL"; suite_f=$COUNT
     fi
 
     total_pass=$(( total_pass + suite_p ))
     total_fail=$(( total_fail + suite_f ))
 
-    if [[ "$suite_f" -eq 0 && "$exit_code" -eq 0 ]]; then
-        echo "  [SUITE PASS] $name  ($suite_p assertions passed)"
+    # Detect runtime errors in output
+    count_matches "$output" "^(Runtime Error|At line [0-9]+:)"; runtime_errors=$COUNT
+
+    if [[ "$suite_f" -eq 0 && "$interp_exit" -eq 0 && "$runtime_errors" -eq 0 ]]; then
+        printf '  [SUITE PASS] %s  (%d assertions)\n' "$name" "$suite_p"
         suite_pass=$(( suite_pass + 1 ))
     else
-        echo "  [SUITE FAIL] $name  ($suite_p passed, $suite_f failed, exit=$exit_code)"
+        printf '  [SUITE FAIL] %s  (%d passed, %d failed, exit=%d)\n' \
+               "$name" "$suite_p" "$suite_f" "$interp_exit"
         suite_fail=$(( suite_fail + 1 ))
         failed_suites+=("$name")
     fi
 done
 
-# ── final summary ─────────────────────────────────────────────────────────────
+# ── summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo "$HDR"
-echo " SUMMARY"
+printf ' SUMMARY\n'
 echo "$HDR"
-echo "  Suites  : $(( suite_pass + suite_fail )) total,  $suite_pass passed,  $suite_fail failed"
-echo "  Asserts : $(( total_pass + total_fail )) total,  $total_pass passed,  $total_fail failed"
+printf '  Suites  : %d total  —  %d passed, %d failed, %d skipped\n' \
+       "$(( suite_pass + suite_fail + suite_skip ))" \
+       "$suite_pass" "$suite_fail" "$suite_skip"
+printf '  Asserts : %d total  —  %d passed, %d failed\n' \
+       "$(( total_pass + total_fail ))" "$total_pass" "$total_fail"
+
 if [[ ${#failed_suites[@]} -gt 0 ]]; then
-    echo "  Failed suites:"
-    for s in "${failed_suites[@]}"; do echo "    - $s"; done
+    printf '  Failed suites:\n'
+    for s in "${failed_suites[@]}"; do printf '    - %s\n' "$s"; done
 fi
 echo "$HDR"
 
-if [[ "$total_fail" -eq 0 && "$suite_fail" -eq 0 ]]; then
-    echo " ALL TESTS PASSED"
+if [[ "$suite_fail" -eq 0 ]]; then
+    printf ' ALL TESTS PASSED\n'
     echo "$HDR"
     exit 0
 else
-    echo " SOME TESTS FAILED"
+    printf ' SOME TESTS FAILED\n'
     echo "$HDR"
     exit 1
 fi

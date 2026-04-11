@@ -24,6 +24,13 @@ stmt_sub_t::stmt_sub_t(prog_ctx_t& ctx, const std::string& id)
     : stmt_t(ctx)
     , _id(id)
 {
+    // "main" defined in an included file is not the program entry point;
+    // skip its registration so the top-level "main" (if any) takes precedence.
+    if (ctx.in_include_file && id == "main") {
+        ctx.procedure_metadata.compile_begin(ctx.compiletime_pc, id);
+        return;
+    }
+
     const auto i = ctx.proc_prototypes.data.find(id);
 
     const auto found = i != ctx.proc_prototypes.data.end();

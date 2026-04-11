@@ -109,8 +109,7 @@ static void print_usage(const char* progname)
         "\n"
         "Homepage: %s\n",
         nu::about::progname, nu::about::version, nu::about::description,
-        progname,
-        progname, progname, progname, progname, progname,
+        progname, progname, progname, progname, progname, progname,
         nu::about::homepage);
 }
 
@@ -163,6 +162,23 @@ static int nuBASIC_console(int argc, char* argv[])
     std::string command_line;
     bool first_command = false;
 
+    // Pre-pass: collect script args for main() when using -e file.bas [args...]
+    // argv[0] for main() is conventionally the script filename.
+    {
+        std::vector<std::string> script_args;
+        for (int j = 1; j < argc; ++j) {
+            if (argv[j][0] == '-' && argv[j][1] == NU_BASIC_EXEC_MACRO
+                && argv[j][2] == '\0' && j + 1 < argc) {
+                script_args.push_back(argv[j + 1]); // script name as argv[0]
+                for (int k = j + 2; k < argc; ++k)
+                    script_args.push_back(argv[k]);
+                break;
+            }
+        }
+        if (!script_args.empty())
+            nuBASIC.set_cli_args(script_args);
+    }
+
     if (argc >= 2) {
         int i = 1;
 
@@ -170,12 +186,14 @@ static int nuBASIC_console(int argc, char* argv[])
             std::string param = argv[i];
 
             if (param != NU_BASIC_XTERM_FRAME_SWITCH
-                && param != NU_BASIC_XTERM_NOFRAME_SWITCH) {
+                && param != NU_BASIC_XTERM_NOFRAME_SWITCH && param != "-t"
+                && param != "--text-mode") {
                 if (argc > 1 && param.size() == 2 && param.c_str()[0] == '-') {
                     switch (param.c_str()[1]) {
                     case NU_BASIC_EXEC_MACRO:
                         param = "EXEC \"" + std::string(argv[++i]) + "\"";
-                        --argc;
+                        argc = 1; // stop after this — remaining args are CLI
+                                  // args, not commands
                         break;
 
                     case NU_BASIC_LOAD_MACRO:

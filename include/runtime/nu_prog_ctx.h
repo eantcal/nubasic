@@ -116,6 +116,16 @@ public:
     // Methods declared Overridable (reserved for future strict enforcement)
     std::set<std::string> class_overridable_methods;
 
+    // Methods declared Static: callable as ClassName.Method() without instance
+    std::set<std::string> class_static_methods;
+
+    // Set to true while compiling a Static method declaration
+    bool compiling_class_member_is_static = false;
+
+    // Set to true while loading an included file (depth > 0).
+    // Used to suppress "main" registration from included files.
+    bool in_include_file = false;
+
     // Tracks which parameter names are declared ByRef in the procedure
     // currently being compiled.  Cleared by define() after each parameter
     // is registered.

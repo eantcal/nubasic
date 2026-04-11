@@ -824,9 +824,14 @@ stmt_t::handle_t statement_parser_t::parse_procedure(
         ptr->define_ret_type(ret_type, ctx, array_size);
     }
 
-    // Register visibility when inside a class body
+    // Register visibility and static flag when inside a class body
     if (!ctx.compiling_class_name.empty()) {
         ctx.class_member_visibility[id] = ctx.compiling_class_member_is_public;
+
+        if (ctx.compiling_class_member_is_static) {
+            ctx.class_static_methods.insert(id);
+            ctx.compiling_class_member_is_static = false;
+        }
     }
 
     return stmt_handle;

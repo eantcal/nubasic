@@ -24,6 +24,7 @@
 #include <sstream>
 #include <string.h>
 #include <string>
+#include <vector>
 
 
 /* -------------------------------------------------------------------------- */
@@ -169,6 +170,9 @@ public:
     bool run_next(runnable_t::line_num_t line);
     bool cont(runnable_t::line_num_t start_from, runnable_t::stmt_num_t stmtid);
 
+    // Run main() if defined, otherwise run from line 0.
+    bool run_main_or_default();
+
     exec_res_t set_breakpoint(
         runnable_t::line_num_t line, breakpoint_cond_t&& bp);
     exec_res_t erase_breakpoint(runnable_t::line_num_t line);
@@ -189,6 +193,13 @@ public:
 
     FILE* get_stdout_ptr() const noexcept { return _stdout_ptr; }
     FILE* get_stdin_ptr() const noexcept { return _stdin_ptr; }
+
+    // Store CLI arguments passed to the program's main() entry point.
+    // argv[0] is conventionally the script filename; argv[1..] are script args.
+    void set_cli_args(const std::vector<std::string>& args) noexcept
+    {
+        _cli_args = args;
+    }
 
     void set_yield_cbk(
         program_t::yield_cbk_t cbk, void* cbk_data = nullptr) noexcept
@@ -223,6 +234,9 @@ private:
     nu::statement_parser_t _parser;
     FILE* _stdout_ptr;
     FILE* _stdin_ptr;
+
+    // Arguments passed to the program's main() entry point.
+    std::vector<std::string> _cli_args;
 };
 
 

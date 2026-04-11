@@ -1,4 +1,5 @@
 ' test_struct_byref_file.bas - file-output version for automated testing
+' OUTFILE: nubasic_test_result.txt
 Dim pass% As Integer
 Dim fail% As Integer
 pass% = 0

@@ -117,10 +117,18 @@ void stmt_call_t::run(
 
         const auto vsize = function_prototype.array_size;
 
+        // For mangled names like "ClassName.MethodName", the user writes
+        // the return assignment using the short (unmangled) name inside the
+        // function body (e.g. "MethodName = value").  Define the return
+        // variable under the short name so that stmt_endfunction_t can find it.
+        const auto dot = _name.rfind('.');
+        const std::string retvar_name
+            = (dot != std::string::npos) ? _name.substr(dot + 1) : _name;
+
         switch (vtype_code) {
         case variable_t::type_t::STRING:
         case variable_t::type_t::OBJECT:
-            sub_xscope->define(_name,
+            sub_xscope->define(retvar_name,
                 var_value_t(variant_t("", vtype_code, vsize), VAR_ACCESS_RW));
             break;
 
@@ -129,7 +137,7 @@ void stmt_call_t::run(
         case variable_t::type_t::BOOLEAN:
         case variable_t::type_t::BYTEVECTOR:
         case variable_t::type_t::ANY:
-            sub_xscope->define(_name,
+            sub_xscope->define(retvar_name,
                 var_value_t(variant_t("0", vtype_code, vsize), VAR_ACCESS_RW));
             break;
 
@@ -144,7 +152,7 @@ void stmt_call_t::run(
             const auto value = it->second.second; // struct prototype
 
             // TODO: extend to array of structures
-            sub_xscope->define(_name, var_value_t(value, VAR_ACCESS_RW));
+            sub_xscope->define(retvar_name, var_value_t(value, VAR_ACCESS_RW));
             break;
         }
 
@@ -160,7 +168,7 @@ void stmt_call_t::run(
         auto sub_xscope = ctx.proc_scope.get();
 
         for (auto values_it = values.cbegin(); values_it != values.cend();
-             ++values_it) {
+            ++values_it) {
             variant_t val = *values_it;
 
             const auto& variable_name = arg_it->var_name;

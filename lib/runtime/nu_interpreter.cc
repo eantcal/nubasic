@@ -13,6 +13,7 @@
 #include "nu_builtin_help.h"
 #include "nu_builtin_registry.h"
 #include "nu_examples_paths.h"
+#include "nu_expr_literal.h"
 #include "nu_os_console.h"
 #include "nu_os_std.h"
 #include "nu_program.h"
@@ -640,7 +641,10 @@ bool interpreter_t::load_with_includes(
 
                 std::string inc_base
                     = fs::path(inc_path).parent_path().string();
+                const bool saved_in_include = _prog_ctx.in_include_file;
+                _prog_ctx.in_include_file = true;
                 bool ok = load_with_includes(inc_f, ln, inc_base, depth + 1);
+                _prog_ctx.in_include_file = saved_in_include;
                 fclose(inc_f);
                 if (!ok)
                     return false;
@@ -1026,9 +1030,8 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
             token = tknzr.next();
             skip_blank(tknzr, token);
 
-            std::string arg = token.type() != tkncl_t::UNDEFINED
-                ? token.identifier()
-                : ".";
+            std::string arg
+                = token.type() != tkncl_t::UNDEFINED ? token.identifier() : ".";
 
             while (!tknzr.eol()) {
                 token = tknzr.next();
@@ -1042,8 +1045,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
             if (!fs::exists(target, ec) || !fs::is_directory(target, ec)) {
                 console_fprintf(get_stdout_ptr(),
-                    "ls: cannot access '%s': No such directory\n",
-                    arg.c_str());
+                    "ls: cannot access '%s': No such directory\n", arg.c_str());
                 return exec_res_t::IO_ERROR;
             }
 
@@ -1196,7 +1198,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                 return exec_res_t::IO_ERROR;
             }
 
-            run(0);
+            run_main_or_default();
 
             return exec_res_t::CMD_EXEC;
         }
@@ -1468,7 +1470,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         if (load(f)) {
             set_ignore_break_event(true);
             signal_mgr_t::instance().disable_notifications();
-            bool res = run(0);
+            bool res = run_main_or_default();
             exit(res ? 0 : 1);
 
             return exec_res_t::CMD_EXEC;
@@ -1505,6 +1507,53 @@ bool interpreter_t::run(runnable_t::line_num_t line)
     }
 
     return prog.run(line);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool interpreter_t::run_main_or_default()
+{
+    // If the loaded program defines a top-level "main" function/sub,
+    // use it as the entry point and pass the stored CLI arguments.
+    auto main_it = _prog_ctx.proc_prototypes.data.find("main");
+
+    if (main_it != _prog_ctx.proc_prototypes.data.end()) {
+        const auto& params = main_it->second.second.parameters;
+        const size_t n = _cli_args.size();
+
+        std::vector<expr_any_t::handle_t> args;
+
+        if (params.size() >= 1) {
+            // First parameter: argc As Integer
+            args.push_back(
+                std::make_shared<expr_literal_t>(variant_t(integer_t(n))));
+        }
+
+        if (params.size() >= 2) {
+            // Second parameter: argv() As String
+            variant_t argv_val("", n > 0 ? n : 1);
+            for (size_t k = 0; k < n; ++k)
+                argv_val.set_str(_cli_args[k], k);
+            args.push_back(std::make_shared<expr_literal_t>(argv_val));
+        }
+
+        struct _guard_t {
+            _guard_t() { _os_config_term(false); }
+            ~_guard_t() { _os_config_term(true); }
+        } _guard;
+
+        // Use checkpoint mode (true) so that End Function / End Sub
+        // can cleanly return to line 0 without triggering a runtime error.
+        program_t prog(_prog_line, _prog_ctx, true);
+
+        if (_yield_cbk)
+            prog.set_yield_cbk(_yield_cbk, _yield_data);
+
+        return prog.run("main", args);
+    }
+
+    return run(0);
 }
 
 

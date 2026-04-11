@@ -281,6 +281,15 @@ stmt_t::handle_t statement_parser_t::parse_class_member(
         token = *tl.begin();
     }
 
+    // Consume optional Static keyword before Sub/Function
+    if (token.identifier() == "static") {
+        ctx.compiling_class_member_is_static = true;
+        --tl;
+        remove_blank(tl);
+        syntax_error_if(tl.empty(), token.expression(), token.position());
+        token = *tl.begin();
+    }
+
     const std::string id = token.identifier();
 
     // Inherits BaseClass

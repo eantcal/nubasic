@@ -171,6 +171,25 @@ public:
                         mangled, _var2->get_args(), var_name, obj_value);
                 }
             }
+
+            // Check for static method call in expression context:
+            // ClassName.StaticMethod(args) where ClassName is not a variable.
+            if (!obj_found) {
+                const std::string static_key = var_name + "." + member_element;
+                if (ctx.class_static_methods.count(static_key) > 0) {
+                    ctx.program().run(static_key, _var2->get_args());
+                    // Retrieve function return value (empty for Sub)
+                    auto it = ctx.function_retval_tbl.find(static_key);
+                    if (it == ctx.function_retval_tbl.end()
+                        || it->second.empty())
+                        return variant_t();
+                    auto ret = it->second.front();
+                    it->second.pop_front();
+                    if (it->second.empty())
+                        ctx.function_retval_tbl.erase(it);
+                    return ret;
+                }
+            }
         }
 
         // Field access path

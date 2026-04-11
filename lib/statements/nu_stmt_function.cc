@@ -24,6 +24,12 @@ stmt_function_t::stmt_function_t(prog_ctx_t& ctx, const std::string& id)
     : stmt_t(ctx)
     , _id(id)
 {
+    // "main" defined in an included file is not the program entry point;
+    // skip its registration so the top-level "main" (if any) takes precedence.
+    if (ctx.in_include_file && id == "main") {
+        ctx.procedure_metadata.compile_begin(ctx.compiletime_pc, id);
+        return;
+    }
 
     // Get a reference to global function set
     auto& funcs = global_function_tbl_t::get_instance();

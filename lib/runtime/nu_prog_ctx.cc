@@ -55,6 +55,9 @@ void prog_ctx_t::clear_metadata()
     class_member_visibility.clear();
     class_bases.clear();
     class_overridable_methods.clear();
+    class_static_methods.clear();
+    compiling_class_member_is_static = false;
+    in_include_file = false;
     stop_metadata.pc_stop_stmt.clear();
 
     // Remove user-defined-functions

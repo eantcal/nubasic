@@ -304,30 +304,47 @@ protected:
             if (token.type() == tkncl_t::SUBEXP_BEGIN) {
                 extract_next_token(tl, token);
 
-                syntax_error_if(token.type() != tkncl_t::INTEGRAL
-                        && token.type() != tkncl_t::IDENTIFIER,
-                    token.expression(), token.position());
+                if (token.type() == tkncl_t::SUBEXP_END) {
+                    // Empty parens: open-ended array (e.g. argv() As String).
+                    // No size constraint — accept any vector of the given type.
+                    --tl;
+                    remove_blank(tl);
 
-                token_list_t etl;
-                expr_parser_t ep;
+                    T* ptr = dynamic_cast<T*>(handle.get());
+                    assert(ptr);
 
-                etl += token;
+                    std::string type;
+                    get_type(type, variable_name);
 
-                T* ptr = dynamic_cast<T*>(handle.get());
-                assert(ptr);
+                    ptr->define(variable_name, type,
+                        std::make_shared<expr_literal_t>(0),
+                        std::forward<E>(xprms)...);
+                } else {
+                    syntax_error_if(token.type() != tkncl_t::INTEGRAL
+                            && token.type() != tkncl_t::IDENTIFIER,
+                        token.expression(), token.position());
 
-                scan_token(tkncl_t::SUBEXP_END);
+                    token_list_t etl;
+                    expr_parser_t ep;
 
-                --tl;
-                remove_blank(tl);
+                    etl += token;
 
-                std::string type;
+                    T* ptr = dynamic_cast<T*>(handle.get());
+                    assert(ptr);
 
-                get_type(type, variable_name);
+                    scan_token(tkncl_t::SUBEXP_END);
 
-                ptr->define(variable_name, type,
-                    ep.compile(etl, token.position()),
-                    std::forward<E>(xprms)...);
+                    --tl;
+                    remove_blank(tl);
+
+                    std::string type;
+
+                    get_type(type, variable_name);
+
+                    ptr->define(variable_name, type,
+                        ep.compile(etl, token.position()),
+                        std::forward<E>(xprms)...);
+                }
             } else {
 
                 T* ptr = dynamic_cast<T*>(handle.get());
