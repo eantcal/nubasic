@@ -1022,6 +1022,55 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
             return exec_res_t::CMD_EXEC;
         }
 
+        if (cmd == "ls" || cmd == "dir") {
+            token = tknzr.next();
+            skip_blank(tknzr, token);
+
+            std::string arg = token.type() != tkncl_t::UNDEFINED
+                ? token.identifier()
+                : ".";
+
+            while (!tknzr.eol()) {
+                token = tknzr.next();
+                arg += token.identifier();
+            }
+
+            namespace fs = std::filesystem;
+
+            std::error_code ec;
+            fs::path target(arg);
+
+            if (!fs::exists(target, ec) || !fs::is_directory(target, ec)) {
+                console_fprintf(get_stdout_ptr(),
+                    "ls: cannot access '%s': No such directory\n",
+                    arg.c_str());
+                return exec_res_t::IO_ERROR;
+            }
+
+            std::vector<fs::directory_entry> entries;
+            for (const auto& e : fs::directory_iterator(target, ec))
+                entries.push_back(e);
+
+            std::sort(entries.begin(), entries.end(),
+                [](const fs::directory_entry& a, const fs::directory_entry& b) {
+                    return a.path().filename() < b.path().filename();
+                });
+
+            for (const auto& e : entries) {
+                const bool is_dir = e.is_directory(ec);
+                const std::string name = e.path().filename().string();
+                if (is_dir) {
+                    console_fprintf(get_stdout_ptr(), "%s/\n", name.c_str());
+                } else {
+                    const auto sz = e.file_size(ec);
+                    console_fprintf(get_stdout_ptr(), "%-36s %10llu\n",
+                        name.c_str(), static_cast<unsigned long long>(sz));
+                }
+            }
+
+            return exec_res_t::CMD_EXEC;
+        }
+
         if (cmd == "help") {
             token = tknzr.next();
             skip_blank(tknzr, token);
