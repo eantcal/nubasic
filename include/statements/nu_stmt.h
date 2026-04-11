@@ -83,6 +83,13 @@ public:
     //! Identify the class of statement
     virtual stmt_cl_t get_cl() const noexcept;
 
+    //! Called by the parser when constructor args are found after "As New
+    //! ClassName(...)". Default no-op; overridden by stmt_dim_t to store the
+    //! arg list.
+    virtual void on_ctor_args(const std::string& /*var*/, arg_list_t /*args*/)
+    {
+    }
+
     // dtor
     virtual ~stmt_t();
 

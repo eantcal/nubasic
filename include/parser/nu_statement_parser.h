@@ -144,6 +144,12 @@ protected:
                 token.type() != tc, token.expression(), token.position());
         };
 
+        // Pending constructor args collected by get_type for "As New
+        // ClassName(args)". Applied to `handle` after get_type returns (handle
+        // isn't in scope yet at the point where the lambda is defined).
+        std::string pending_ctor_var;
+        arg_list_t pending_ctor_args;
+
         auto get_type = [&](std::string& type,
                             const std::string& variable_name) {
             type = variable_t::typename_by_type(
@@ -167,7 +173,7 @@ protected:
 
                     type = token.identifier();
 
-                    // Handle "As New ClassName": skip the "New" keyword
+                    // Handle "As New ClassName[(args)]": skip the "New" keyword
                     if (type == "new") {
                         --tl;
                         remove_blank(tl);
@@ -179,6 +185,80 @@ protected:
                         type = token.identifier();
                         --tl;
                         remove_blank(tl);
+
+                        // Optional constructor args: Dim obj As New
+                        // ClassName(a,b,...)
+                        if (!tl.empty()
+                            && tl.begin()->type() == tkncl_t::SUBEXP_BEGIN) {
+                            --tl; // consume "("
+                            remove_blank(tl);
+
+                            arg_list_t ctor_args;
+
+                            if (!tl.empty()
+                                && tl.begin()->type() != tkncl_t::SUBEXP_END) {
+                                expr_parser_t ep;
+                                int depth = 0;
+
+                                while (!tl.empty()) {
+                                    token_list_t etl;
+
+                                    while (!tl.empty()) {
+                                        const token_t tok = *tl.begin();
+
+                                        if (tok.type()
+                                            == tkncl_t::SUBEXP_BEGIN) {
+                                            ++depth;
+                                            etl += tok;
+                                            --tl;
+                                            remove_blank(tl);
+                                        } else if (tok.type()
+                                            == tkncl_t::SUBEXP_END) {
+                                            if (depth == 0)
+                                                break;
+                                            --depth;
+                                            etl += tok;
+                                            --tl;
+                                            remove_blank(tl);
+                                        } else if (tok.type()
+                                                == tkncl_t::OPERATOR
+                                            && tok.identifier() == ","
+                                            && depth == 0) {
+                                            --tl; // consume ","
+                                            remove_blank(tl);
+                                            break;
+                                        } else {
+                                            etl += tok;
+                                            --tl;
+                                            remove_blank(tl);
+                                        }
+                                    }
+
+                                    if (!etl.empty()) {
+                                        ctor_args.emplace_back(
+                                            ep.compile(etl, token.position()),
+                                            '\0');
+                                    }
+
+                                    if (tl.empty()
+                                        || tl.begin()->type()
+                                            == tkncl_t::SUBEXP_END) {
+                                        if (!tl.empty()) {
+                                            --tl; // consume ")"
+                                            remove_blank(tl);
+                                        }
+                                        break;
+                                    }
+                                }
+                            } else if (!tl.empty()) {
+                                --tl; // consume ")" for empty arg list
+                                remove_blank(tl);
+                            }
+
+                            // Defer: handle isn't in scope here, applied below.
+                            pending_ctor_var = variable_name;
+                            pending_ctor_args = std::move(ctor_args);
+                        }
                     } else {
                         --tl;
                         remove_blank(tl);
@@ -259,6 +339,15 @@ protected:
                 ptr->define(variable_name, type,
                     std::make_shared<expr_literal_t>(0),
                     std::forward<E>(xprms)...);
+            }
+
+            // Apply constructor args collected by get_type (deferred because
+            // handle wasn't in scope at lambda definition time).
+            if (!pending_ctor_var.empty()) {
+                handle->on_ctor_args(
+                    pending_ctor_var, std::move(pending_ctor_args));
+                pending_ctor_var.clear();
+                pending_ctor_args.clear();
             }
 
             if (tl.empty()) {

@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -34,13 +34,15 @@ class runnable_t : protected signal_handler_t {
 public:
     using line_num_t = prog_pointer_t::line_number_t;
     using stmt_num_t = prog_pointer_t::stmt_number_t;
-    
-    runnable_t() {
+
+    runnable_t()
+    {
         signal_mgr_t::instance().register_handler(event_t::BREAK, this);
     }
 
 
-    virtual ~runnable_t() {
+    virtual ~runnable_t()
+    {
         signal_mgr_t::instance().unregister_handler(event_t::BREAK, this);
     }
 
@@ -51,23 +53,30 @@ public:
         const std::string& name, const std::vector<expr_any_t::handle_t>& args)
         = 0;
 
+    // Call a method with Me set up.  Returns the function return value.
+    virtual variant_t run_method(const std::string& name,
+        const std::vector<expr_any_t::handle_t>& args,
+        const std::string& me_obj_name, const variant_t& me_obj_value)
+    {
+        (void)name;
+        (void)args;
+        (void)me_obj_name;
+        (void)me_obj_value;
+        return variant_t();
+    }
+
 protected:
-    bool notify(const event_t& ev) override {
+    bool notify(const event_t& ev) override
+    {
         _break_event = ev == event_t::BREAK;
         return true;
     }
 
-    bool break_event() const noexcept { 
-        return _break_event; 
-    }
-    
-    void reset_break_event() noexcept { 
-        _break_event = false; 
-    }
-    
-    void set_break_event() noexcept { 
-        _break_event = true; 
-    }
+    bool break_event() const noexcept { return _break_event; }
+
+    void reset_break_event() noexcept { _break_event = false; }
+
+    void set_break_event() noexcept { _break_event = true; }
 
 private:
     bool _break_event = false;
@@ -76,7 +85,7 @@ private:
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

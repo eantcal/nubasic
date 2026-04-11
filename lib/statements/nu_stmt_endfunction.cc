@@ -46,7 +46,25 @@ void stmt_endfunction_t::run(rt_prog_ctx_t& ctx)
         // Retrieve name of this function
         const std::string& identifier = handle->identifier;
 
-        const auto scope_type = ctx.proc_scope.get_type(identifier);
+        // For class methods the identifier is mangled as
+        // "ClassName.MethodName". Inside the body the programmer writes
+        // "MethodName = value", so the return variable in the local scope uses
+        // the short (unmangled) name.
+        const auto dot = identifier.rfind('.');
+        const std::string short_name = (dot != std::string::npos)
+            ? identifier.substr(dot + 1)
+            : identifier;
+
+        auto scope_type = ctx.proc_scope.get_type(identifier);
+        std::string retval_var = identifier;
+        if (scope_type != proc_scope_t::type_t::LOCAL
+            && short_name != identifier) {
+            const auto short_type = ctx.proc_scope.get_type(short_name);
+            if (short_type == proc_scope_t::type_t::LOCAL) {
+                retval_var = short_name;
+                scope_type = short_type;
+            }
+        }
 
         // The return-value (same function name) must be defined
         if (scope_type != proc_scope_t::type_t::LOCAL)
@@ -58,10 +76,11 @@ void stmt_endfunction_t::run(rt_prog_ctx_t& ctx)
         const bool expected_retval = ctx.proc_scope.is_func_call(identifier);
 
         if (expected_retval) {
-            // Get return-value
-            const variant_t value = (*(ctx.proc_scope.get()))[identifier].first;
+            // Get return-value (use short/unmangled name if needed)
+            const variant_t value = (*(ctx.proc_scope.get()))[retval_var].first;
 
-            // Insert the return value in the context
+            // Insert the return value in the context under the full mangled
+            // name
             ctx.function_retval_tbl[identifier].emplace_back(value);
         }
 

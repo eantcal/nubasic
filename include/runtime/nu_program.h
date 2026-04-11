@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -43,9 +43,7 @@ struct dbginfo_t {
 /* -------------------------------------------------------------------------- */
 
 class prog_line_t : public std::map<runnable_t::line_num_t,
-                        std::pair<stmt_t::handle_t, dbginfo_t>> 
-{
-};
+                        std::pair<stmt_t::handle_t, dbginfo_t>> {};
 
 
 /* -------------------------------------------------------------------------- */
@@ -70,17 +68,22 @@ public:
     bool run_next(line_num_t start_from);
 
 
-    bool run(
-        const std::string& name, const std::vector<expr_any_t::handle_t>& args) override;
+    bool run(const std::string& name,
+        const std::vector<expr_any_t::handle_t>& args) override;
+
+    variant_t run_method(const std::string& name,
+        const std::vector<expr_any_t::handle_t>& args,
+        const std::string& me_obj_name, const variant_t& me_obj_value) override;
 
 
     bool run_statement(stmt_t::handle_t stmt_handle, size_t stmt_id,
         prog_line_iterator_t& prog_ptr);
 
 
-    using yield_cbk_t = void(*)(void *);
+    using yield_cbk_t = void (*)(void*);
 
-    void set_yield_cbk( yield_cbk_t cbk, void * cbk_data = nullptr ) noexcept {
+    void set_yield_cbk(yield_cbk_t cbk, void* cbk_data = nullptr) noexcept
+    {
         _yield_cbk = cbk;
         _yield_data = cbk_data;
     }
@@ -99,12 +102,13 @@ private:
     bool _function_call = false;
 
     yield_cbk_t _yield_cbk = nullptr;
-    void * _yield_data = nullptr;
+    void* _yield_data = nullptr;
 
-    void _yield_host_os() noexcept {
-       if (_yield_cbk) {
-           _yield_cbk(_yield_data);
-       }
+    void _yield_host_os() noexcept
+    {
+        if (_yield_cbk) {
+            _yield_cbk(_yield_data);
+        }
     }
 
     struct checkpoint_data_t {
@@ -119,7 +123,7 @@ private:
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

@@ -1,18 +1,20 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
 
 #include "nu_program.h"
+#include "nu_expr_literal.h"
 #include "nu_interpreter.h"
 #include "nu_rt_prog_ctx.h"
 #include "nu_stmt_block.h"
 #include "nu_stmt_call.h"
+#include "nu_var_scope.h"
 
 #include <algorithm>
 #include <cassert>
@@ -29,8 +31,7 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-class prog_line_iterator_t : public prog_line_t::iterator {
-};
+class prog_line_iterator_t : public prog_line_t::iterator {};
 
 
 /* -------------------------------------------------------------------------- */
@@ -53,8 +54,7 @@ void program_t::goto_end_block(prog_line_iterator_t& prog_ptr,
     while (prog_ptr != _prog_line.end()) {
         if (prog_ptr->second.first->get_cl() == begin) {
             ++while_cnt;
-        }
-        else if (prog_ptr->second.first->get_cl() == end) {
+        } else if (prog_ptr->second.first->get_cl() == end) {
             --while_cnt;
 
             if (while_cnt < 1) {
@@ -87,20 +87,17 @@ bool program_t::run_statement(stmt_t::handle_t stmt_handle, size_t stmt_id,
                     // go to next line
                     ++prog_ptr;
                 }
-            }
-            else {
+            } else {
                 // no stmt found in this line
                 // go to next line
                 ++prog_ptr;
             }
-        }
-        else {
+        } else {
             // no stmt found in this line
             // goto next line
             ++prog_ptr;
         }
-    }
-    else {
+    } else {
         // stmt executed, for default go to next line
         stmt_handle->run(_ctx);
         ++prog_ptr;
@@ -223,8 +220,7 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
         }
 
         if (prog_ptr->second.second.single_step_break_point
-            && !_function_call) 
-        {
+            && !_function_call) {
             prog_ptr->second.second.single_step_break_point = false;
             _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
             break;
@@ -233,16 +229,14 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
         if (prog_ptr->second.second.break_point && !_function_call) {
             if (prog_ptr->second.second.condition_stmt != nullptr) {
                 prog_ptr->second.second.condition_stmt->run(_ctx);
-            }
-            else {
+            } else {
                 _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
             }
 
             if (_ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST]) {
                 break;
             }
-        }
-        else if (prog_ptr->second.second.continue_after_break) {
+        } else if (prog_ptr->second.second.continue_after_break) {
             // Reset breakpoint for next stmt execution
             prog_ptr->second.second.break_point = true;
             prog_ptr->second.second.continue_after_break = false;
@@ -257,8 +251,7 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
 
         // Run statement and update prog_ptr
         if (run_statement(prog_ptr->second.first, return_stmt_id,
-                static_cast<prog_line_iterator_t&>(prog_ptr))) 
-        {
+                static_cast<prog_line_iterator_t&>(prog_ptr))) {
             return_stmt_id = 0;
         }
 
@@ -294,8 +287,7 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
                     err += " not found.";
 
                     throw exception_t(err);
-                } 
-                else {
+                } else {
                     std::string err = "Runtime error.";
                     throw exception_t(err);
                 }
@@ -306,8 +298,7 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
             }
 
             prog_ptr = jump;
-        }
-        else if (_ctx.flag[rt_prog_ctx_t::FLG_JUMP_REQUEST]) {
+        } else if (_ctx.flag[rt_prog_ctx_t::FLG_JUMP_REQUEST]) {
 
             line_num_t line = _ctx.goingto_pc.get_line();
             auto jump = _prog_line.find(line);
@@ -322,8 +313,7 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
                     err += " not found.";
 
                     throw exception_t(err);
-                } 
-                else {
+                } else {
                     std::string err = "Runtime error.";
                     throw exception_t(err);
                 }
@@ -331,8 +321,7 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
 
             prog_ptr = jump;
 
-        } 
-        else if (_ctx.flag[rt_prog_ctx_t::FLG_SKIP_TILL_NEXT]) {
+        } else if (_ctx.flag[rt_prog_ctx_t::FLG_SKIP_TILL_NEXT]) {
 
             auto flg = _ctx.flag.get(rt_prog_ctx_t::FLG_SKIP_TILL_NEXT);
 
@@ -401,6 +390,54 @@ bool program_t::run(
 
     // Finally executes the function
     return run(prototype->second.first.get_line());
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+variant_t program_t::run_method(const std::string& name,
+    const std::vector<expr_any_t::handle_t>& args,
+    const std::string& me_obj_name, const variant_t& me_obj_value)
+{
+    // Convert args to arg_list_t
+    arg_list_t arg_list;
+    for (auto& arg : args) {
+        variant_t value = arg->eval(_ctx);
+        expr_any_t::handle_t hvalue = std::make_shared<expr_literal_t>(value);
+        arg_list.push_back(std::make_pair(hvalue, '\0'));
+    }
+
+    // Enter callee scope and inject formal parameters
+    stmt_call_t call(arg_list, name, _ctx, true);
+    call.run(_ctx, 0);
+
+    // Inject Me into callee scope with the pre-evaluated object value
+    {
+        auto callee_scope = _ctx.proc_scope.get();
+        if (callee_scope)
+            callee_scope->define(
+                "me", var_value_t(me_obj_value, VAR_ACCESS_RW));
+    }
+
+    // Append Me writeback to the byref frame stmt_call_t already pushed
+    if (!_ctx.byref_writeback_stack.empty())
+        _ctx.byref_writeback_stack.back().emplace_back("me", me_obj_name);
+
+    // Retrieve the prototype and run the function body
+    auto prototype = _ctx.proc_prototypes.data.find(name);
+    syntax_error_if(prototype == _ctx.proc_prototypes.data.end(),
+        "Cannot execute method " + name + ", prototype not found");
+    run(prototype->second.first.get_line());
+
+    // Retrieve and return the function return value
+    auto it = _ctx.function_retval_tbl.find(name);
+    if (it == _ctx.function_retval_tbl.end() || it->second.empty())
+        return variant_t();
+    auto ret = it->second.front();
+    it->second.pop_front();
+    if (it->second.empty())
+        _ctx.function_retval_tbl.erase(it);
+    return ret;
 }
 
 

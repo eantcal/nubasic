@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -37,6 +37,7 @@ public:
     using vinfo_t = std::pair<std::string, vec_size_t>;
 
     using dim_var_map_t = std::map<std::string, vinfo_t>;
+    using ctor_args_map_t = std::map<std::string, arg_list_t>;
 
     stmt_dim_t(prog_ctx_t& ctx)
         : stmt_t(ctx)
@@ -56,14 +57,20 @@ public:
         _vars.insert(std::make_pair(var, std::make_pair(vtype, vect_size)));
     }
 
+    void on_ctor_args(const std::string& var, arg_list_t args) override
+    {
+        _ctor_args[var] = std::move(args);
+    }
+
 protected:
     dim_var_map_t _vars;
+    ctor_args_map_t _ctor_args;
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

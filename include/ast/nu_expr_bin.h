@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -16,6 +16,8 @@
 
 #include "nu_expr_any.h"
 #include "nu_global_function_tbl.h"
+#include "nu_proc_scope.h"
+#include "nu_var_scope.h"
 
 
 /* -------------------------------------------------------------------------- */
@@ -43,16 +45,16 @@ public:
     expr_bin_t& operator=(const expr_bin_t&) = default;
 
     //! Returns f(var1, var2) appling ctor given arguments
-    variant_t eval(rt_prog_ctx_t& ctx) const override {
+    variant_t eval(rt_prog_ctx_t& ctx) const override
+    {
         return _func(_var1->eval(ctx), _var2->eval(ctx));
     }
 
     //! Returns false for a binary expression
-    bool empty() const noexcept override { 
-        return false; 
-    }
+    bool empty() const noexcept override { return false; }
 
-    std::string name() const noexcept override {
+    std::string name() const noexcept override
+    {
         std::string ret;
 
         if (_var1) {
@@ -67,7 +69,8 @@ public:
         return ret;
     }
 
-    func_args_t get_args() const noexcept override {
+    func_args_t get_args() const noexcept override
+    {
         func_args_t ret;
 
         if (_var1) {
@@ -116,21 +119,67 @@ public:
         const auto var_idx = _var1->get_args();
 
         const auto member_element = _var2->name();
-        const auto var_member_idx = _var2->get_args();
 
-        if (var_idx.size() > 1 || var_member_idx.size() > 1
-            || member_element.empty())
-        {
+        if (var_idx.size() > 1 || member_element.empty()) {
             throw exception_t(std::string("Cannot resolve struct element"));
         }
 
         size_t var_vec_idx = 0;
-        size_t element_vec_idx = 0;
-
         if (!var_idx.empty()) {
             var_vec_idx = size_t(var_idx[0]->eval(ctx).to_int());
         }
 
+        // Check if member_element is a method (Function) on the object's class.
+        // If so, dispatch via run_method which sets up Me correctly.
+        {
+            var_scope_t::handle_t obj_scope;
+            variant_t obj_value;
+            bool obj_found = false;
+
+            const auto dot = var_name.find('.');
+            if (dot == std::string::npos) {
+                // Simple variable like "g"
+                auto st = ctx.proc_scope.get_type(var_name);
+                if (st != proc_scope_t::type_t::UNDEF) {
+                    obj_scope = ctx.proc_scope.get(st);
+                    if (obj_scope && obj_scope->is_defined(var_name)) {
+                        obj_value = (*obj_scope)[var_name].first;
+                        obj_found = true;
+                    }
+                }
+            } else {
+                // Nested path like "seg.a"
+                const std::string root = var_name.substr(0, dot);
+                auto st = ctx.proc_scope.get_type(root);
+                if (st != proc_scope_t::type_t::UNDEF) {
+                    obj_scope = ctx.proc_scope.get(st);
+                    auto* ptr = ctx.get_struct_member_value(
+                        var_name, obj_scope, var_vec_idx);
+                    if (ptr) {
+                        obj_value = *ptr;
+                        obj_found = true;
+                    }
+                }
+            }
+
+            if (obj_found && obj_value.is_struct()) {
+                const std::string class_name = obj_value.struct_type_name();
+                const std::string mangled = class_name + "." + member_element;
+                if (ctx.function_tbl.count(mangled) > 0) {
+                    // Method call: dispatch with Me injected
+                    return ctx.program().run_method(
+                        mangled, _var2->get_args(), var_name, obj_value);
+                }
+            }
+        }
+
+        // Field access path
+        const auto var_member_idx = _var2->get_args();
+        if (var_member_idx.size() > 1) {
+            throw exception_t(std::string("Cannot resolve struct element"));
+        }
+
+        size_t element_vec_idx = 0;
         if (!var_member_idx.empty()) {
             element_vec_idx = size_t(var_member_idx[0]->eval(ctx).to_int());
         }
@@ -151,7 +200,7 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

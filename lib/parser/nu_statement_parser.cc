@@ -737,7 +737,12 @@ stmt_t::handle_t statement_parser_t::parse_procedure(
 
     std::string id = token.identifier();
 
-    syntax_error_if(!variable_t::is_valid_name(id, false),
+    // "New" is reserved globally but is a valid constructor name inside a
+    // class.
+    const bool is_class_new
+        = (id == "new" && !ctx.compiling_class_name.empty());
+
+    syntax_error_if(!is_class_new && !variable_t::is_valid_name(id, false),
         id + " is an invalid identifier");
 
     // When inside a class body, mangle the name as "ClassName.MethodName"
