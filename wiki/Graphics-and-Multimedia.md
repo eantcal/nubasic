@@ -5,7 +5,7 @@
 ---
 
 All graphics functions are available in the full build (Windows GDI or Linux/X11). They are
-absent in the *tiny* build, which targets minimal environments.
+absent in the *console* build, which targets minimal environments.
 
 The coordinate system has its origin at the **top-left** corner of the working window client
 area, with X increasing to the right and Y increasing downward. All coordinates are in pixels.

@@ -8,6 +8,7 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include "nu_about.h"
 #include "nu_builtin_help.h"
 #include "nu_exception.h"
 #include "nu_interpreter.h"
@@ -82,8 +83,80 @@ static nu::interpreter_t::exec_res_t exec_command(
 
 /* -------------------------------------------------------------------------- */
 
+static void print_usage(const char* progname)
+{
+    printf(
+        "%s %s - %s\n"
+        "\n"
+        "Usage:\n"
+        "  %s [options] [-e <file>]\n"
+        "\n"
+        "Options:\n"
+        "  -e <file>          Execute a nuBASIC source file and exit\n"
+        "  -l <file>          Load a nuBASIC source file into the REPL\n"
+        "  -t, --text-mode    Run in text/batch mode (no terminal window)\n"
+        "  -nx                Skip spawning a new terminal window\n"
+        "  -h [topic]         Show built-in language help (topic is optional)\n"
+        "  -?, --help [topic] Same as -h\n"
+        "  -v, --version      Print version information and exit\n"
+        "\n"
+        "Examples:\n"
+        "  %s                        Start the interactive REPL\n"
+        "  %s -e hello.bas           Execute hello.bas\n"
+        "  %s -t -e hello.bas        Execute hello.bas in batch/CI mode\n"
+        "  %s -h PRINT               Show help for the PRINT statement\n"
+        "  %s --help                 List all commands and functions\n"
+        "\n"
+        "Homepage: %s\n",
+        nu::about::progname, nu::about::version, nu::about::description,
+        progname,
+        progname, progname, progname, progname, progname,
+        nu::about::homepage);
+}
+
+static void print_help(const std::string& topic)
+{
+    const auto text = nu::builtin_help_t::get_instance().help(topic);
+
+    if (text.empty() && !topic.empty())
+        printf("No help found for '%s'\n", topic.c_str());
+    else
+        printf("%s\n", text.c_str());
+}
+
+/* -------------------------------------------------------------------------- */
+
 static int nuBASIC_console(int argc, char* argv[])
 {
+    // Handle informational flags before clearing the screen
+    for (int j = 1; j < argc; ++j) {
+        const std::string a = argv[j];
+
+        if (a == "--usage" || a == "-u") {
+            print_usage(argv[0]);
+            exit(0);
+        }
+
+        if (a == "--version" || a == "-v") {
+            printf("%s %s\n", nu::about::progname, nu::about::version);
+            exit(0);
+        }
+
+        if (a == "--help" || a == "-?" || a == "-h") {
+            std::string topic;
+
+            if (j + 1 < argc && argv[j + 1][0] != '-')
+                topic = argv[j + 1];
+
+            if (topic.empty())
+                print_usage(argv[0]);
+            else
+                print_help(topic);
+
+            exit(0);
+        }
+    }
+
     nu::_os_cls();
 
     nu::interpreter_t nuBASIC;
@@ -109,30 +182,6 @@ static int nuBASIC_console(int argc, char* argv[])
                         param = "LOAD \"" + std::string(argv[++i]) + "\"";
                         --argc;
                         break;
-#ifdef WIN32
-
-                    case NU_BASIC_HELP_MACRO: {
-                        ::FreeConsole();
-
-                        auto item = std::string(argv[++i]);
-                        auto help
-                            = nu::builtin_help_t::get_instance().help(item);
-
-                        if (help.empty()) {
-                            ::MessageBox(0, "Item not found", item.c_str(),
-                                MB_ICONEXCLAMATION);
-                        }
-
-                        else {
-                            ::MessageBox(0, help.c_str(), item.c_str(),
-                                MB_ICONINFORMATION);
-                        }
-
-                        exit(0);
-                        break;
-                    }
-
-#endif
                     }
                 }
 

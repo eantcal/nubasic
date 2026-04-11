@@ -63,17 +63,18 @@ if(MSVC AND "$ENV{INCLUDE}" STREQUAL "")
   endforeach()
 endif()
 
-# X11 / TINY mode — only relevant on Linux/macOS, not Windows.
-# On Windows the GDI console fills the same role; forcing TINY there because
-# X11 is absent would be wrong.
-set(_nubasic_tiny FALSE)  # CMake-level flag tracked alongside the preprocessor define
+# Console-only build flag (TINY_NUBASIC_VER) — relevant on Linux/macOS, not Windows.
+# A console build strips graphics, sound, mouse and window manager support,
+# leaving only the core interpreter. On Windows the GDI console fills the same
+# role, so the flag is never set there.
+set(_nubasic_console FALSE)  # CMake-level flag tracked alongside TINY_NUBASIC_VER
 
 if (NOT WIN32)
   if (NOT APPLE)
     option(WITH_X11 "X11 graphics/sound" ON)
     option(WITH_IDE "GTK+2 Integrated Development Environment (IDE)" ON)
   else()
-    message("On this platform we don't support X11 and GTK+2 IDE")
+    message("On this platform X11 and GTK+2 IDE are not supported — building console-only")
   endif()
 
   if (WITH_X11)
@@ -97,23 +98,27 @@ if (NOT WIN32)
       endif()
 
     else()
-      message("X11 not found, building tiny version")
+      message("X11 not found — building console-only version")
       add_definitions(-DTINY_NUBASIC_VER)
-      set(_nubasic_tiny TRUE)
+      set(_nubasic_console TRUE)
     endif()
   else()
     add_definitions(-DTINY_NUBASIC_VER)
-    set(_nubasic_tiny TRUE)
+    set(_nubasic_console TRUE)
   endif()
 endif()
+
+# Keep _nubasic_tiny as an alias for backward compatibility with any downstream
+# CMake code that tests this variable.
+set(_nubasic_tiny ${_nubasic_console})
 
 # Windows: console/win must be added BEFORE add_subdirectory(lib) so the
 # nuWinConsole target exists when the interpreter links against it.
 if (WIN32)
   option(WITH_WIN_IDE "Windows IDE" ON)
 
-  # Build the GDI console library (always enabled on Windows non-TINY builds)
-  if (NOT _nubasic_tiny)
+  # Build the GDI console library (always enabled on Windows full builds)
+  if (NOT _nubasic_console)
     add_subdirectory(console/win)
   endif()
 endif()
@@ -122,9 +127,9 @@ add_subdirectory(lib)
 
 # Scintilla editor component (downloaded or local fallback)
 # Only needed when building an IDE (Windows or GTK); skip when:
-#   - building on macOS (CLI-only)
-#   - building a tiny version (X11/GTK not available on Linux)
-if (WIN32 OR (WITH_IDE AND NOT _nubasic_tiny AND NOT WIN32 AND NOT APPLE))
+#   - building on macOS (console-only)
+#   - building a console-only version (X11/GTK not available on Linux)
+if (WIN32 OR (WITH_IDE AND NOT _nubasic_console AND NOT WIN32 AND NOT APPLE))
   include(cmake/ScintillaFetch.cmake)
 endif()
 
@@ -134,13 +139,13 @@ if (WIN32)
     add_subdirectory(ide/win)
   endif()
 
-  if (NOT _nubasic_tiny)
+  if (NOT _nubasic_console)
     add_subdirectory(cli/win)
   endif()
 endif()
 
-# GTK IDE for Unix/Linux (skip entirely in tiny mode — GTK/X11 unavailable)
-if (WITH_IDE AND NOT _nubasic_tiny AND NOT WIN32)
+# GTK IDE for Unix/Linux (skip in console-only mode — GTK/X11 unavailable)
+if (WITH_IDE AND NOT _nubasic_console AND NOT WIN32)
   include (${CMAKE_ROOT}/Modules/FindGTK2.cmake)
   if(NOT GTK2_FOUND)
     message("Error: GTK2 not found, cannot build gtk2 version")

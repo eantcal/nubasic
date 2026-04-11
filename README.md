@@ -16,7 +16,7 @@ nuBASIC is a modern, open-source BASIC interpreter written in modern C++, availa
 - **UTF-8** string literals and console output
 - **Built-in help** — `Help <keyword>` and `Apropos <topic>` accessible from the REPL
 - **IDE** for Windows and Linux (GTK+2) with syntax highlighting, auto-completion, and integrated debugger
-- **Tiny build** for headless/embedded systems (no graphics, no external dependencies)
+- **Console build** for headless/embedded systems (no graphics, no external dependencies)
 - **MIT License**
 
 ## Documentation
@@ -64,7 +64,7 @@ make -j$(nproc)
 sudo make install
 ```
 
-**Tiny build (no graphics, no IDE):**
+**Console build (no graphics, no IDE):**
 
 ```sh
 cmake .. -DWITH_X11=OFF -DWITH_IDE=OFF
@@ -102,7 +102,7 @@ cmake --build build/release --target RunTests
 | Windows | `nubasic.exe` | `NuBasicIDE.exe` (GDI console + Scintilla editor) |
 | Linux | `nubasic` | `nubasicide` (GTK+2 + Scintilla editor) |
 | macOS | `nubasic` | — |
-| iOS (iSH) | `nubasic` (tiny) | — |
+| iOS (iSH) | `nubasic` (console build) | — |
 
 ## License
 

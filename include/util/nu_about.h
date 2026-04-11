@@ -26,7 +26,7 @@ namespace about {
 #define NUBASIC_PROGRAM_NAME "nuBASIC"
 
 #ifdef TINY_NUBASIC_VER
-    static const char* const progname = NUBASIC_PROGRAM_NAME " (tiny version)";
+    static const char* const progname = NUBASIC_PROGRAM_NAME " (console build)";
 #else
     static const char* const progname = NUBASIC_PROGRAM_NAME;
 #endif
@@ -40,8 +40,8 @@ namespace about {
         = "nuBASIC is a programming language from the BASIC family.\n"
           "nuBASIC has been written in C++ and distributed under MIT License."
 #ifdef TINY_NUBASIC_VER
-          "\nThis version of nuBASIC does not include \n"
-          "any graphics, sound, mouse or windows manager support."
+          "\nThis is a console-only build: graphics, sound, mouse and\n"
+          "window manager support are not available."
 #endif
         ;
 } // namespace about
