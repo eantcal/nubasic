@@ -793,8 +793,16 @@ integer_t variant_t::to_int(const size_t idx) const
 const string_t variant_t::to_str(const size_t idx) const
 {
     if (is_number()) {
-        return string_t(is_integral() ? std::to_string(_at<integer_t>(idx))
-                                      : std::to_string(_at<double_t>(idx)));
+        if (is_integral()) {
+            return string_t(std::to_string(_at<integer_t>(idx)));
+        }
+        // Use %g to strip trailing zeros (e.g. 1.5 not 1.500000),
+        // but keep enough precision to survive a round-trip.
+        char buf[64];
+        const double v = _at<double_t>(idx);
+        // Try shortest representation: if %.15g round-trips, use it.
+        snprintf(buf, sizeof(buf), "%.15g", v);
+        return string_t(buf);
     } else if (is_string()) {
         return _at<string_t>(idx);
     }
