@@ -45,7 +45,7 @@ std::set<std::string>& reserved_keywords_t::list()
         "screenlock", "screenunlock", "refresh", "byref", "byval", "call",
         "include", "class", "new", "public", "private", "inherits",
         "overridable", "overrides", "select", "case", "me", "using", "syntax",
-        "legacy", "modern", "static" };
+        "legacy", "modern", "static", "mybase" };
 
     return list;
 }

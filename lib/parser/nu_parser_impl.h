@@ -58,6 +58,7 @@
 #include "nu_stmt_locate.h"
 #include "nu_stmt_loop_while.h"
 #include "nu_stmt_method_call.h"
+#include "nu_stmt_mybase_call.h"
 #include "nu_stmt_next.h"
 #include "nu_stmt_on_goto.h"
 #include "nu_stmt_open.h"

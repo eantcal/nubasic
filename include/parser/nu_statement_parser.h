@@ -115,6 +115,11 @@ protected:
         token_list_t& tl, const std::string& obj_name,
         const std::string& method_name);
 
+    //! parse a MyBase.Method(args) call (base_class resolved at parse time)
+    stmt_t::handle_t parse_method_call_stmt_mybase(prog_ctx_t& ctx,
+        token_t token, token_list_t& tl, const std::string& base_class,
+        const std::string& method_name);
+
 
     //! return true if '=' appears at parenthesis depth 0 in tl
     static bool has_top_level_assign(const token_list_t& tl);

@@ -129,6 +129,30 @@ public:
             var_vec_idx = size_t(var_idx[0]->eval(ctx).to_int());
         }
 
+        // MyBase.Method(args) in expression context:
+        // Retrieve Me from the current scope, find the base class from the
+        // inheritance table, and dispatch to base_class.method via run_method.
+        if (var_name == "mybase") {
+            auto local_scope = ctx.proc_scope.get();
+            if (local_scope && local_scope->is_defined("me")) {
+                const variant_t me_val = (*local_scope)["me"].first;
+                if (me_val.is_struct()) {
+                    const std::string derived = me_val.struct_type_name();
+                    const auto base_it = ctx.class_bases.find(derived);
+                    if (base_it != ctx.class_bases.end()) {
+                        const std::string mangled
+                            = base_it->second + "." + member_element;
+                        if (ctx.function_tbl.count(mangled) > 0) {
+                            return ctx.program().run_method(
+                                mangled, _var2->get_args(), "me", me_val);
+                        }
+                    }
+                }
+            }
+            throw exception_t(
+                std::string("Cannot resolve MyBase.") + member_element);
+        }
+
         // Check if member_element is a method (Function) on the object's class.
         // If so, dispatch via run_method which sets up Me correctly.
         {

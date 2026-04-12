@@ -1182,6 +1182,36 @@ stmt_t::handle_t statement_parser_t::parse_stmt(
             proc_name, ctx);
     }
 
+    // MyBase.Method(args) — delegate to the base-class implementation.
+    // Base class is resolved at parse time from class_bases.
+    if (identifier == "mybase") {
+        --tl; // consume "mybase"
+        remove_blank(tl);
+        syntax_error_if(tl.empty() || tl.begin()->type() != tkncl_t::OPERATOR
+                || tl.begin()->identifier() != ".",
+            token.expression(), token.position(),
+            "MyBase must be followed by .MethodName");
+
+        --tl; // consume "."
+        remove_blank(tl);
+        syntax_error_if(tl.empty() || tl.begin()->type() != tkncl_t::IDENTIFIER,
+            token.expression(), token.position());
+
+        const std::string method_name = tl.begin()->identifier();
+        --tl; // consume method name
+        remove_blank(tl);
+
+        // Resolve base class at parse time.
+        const auto& it = ctx.class_bases.find(ctx.compiling_class_name);
+        syntax_error_if(it == ctx.class_bases.end(), token.expression(),
+            token.position(),
+            "MyBase used outside a class that has a base class");
+        const std::string base_class = it->second;
+
+        return parse_method_call_stmt_mybase(
+            ctx, token, tl, base_class, method_name);
+    }
+
     if (identifier == "sub") {
         return parse_procedure<stmt_sub_t>(ctx, token, tl);
     }

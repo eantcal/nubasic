@@ -214,6 +214,44 @@ stmt_t::handle_t statement_parser_t::parse_method_call_stmt(prog_ctx_t& ctx,
 
 /* -------------------------------------------------------------------------- */
 
+stmt_t::handle_t statement_parser_t::parse_method_call_stmt_mybase(
+    prog_ctx_t& ctx, token_t token, token_list_t& tl,
+    const std::string& base_class, const std::string& method_name)
+{
+    // Mirrors parse_method_call_stmt but emits stmt_mybase_call_t.
+    if (!tl.empty() && tl.begin()->type() == tkncl_t::SUBEXP_BEGIN) {
+        --tl; // consume "("
+        remove_blank(tl);
+
+        if (!tl.empty() && tl.begin()->type() == tkncl_t::SUBEXP_END) {
+            --tl; // consume ")"
+            return stmt_t::handle_t(std::make_shared<stmt_mybase_call_t>(
+                base_class, method_name, ctx));
+        }
+
+        if (!tl.empty() && tl.rbegin()->type() == tkncl_t::SUBEXP_END)
+            tl--;
+
+        if (!tl.empty())
+            token = *tl.begin();
+    }
+
+    if (tl.empty()) {
+        return stmt_t::handle_t(
+            std::make_shared<stmt_mybase_call_t>(base_class, method_name, ctx));
+    }
+
+    return parse_arg_list<stmt_mybase_call_t, 0>(
+        ctx, token, tl,
+        [](const token_t& t) {
+            return t.type() == tkncl_t::OPERATOR && t.identifier() == ",";
+        },
+        base_class, method_name, ctx);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 stmt_t::handle_t statement_parser_t::parse_class(
     prog_ctx_t& ctx, nu::token_t token, nu::token_list_t& tl)
 {
