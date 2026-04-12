@@ -4,8 +4,7 @@
 // All rights reserved.
 //
 
-#ifndef NU_EXAMPLES_PATHS_H
-#define NU_EXAMPLES_PATHS_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -44,5 +43,3 @@ std::string examples_help_text();
 std::vector<example_entry_t> list_example_entries();
 
 } // namespace nu
-
-#endif

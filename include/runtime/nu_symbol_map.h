@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_SYMBOL_MAP_H__
-#define __NU_SYMBOL_MAP_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -35,11 +32,10 @@ public:
     symbol_map_t& operator=(const symbol_map_t&) = delete;
     virtual ~symbol_map_t() {}
 
-    symbol_map_t(symbol_map_t&& obj) { 
-        _symbols = std::move(obj); 
-    }
+    symbol_map_t(symbol_map_t&& obj) { _symbols = std::move(obj); }
 
-    symbol_map_t& operator=(symbol_map_t&& obj) {
+    symbol_map_t& operator=(symbol_map_t&& obj)
+    {
         if (this != &obj) {
             _symbols = std::move(obj);
         }
@@ -47,24 +43,23 @@ public:
         return *this;
     }
 
-    virtual bool define(const std::string& name, const Symb& value) {
+    virtual bool define(const std::string& name, const Symb& value)
+    {
         const auto i = map().insert(std::make_pair(name, value));
         return i.second;
     }
 
-    virtual void erase(const std::string& name) { 
-        map().erase(name); 
-    }
+    virtual void erase(const std::string& name) { map().erase(name); }
 
-    bool is_defined(const std::string& name) const noexcept  {
+    bool is_defined(const std::string& name) const noexcept
+    {
         return _symbols.find(name) != _symbols.end();
     }
 
-    Symb& operator[](const std::string& name) { 
-        return _symbols[name]; 
-    }
+    Symb& operator[](const std::string& name) { return _symbols[name]; }
 
-    const Symb& operator[](const std::string& name) const {
+    const Symb& operator[](const std::string& name) const
+    {
         const auto i = map().find(name);
 
         if (i == map().end()) {
@@ -76,21 +71,13 @@ public:
         return i->second;
     }
 
-    bool empty() const noexcept { 
-        return _symbols.empty(); 
-    }
+    bool empty() const noexcept { return _symbols.empty(); }
 
-    size_t size() const noexcept { 
-        return _symbols.size(); 
-    }
+    size_t size() const noexcept { return _symbols.size(); }
 
-    const std::map<Key, Symb>& map() const noexcept { 
-        return _symbols; 
-    }
+    const std::map<Key, Symb>& map() const noexcept { return _symbols; }
 
-    virtual void clear() { 
-        _symbols.clear(); 
-    }
+    virtual void clear() { _symbols.clear(); }
 
     friend std::stringstream& operator<<(
         std::stringstream& ss, symbol_map_t<Key, Symb>& obj)
@@ -102,12 +89,10 @@ public:
     }
 
 protected:
-    std::map<Key, Symb>& map() noexcept { 
-        return _symbols; 
-    }
-    
-    virtual void get_err_msg(
-        const std::string& key, std::string& err) const = 0;
+    std::map<Key, Symb>& map() noexcept { return _symbols; }
+
+    virtual void get_err_msg(const std::string& key, std::string& err) const
+        = 0;
 
 private:
     std::map<Key, Symb> _symbols;
@@ -120,5 +105,3 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif

@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -52,8 +52,7 @@ stmt_while_t::stmt_while_t(prog_ctx_t& ctx, expr_any_t::handle_t condition,
 {
     if (_single_stmt) {
         signal_mgr_t::instance().register_handler(event_t::BREAK, this);
-    }
-    else {
+    } else {
         build_ctx(ctx);
     }
 }
@@ -91,13 +90,13 @@ void stmt_while_t::run(rt_prog_ctx_t& ctx)
         const auto handle = wctxs.begin_find(ctx.runtime_pc);
 
         rt_error_code_t::get_instance().throw_if(!handle,
-            ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INTERNAL, "While");
+            ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_INTERNAL,
+            "While");
 
         if (!static_cast<bool>(_condition->eval(ctx))) {
             handle->flag.set(instrblock_t::EXIT, true);
             ctx.go_to(handle->pc_end_stmt);
-        } 
-        else {
+        } else {
             handle->flag.set(instrblock_t::EXIT, false);
             ctx.go_to_next();
         }

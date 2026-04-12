@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_STMT_READ_FILE_H__
-#define __NU_STMT_READ_FILE_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -40,14 +37,15 @@ public:
     {
     }
 
-    stmt_read_file_t(const arg_list_t& args, // integer expr which is size of dst buf
+    stmt_read_file_t(
+        const arg_list_t& args, // integer expr which is size of dst buf
         prog_ctx_t& ctx,
         int fd, // integer value which is the file number
         const var_arg_t& var) // destination variable
-        : stmt_t(ctx),
-          _args(args),
-          _fd(fd),
-          _var(var)
+        : stmt_t(ctx)
+        , _args(args)
+        , _fd(fd)
+        , _var(var)
     {
     }
 
@@ -62,9 +60,7 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif //__NU_STMT_READ_FILE_H__

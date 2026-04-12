@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -60,8 +60,8 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
         case nu::variable_t::type_t::STRUCT:
         default:
             rt_error_code_t::get_instance().throw_if(true,
-                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
-                "input#");
+                ctx.runtime_pc.get_line(),
+                rt_error_code_t::value_t::E_TYPE_ILLEGAL, "input#");
             break;
         }
 
@@ -72,8 +72,8 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
 
         if (is_vector) {
             rt_error_code_t::get_instance().throw_if(true,
-                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_VAR_UNDEF,
-                "'" + name + "'");
+                ctx.runtime_pc.get_line(),
+                rt_error_code_t::value_t::E_VAR_UNDEF, "'" + name + "'");
 
             size_t idx = index->eval(ctx).to_int();
             auto& v = (*(ctx.proc_scope.get()))[name];
@@ -82,12 +82,13 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
             variant_t var = v.first;
 
             rt_error_code_t::get_instance().throw_if(const_var,
-                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_CANNOT_MOD_CONST,
-                "'" + name + "'");
+                ctx.runtime_pc.get_line(),
+                rt_error_code_t::value_t::E_CANNOT_MOD_CONST, "'" + name + "'");
 
             rt_error_code_t::get_instance().throw_if(idx >= var.vector_size(),
                 ctx.runtime_pc.get_line(),
-                rt_error_code_t::value_t::E_VEC_IDX_OUT_OF_RANGE, "'" + name + "'");
+                rt_error_code_t::value_t::E_VEC_IDX_OUT_OF_RANGE,
+                "'" + name + "'");
 
             switch (vtype) {
             case nu::variable_t::type_t::INTEGER:
@@ -119,14 +120,13 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
             case nu::variable_t::type_t::OBJECT:
             case nu::variable_t::type_t::ANY:
                 rt_error_code_t::get_instance().throw_if(true,
-                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
-                    "'" + name + "'");
+                    ctx.runtime_pc.get_line(),
+                    rt_error_code_t::value_t::E_TYPE_ILLEGAL, "'" + name + "'");
                 break;
             }
 
             ctx.proc_scope.get()->define(name, var_value_t(var, VAR_ACCESS_RW));
-        } 
-        else {
+        } else {
             var_scope_t::handle_t scope
                 = ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
@@ -134,8 +134,8 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
             const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
 
             rt_error_code_t::get_instance().throw_if(const_var,
-                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_CANNOT_MOD_CONST,
-                "'" + name + "'");
+                ctx.runtime_pc.get_line(),
+                rt_error_code_t::value_t::E_CANNOT_MOD_CONST, "'" + name + "'");
 
             variant_t var = v.first;
             variant_t::type_t vtype = var.get_type();
@@ -153,8 +153,7 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
                 try {
                     (ctx.proc_scope.get())
                         ->define(name, var_value_t(dvalue, VAR_ACCESS_RW));
-                } 
-                catch (...) {
+                } catch (...) {
                     (ctx.proc_scope.get())
                         ->define(name, var_value_t(double(0), VAR_ACCESS_RW));
                 }
@@ -164,13 +163,11 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
             case variable_t::type_t::BOOLEAN:
                 try {
                     (ctx.proc_scope.get())
-                        ->define(
-                            name,
+                        ->define(name,
                             var_value_t(strcasecmp(svalue.c_str(), "false") != 0
                                     && strcasecmp(svalue.c_str(), "0") != 0,
                                 VAR_ACCESS_RW));
-                } 
-                catch (...) {
+                } catch (...) {
                     (ctx.proc_scope.get())
                         ->define(name, var_value_t(false, VAR_ACCESS_RW));
                 }
@@ -181,19 +178,20 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
             case nu::variable_t::type_t::OBJECT:
             case nu::variable_t::type_t::ANY:
                 rt_error_code_t::get_instance().throw_if(true,
-                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
-                    "'" + name + "'");
+                    ctx.runtime_pc.get_line(),
+                    rt_error_code_t::value_t::E_TYPE_ILLEGAL, "'" + name + "'");
                 break;
 
             case variable_t::type_t::INTEGER:
             default:
                 try {
                     (ctx.proc_scope.get())
-                        ->define(name, var_value_t(integer_t(llvalue), VAR_ACCESS_RW));
-                } 
-                catch (...) {
+                        ->define(name,
+                            var_value_t(integer_t(llvalue), VAR_ACCESS_RW));
+                } catch (...) {
                     (ctx.proc_scope.get())
-                        ->define(name, var_value_t(integer_t(0), VAR_ACCESS_RW));
+                        ->define(
+                            name, var_value_t(integer_t(0), VAR_ACCESS_RW));
                 }
 
                 break;

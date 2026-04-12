@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -24,7 +24,8 @@ void stmt_on_goto_t::run(rt_prog_ctx_t& ctx)
 {
 
     rt_error_code_t::get_instance().throw_if(_label_list.empty(),
-        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_NO_LABEL, "On ... Goto");
+        ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_NO_LABEL,
+        "On ... Goto");
 
     auto lbl_idx = _condition->eval(ctx);
 

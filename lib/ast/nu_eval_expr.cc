@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -33,11 +33,9 @@ variant_t eval_expr(rt_prog_ctx_t& ctx, std::string data)
 
         const auto h = ep.compile(st);
         return h->eval(ctx);
-    } 
-    catch (nu::exception_t&) {
+    } catch (nu::exception_t&) {
         return variant_t(std::string("Syntax Error"));
-    } 
-    catch (std::exception&) {
+    } catch (std::exception&) {
         return variant_t(std::string("Runtime Error"));
     }
 }

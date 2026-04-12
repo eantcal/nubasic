@@ -5,9 +5,7 @@
 // Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
-
-#ifndef __CONSOLE_BUFFER_H__
-#define __CONSOLE_BUFFER_H__
+#pragma once
 
 #include "ConsoleConfig.h"
 #include <mutex>
@@ -143,5 +141,3 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __CONSOLE_BUFFER_H__

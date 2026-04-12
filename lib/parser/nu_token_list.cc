@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -97,7 +97,8 @@ size_t token_list_t::find(const token_t& t, size_t pos, size_t items)
 size_t token_list_t::find(
     const std::string& identifier, size_t pos, size_t items)
 {
-    const auto test = [&](size_t i) { return (*this)[i].identifier() == identifier; };
+    const auto test
+        = [&](size_t i) { return (*this)[i].identifier() == identifier; };
 
     return find(test, pos, items);
 }
@@ -134,8 +135,7 @@ std::list<token_list_t> token_list_t::get_parameters(btfunc_t test_begin,
                 begin_pos = i;
 
             ++level;
-        } 
-        else if (test_end(t)) {
+        } else if (test_end(t)) {
             --level;
 
             if (level < 1) {
@@ -150,8 +150,7 @@ std::list<token_list_t> token_list_t::get_parameters(btfunc_t test_begin,
 
             if (i == end_pos)
                 break;
-        } 
-        else if (level > 0) {
+        } else if (level > 0) {
             if (i != begin_pos)
                 ret += t;
         }
@@ -210,8 +209,7 @@ token_list_t token_list_t::sublist(
                 begin_pos = i;
 
             ++level;
-        } 
-        else if (test_end(t)) {
+        } else if (test_end(t)) {
             --level;
 
             if (level < 1) {
@@ -359,7 +357,8 @@ token_list_t token_list_t::replace_sublist(
 {
     assert(search_from < size());
 
-    const token_list_t sub_list = sublist(test_begin, test_end, search_from, false);
+    const token_list_t sub_list
+        = sublist(test_begin, test_end, search_from, false);
     const token_list_t head_list = sublist(0, search_from);
     const token_list_t tail_list = sublist(
         search_from + sub_list.size(), size() - search_from - sub_list.size());
@@ -450,8 +449,7 @@ std::ostream& operator<<(std::ostream& os, const nu::token_list_t& tl)
     for (const auto& e : tl.data()) {
         if (e.identifier().empty()) {
             os << (e.type() == nu::tkncl_t::SUBEXP_BEGIN ? "{" : "}");
-        }
-        else {
+        } else {
             os << e.identifier();
         }
     }

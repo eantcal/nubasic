@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_BUILTIN_HELP_H__
-#define __NU_BUILTIN_HELP_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -32,12 +29,7 @@
 
 namespace nu {
 
-enum class lang_item_t : int { 
-    COMMAND, 
-    INSTRUCTION, 
-    FUNCTION, 
-    OPERATOR 
-};
+enum class lang_item_t : int { COMMAND, INSTRUCTION, FUNCTION, OPERATOR };
 
 
 /* -------------------------------------------------------------------------- */
@@ -56,7 +48,8 @@ private:
 
     static builtin_help_t* _instance;
 
-    virtual void get_err_msg(const std::string& key, std::string& err) const {
+    virtual void get_err_msg(const std::string& key, std::string& err) const
+    {
         err = "item '";
         err += key + "' not found";
     }
@@ -70,9 +63,7 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __NU_BUILTIN_HELP__

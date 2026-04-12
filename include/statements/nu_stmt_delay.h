@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_STMT_DELAY_H__
-#define __NU_STMT_DELAY_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -50,7 +47,8 @@ public:
 
     void run(rt_prog_ctx_t& ctx) override;
 
-    virtual ~stmt_delay_t() {
+    virtual ~stmt_delay_t()
+    {
         signal_mgr_t::instance().unregister_handler(event_t::BREAK, this);
     }
 
@@ -88,8 +86,6 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 /* -------------------------------------------------------------------------- */
-
-#endif //__NU_STMT_DELAY_H__

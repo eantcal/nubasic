@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_EXCEPTION_H__
-#define __NU_EXCEPTION_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -33,20 +30,19 @@ public:
     exception_t& operator=(const exception_t&) = default;
 
     /** ctor
-      *  @param message C-style string error message.
-      */
+     *  @param message C-style string error message.
+     */
     explicit exception_t(const char* message)
         : _msg(message)
     {
     }
 
     //! move ctor
-    exception_t(exception_t&& e) noexcept { 
-        _msg = std::move(e._msg); 
-    }
+    exception_t(exception_t&& e) noexcept { _msg = std::move(e._msg); }
 
     //! move assign operator
-    exception_t& operator=(exception_t&& e) noexcept {
+    exception_t& operator=(exception_t&& e) noexcept
+    {
         if (&e != this)
             _msg = std::move(e._msg);
 
@@ -64,17 +60,14 @@ public:
     /** dtor
      * Virtual to allow for subclassing.
      */
-    virtual ~exception_t() throw() {
-    }
+    virtual ~exception_t() throw() {}
 
     /** Returns a pointer to the (constant) error description.
      *  @return A pointer to a const char*.
      *          The underlying memory is in posession of the exception_t
      *          object. Callers must not free the memory.
      */
-    const char* what() const throw() override { 
-        return _msg.c_str(); 
-    }
+    const char* what() const throw() override { return _msg.c_str(); }
 
 protected:
     /** Error message.
@@ -88,9 +81,7 @@ protected:
 struct error_code_t {
     virtual int get() const noexcept = 0;
 
-    operator int() const noexcept { 
-        return get(); 
-    }
+    operator int() const noexcept { return get(); }
 };
 
 
@@ -115,14 +106,10 @@ public:
     }
 
     //! Return error code
-    int get_error_code() const noexcept { 
-        return _error_code; 
-    }
+    int get_error_code() const noexcept { return _error_code; }
 
     //! Return error code
-    int get_line_num() const noexcept { 
-        return _line_num; 
-    }
+    int get_line_num() const noexcept { return _line_num; }
 
     //! Throw an error if cond is true
     static void error_if(bool cond, const runtime_error_t& err)
@@ -140,9 +127,7 @@ private:
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __NU_EXCEPTION_H__

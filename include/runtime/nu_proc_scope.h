@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_PROC_SCOPE_H__
-#define __NU_PROC_SCOPE_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -28,11 +25,11 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 /**
-   * This class holds the scope of each running procedure.
-   * Procedure scopes are stacked. Every time a procedure
-   * is called it enters a new scope (old one is preserved in
-   * LIFO order). The procedure exit the scope before it returns.
-   */
+ * This class holds the scope of each running procedure.
+ * Procedure scopes are stacked. Every time a procedure
+ * is called it enters a new scope (old one is preserved in
+ * LIFO order). The procedure exit the scope before it returns.
+ */
 class proc_scope_t {
 public:
     enum class type_t { GLOBAL, LOCAL, UNDEF };
@@ -63,7 +60,8 @@ public:
     var_scope_t::handle_t get(type_t type = type_t::LOCAL) const noexcept;
 
     //! Get global scope
-    var_scope_t::handle_t get_global() const noexcept {
+    var_scope_t::handle_t get_global() const noexcept
+    {
         return get(type_t::GLOBAL);
     }
 
@@ -82,9 +80,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __NU_PROC_SCOPE_H__

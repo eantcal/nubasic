@@ -1,21 +1,18 @@
-//  
-// This file is part of nuBASIC 
+//
+// This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
-
-#ifndef __NU_DIALOG_INPUTBOX_H__
-#define __NU_DIALOG_INPUTBOX_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
 #include "nu_window.h"
 
-#include <gtk/gtk.h>
 #include <cassert>
+#include <gtk/gtk.h>
 
 
 /* -------------------------------------------------------------------------- */
@@ -25,38 +22,29 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-class dialog_inputbox_t
-{
+class dialog_inputbox_t {
 public:
-    GtkWidget * get_internal_obj() const noexcept {
-        return _dialog_inputbox;
-    }
+    GtkWidget* get_internal_obj() const noexcept { return _dialog_inputbox; }
 
-    dialog_inputbox_t(
-        const window_t& parent, 
-        const char* title = "", 
-        const char* label_text="",
-        const char* edit_text="")
+    dialog_inputbox_t(const window_t& parent, const char* title = "",
+        const char* label_text = "", const char* edit_text = "")
     {
-        _dialog_inputbox = 
-            gtk_dialog_new_with_buttons(title,
-                    GTK_WINDOW(parent.get_internal_obj()),
-                    (GtkDialogFlags) (GTK_DIALOG_MODAL
-                            | GTK_DIALOG_DESTROY_WITH_PARENT),
-                    GTK_STOCK_OK, GTK_RESPONSE_OK, GTK_STOCK_CANCEL,
-                    GTK_RESPONSE_CANCEL,
-                    NULL);
+        _dialog_inputbox = gtk_dialog_new_with_buttons(title,
+            GTK_WINDOW(parent.get_internal_obj()),
+            (GtkDialogFlags)(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
+            GTK_STOCK_OK, GTK_RESPONSE_OK, GTK_STOCK_CANCEL,
+            GTK_RESPONSE_CANCEL, NULL);
 
         assert(_dialog_inputbox);
 
         auto hbox = gtk_hbox_new(FALSE, 8);
         gtk_container_set_border_width(GTK_CONTAINER(hbox), 8);
         gtk_box_pack_start(
-            GTK_BOX(gtk_dialog_get_content_area (GTK_DIALOG (_dialog_inputbox))), hbox,
-            FALSE, FALSE, 0);
+            GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(_dialog_inputbox))),
+            hbox, FALSE, FALSE, 0);
 
-        auto stock = gtk_image_new_from_stock(GTK_STOCK_DIALOG_QUESTION,
-            GTK_ICON_SIZE_DIALOG);
+        auto stock = gtk_image_new_from_stock(
+            GTK_STOCK_DIALOG_QUESTION, GTK_ICON_SIZE_DIALOG);
 
         gtk_box_pack_start(GTK_BOX(hbox), stock, FALSE, FALSE, 0);
 
@@ -76,7 +64,8 @@ public:
         gtk_widget_show_all(hbox);
     }
 
-    GtkResponseType run() noexcept {
+    GtkResponseType run() noexcept
+    {
         auto resp = gtk_dialog_run(GTK_DIALOG(_dialog_inputbox));
 
         if (resp == GTK_RESPONSE_OK) {
@@ -86,17 +75,13 @@ public:
         return GtkResponseType(resp);
     }
 
-    const char* edit_text() const noexcept {
-        return _edit_text.c_str();
-    }
+    const char* edit_text() const noexcept { return _edit_text.c_str(); }
 
-    virtual ~dialog_inputbox_t() {
-        gtk_widget_destroy(_dialog_inputbox);
-    }
+    virtual ~dialog_inputbox_t() { gtk_widget_destroy(_dialog_inputbox); }
 
 private:
-    GtkWidget * _entry;
-    GtkWidget * _dialog_inputbox = nullptr;
+    GtkWidget* _entry;
+    GtkWidget* _dialog_inputbox = nullptr;
     std::string _edit_text;
 };
 
@@ -107,5 +92,3 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __NU_DIALOG_INPUTBOX_H__ 

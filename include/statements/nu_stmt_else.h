@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_STMT_ELSE_H__
-#define __NU_STMT_ELSE_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -39,9 +36,7 @@ public:
     void run(rt_prog_ctx_t& ctx) override;
 
     //! Identifies the class of the statement
-    stmt_cl_t get_cl() const noexcept override { 
-        return stmt_cl_t::ELSE; 
-    }
+    stmt_cl_t get_cl() const noexcept override { return stmt_cl_t::ELSE; }
 
 protected:
     expr_any_t::handle_t _condition;
@@ -65,9 +60,7 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif //__NU_STMT_ELSE_H__

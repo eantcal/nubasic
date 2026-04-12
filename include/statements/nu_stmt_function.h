@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_STMT_FUNCTION_H__
-#define __NU_STMT_FUNCTION_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -45,7 +42,9 @@ public:
     void define(const std::string& var, const std::string& vtype,
         vec_size_t vect_size, prog_ctx_t& ctx, const std::string& id);
 
-    void define_ret_type(const std::string& type, prog_ctx_t& ctx, size_t array_size) {
+    void define_ret_type(
+        const std::string& type, prog_ctx_t& ctx, size_t array_size)
+    {
         auto& fproto = ctx.proc_prototypes.data[_id].second;
         fproto.ret_type = type;
         fproto.array_size = array_size;
@@ -62,9 +61,7 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif //__NU_STMT_FUNCTION_H__

@@ -5,9 +5,7 @@
 // Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
-
-#ifndef __NUBASIC_TAB_CONTAINER_H__
-#define __NUBASIC_TAB_CONTAINER_H__
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -77,5 +75,3 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __NUBASIC_TAB_CONTAINER_H__

@@ -6,8 +6,7 @@
 // See COPYING file in the project root for full license information.
 //
 
-#ifndef __NU_STMT_USING_H__
-#define __NU_STMT_USING_H__
+#pragma once
 
 #include "nu_prog_ctx.h"
 #include "nu_stmt.h"
@@ -27,5 +26,3 @@ private:
 };
 
 } // namespace nu
-
-#endif // __NU_STMT_USING_H__

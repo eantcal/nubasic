@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of MipTknzr Library Project
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -19,7 +19,8 @@ namespace mip {
 
 /* -------------------------------------------------------------------------- */
 
-const char_t* token_t::type2str(tcl_t type) {
+const char_t* token_t::type2str(tcl_t type)
+{
     switch (type) {
     case tcl_t::ATOM:
         return _T("atomic");
@@ -45,13 +46,11 @@ const char_t* token_t::type2str(tcl_t type) {
 
 /* -------------------------------------------------------------------------- */
 
-_ostream& operator<<(_ostream& os, token_t& tkn) {
-    os << _T("type:'")
-        << token_t::type2str(tkn.type())
-        << _T("' value:'")
-        << tkn.value() << _T("' at ")
-        << tkn.line() + 1 << _T(".") << tkn.offset() + 1
-        << std::endl;
+_ostream& operator<<(_ostream& os, token_t& tkn)
+{
+    os << _T("type:'") << token_t::type2str(tkn.type()) << _T("' value:'")
+       << tkn.value() << _T("' at ") << tkn.line() + 1 << _T(".")
+       << tkn.offset() + 1 << std::endl;
 
     return os;
 }
@@ -59,4 +58,4 @@ _ostream& operator<<(_ostream& os, token_t& tkn) {
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace mip

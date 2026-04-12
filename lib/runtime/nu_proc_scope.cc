@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -88,8 +88,7 @@ void proc_scope_t::enter_scope(
     if (i == _rec_tbl.end()) {
         auto value = std::make_pair(id, fncall);
         _rec_tbl.insert(std::make_pair(sub_name, value));
-    } 
-    else {
+    } else {
         id = ++i->second.first;
     }
 
@@ -138,12 +137,11 @@ void proc_scope_t::exit_scope() noexcept
         const auto endpos = name.find(']');
         const std::string svalue = name.substr(pos + 1, endpos - pos - 1);
         try {
-           value = nu::stoi(svalue);
+            value = nu::stoi(svalue);
+        } catch (...) {
         }
-        catch (...) {}
         i = _rec_tbl.find(name.substr(0, pos));
-    } 
-    else {
+    } else {
         i = _rec_tbl.find(name);
     }
 
@@ -161,8 +159,8 @@ void proc_scope_t::exit_scope() noexcept
 
 /* -------------------------------------------------------------------------- */
 
-proc_scope_t::type_t proc_scope_t::get_type(const std::string& varname) const
-    noexcept
+proc_scope_t::type_t proc_scope_t::get_type(
+    const std::string& varname) const noexcept
 {
     const bool global_var = _global_vars->is_defined(varname);
 

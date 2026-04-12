@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -26,7 +26,7 @@ void stmt_open_t::run(rt_prog_ctx_t& ctx)
         = [&](bool cond, rt_error_code_t::value_t err, const std::string desc) {
               rt_error_code_t::get_instance().throw_if(
                   cond, ctx.runtime_pc.get_line(), err, desc);
-    };
+          };
 
     ctx.go_to_next();
 
@@ -42,28 +42,24 @@ void stmt_open_t::run(rt_prog_ctx_t& ctx)
             rt_error_code_t::value_t::E_TYPE_ILLEGAL, "OPEN");
 
         mode = "r";
-    } 
-    else if (_mode == "output") {
+    } else if (_mode == "output") {
         rt_error_if(_access == "read" || _access == "read write",
             rt_error_code_t::value_t::E_TYPE_ILLEGAL, "OPEN");
 
         mode = "w";
-    } 
-    else if (_mode == "append") {
+    } else if (_mode == "append") {
         mode = "a";
 
         if (_access.find("read") != std::string::npos) {
             mode += "+";
         }
-    } 
-    else if (_mode == "random") {
+    } else if (_mode == "random") {
         mode = "r";
 
         if (_access.find("write") != std::string::npos) {
             mode += "+";
         }
-    } 
-    else if (_mode == "binary") {
+    } else if (_mode == "binary") {
         mode = "r";
 
         if (_access.find("write") != std::string::npos) {

@@ -5,9 +5,7 @@
 // Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
-
-#ifndef __NU_BUILTIN_REGISTRY_H__
-#define __NU_BUILTIN_REGISTRY_H__
+#pragma once
 
 #include "nu_global_function_tbl.h"
 
@@ -40,5 +38,3 @@ const builtin_module_t& get_graphics_builtin_module();
 const builtin_module_t& get_hash_builtin_module();
 
 } // namespace nu
-
-#endif // __NU_BUILTIN_REGISTRY_H__

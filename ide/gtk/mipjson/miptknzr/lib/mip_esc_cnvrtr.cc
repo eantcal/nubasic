@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of MipTknzr Library Project
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -11,8 +11,8 @@
 
 #include "mip_esc_cnvrtr.h"
 
-#include <memory>
 #include <istream>
+#include <memory>
 
 
 /* -------------------------------------------------------------------------- */
@@ -22,12 +22,11 @@ namespace mip {
 
 /* -------------------------------------------------------------------------- */
 
-void esc_cnvrtr_t::_tail(string_t & str, size_t cnt)
+void esc_cnvrtr_t::_tail(string_t& str, size_t cnt)
 {
     if (str.size() <= cnt) {
         str.clear();
-    }
-    else {
+    } else {
         str = str.substr(cnt, str.size() - cnt);
     }
 }
@@ -35,7 +34,8 @@ void esc_cnvrtr_t::_tail(string_t & str, size_t cnt)
 
 /* -------------------------------------------------------------------------- */
 
-bool esc_cnvrtr_t::_octal2dec(const string_t & str, unsigned int& res, size_t & cnt)
+bool esc_cnvrtr_t::_octal2dec(
+    const string_t& str, unsigned int& res, size_t& cnt)
 {
     if (str.size() < 2) {
         return false;
@@ -51,7 +51,7 @@ bool esc_cnvrtr_t::_octal2dec(const string_t & str, unsigned int& res, size_t & 
 
         auto ch = str[i];
 
-        if (ch<_T('0') || ch>_T('7')) {
+        if (ch < _T('0') || ch > _T('7')) {
             return false;
         }
 
@@ -64,7 +64,7 @@ bool esc_cnvrtr_t::_octal2dec(const string_t & str, unsigned int& res, size_t & 
 
 /* -------------------------------------------------------------------------- */
 
-bool esc_cnvrtr_t::_hex2dec(const string_t & str, unsigned int& res, size_t & cnt)
+bool esc_cnvrtr_t::_hex2dec(const string_t& str, unsigned int& res, size_t& cnt)
 {
     if (str.size() < 2 || (str[0] != 'x' && str[0] != 'X')) {
         return false;
@@ -77,8 +77,8 @@ bool esc_cnvrtr_t::_hex2dec(const string_t & str, unsigned int& res, size_t & cn
     for (; i < cnt; ++i) {
         const auto ch = ::tolower(hex[i]);
 
-        bool ok = (ch >= _T('0') && ch <= _T('9')) || 
-                  (ch >= _T('a') && ch < _T('f'));
+        bool ok = (ch >= _T('0') && ch <= _T('9'))
+            || (ch >= _T('a') && ch < _T('f'));
         if (!ok)
             break;
     }
@@ -88,8 +88,7 @@ bool esc_cnvrtr_t::_hex2dec(const string_t & str, unsigned int& res, size_t & cn
 
     try {
         res = std::stoi(hex, 0, 16);
-    }
-    catch (std::exception&) {
+    } catch (std::exception&) {
         return false;
     }
 
@@ -99,7 +98,7 @@ bool esc_cnvrtr_t::_hex2dec(const string_t & str, unsigned int& res, size_t & cn
 
 /* -------------------------------------------------------------------------- */
 
-bool esc_cnvrtr_t::convert(const string_t& str, size_t & rcnt, char_t & ch) const
+bool esc_cnvrtr_t::convert(const string_t& str, size_t& rcnt, char_t& ch) const
 {
     if (str.size() <= 1) {
         return false;
@@ -157,8 +156,8 @@ bool esc_cnvrtr_t::convert(const string_t& str, size_t & rcnt, char_t & ch) cons
             ++rcnt;
 
             break;
-        }
-        else if (str.size() >= 2 && (str[1] == _T('x') || str[1] == _T('X'))) {
+        } else if (str.size() >= 2
+            && (str[1] == _T('x') || str[1] == _T('X'))) {
             unsigned int res = 0;
             const bool ok = _hex2dec(str.c_str() + 1, res, rcnt);
 
@@ -170,8 +169,7 @@ bool esc_cnvrtr_t::convert(const string_t& str, size_t & rcnt, char_t & ch) cons
             ++rcnt;
 
             break;
-        }
-        else {
+        } else {
             ch = prefix;
         }
         return false;

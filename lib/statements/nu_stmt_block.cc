@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -60,8 +60,7 @@ bool stmt_block_t::run_pos(rt_prog_ctx_t& ctx, int pos)
                 stmt_num = ctx.goingto_pc.get_stmt_pos();
                 stmt_it = _stmts.begin() + stmt_num;
                 continue;
-            } 
-            else {
+            } else {
                 // exit this block
                 break_cond = true;
                 break;

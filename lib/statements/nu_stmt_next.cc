@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -32,7 +32,8 @@ void stmt_next_t::run(rt_prog_ctx_t& ctx)
 {
     if (ctx.for_loop_tbl.empty()) {
         rt_error_code_t::get_instance().throw_if(true,
-            ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_NEXT_WITHOUT_FOR, "");
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::value_t::E_NEXT_WITHOUT_FOR, "");
     }
 
     // If counter was not specified... (NEXT <without-counter>)
@@ -84,7 +85,8 @@ void stmt_next_t::run(rt_prog_ctx_t& ctx)
 
     if (!handle) {
         rt_error_code_t::get_instance().throw_if(true,
-            ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_NEXT_WITHOUT_FOR, "");
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::value_t::E_NEXT_WITHOUT_FOR, "");
     }
 
     bool exit_for_loop = handle->flag[instrblock_t::EXIT];
@@ -97,8 +99,7 @@ void stmt_next_t::run(rt_prog_ctx_t& ctx)
     if (!exit_for_loop && condition) {
         // Modify counter and go to FOR-TO-STEP-line
         ctx.go_to(forctx.pc_for_stmt);
-    } 
-    else {
+    } else {
         exit_for_loop = true;
     }
 

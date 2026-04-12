@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -32,7 +32,7 @@ stmt_struct_t::stmt_struct_t(prog_ctx_t& ctx, const std::string& id)
     syntax_error_if(
         found && i->second.first.get_line() != ctx.compiletime_pc.get_line(),
         "Struct " + id + " already defined");
-    
+
 
     // Remove an old declaration for replacing its prototype
     if (found) {
@@ -63,8 +63,7 @@ void stmt_struct_t::run(rt_prog_ctx_t& ctx)
         handle->flag.set(instrblock_t::EXIT, true);
         ctx.go_to(handle->pc_end_stmt);
         return;
-    } 
-    else {
+    } else {
         handle->flag.set(instrblock_t::EXIT, false);
     }
 

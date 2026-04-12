@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_EXPR_FUNCTION_H__
-#define __NU_EXPR_FUNCTION_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -31,8 +28,8 @@ class expr_function_t : public expr_any_t {
 public:
     //! ctor
     expr_function_t(const std::string& name, func_args_t var) noexcept
-        : _name(name),
-          _var(var)
+        : _name(name)
+        , _var(var)
     {
     }
 
@@ -46,13 +43,9 @@ public:
     //! Returns false for this type of object
     bool empty() const noexcept override;
 
-    std::string name() const noexcept override { 
-        return _name; 
-    }
+    std::string name() const noexcept override { return _name; }
 
-    func_args_t get_args() const noexcept override { 
-        return _var; 
-    }
+    func_args_t get_args() const noexcept override { return _var; }
 
 
 protected:
@@ -63,9 +56,7 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 
-} // namespace
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __NU_EXPR_FUNCTION_H__

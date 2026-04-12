@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -17,24 +17,14 @@
 
 /* -------------------------------------------------------------------------- */
 
-toolbar_t::toolbar_t(
-    const HWND hWnd, 
-    const HINSTANCE hInstance, 
-    const UINT idi_toolbar,
-    const UINT_PTR res_id, 
-    const int n_of_bitmaps, 
-    const TBBUTTON buttons[], 
-    const int n_of_buttons,
-    const int bmwidth, 
-    const int bmheight, 
-    const int btwidth, 
-    const int btheight
-)
+toolbar_t::toolbar_t(const HWND hWnd, const HINSTANCE hInstance,
+    const UINT idi_toolbar, const UINT_PTR res_id, const int n_of_bitmaps,
+    const TBBUTTON buttons[], const int n_of_buttons, const int bmwidth,
+    const int bmheight, const int btwidth, const int btheight)
     : _hinstance(hInstance)
     , _hparent(hWnd)
 {
-    _toolbar = CreateToolbarEx(
-        hWnd, // parent
+    _toolbar = CreateToolbarEx(hWnd, // parent
         WS_CHILD | WS_BORDER | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_ADJUSTABLE
             | TBSTYLE_FLAT,
         idi_toolbar, // toolbar id
@@ -55,10 +45,7 @@ toolbar_t::toolbar_t(
 
 /* -------------------------------------------------------------------------- */
 
-void toolbar_t::on_resize() 
-{ 
-    SendMessage(_toolbar, TB_AUTOSIZE, 0L, 0L); 
-}
+void toolbar_t::on_resize() { SendMessage(_toolbar, TB_AUTOSIZE, 0L, 0L); }
 
 
 /* -------------------------------------------------------------------------- */

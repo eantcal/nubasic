@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_EXPR_SYNTAX_TREE_H__
-#define __NU_EXPR_SYNTAX_TREE_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -33,10 +30,10 @@ namespace nu {
 /* -------------------------------------------------------------------------- */
 
 /**
-* Transform a given token list in its intermediate representation for
-* the expression parser. The token list is transformed in a abstract syntax
-* tree where each node denotes a "well-formed" expression.
-*/
+ * Transform a given token list in its intermediate representation for
+ * the expression parser. The token list is transformed in a abstract syntax
+ * tree where each node denotes a "well-formed" expression.
+ */
 struct expr_syntax_tree_t {
     //! ctors
     expr_syntax_tree_t();
@@ -70,8 +67,10 @@ protected:
     void rework_operator(token_list_t& tl, token_list_t::data_t::iterator i);
     void rework_identifier(token_list_t& tl, token_list_t::data_t::iterator i);
     token_list_t rework_token_list(token_list_t tl);
-    void rework_minus_operator(token_list_t& tl, token_list_t::data_t::iterator i);
-    void rework_unary_operator(token_list_t& tl, token_list_t::data_t::iterator i);
+    void rework_minus_operator(
+        token_list_t& tl, token_list_t::data_t::iterator i);
+    void rework_unary_operator(
+        token_list_t& tl, token_list_t::data_t::iterator i);
 
 public:
     //! Converts a given token list into syntax-oriented
@@ -82,9 +81,7 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif //__NU_EXPR_SYNTAX_TREE_H__

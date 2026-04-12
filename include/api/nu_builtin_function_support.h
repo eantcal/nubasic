@@ -5,9 +5,7 @@
 // Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
-
-#ifndef __NU_BUILTIN_FUNCTION_SUPPORT_H__
-#define __NU_BUILTIN_FUNCTION_SUPPORT_H__
+#pragma once
 
 #include "nu_global_function_tbl.h"
 
@@ -338,5 +336,3 @@ variant_t process_operator(rt_prog_ctx_t& ctx, const std::string& operator_name,
     const func_args_t& args);
 
 } // namespace nu
-
-#endif // __NU_BUILTIN_FUNCTION_SUPPORT_H__

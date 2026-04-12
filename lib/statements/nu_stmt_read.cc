@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -32,7 +32,8 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
         auto index = variable.second;
         auto name = variable.first;
 
-        const auto & data_value = ctx.read_data_store[ctx.read_data_store_index++];
+        const auto& data_value
+            = ctx.read_data_store[ctx.read_data_store_index++];
 
         bool is_vector = index != nullptr;
 
@@ -41,8 +42,8 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
                 = ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
             rt_error_code_t::get_instance().throw_if(!scope->is_defined(name),
-                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_VAR_UNDEF,
-                "'" + name + "'");
+                ctx.runtime_pc.get_line(),
+                rt_error_code_t::value_t::E_VAR_UNDEF, "'" + name + "'");
 
             size_t idx = index->eval(ctx).to_int();
 
@@ -51,12 +52,13 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
             const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
 
             rt_error_code_t::get_instance().throw_if(const_var,
-                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_CANNOT_MOD_CONST,
-                "'" + name + "'");
+                ctx.runtime_pc.get_line(),
+                rt_error_code_t::value_t::E_CANNOT_MOD_CONST, "'" + name + "'");
 
             rt_error_code_t::get_instance().throw_if(idx >= var.vector_size(),
                 ctx.runtime_pc.get_line(),
-                rt_error_code_t::value_t::E_VEC_IDX_OUT_OF_RANGE, "'" + name + "'");
+                rt_error_code_t::value_t::E_VEC_IDX_OUT_OF_RANGE,
+                "'" + name + "'");
 
             variant_t::type_t t = var.get_type();
 
@@ -69,8 +71,8 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
             case variant_t::type_t::OBJECT:
             case variant_t::type_t::STRUCT:
                 rt_error_code_t::get_instance().throw_if(true,
-                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
-                    "'" + name + "'");
+                    ctx.runtime_pc.get_line(),
+                    rt_error_code_t::value_t::E_TYPE_ILLEGAL, "'" + name + "'");
                 break;
 
             case variant_t::type_t::STRING:
@@ -95,8 +97,7 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
             }
 
             scope->define(name, var_value_t(var, VAR_ACCESS_RW));
-        } 
-        else {
+        } else {
             var_scope_t::handle_t scope
                 = ctx.proc_scope.get(ctx.proc_scope.get_type(name));
 
@@ -104,8 +105,8 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
             const bool const_var = (v.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;
 
             rt_error_code_t::get_instance().throw_if(const_var,
-                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_CANNOT_MOD_CONST,
-                "'" + name + "'");
+                ctx.runtime_pc.get_line(),
+                rt_error_code_t::value_t::E_CANNOT_MOD_CONST, "'" + name + "'");
 
             variant_t var = v.first;
             variant_t::type_t t = var.get_type();
@@ -115,27 +116,31 @@ void stmt_read_t::run(rt_prog_ctx_t& ctx)
 
             switch (t) {
             case variable_t::type_t::STRING:
-                scope->define(name, var_value_t(data_value.to_str(), VAR_ACCESS_RW));
+                scope->define(
+                    name, var_value_t(data_value.to_str(), VAR_ACCESS_RW));
                 break;
 
             case variable_t::type_t::DOUBLE:
-                scope->define(name, var_value_t(data_value.to_double(), VAR_ACCESS_RW));
+                scope->define(
+                    name, var_value_t(data_value.to_double(), VAR_ACCESS_RW));
                 break;
 
             case variable_t::type_t::BOOLEAN:
-                scope->define(name, var_value_t(data_value.to_bool(), VAR_ACCESS_RW));
+                scope->define(
+                    name, var_value_t(data_value.to_bool(), VAR_ACCESS_RW));
                 break;
 
             case variable_t::type_t::INTEGER:
             default:
-                scope->define(name, var_value_t(data_value.to_int(), VAR_ACCESS_RW));
+                scope->define(
+                    name, var_value_t(data_value.to_int(), VAR_ACCESS_RW));
                 break;
 
             case variant_t::type_t::UNDEFINED:
             case variant_t::type_t::STRUCT:
                 rt_error_code_t::get_instance().throw_if(true,
-                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
-                    "'" + name + "'");
+                    ctx.runtime_pc.get_line(),
+                    rt_error_code_t::value_t::E_TYPE_ILLEGAL, "'" + name + "'");
                 break;
             }
         }

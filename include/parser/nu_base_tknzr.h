@@ -1,15 +1,12 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_BASE_TKNZR_H__
-#define __NU_BASE_TKNZR_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -55,47 +52,39 @@ public:
     virtual token_t next() = 0;
 
     //! Get a token list
-    virtual void get_tknlst(token_list_t& tl/*, bool strip_comment*/) = 0;
+    virtual void get_tknlst(token_list_t& tl /*, bool strip_comment*/) = 0;
 
 
     //! Get buffer pointer (cptr)
-    size_t tell() const noexcept { 
-        return _cptr; 
-    }
+    size_t tell() const noexcept { return _cptr; }
 
 
     //! Get size of the input buffer
-    size_t size() const noexcept { 
-        return _data_len; 
-    }
+    size_t size() const noexcept { return _data_len; }
 
 
     //! Return true if current position >= size()
-    bool eol() const noexcept { 
-        return tell() >= size(); 
-    }
+    bool eol() const noexcept { return tell() >= size(); }
 
 
     //! Reset buffer pointer to zero
-    void reset() noexcept { 
-        _cptr = 0; 
-    }
+    void reset() noexcept { _cptr = 0; }
 
     //! Create a token object
-    static token_t make_token(size_t pos, token_t::data_ptr_t data_ptr) {
+    static token_t make_token(size_t pos, token_t::data_ptr_t data_ptr)
+    {
         return token_t(pos, data_ptr);
     }
 
 
 protected:
     //! Get current pointed character within the buffer
-    char get_symbol() const noexcept { 
-        return !eol() ? (*_data)[tell()] : 0; 
-    }
+    char get_symbol() const noexcept { return !eol() ? (*_data)[tell()] : 0; }
 
 
     //! If not eof, move buffer pointer to next symbol
-    void seek_next() noexcept {
+    void seek_next() noexcept
+    {
         if (tell() < size()) {
             ++_cptr;
         }
@@ -103,13 +92,12 @@ protected:
 
 
     //! Assign a new value to cptr
-    void set_cptr(size_t cptr) noexcept { 
-        _cptr = cptr; 
-    }
+    void set_cptr(size_t cptr) noexcept { _cptr = cptr; }
 
 
     //! If not begin of buffer, move cptr to the previous symbol
-    void seek_prev() noexcept {
+    void seek_prev() noexcept
+    {
         if (tell()) {
             --_cptr;
         }
@@ -117,9 +105,7 @@ protected:
 
 
     //! Return a shared_ptr to internal data
-    token_t::data_ptr_t data() const noexcept { 
-        return _data; 
-    }
+    token_t::data_ptr_t data() const noexcept { return _data; }
 
 
 private:
@@ -131,9 +117,7 @@ private:
 
 /* -------------------------------------------------------------------------- */
 
-} // namespace
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __NU_BASE_TKNZR_H__

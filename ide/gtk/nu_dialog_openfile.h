@@ -1,21 +1,18 @@
-//  
-// This file is part of nuBASIC 
+//
+// This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
-
-#ifndef __NU_DIALOG_OPENFILE_H__
-#define __NU_DIALOG_OPENFILE_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
 #include "nu_window.h"
 
-#include <gtk/gtk.h>
 #include <cassert>
+#include <gtk/gtk.h>
 
 
 /* -------------------------------------------------------------------------- */
@@ -25,28 +22,22 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-class dialog_openfile_t
-{
+class dialog_openfile_t {
 public:
-    GtkWidget * get_internal_obj() const noexcept {
-        return _dialog_openfile;
-    }
+    GtkWidget* get_internal_obj() const noexcept { return _dialog_openfile; }
 
-    dialog_openfile_t(const window_t& parent, const char* title = "") {
-        _dialog_openfile = gtk_file_chooser_dialog_new(
-            title, 
-            GTK_WINDOW(parent.get_internal_obj()),
-            GTK_FILE_CHOOSER_ACTION_OPEN,
-            GTK_STOCK_CANCEL, 
-            GTK_RESPONSE_CANCEL,
-            GTK_STOCK_OPEN, 
-            GTK_RESPONSE_ACCEPT,
-            NULL);
+    dialog_openfile_t(const window_t& parent, const char* title = "")
+    {
+        _dialog_openfile = gtk_file_chooser_dialog_new(title,
+            GTK_WINDOW(parent.get_internal_obj()), GTK_FILE_CHOOSER_ACTION_OPEN,
+            GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN,
+            GTK_RESPONSE_ACCEPT, NULL);
 
         assert(_dialog_openfile);
     }
 
-    GtkResponseType run() noexcept {
+    GtkResponseType run() noexcept
+    {
 
         auto resp = gtk_dialog_run(GTK_DIALOG(_dialog_openfile));
 
@@ -56,17 +47,16 @@ public:
             }
 
             _filename = gtk_file_chooser_get_filename(
-                    GTK_FILE_CHOOSER(_dialog_openfile));
+                GTK_FILE_CHOOSER(_dialog_openfile));
         }
 
         return GtkResponseType(resp);
     }
 
-    const char* filename() const noexcept {
-        return _filename;
-    }
+    const char* filename() const noexcept { return _filename; }
 
-    virtual ~dialog_openfile_t() {
+    virtual ~dialog_openfile_t()
+    {
         if (_filename) {
             g_free(_filename);
         }
@@ -75,8 +65,8 @@ public:
     }
 
 private:
-    GtkWidget * _dialog_openfile = nullptr;
-    char * _filename = nullptr;
+    GtkWidget* _dialog_openfile = nullptr;
+    char* _filename = nullptr;
 };
 
 
@@ -86,5 +76,3 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __NU_DIALOG_OPENFILE_H__ 

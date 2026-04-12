@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -39,11 +39,11 @@ stmt_if_then_else_t::stmt_if_then_else_t(prog_ctx_t& ctx,
     auto cl = then_stmt->get_cl();
 
     syntax_error_if(cl == stmt_cl_t::DO_BEGIN || cl == stmt_cl_t::DO_BEGIN
-        || cl == stmt_cl_t::DO_END || cl == stmt_cl_t::DO_END
-        || cl == stmt_cl_t::WHILE_BEGIN || cl == stmt_cl_t::WHILE_BEGIN
-        || cl == stmt_cl_t::WHILE_END || cl == stmt_cl_t::WHILE_END
-        || cl == stmt_cl_t::SUB_BEGIN || cl == stmt_cl_t::SUB_BEGIN
-        || cl == stmt_cl_t::SUB_END || cl == stmt_cl_t::SUB_END,
+            || cl == stmt_cl_t::DO_END || cl == stmt_cl_t::DO_END
+            || cl == stmt_cl_t::WHILE_BEGIN || cl == stmt_cl_t::WHILE_BEGIN
+            || cl == stmt_cl_t::WHILE_END || cl == stmt_cl_t::WHILE_END
+            || cl == stmt_cl_t::SUB_BEGIN || cl == stmt_cl_t::SUB_BEGIN
+            || cl == stmt_cl_t::SUB_END || cl == stmt_cl_t::SUB_END,
         "This construct is not allowed");
 }
 
@@ -66,26 +66,22 @@ void stmt_if_then_else_t::run(rt_prog_ctx_t& ctx)
     const auto& metadata_it = ifctxs.data.find(ctx.runtime_pc);
 
     if (_then_stmt->get_cl() == stmt_cl_t::EMPTY
-        && metadata_it != ifctxs.data.end())
-    {
+        && metadata_it != ifctxs.data.end()) {
         if (static_cast<bool>(_condition->eval(ctx)) == false) {
             auto& metadata = metadata_it->second;
             metadata.condition = false;
 
             ctx.go_to(metadata.else_list.empty() ? metadata.pc_endif_stmt
-                : *metadata.else_list.begin());
-        }
-        else {
+                                                 : *metadata.else_list.begin());
+        } else {
             metadata_it->second.condition = true;
 
             ctx.go_to_next();
         }
-    }
-    else {
+    } else {
         if (static_cast<bool>(_condition->eval(ctx)) == true) {
             _then_stmt->run(ctx);
-        }
-        else {
+        } else {
             _else_stmt->run(ctx);
         }
     }

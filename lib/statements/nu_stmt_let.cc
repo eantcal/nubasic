@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -37,8 +37,8 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
         var = ctx.get_struct_member_value(_variable, scope, idx);
 
         rt_error_code_t::get_instance().throw_if(!var,
-            ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_MISMATCH,
-            "'" + _variable + "'");
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::value_t::E_TYPE_MISMATCH, "'" + _variable + "'");
     }
 
     if (!var) {
@@ -52,7 +52,8 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
 
         if (const_var) {
             rt_error_code_t::get_instance().throw_if(true,
-                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_CANNOT_MOD_CONST,
+                ctx.runtime_pc.get_line(),
+                rt_error_code_t::value_t::E_CANNOT_MOD_CONST,
                 "'" + _variable + "'");
         }
 
@@ -90,32 +91,29 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
             if (val.is_struct()) {
                 rt_error_code_t::get_instance().throw_if(
                     var->struct_type_name() != val.struct_type_name(),
-                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_MISMATCH,
+                    ctx.runtime_pc.get_line(),
+                    rt_error_code_t::value_t::E_TYPE_MISMATCH,
                     "'" + _variable + "(" + nu::to_string(idx) + ")'");
 
                 var->set_struct_value(val, idx);
-            } 
-            else {
+            } else {
                 _assign<size_t>(ctx, *var, val, vart, idx);
             }
-        } 
-        else {
+        } else {
             // destination vector size will be set to the source size
 
             rt_error_code_t::get_instance().throw_if(
-                var->get_type() != val.get_type(),
-                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_MISMATCH,
+                var->get_type() != val.get_type(), ctx.runtime_pc.get_line(),
+                rt_error_code_t::value_t::E_TYPE_MISMATCH,
                 "'" + _variable + "'");
 
             scope->define(_variable, var_value_t(val, VAR_ACCESS_RW));
         }
 
-    } 
-    else {
+    } else {
         if (val.is_struct()) {
             var->set_struct_value(val, 0);
-        } 
-        else {
+        } else {
             _assign<>(ctx, *var, val, vart);
         }
     }

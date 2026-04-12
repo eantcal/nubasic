@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_STMT_RANDOMIZE_H__
-#define __NU_STMT_RANDOMIZE_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -35,18 +32,17 @@ public:
     stmt_randomize_t(const stmt_randomize_t&) = delete;
     stmt_randomize_t& operator=(const stmt_randomize_t&) = delete;
 
-    void run(rt_prog_ctx_t& ctx) override { 
+    void run(rt_prog_ctx_t& ctx) override
+    {
         (void)ctx;
-        _os_randomize(); 
+        _os_randomize();
     }
 };
 
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif //__NU_STMT_RANDOMIZE_H__

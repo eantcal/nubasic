@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_STMT_GENINSTR_H__
-#define __NU_STMT_GENINSTR_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -87,9 +84,9 @@ public:
         // if number of arguments is negative
         // do not check it
         if (ARGSNUM >= 0) {
-            syntax_error_if(
-                _args.size() < ARGSNUM, "Instruction expects to be passed "
-                    + nu::to_string(ARGSNUM) + " arguments");
+            syntax_error_if(_args.size() < ARGSNUM,
+                "Instruction expects to be passed " + nu::to_string(ARGSNUM)
+                    + " arguments");
         }
 
         run_aux<T>(ctx, std::is_integral<T>());
@@ -105,9 +102,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif //__NU_STMT_GENINSTR_H__

@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_STMT_LET_H__
-#define __NU_STMT_LET_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -65,10 +62,11 @@ protected:
             break;
 
         case variable_t::type_t::STRING:
-            if (val.get_type() != variable_t::type_t::STRING &&
-                val.get_type() != variable_t::type_t::ANY)
+            if (val.get_type() != variable_t::type_t::STRING
+                && val.get_type() != variable_t::type_t::ANY)
                 rt_error_code_t::get_instance().throw_if(true,
-                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_MISMATCH,
+                    ctx.runtime_pc.get_line(),
+                    rt_error_code_t::value_t::E_TYPE_MISMATCH,
                     "'" + _variable + "'");
 
             var.set_str(val.to_str(), idx...);
@@ -106,8 +104,6 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-}
+} // namespace nu
 
 /* -------------------------------------------------------------------------- */
-
-#endif //__NU_STMT_LET_H__

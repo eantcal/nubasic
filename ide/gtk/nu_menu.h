@@ -1,23 +1,20 @@
-//  
-// This file is part of nuBASIC 
+//
+// This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
-
-#ifndef __NU_MENU_H__
-#define __NU_MENU_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
 #include "nu_accelgroup.h"
-#include "nu_window.h"
 #include "nu_menubar.h"
+#include "nu_window.h"
 
-#include <gtk/gtk.h>
 #include <cassert>
+#include <gtk/gtk.h>
 
 
 /* -------------------------------------------------------------------------- */
@@ -27,20 +24,14 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-class menu_t
-{
+class menu_t {
 public:
-    GtkWidget * get_internal_obj() const noexcept {
-        return _menu;
-    }
+    GtkWidget* get_internal_obj() const noexcept { return _menu; }
 
-    menu_t(const char* name,
-            const nu::menubar_t& menubar,
-            const nu::accelgroup_t & accelgroup,
-            GtkWidget * menu = gtk_menu_new())
-    :
-        _menu(menu),
-        _accelgroup(accelgroup)
+    menu_t(const char* name, const nu::menubar_t& menubar,
+        const nu::accelgroup_t& accelgroup, GtkWidget* menu = gtk_menu_new())
+        : _menu(menu)
+        , _accelgroup(accelgroup)
     {
         assert(_menu);
 
@@ -49,56 +40,46 @@ public:
         gtk_menu_item_set_submenu(GTK_MENU_ITEM(menu_label), _menu);
 
         gtk_menu_shell_append(
-                GTK_MENU_SHELL(menubar.get_internal_obj()),
-                menu_label);
+            GTK_MENU_SHELL(menubar.get_internal_obj()), menu_label);
     }
 
-    template<class GtkCallbak_t>
+    template <class GtkCallbak_t>
     void add_stock_item(
-            const window_t & window,
-            const char* stock_id,
-            GtkCallbak_t cbk)
+        const window_t& window, const char* stock_id, GtkCallbak_t cbk)
     {
         add_item(window, stock_id, cbk, true);
     }
 
-    template<class GtkCallbak_t>
-    void add_item(
-            const window_t & window,
-            const char* id,
-            GtkCallbak_t cbk,
-            bool from_stock)
+    template <class GtkCallbak_t>
+    void add_item(const window_t& window, const char* id, GtkCallbak_t cbk,
+        bool from_stock)
     {
-        GtkWidget * item = from_stock ?
-            gtk_image_menu_item_new_from_stock(
-                                id,
-                                _accelgroup.get_internal_obj()) :
+        GtkWidget* item = from_stock ? gtk_image_menu_item_new_from_stock(
+                              id, _accelgroup.get_internal_obj())
+                                     :
 
-            gtk_menu_item_new_with_label(id);
+                                     gtk_menu_item_new_with_label(id);
 
         gtk_menu_shell_append(GTK_MENU_SHELL(_menu), item);
 
-        g_signal_connect(
-                G_OBJECT (item),
-                "activate",
-                G_CALLBACK(cbk),
-                (gpointer ) window.get_internal_obj());
+        g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(cbk),
+            (gpointer)window.get_internal_obj());
     }
 
     void add_separator() noexcept
     {
         gtk_menu_shell_append(
-                GTK_MENU_SHELL(_menu),
-                gtk_separator_menu_item_new());
+            GTK_MENU_SHELL(_menu), gtk_separator_menu_item_new());
     }
 
-    void set_sensitive( const bool& on ) const noexcept {
-        gtk_widget_set_sensitive( _menu, on );
+    void set_sensitive(const bool& on) const noexcept
+    {
+        gtk_widget_set_sensitive(_menu, on);
     }
 
 private:
-    GtkWidget * _menu = nullptr;
-    const nu::accelgroup_t & _accelgroup;
+    GtkWidget* _menu = nullptr;
+    const nu::accelgroup_t& _accelgroup;
 };
 
 
@@ -108,5 +89,3 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __NU_MENU_H__ 

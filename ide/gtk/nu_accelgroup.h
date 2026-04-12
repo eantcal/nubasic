@@ -1,14 +1,11 @@
-//  
-// This file is part of nuBASIC 
+//
+// This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
-
-#ifndef __NU_ACCELGROUP_H__
-#define __NU_ACCELGROUP_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -22,19 +19,17 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
-class accelgroup_t
-{
+class accelgroup_t {
 public:
-    accelgroup_t(GtkAccelGroup * group = gtk_accel_group_new())
+    accelgroup_t(GtkAccelGroup* group = gtk_accel_group_new())
         : _group(group)
     {
     }
 
-    GtkAccelGroup * get_internal_obj() const noexcept {
-        return _group;
-    }
+    GtkAccelGroup* get_internal_obj() const noexcept { return _group; }
+
 private:
-    GtkAccelGroup * _group = nullptr;
+    GtkAccelGroup* _group = nullptr;
 };
 
 
@@ -44,5 +39,3 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __NU_ACCELGROUP_H__ 

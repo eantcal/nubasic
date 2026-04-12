@@ -167,16 +167,16 @@ variant_t evaluate_and_export_result(
 
 /* -------------------------------------------------------------------------- */
 
-static variant_t* resolve_mutable_unary_target(
-    rt_prog_ctx_t& ctx, const expr_any_t::handle_t& expr, var_scope_t::handle_t& scope)
+static variant_t* resolve_mutable_unary_target(rt_prog_ctx_t& ctx,
+    const expr_any_t::handle_t& expr, var_scope_t::handle_t& scope)
 {
-    rt_error_code_t::get_instance().throw_if(!expr, 0,
-        rt_error_code_t::value_t::E_INVALID_ARGS, "");
+    rt_error_code_t::get_instance().throw_if(
+        !expr, 0, rt_error_code_t::value_t::E_INVALID_ARGS, "");
 
     const std::string target_name = expr->name();
 
-    rt_error_code_t::get_instance().throw_if(target_name.empty(), 0,
-        rt_error_code_t::value_t::E_INVALID_ARGS, "");
+    rt_error_code_t::get_instance().throw_if(
+        target_name.empty(), 0, rt_error_code_t::value_t::E_INVALID_ARGS, "");
 
     if (target_name.find('.') != std::string::npos) {
         const std::string root = target_name.substr(0, target_name.find('.'));
@@ -184,8 +184,8 @@ static variant_t* resolve_mutable_unary_target(
 
         auto* value = ctx.get_struct_member_value(target_name, scope);
 
-        rt_error_code_t::get_instance().throw_if(!value, 0,
-            rt_error_code_t::value_t::E_INV_IDENTIF, target_name);
+        rt_error_code_t::get_instance().throw_if(
+            !value, 0, rt_error_code_t::value_t::E_INV_IDENTIF, target_name);
 
         return value;
     }
@@ -198,8 +198,9 @@ static variant_t* resolve_mutable_unary_target(
 
     scope = ctx.proc_scope.get(scope_type);
 
-    rt_error_code_t::get_instance().throw_if(!scope || !scope->is_defined(target_name),
-        0, rt_error_code_t::value_t::E_INV_IDENTIF, target_name);
+    rt_error_code_t::get_instance().throw_if(
+        !scope || !scope->is_defined(target_name), 0,
+        rt_error_code_t::value_t::E_INV_IDENTIF, target_name);
 
     auto& entry = (*scope)[target_name];
     const bool const_var = (entry.second & VAR_ACCESS_RO) == VAR_ACCESS_RO;

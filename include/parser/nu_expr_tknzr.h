@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_EXPR_TKNZR_H__
-#define __NU_EXPR_TKNZR_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -59,34 +56,30 @@ public:
         const std::string& string_bsymb, // Begin string marker
         const std::string& string_esymb, // End string marker
         const char string_escape, // Escape string symbol
-        const std::set<std::string>& line_comment
-        );
+        const std::set<std::string>& line_comment);
 
 
     //! Get a token and advance to the next one (if any)
     token_t next() override;
-    
+
     //! Split expression in token and copy them into a token list
-    void get_tknlst(token_list_t& tl/*, bool strip_comment = true*/) override;
+    void get_tknlst(token_list_t& tl /*, bool strip_comment = true*/) override;
 
 
     using typed_token_id_t = std::pair<std::string, tkncl_t>;
     using typed_token_set_t = std::set<typed_token_id_t>;
 
     //! Get begin sub-expression symbol
-    std::string subexp_begin_symbol() const noexcept {
+    std::string subexp_begin_symbol() const noexcept
+    {
         return _subexp_begin_symb;
     }
 
     //! Get end sub-expression symbol
-    std::string subexp_end_symbol() const noexcept { 
-        return _subexp_end_symb; 
-    }
-    
+    std::string subexp_end_symbol() const noexcept { return _subexp_end_symb; }
+
     //! Return expression position in the source line
-    size_t get_exp_pos() const noexcept { 
-        return _pos; 
-    }
+    size_t get_exp_pos() const noexcept { return _pos; }
 
 protected:
     //! Get a token and advance to the next one (if any)
@@ -106,9 +99,7 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 
-} // namespace
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __NU_EXPR_TKNZR_H__

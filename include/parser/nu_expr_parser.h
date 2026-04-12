@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_EXPR_PARSER_H__
-#define __NU_EXPR_PARSER_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -60,16 +57,14 @@ protected:
     static void fix_real_numbers(token_list_t& rtl);
 
     // There are expressions which begin with '-' operator (e.g. -<exp>)
-    // which need to be transformed into 0-<exp> in order to 
+    // which need to be transformed into 0-<exp> in order to
     // be process correctly later
     static void fix_minus_prefixed_expressions(token_list_t& rtl);
 };
 
 
 /* -------------------------------------------------------------------------- */
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __NU_EXPR_PARSER_H__

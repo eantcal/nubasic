@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -57,17 +57,15 @@ int create_terminal_frame(int argc, char* argv[])
     // Check all args: -nx, -t / --text-mode, or -e mean non-interactive mode
     for (int i = 1; i < argc; ++i) {
         if (strcmp(argv[i], NU_BASIC_XTERM_NOFRAME_SWITCH) == 0
-            || strcmp(argv[i], "-t") == 0
-            || strcmp(argv[i], "--text-mode") == 0
-            || (argv[i][0] == '-' && argv[i][1] == NU_BASIC_EXEC_MACRO && argv[i][2] == '\0'))
-        {
+            || strcmp(argv[i], "-t") == 0 || strcmp(argv[i], "--text-mode") == 0
+            || (argv[i][0] == '-' && argv[i][1] == NU_BASIC_EXEC_MACRO
+                && argv[i][2] == '\0')) {
             return 0;
         }
     }
 
     if (argc > 0
-        && (argc < 2 || strcmp(argv[1], NU_BASIC_XTERM_FRAME_SWITCH)))
-    {
+        && (argc < 2 || strcmp(argv[1], NU_BASIC_XTERM_FRAME_SWITCH))) {
         std::string progname = argv[0];
         progname += " ";
         progname += NU_BASIC_XTERM_FRAME_SWITCH;

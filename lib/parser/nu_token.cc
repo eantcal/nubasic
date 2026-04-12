@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -91,13 +91,13 @@ void nu::token_t::set_identifier(const std::string& id, case_t casemode)
 
 /* -------------------------------------------------------------------------- */
 
-nu::token_t::token_t(const std::string& id, tkncl_t t, size_t pos,
-    data_ptr_t expr_ptr) noexcept : 
-        _identifier(id),
-        _org_id(id),
-        _type(t),
-        _position(pos),
-        _expression_ptr(expr_ptr)
+nu::token_t::token_t(
+    const std::string& id, tkncl_t t, size_t pos, data_ptr_t expr_ptr) noexcept
+    : _identifier(id)
+    , _org_id(id)
+    , _type(t)
+    , _position(pos)
+    , _expression_ptr(expr_ptr)
 {
     _set_id_lowercase();
 }

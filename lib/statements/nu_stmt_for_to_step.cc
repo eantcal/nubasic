@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -61,8 +61,8 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t& ctx)
         case variable_t::type_t::STRING:
         case variable_t::type_t::BOOLEAN:
             rt_error_code_t::get_instance().throw_if(true,
-                ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
-                "For " + _variable);
+                ctx.runtime_pc.get_line(),
+                rt_error_code_t::value_t::E_TYPE_ILLEGAL, "For " + _variable);
             break;
 
         case variable_t::type_t::DOUBLE:
@@ -87,12 +87,11 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t& ctx)
                 break;
 
             case variant_t::type_t::DOUBLE:
-                if (vartype != variant_t::type_t::DOUBLE) 
-                {
-                    rt_error_code_t::get_instance().throw_if(
-                       true,
-                       ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
-                       "For " + _variable);
+                if (vartype != variant_t::type_t::DOUBLE) {
+                    rt_error_code_t::get_instance().throw_if(true,
+                        ctx.runtime_pc.get_line(),
+                        rt_error_code_t::value_t::E_TYPE_ILLEGAL,
+                        "For " + _variable);
                 }
                 break;
 
@@ -100,7 +99,8 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t& ctx)
             case variant_t::type_t::UNDEFINED:
             default:
                 rt_error_code_t::get_instance().throw_if(true,
-                    ctx.runtime_pc.get_line(), rt_error_code_t::value_t::E_TYPE_ILLEGAL,
+                    ctx.runtime_pc.get_line(),
+                    rt_error_code_t::value_t::E_TYPE_ILLEGAL,
                     "For " + _variable);
                 break;
             }
@@ -111,16 +111,15 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t& ctx)
 
         // Check the initial loop condition before entering the body.
         // If start already fails (e.g. FOR i=1 TO 0), skip the body entirely.
-        const bool initial_condition = bool(
-            (forctx.step.to_double() > 0)
-            ? (val <= forctx.end_counter)
-            : (val >= forctx.end_counter));
+        const bool initial_condition
+            = bool((forctx.step.to_double() > 0) ? (val <= forctx.end_counter)
+                                                 : (val >= forctx.end_counter));
 
         if (!initial_condition) {
             // Mark EXIT so the matching NEXT statement exits immediately,
             // then jump to NEXT so it can clean up the loop context.
-            const auto skip_handle =
-                ctx.for_loop_metadata.begin_find(forctx.pc_for_stmt);
+            const auto skip_handle
+                = ctx.for_loop_metadata.begin_find(forctx.pc_for_stmt);
             if (skip_handle) {
                 skip_handle->flag.set(instrblock_t::EXIT, true);
                 ctx.go_to(skip_handle->pc_end_stmt);
@@ -134,7 +133,8 @@ void stmt_for_to_step_t::run(rt_prog_ctx_t& ctx)
         ctx.go_to_next();
         forctx.flag.set(for_loop_ctx_t::FLG_FIRST_EXEC, false);
 
-        const auto handle = ctx.for_loop_metadata.begin_find(forctx.pc_for_stmt);
+        const auto handle
+            = ctx.for_loop_metadata.begin_find(forctx.pc_for_stmt);
 
         if (handle) {
             handle->flag.set(instrblock_t::EXIT, false);

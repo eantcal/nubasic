@@ -168,7 +168,7 @@ void stmt_call_t::run(
         auto sub_xscope = ctx.proc_scope.get();
 
         for (auto values_it = values.cbegin(); values_it != values.cend();
-            ++values_it) {
+             ++values_it) {
             variant_t val = *values_it;
 
             const auto& variable_name = arg_it->var_name;

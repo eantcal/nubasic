@@ -5,9 +5,7 @@
 // Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
-
-#ifndef __CONSOLE_CONFIG_H__
-#define __CONSOLE_CONFIG_H__
+#pragma once
 
 #include <string>
 #include <windows.h>
@@ -63,5 +61,3 @@ struct console_config_t {
 };
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __CONSOLE_CONFIG_H__

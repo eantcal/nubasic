@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_LABEL_TBL_H__
-#define __NU_LABEL_TBL_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -33,15 +30,18 @@ public:
     label_tbl_t(const label_tbl_t&) = delete;
     label_tbl_t& operator=(const label_tbl_t&) = delete;
 
-    void set_explicit_line_reference_mode() noexcept {
+    void set_explicit_line_reference_mode() noexcept
+    {
         _explicit_line_reference = true;
     }
 
-    bool get_explicit_line_reference_mode() const noexcept {
+    bool get_explicit_line_reference_mode() const noexcept
+    {
         return _explicit_line_reference;
     }
 
-    void clear() {
+    void clear()
+    {
         symbol_map_t<icstring_t, unsigned int>::clear();
         _explicit_line_reference = false;
     }
@@ -58,9 +58,7 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif //__NU_LABEL_TBL_H__

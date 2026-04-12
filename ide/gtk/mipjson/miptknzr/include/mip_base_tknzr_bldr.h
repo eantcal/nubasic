@@ -1,25 +1,22 @@
-//  
+//
 // This file is part of MipTknzr Library Project
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __MIP_BASE_TKNZR_BLDR_H__
-#define __MIP_BASE_TKNZR_BLDR_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
-#include "mip_base_tknzr.h"
 #include "mip_base_esc_cnvrtr.h"
+#include "mip_base_tknzr.h"
 
-#include <memory>
 #include <istream>
+#include <memory>
 #include <set>
 
 /* -------------------------------------------------------------------------- */
@@ -30,13 +27,12 @@ namespace mip {
 /* -------------------------------------------------------------------------- */
 
 //! Abstract base class of tokenizer builder objects
-struct base_tknzr_bldr_t
-{
+struct base_tknzr_bldr_t {
     //! dtor
     virtual ~base_tknzr_bldr_t() {}
 
     //! Build a tokenizer object
-    virtual std::unique_ptr< base_tknzr_t > build() = 0;
+    virtual std::unique_ptr<base_tknzr_t> build() = 0;
 
     //! Add a definition of an atomic token
     virtual bool def_atom(const string_t& value) = 0;
@@ -66,7 +62,9 @@ struct base_tknzr_bldr_t
     virtual bool def_eol(const std::set<base_tknzr_t::eol_t>& value_set) = 0;
 
     //! Add a definition of a string token
-    virtual bool def_string(char_t quote, std::shared_ptr<base_esc_cnvrtr_t> et = nullptr) = 0;
+    virtual bool def_string(
+        char_t quote, std::shared_ptr<base_esc_cnvrtr_t> et = nullptr)
+        = 0;
 };
 
 
@@ -76,5 +74,3 @@ struct base_tknzr_bldr_t
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __MIP_BASE_TKNZR_BLDR_H__

@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -29,9 +29,7 @@ expr_unary_op_t::expr_unary_op_t(
 
 /* -------------------------------------------------------------------------- */
 
-bool expr_unary_op_t::empty() const noexcept { 
-    return false; 
-}
+bool expr_unary_op_t::empty() const noexcept { return false; }
 
 
 /* -------------------------------------------------------------------------- */
@@ -52,7 +50,7 @@ variant_t expr_unary_op_t::eval(rt_prog_ctx_t& ctx) const
 
 /* -------------------------------------------------------------------------- */
 
-} // namespace
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */

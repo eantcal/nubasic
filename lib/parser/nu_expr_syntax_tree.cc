@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -31,14 +31,9 @@ void expr_syntax_tree_t::change_operator_precedence(op_preced_t precedence)
 {
     processing_ops.clear();
 
-    ignoring_ops.insert({
-        ".",
-        "*", "/", "^", "\\", "mod", "div",
-        "+", "-",
-        "=", "<", ">", ">=", "<=", "<>",
-        "and", "or", "xor",
-        "band", "bor", "bxor", "bshl", "bshr"
-    });
+    ignoring_ops.insert({ ".", "*", "/", "^", "\\", "mod", "div", "+", "-", "=",
+        "<", ">", ">=", "<=", "<>", "and", "or", "xor", "band", "bor", "bxor",
+        "bshl", "bshr" });
 
     switch (precedence) {
 
@@ -93,8 +88,9 @@ void expr_syntax_tree_t::swap_lr_markers()
 
 token_list_t expr_syntax_tree_t::remove_blank(token_list_t tl)
 {
-    auto is_blank = [](
-        tkncl_t cl) { return cl == tkncl_t::BLANK || cl == tkncl_t::NEWLINE; };
+    auto is_blank = [](tkncl_t cl) {
+        return cl == tkncl_t::BLANK || cl == tkncl_t::NEWLINE;
+    };
 
     tkncl_t old_token_cl(tkncl_t::UNDEFINED);
     std::string old_token_id;
@@ -106,8 +102,7 @@ token_list_t expr_syntax_tree_t::remove_blank(token_list_t tl)
         if (!is_blank(i->type())) {
             if (i->type() == old_token_cl && i->identifier() == old_token_id) {
                 if (i->type() != tkncl_t::SUBEXP_BEGIN
-                    && i->type() != tkncl_t::SUBEXP_END) 
-                {
+                    && i->type() != tkncl_t::SUBEXP_END) {
                     syntax_error(i->expression(), i->position());
                 }
             }
@@ -116,16 +111,14 @@ token_list_t expr_syntax_tree_t::remove_blank(token_list_t tl)
 
                 if (old_token_cl == tkncl_t::SUBEXP_BEGIN
                     && (i->identifier() != "+" && i->identifier() != "-"
-                           && i->identifier() != NU_BASIC_OP_INC
-                           && i->identifier() != NU_BASIC_OP_DEC)) 
-                {
+                        && i->identifier() != NU_BASIC_OP_INC
+                        && i->identifier() != NU_BASIC_OP_DEC)) {
                     syntax_error(i->expression(), i->position());
                 }
             }
 
             if (i->type() == tkncl_t::SUBEXP_END
-                && old_token_cl == tkncl_t::OPERATOR)
-            {
+                && old_token_cl == tkncl_t::OPERATOR) {
                 syntax_error(i->expression(), i->position());
             }
 
@@ -188,15 +181,13 @@ void expr_syntax_tree_t::rework_operator(
 {
 
     if (i == tl.end() || tl.size() < 3 || (i - 1) == tl.end()
-        || (i + 1) == tl.end()) 
-    {
+        || (i + 1) == tl.end()) {
         const size_t pos = i != tl.end() ? i->position() : 0;
 
-        const std::string expr
-            = i != tl.end() ? i->expression() : 
-            std::string("Internal error at ") 
-            + __FILE__ + 
-            std::to_string(__LINE__);
+        const std::string expr = i != tl.end()
+            ? i->expression()
+            : std::string("Internal error at ") + __FILE__
+                + std::to_string(__LINE__);
 
         syntax_error(expr, pos);
     }
@@ -209,8 +200,7 @@ void expr_syntax_tree_t::rework_operator(
     if (ops.find(i->identifier()) != ops.end()) {
 
         if ((i + 1) == tl.end() || i == tl.begin()
-            || (i - 1)->type() == tkncl_t::OPERATOR) 
-        {
+            || (i - 1)->type() == tkncl_t::OPERATOR) {
             syntax_error(*expr_ptr, pos);
         }
 
@@ -260,8 +250,7 @@ void expr_syntax_tree_t::rework_operator(
                 = tl.sublist(tl.iterator_to_pos(i) - left_size, left_size);
 
             left_list = rework_token_list(left_list);
-        } 
-        else {
+        } else {
             left_list += *(i - 1);
         }
 
@@ -279,8 +268,7 @@ void expr_syntax_tree_t::rework_operator(
             right_list = tl.sublist(tl.iterator_to_pos(i) + 1, right_size);
 
             right_list = rework_token_list(right_list);
-        } 
-        else {
+        } else {
             right_list += *(i + 1);
         }
 
@@ -298,8 +286,7 @@ void expr_syntax_tree_t::rework_operator(
                 tl.iterator_to_pos(i + right_size), subexp);
 
         tl = ret_tl;
-    } 
-    else {
+    } else {
         syntax_error(*expr_ptr, pos);
     }
 }
@@ -361,8 +348,7 @@ void expr_syntax_tree_t::rework_minus_operator(
             right_list = tl.sublist(tl.iterator_to_pos(i) + 1, right_size);
 
             right_list = rework_token_list(right_list);
-        } 
-        else {
+        } else {
             right_list += *(i + 1);
         }
 
@@ -425,8 +411,7 @@ void expr_syntax_tree_t::rework_identifier(
 
         right_list = rework_token_list(right_list);
 
-    } 
-    else {
+    } else {
         right_list += *(i + 1);
     }
 
@@ -456,16 +441,14 @@ void expr_syntax_tree_t::skip_processed(
     while (i != tl.end()) {
         if (i->type() == tkncl_t::IDENTIFIER
             && ((i + 1) == tl.end()
-                   || ((i + 1)->type() == tkncl_t::OPERATOR
-                          || (i + 1)->type() == tkncl_t::SUBEXP_END))) 
-        {
+                || ((i + 1)->type() == tkncl_t::OPERATOR
+                    || (i + 1)->type() == tkncl_t::SUBEXP_END))) {
             ++i;
             continue;
         }
 
         if (i->type() == tkncl_t::SUBEXP_BEGIN
-            && i->identifier() == implicit_left_marker) 
-        {
+            && i->identifier() == implicit_left_marker) {
             token_list_t::tkp_t begin
                 = { implicit_left_marker, tkncl_t::SUBEXP_BEGIN };
 
@@ -481,15 +464,12 @@ void expr_syntax_tree_t::skip_processed(
             }
 
             continue;
-        }
-        else if ((i->type() != tkncl_t::SUBEXP_BEGIN
-                     && i->type() != tkncl_t::OPERATOR
-                     && i->type() != tkncl_t::IDENTIFIER)
-            || ignoring_ops.find(i->identifier()) != ignoring_ops.end()) 
-        {
+        } else if ((i->type() != tkncl_t::SUBEXP_BEGIN
+                       && i->type() != tkncl_t::OPERATOR
+                       && i->type() != tkncl_t::IDENTIFIER)
+            || ignoring_ops.find(i->identifier()) != ignoring_ops.end()) {
             ++i;
-        } 
-        else {
+        } else {
             break;
         }
     }
@@ -505,25 +485,23 @@ token_list_t expr_syntax_tree_t::rework_token_list(token_list_t tl)
     // If an expression begins with "+"
     // just ignore it
     if (i != tl.end()
-        && (i->identifier() == "+" && i->type() == tkncl_t::OPERATOR)) 
-    {
+        && (i->identifier() == "+" && i->type() == tkncl_t::OPERATOR)) {
         tl.data().erase(i);
         i = tl.begin();
     }
 
     // If an expression begins with "-"...
     if (i != tl.end()
-        && (i->identifier() == "-" && i->type() == tkncl_t::OPERATOR)) 
-    {
+        && (i->identifier() == "-" && i->type() == tkncl_t::OPERATOR)) {
         rework_minus_operator(tl, i);
         i = tl.begin();
     }
 
     // If an expression begins with increment or decrement unary operator...
-    if (i != tl.end() && (i->type() == tkncl_t::OPERATOR
-                             && (i->identifier() == NU_BASIC_OP_INC
-                                    || i->identifier() == NU_BASIC_OP_DEC))) 
-    {
+    if (i != tl.end()
+        && (i->type() == tkncl_t::OPERATOR
+            && (i->identifier() == NU_BASIC_OP_INC
+                || i->identifier() == NU_BASIC_OP_DEC))) {
         rework_unary_operator(tl, i);
         i = tl.begin();
     }
@@ -531,11 +509,11 @@ token_list_t expr_syntax_tree_t::rework_token_list(token_list_t tl)
     skip_processed(tl, i);
 
     // Do we have terminate?
-    if (i == tl.end() || ((tl.begin()->type() == tkncl_t::SUBEXP_BEGIN
-                             && i->identifier() == implicit_left_marker
-                             && (tl.end() - 1)->type() == tkncl_t::SUBEXP_END
-                             && i->identifier() == implicit_right_marker))) 
-    {
+    if (i == tl.end()
+        || ((tl.begin()->type() == tkncl_t::SUBEXP_BEGIN
+            && i->identifier() == implicit_left_marker
+            && (tl.end() - 1)->type() == tkncl_t::SUBEXP_END
+            && i->identifier() == implicit_right_marker))) {
         return tl;
     }
 
@@ -545,8 +523,7 @@ token_list_t expr_syntax_tree_t::rework_token_list(token_list_t tl)
     }
 
     if (i->type() == tkncl_t::SUBEXP_BEGIN
-        && i->identifier() == explicit_left_marker) 
-    {
+        && i->identifier() == explicit_left_marker) {
         rework_subexp(tl, i);
         return rework_token_list(tl);
     }
@@ -656,8 +633,7 @@ void expr_syntax_tree_t::rework_unary_operator(
             right_list = tl.sublist(tl.iterator_to_pos(i) + 1, right_size);
 
             right_list = rework_token_list(right_list);
-        } 
-        else {
+        } else {
             right_list += *(i + 1);
         }
 

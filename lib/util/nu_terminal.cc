@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -13,8 +13,8 @@
 
 #include "nu_terminal.h"
 #include "nu_cpp_lang.h"
-#include <sys/types.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 /* -------------------------------------------------------------------------- */
@@ -42,25 +42,17 @@ terminal_t::~terminal_t() {}
 
 /* -------------------------------------------------------------------------- */
 
-int terminal_t::getch() const noexcept 
-{ 
-    return _term_input.getch(); 
-}
+int terminal_t::getch() const noexcept { return _term_input.getch(); }
 
 
 /* -------------------------------------------------------------------------- */
 
-int terminal_t::keybhit() const noexcept 
-{ 
-    return _term_input.keybhit(); 
-}
+int terminal_t::keybhit() const noexcept { return _term_input.keybhit(); }
 
 
 /* -------------------------------------------------------------------------- */
 
-char terminal_t::getrawch() const noexcept { 
-    return _term_input.getrawch(); 
-}
+char terminal_t::getrawch() const noexcept { return _term_input.getrawch(); }
 
 
 /* -------------------------------------------------------------------------- */
@@ -170,10 +162,7 @@ void terminal_t::edit_backspace() noexcept
 
 /* -------------------------------------------------------------------------- */
 
-void terminal_t::edit_ctrl_h() noexcept 
-{ 
-    edit_backspace(); 
-}
+void terminal_t::edit_ctrl_h() noexcept { edit_backspace(); }
 
 
 /* -------------------------------------------------------------------------- */

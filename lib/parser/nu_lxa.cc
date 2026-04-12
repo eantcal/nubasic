@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -110,8 +110,8 @@ bool lxa_str_t::accept(char c)
                 break;
 
             case 'u':
-               _data += "\\u";
-               break;
+                _data += "\\u";
+                break;
 
             default:
                 _data += c;
@@ -124,8 +124,7 @@ bool lxa_str_t::accept(char c)
         if (_eindex < _end_quote.size() && c == _end_quote[_eindex]) {
             _end_found += c;
             ++_eindex;
-        } 
-        else {
+        } else {
             _data += c;
         }
 
@@ -151,10 +150,7 @@ void lxa_str_t::reset()
 
 /* -------------------------------------------------------------------------- */
 
-const std::string& lxa_str_t::data() const 
-{
-    return _data; 
-}
+const std::string& lxa_str_t::data() const { return _data; }
 
 
 /* -------------------------------------------------------------------------- */

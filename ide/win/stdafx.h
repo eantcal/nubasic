@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -12,12 +12,14 @@
 
 #include "targetver.h"
 
+// clang-format off
 #include <windows.h>
 #include <windowsx.h>
 #include <WinUser.h>
 
 #include <Commctrl.h>
 #include <WinUser.h>
+// clang-format on
 #include <malloc.h>
 #include <memory.h>
 #ifndef RICHEDIT_VER
@@ -32,10 +34,12 @@
 #include <fcntl.h>
 #include <io.h>
 
+// clang-format off
 #include "SciLexer.h"
 #include "Scintilla.h"
 #include "ILexer.h"   // ILexer5 interface (Scintilla 5.x)
 #include "Lexilla.h"  // CreateLexerFunction typedef (Lexilla 5.x)
+// clang-format on
 #include "resource.h"
 
 #include "config.h"

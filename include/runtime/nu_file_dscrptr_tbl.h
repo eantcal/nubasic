@@ -1,16 +1,13 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __NU_FILE_DSCRPTR_TBL_H__
-#define __NU_FILE_DSCRPTR_TBL_H__
-
+#pragma once
 
 /* -------------------------------------------------------------------------- */
 
@@ -72,13 +69,9 @@ struct file_dscrptr_tbl_t {
     bool flush_fd(unsigned int fd);
     void trace(std::stringstream& ss);
 
-    bool empty() const noexcept { 
-        return _file_tbl.empty(); 
-    }
+    bool empty() const noexcept { return _file_tbl.empty(); }
 
-    void clear() noexcept { 
-        _file_tbl.clear(); 
-    }
+    void clear() noexcept { _file_tbl.clear(); }
 
 
 protected:
@@ -89,9 +82,7 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
-
-#endif // __NU_FILE_DSCRPTR_TBL_H__

@@ -1,8 +1,8 @@
-//  
+//
 // This file is part of nuBASIC
 // Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-// All rights reserved.  
-// Licensed under the MIT License. 
+// All rights reserved.
+// Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
 
@@ -55,8 +55,7 @@ void stmt_loop_while_t::run(rt_prog_ctx_t& ctx)
     if (!handle->flag[instrblock_t::EXIT] && _condition->eval(ctx)) {
         // jump to DO statement
         ctx.go_to(handle->pc_begin_stmt);
-    } 
-    else {
+    } else {
         // LOOP completed, go to next line
         ctx.go_to_next();
     }

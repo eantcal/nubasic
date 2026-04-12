@@ -5,9 +5,7 @@
 // Licensed under the MIT License.
 // See COPYING file in the project root for full license information.
 //
-
-#ifndef __NU_WINCONSOLE_API_H__
-#define __NU_WINCONSOLE_API_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -154,5 +152,3 @@ void nu_winconsole_release_hdc(void* hdc);
 #ifdef __cplusplus
 }
 #endif
-
-#endif // __NU_WINCONSOLE_API_H__

@@ -21,8 +21,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include <windows.h>
 #include <conio.h>
+#include <windows.h>
 
 #include <locale.h>
 
@@ -40,7 +40,7 @@ namespace nu {
 static int g_screen_mode = 1;
 
 void _os_set_screen_mode(int mode) { g_screen_mode = mode; }
-int  _os_get_screen_mode()         { return g_screen_mode; }
+int _os_get_screen_mode() { return g_screen_mode; }
 
 
 /* -------------------------------------------------------------------------- */
@@ -60,8 +60,8 @@ void _os_u16write(const std::u16string& output)
     if (g_screen_mode == 0) {
         HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
         DWORD written = 0;
-        WriteConsoleW(hOut, output.c_str(),
-            static_cast<DWORD>(output.size()), &written, nullptr);
+        WriteConsoleW(hOut, output.c_str(), static_cast<DWORD>(output.size()),
+            &written, nullptr);
     } else {
         nu_winconsole_write_w((const wchar_t*)output.c_str());
     }
@@ -120,7 +120,8 @@ std::string _os_input_str(int n)
         result.reserve(n);
         for (int i = 0; i < n; ++i) {
             int ch = _getch();
-            if (ch == 0x03) break; // ETX / Ctrl+C
+            if (ch == 0x03)
+                break; // ETX / Ctrl+C
             if (ch > 0 && ch < 256)
                 result += static_cast<char>(ch & 0xff);
         }
@@ -449,7 +450,7 @@ void _os_refresh() {}
 // Screen mode is a Windows-only concept; on Linux/macOS always text mode.
 static int g_screen_mode = 0;
 void _os_set_screen_mode(int mode) { g_screen_mode = mode; }
-int  _os_get_screen_mode()         { return g_screen_mode; }
+int _os_get_screen_mode() { return g_screen_mode; }
 
 /* -------------------------------------------------------------------------- */
 
