@@ -107,6 +107,9 @@ public:
     // Class member access visibility: "ClassName.MemberName" -> is_public
     std::map<std::string, bool> class_member_visibility;
 
+    // Class member declaring owner: "RuntimeClass.MemberName" -> "OwnerClass"
+    std::map<std::string, std::string> class_member_owner;
+
     // Single-inheritance chain: derived class name -> direct base class name
     std::map<std::string, std::string> class_bases;
 
@@ -138,11 +141,15 @@ public:
 
     variant_t* get_struct_member_value(
         const std::string& qualified_variable_name,
-        var_scope_t::handle_t& scope, size_t index = 0);
+        var_scope_t::handle_t& scope, size_t index = 0,
+        std::string* err_msg = nullptr);
 
     variant_t resolve_struct_element(const std::string& variable_name,
         size_t variable_vect_index, const std::string& element_name,
         size_t element_vect_index, std::string& err_msg);
+
+    std::string current_class_scope_name() const;
+    bool is_class_member_access_allowed(const std::string& member_key) const;
 
     prog_ctx_t(FILE* stdout_ptr, FILE* stdin_ptr);
 

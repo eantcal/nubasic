@@ -30,4 +30,4 @@ Debug
 /build-fix
 /build-fix/CMakeFiles
 /build-test-install
-/nu_test_rt.txt
+/tests/nu_test_*.txt

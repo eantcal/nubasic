@@ -53,6 +53,7 @@ void prog_ctx_t::clear_metadata()
     compiling_struct_name.clear();
     compiling_class_name.clear();
     class_member_visibility.clear();
+    class_member_owner.clear();
     class_bases.clear();
     class_overridable_methods.clear();
     class_static_methods.clear();
@@ -235,7 +236,7 @@ static std::vector<std::string> split(const std::string& s, char delim = '.')
 
 variant_t* prog_ctx_t::get_struct_member_value(
     const std::string& qualified_variable_name, var_scope_t::handle_t& scope,
-    size_t index)
+    size_t index, std::string* err_msg)
 {
     auto reflist = split(qualified_variable_name);
     const auto& member = reflist[0];
@@ -250,6 +251,15 @@ variant_t* prog_ctx_t::get_struct_member_value(
         size_t level = 1;
         while (value && value->is_struct() && level < reflist.size()) {
             const auto& member_name = reflist[level++];
+
+            if (err_msg) {
+                const std::string member_key
+                    = value->struct_type_name() + "." + member_name;
+                if (!is_class_member_access_allowed(member_key)) {
+                    *err_msg = member_key;
+                    return nullptr;
+                }
+            }
 
             auto value_handle = value->struct_member(member_name, index);
             value = value_handle.get();
@@ -297,6 +307,15 @@ variant_t prog_ctx_t::resolve_struct_element(const std::string& variable_name,
         return variant_t();
     }
 
+    {
+        const std::string member_key
+            = value->struct_type_name() + "." + element_name;
+        if (!is_class_member_access_allowed(member_key)) {
+            err_msg = "Cannot access private member '" + member_key + "'";
+            return variant_t();
+        }
+    }
+
     auto member_handle
         = value->struct_member(element_name, variable_vect_index);
 
@@ -319,6 +338,54 @@ variant_t prog_ctx_t::resolve_struct_element(const std::string& variable_name,
     }
 
     return (*member_handle);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+std::string prog_ctx_t::current_class_scope_name() const
+{
+    const std::string& scope_id = proc_scope.get_scope_id();
+    const auto dot_pos = scope_id.find('.');
+
+    if (dot_pos == std::string::npos) {
+        return std::string();
+    }
+
+    const auto rec_pos = scope_id.find('[');
+
+    if (rec_pos != std::string::npos && rec_pos < dot_pos) {
+        return std::string();
+    }
+
+    return scope_id.substr(0, dot_pos);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool prog_ctx_t::is_class_member_access_allowed(
+    const std::string& member_key) const
+{
+    const auto vis_it = class_member_visibility.find(member_key);
+
+    if (vis_it == class_member_visibility.end() || vis_it->second) {
+        return true;
+    }
+
+    std::string owner_class;
+    const auto owner_it = class_member_owner.find(member_key);
+
+    if (owner_it != class_member_owner.end()) {
+        owner_class = owner_it->second;
+    } else {
+        const auto dot_pos = member_key.find('.');
+        if (dot_pos != std::string::npos) {
+            owner_class = member_key.substr(0, dot_pos);
+        }
+    }
+
+    return !owner_class.empty() && current_class_scope_name() == owner_class;
 }
 
 

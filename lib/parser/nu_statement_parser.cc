@@ -827,6 +827,7 @@ stmt_t::handle_t statement_parser_t::parse_procedure(
     // Register visibility and static flag when inside a class body
     if (!ctx.compiling_class_name.empty()) {
         ctx.class_member_visibility[id] = ctx.compiling_class_member_is_public;
+        ctx.class_member_owner[id] = ctx.compiling_class_name;
 
         if (ctx.compiling_class_member_is_static) {
             ctx.class_static_methods.insert(id);
@@ -839,7 +840,8 @@ stmt_t::handle_t statement_parser_t::parse_procedure(
         const std::string short_name
             = (dot_pos != std::string::npos) ? id.substr(dot_pos + 1) : id;
 
-        // Overridable: record the full mangled name (replaces the old placeholder)
+        // Overridable: record the full mangled name (replaces the old
+        // placeholder)
         if (ctx.compiling_method_is_overridable) {
             ctx.class_overridable_methods.insert(id);
             ctx.compiling_method_is_overridable = false;

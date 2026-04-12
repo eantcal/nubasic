@@ -36,6 +36,9 @@ void stmt_method_call_t::run(rt_prog_ctx_t& ctx)
     {
         const std::string static_key = _obj_name + "." + _method_name;
         if (ctx.class_static_methods.count(static_key) > 0) {
+            rt_error_if(!ctx.is_class_member_access_allowed(static_key),
+                rt_error_code_t::value_t::E_MEMBER_ACCESS, static_key);
+
             auto proto_it = ctx.proc_prototypes.data.find(static_key);
             rt_error_if(proto_it == ctx.proc_prototypes.data.end(),
                 rt_error_code_t::value_t::E_SUB_UNDEF, static_key);
@@ -89,7 +92,11 @@ void stmt_method_call_t::run(rt_prog_ctx_t& ctx)
 
     if (_obj_name.find('.') != std::string::npos) {
         // Nested qualified name: e.g., "container.item"
-        obj_ptr = ctx.get_struct_member_value(_obj_name, obj_scope);
+        std::string err_msg;
+        obj_ptr
+            = ctx.get_struct_member_value(_obj_name, obj_scope, 0, &err_msg);
+        rt_error_if(!err_msg.empty(), rt_error_code_t::value_t::E_MEMBER_ACCESS,
+            err_msg);
     } else {
         auto scope_type = ctx.proc_scope.get_type(_obj_name);
         obj_scope = ctx.proc_scope.get(scope_type);
@@ -115,19 +122,6 @@ void stmt_method_call_t::run(rt_prog_ctx_t& ctx)
         while (!cls.empty()) {
             const std::string key = cls + "." + _method_name;
 
-            // Private ancestor methods are not callable by external callers.
-            if (cls != class_name) {
-                auto vis_it = ctx.class_member_visibility.find(key);
-                if (vis_it != ctx.class_member_visibility.end()
-                    && !vis_it->second) {
-                    auto base_it = ctx.class_bases.find(cls);
-                    if (base_it == ctx.class_bases.end())
-                        break;
-                    cls = base_it->second;
-                    continue;
-                }
-            }
-
             auto it = ctx.proc_prototypes.data.find(key);
             if (it != ctx.proc_prototypes.data.end()) {
                 i = it;
@@ -143,18 +137,8 @@ void stmt_method_call_t::run(rt_prog_ctx_t& ctx)
         rt_error_code_t::value_t::E_SUB_UNDEF, mangled);
 
     // Check access (public/private) for the resolved method
-    {
-        auto vis_it = ctx.class_member_visibility.find(i->first);
-        if (vis_it != ctx.class_member_visibility.end() && !vis_it->second) {
-            const std::string scope_id = ctx.proc_scope.get_scope_id();
-            const bool same_class = !scope_id.empty()
-                && scope_id.size() > class_name.size()
-                && scope_id.substr(0, class_name.size() + 1)
-                    == class_name + ".";
-            rt_error_if(!same_class, rt_error_code_t::value_t::E_MEMBER_ACCESS,
-                i->first);
-        }
-    }
+    rt_error_if(!ctx.is_class_member_access_allowed(i->first),
+        rt_error_code_t::value_t::E_MEMBER_ACCESS, i->first);
 
     const auto& prototype = i->second.second;
     rt_error_if(prototype.parameters.size() != _args.size(),

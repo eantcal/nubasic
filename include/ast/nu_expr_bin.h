@@ -140,6 +140,13 @@ public:
                         const std::string mangled
                             = base_it->second + "." + member_element;
                         if (ctx.function_tbl.count(mangled) > 0) {
+                            if (!ctx.is_class_member_access_allowed(mangled)) {
+                                throw exception_t(
+                                    std::string(
+                                        "Cannot access private member '")
+                                    + mangled + "'");
+                            }
+
                             return ctx.program().run_method(
                                 mangled, _var2->get_args(), "me", me_val);
                         }
@@ -174,8 +181,14 @@ public:
                 auto st = ctx.proc_scope.get_type(root);
                 if (st != proc_scope_t::type_t::UNDEF) {
                     obj_scope = ctx.proc_scope.get(st);
+                    std::string err_msg;
                     auto* ptr = ctx.get_struct_member_value(
-                        var_name, obj_scope, var_vec_idx);
+                        var_name, obj_scope, var_vec_idx, &err_msg);
+                    if (!err_msg.empty()) {
+                        throw exception_t(
+                            std::string("Cannot access private member '")
+                            + err_msg + "'");
+                    }
                     if (ptr) {
                         obj_value = *ptr;
                         obj_found = true;
@@ -187,6 +200,12 @@ public:
                 const std::string class_name = obj_value.struct_type_name();
                 const std::string mangled = class_name + "." + member_element;
                 if (ctx.function_tbl.count(mangled) > 0) {
+                    if (!ctx.is_class_member_access_allowed(mangled)) {
+                        throw exception_t(
+                            std::string("Cannot access private member '")
+                            + mangled + "'");
+                    }
+
                     // Method call: dispatch with Me injected
                     return ctx.program().run_method(
                         mangled, _var2->get_args(), var_name, obj_value);
@@ -198,6 +217,12 @@ public:
             if (!obj_found) {
                 const std::string static_key = var_name + "." + member_element;
                 if (ctx.class_static_methods.count(static_key) > 0) {
+                    if (!ctx.is_class_member_access_allowed(static_key)) {
+                        throw exception_t(
+                            std::string("Cannot access private member '")
+                            + static_key + "'");
+                    }
+
                     ctx.program().run(static_key, _var2->get_args());
                     // Retrieve function return value (empty for Sub)
                     auto it = ctx.function_retval_tbl.find(static_key);

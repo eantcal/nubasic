@@ -365,6 +365,8 @@ stmt_t::handle_t statement_parser_t::parse_class_member(
     // Register access level for the field
     ctx.class_member_visibility[ctx.compiling_class_name + "." + field_name]
         = is_public;
+    ctx.class_member_owner[ctx.compiling_class_name + "." + field_name]
+        = ctx.compiling_class_name;
 
     return handle;
 }

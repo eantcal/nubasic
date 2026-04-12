@@ -9,6 +9,8 @@
 #   ' OUTFILE: name.txt — read test output from this file instead of stdout
 #   ' SKIP               — skip this test with a note
 #
+#   ' EXPECT_ERROR: text -- output must contain text
+#
 # Exit code: 0 = all passed, 1 = one or more failures.
 
 set -u
@@ -32,10 +34,10 @@ done
 if [[ -z "$INTERPRETER" ]]; then
     CANDIDATES=(
         # Visual Studio cmake layout (build/debug or build/release)
-        "$REPO_ROOT/build/debug/cli/win/Release/nubasic.exe"
-        "$REPO_ROOT/build/debug/cli/win/Debug/nubasic.exe"
         "$REPO_ROOT/build/release/cli/win/Release/nubasic.exe"
         "$REPO_ROOT/build/release/cli/win/Debug/nubasic.exe"
+        "$REPO_ROOT/build/debug/cli/win/Debug/nubasic.exe"
+        "$REPO_ROOT/build/debug/cli/win/Release/nubasic.exe"
         # Ninja / single-config cmake layout
         "$REPO_ROOT/build/debug/cli/win/nubasic.exe"
         "$REPO_ROOT/build/release/cli/win/nubasic.exe"
@@ -160,6 +162,7 @@ for f in "${TEST_FILES[@]}"; do
 
     # ── meta: OUTFILE ─────────────────────────────────────────────────────────
     outfile=$(read_meta "$f" "OUTFILE")
+    expect_error=$(read_meta "$f" "EXPECT_ERROR")
 
     # ── run ───────────────────────────────────────────────────────────────────
     output=$(cd "$TEST_DIR" && run_interp "$f" "${extra_args[@]+"${extra_args[@]}"}") || true
@@ -174,6 +177,21 @@ for f in "${TEST_FILES[@]}"; do
     # ── print output (indented) ───────────────────────────────────────────────
     while IFS= read -r line; do printf '  %s\n' "$line"; done <<< "$output"
 
+    if [[ -n "$expect_error" ]]; then
+        if printf '%s' "$output" | grep -Fqi "$expect_error"; then
+            printf '  [EXPECTED ERROR PASS] %s\n' "$name"
+            total_pass=$(( total_pass + 1 ))
+            suite_pass=$(( suite_pass + 1 ))
+        else
+            printf '  [EXPECTED ERROR FAIL] %s  expected=%q exit=%d\n' \
+                   "$name" "$expect_error" "$interp_exit"
+            total_fail=$(( total_fail + 1 ))
+            suite_fail=$(( suite_fail + 1 ))
+            failed_suites+=("$name")
+        fi
+        continue
+    fi
+
     # ── parse pass/fail counts ────────────────────────────────────────────────
     suite_p=0; suite_f=0
 
@@ -182,8 +200,8 @@ for f in "${TEST_FILES[@]}"; do
         extract_int_before "$output" "failed"; suite_f=$N
     else
         # Fallback: count PASS / FAIL assertion lines
-        count_matches "$output" "^[[:space:]]+PASS"; suite_p=$COUNT
-        count_matches "$output" "^[[:space:]]+FAIL"; suite_f=$COUNT
+        count_matches "$output" "^[[:space:]]*PASS"; suite_p=$COUNT
+        count_matches "$output" "^[[:space:]]*FAIL"; suite_f=$COUNT
     fi
 
     total_pass=$(( total_pass + suite_p ))
@@ -192,7 +210,7 @@ for f in "${TEST_FILES[@]}"; do
     # Detect runtime errors in output
     count_matches "$output" "^(Runtime Error|At line [0-9]+:)"; runtime_errors=$COUNT
 
-    if [[ "$suite_f" -eq 0 && "$interp_exit" -eq 0 && "$runtime_errors" -eq 0 ]]; then
+    if [[ "$suite_p" -gt 0 && "$suite_f" -eq 0 && "$interp_exit" -eq 0 && "$runtime_errors" -eq 0 ]]; then
         printf '  [SUITE PASS] %s  (%d assertions)\n' "$name" "$suite_p"
         suite_pass=$(( suite_pass + 1 ))
     else

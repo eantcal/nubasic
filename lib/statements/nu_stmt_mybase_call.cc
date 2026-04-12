@@ -32,6 +32,9 @@ void stmt_mybase_call_t::run(rt_prog_ctx_t& ctx)
     // The mangled base-class method name was resolved at parse time.
     const std::string mangled = _base_class + "." + _method_name;
 
+    rt_error_if(!ctx.is_class_member_access_allowed(mangled),
+        rt_error_code_t::value_t::E_MEMBER_ACCESS, mangled);
+
     // Retrieve Me from the current (callee) scope.
     auto callee_scope = ctx.proc_scope.get();
     rt_error_if(!callee_scope || !callee_scope->is_defined("me"),

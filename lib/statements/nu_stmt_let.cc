@@ -34,7 +34,12 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
             idx = _vect_idx->eval(ctx).to_int();
         }
 
-        var = ctx.get_struct_member_value(_variable, scope, idx);
+        std::string err_msg;
+        var = ctx.get_struct_member_value(_variable, scope, idx, &err_msg);
+
+        rt_error_code_t::get_instance().throw_if(!err_msg.empty(),
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::value_t::E_MEMBER_ACCESS, err_msg);
 
         rt_error_code_t::get_instance().throw_if(!var,
             ctx.runtime_pc.get_line(),

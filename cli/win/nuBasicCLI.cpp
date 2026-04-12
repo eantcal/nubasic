@@ -23,6 +23,7 @@
 #include <string.h>
 #include <string>
 #include <variant>
+#include <vector>
 
 #include "framework.h"
 #include "nuBasicCLI.h"
@@ -147,6 +148,23 @@ static int nuBASIC_console(int argc, char* argv[])
         ::Sleep(0);
     });
 
+    // Pre-pass: collect script args for main() when using -e file.bas [args...]
+    // argv[0] for main() is conventionally the script filename.
+    {
+        std::vector<std::string> script_args;
+        for (int j = 1; j < argc; ++j) {
+            if (argv[j][0] == '-' && argv[j][1] == NU_BASIC_EXEC_MACRO
+                && argv[j][2] == '\0' && j + 1 < argc) {
+                script_args.push_back(argv[j + 1]);
+                for (int k = j + 2; k < argc; ++k)
+                    script_args.push_back(argv[k]);
+                break;
+            }
+        }
+        if (!script_args.empty())
+            nuBASIC.set_cli_args(script_args);
+    }
+
     // Handle -a (about) before anything else: it works as a standalone flag.
     for (int j = 1; j < argc; ++j) {
         if (std::string(argv[j]) == "-a") {
@@ -179,7 +197,7 @@ static int nuBASIC_console(int argc, char* argv[])
                     switch (param.c_str()[1]) {
                     case NU_BASIC_EXEC_MACRO:
                         param = "EXEC \"" + std::string(argv[++i]) + "\"";
-                        --argc;
+                        argc = 1;
                         break;
 
                     case NU_BASIC_LOAD_MACRO:
