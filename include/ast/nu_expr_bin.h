@@ -11,6 +11,7 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include "nu_error_codes.h"
 #include "nu_expr_any.h"
 #include "nu_global_function_tbl.h"
 #include "nu_proc_scope.h"
@@ -197,6 +198,11 @@ public:
             }
 
             if (obj_found && obj_value.is_struct()) {
+                if (obj_value.is_nothing()) {
+                    rt_error_code_t::get_instance().throw_if(true, 0,
+                        rt_error_code_t::value_t::E_NULL_REFERENCE, var_name);
+                }
+
                 const std::string class_name = obj_value.struct_type_name();
                 const std::string mangled = class_name + "." + member_element;
                 if (ctx.function_tbl.count(mangled) > 0) {

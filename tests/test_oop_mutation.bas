@@ -87,6 +87,8 @@ End Class
 
 Print "--- 4. Method on nested struct field ---"
 Dim ln As New Line()
+Dim origin As New Point()
+ln.origin = origin
 ln.origin.ShiftRight()
 AssertEq "origin.x% after ShiftRight", Str$(ln.origin.x%), "1"
 ln.origin.ShiftRight()

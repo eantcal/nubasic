@@ -189,6 +189,11 @@ protected:
                         --tl;
                         remove_blank(tl);
 
+                        // "As New" means instantiate even when no constructor
+                        // argument list follows.
+                        pending_ctor_var = variable_name;
+                        pending_ctor_args.clear();
+
                         // Optional constructor args: Dim obj As New
                         // ClassName(a,b,...)
                         if (!tl.empty()
@@ -258,8 +263,6 @@ protected:
                                 remove_blank(tl);
                             }
 
-                            // Defer: handle isn't in scope here, applied below.
-                            pending_ctor_var = variable_name;
                             pending_ctor_args = std::move(ctor_args);
                         }
                     } else {

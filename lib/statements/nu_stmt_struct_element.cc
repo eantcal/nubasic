@@ -34,8 +34,13 @@ stmt_struct_element_t::stmt_struct_element_t(prog_ctx_t& ctx,
     auto type_code = variable_t::type_by_typename(type);
 
     if (user_def_type != ctx.struct_prototypes.data.end()) {
-        element_it->second.second.define_struct_member(
-            name, user_def_type->second.second);
+        if (ctx.is_class_type(type)) {
+            element_it->second.second.define_struct_member(
+                name, variant_t::make_nothing(type, vect_size));
+        } else {
+            element_it->second.second.define_struct_member(
+                name, user_def_type->second.second);
+        }
     } else {
         syntax_error_if(type_code == variable_t::type_t::UNDEFINED, name, 0,
             "Struct... End Struct");

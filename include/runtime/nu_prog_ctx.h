@@ -110,6 +110,10 @@ public:
     // Class member declaring owner: "RuntimeClass.MemberName" -> "OwnerClass"
     std::map<std::string, std::string> class_member_owner;
 
+    // Known class names. Classes reuse struct storage but have object
+    // reference semantics.
+    std::set<std::string> class_names;
+
     // Single-inheritance chain: derived class name -> direct base class name
     std::map<std::string, std::string> class_bases;
 
@@ -150,6 +154,9 @@ public:
 
     std::string current_class_scope_name() const;
     bool is_class_member_access_allowed(const std::string& member_key) const;
+    bool is_class_type(const std::string& type_name) const;
+    bool is_class_assignable(
+        const std::string& target_type, const std::string& source_type) const;
 
     prog_ctx_t(FILE* stdout_ptr, FILE* stdin_ptr);
 

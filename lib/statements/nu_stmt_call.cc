@@ -149,7 +149,9 @@ void stmt_call_t::run(
             rt_error_if(it == sprototypes.end(),
                 rt_error_code_t::value_t::E_STRUCT_UNDEF, "'" + _name + "'");
 
-            const auto value = it->second.second; // struct prototype
+            const auto value = ctx.is_class_type(function_prototype.ret_type)
+                ? variant_t::make_nothing(function_prototype.ret_type, vsize)
+                : it->second.second; // struct prototype
 
             // TODO: extend to array of structures
             sub_xscope->define(retvar_name, var_value_t(value, VAR_ACCESS_RW));
@@ -215,6 +217,20 @@ void stmt_call_t::run(
                         rt_error_code_t::value_t::E_STRUCT_UNDEF,
                         "'" + variable_type + "'");
 
+                    if (ctx.is_class_type(variable_type)) {
+                        rt_error_if(!val.is_class_type(),
+                            rt_error_code_t::value_t::E_TYPE_MISMATCH,
+                            _name + ": Parameter '" + variable_name + "'");
+                        rt_error_if(!ctx.is_class_assignable(
+                                        variable_type, val.struct_type_name()),
+                            rt_error_code_t::value_t::E_TYPE_MISMATCH,
+                            _name + ": Parameter '" + variable_name + "'");
+                    } else {
+                        rt_error_if(val.is_class_type(),
+                            rt_error_code_t::value_t::E_TYPE_MISMATCH,
+                            _name + ": Parameter '" + variable_name + "'");
+                    }
+
                     break;
                 }
 
@@ -236,6 +252,10 @@ void stmt_call_t::run(
 
                     break;
                 } // switch
+            }
+
+            if (ctx.is_class_type(variable_type) && val.is_class_type()) {
+                val.set_declared_class_type(variable_type);
             }
 
             sub_xscope->define(variable_name, var_value_t(val, VAR_ACCESS_RW));

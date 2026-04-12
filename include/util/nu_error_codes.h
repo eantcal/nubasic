@@ -70,7 +70,8 @@ public:
         E_INV_DATA_SEPARATOR,
         E_CLASS_UNDEF,
         E_NO_MATCH_CLASS,
-        E_MEMBER_ACCESS
+        E_MEMBER_ACCESS,
+        E_NULL_REFERENCE
     };
 
 

@@ -67,6 +67,26 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
 
     variable_t::type_t vart = var->get_type();
 
+    if (var->is_class_type()) {
+        rt_error_code_t::get_instance().throw_if(!val.is_class_type(),
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::value_t::E_TYPE_MISMATCH, "'" + _variable + "'");
+
+        const std::string target_type = var->declared_class_type().empty()
+            ? var->struct_type_name()
+            : var->declared_class_type();
+
+        rt_error_code_t::get_instance().throw_if(
+            !ctx.is_class_assignable(target_type, val.struct_type_name()),
+            ctx.runtime_pc.get_line(),
+            rt_error_code_t::value_t::E_TYPE_MISMATCH, "'" + _variable + "'");
+
+        *var = val;
+        var->set_declared_class_type(target_type);
+        ctx.go_to_next();
+        return;
+    }
+
     if (vart == variable_t::type_t::ANY || vart == variable_t::type_t::OBJECT) {
         *var = val;
         ctx.go_to_next();

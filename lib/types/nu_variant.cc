@@ -14,15 +14,26 @@
 #include "nu_exception.h"
 #include "nu_os_std.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <functional>
 #include <iomanip>
+#include <memory>
 
 
 /* -------------------------------------------------------------------------- */
 
 namespace nu {
+
+
+/* -------------------------------------------------------------------------- */
+
+static std::shared_ptr<size_t> new_object_id()
+{
+    static size_t next_id = 1;
+    return std::make_shared<size_t>(next_id++);
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -250,6 +261,10 @@ variant_t operator>(const variant_t& a, const variant_t& b)
 
 variant_t operator==(const variant_t& a, const variant_t& b)
 {
+    if (a.is_object_reference() || b.is_object_reference()) {
+        return a.same_object_reference(b);
+    }
+
     if (a.get_type() == variable_t::type_t::BYTEVECTOR
         && b.get_type() == variable_t::type_t::BYTEVECTOR) {
         return a._data == b._data;
@@ -599,6 +614,9 @@ variant_t::variant_t(variant_t&& v)
     , _data(std::move(v._data))
     , _struct_data(std::move(v._struct_data))
     , _struct_data_type_name(std::move(v._struct_data_type_name))
+    , _declared_class_type(std::move(v._declared_class_type))
+    , _class_type(std::move(v._class_type))
+    , _object_ids(std::move(v._object_ids))
 {
 }
 
@@ -609,13 +627,20 @@ variant_t::variant_t(const variant_t& v)
     , _vector_type(v._vector_type)
     , _data(v._data)
     , _struct_data_type_name(v._struct_data_type_name)
+    , _declared_class_type(v._declared_class_type)
+    , _class_type(v._class_type)
+    , _object_ids(v._object_ids)
 {
-    if (_struct_data.size() != v._struct_data.size()) {
-        _struct_data.resize(v._struct_data.size());
-    }
+    if (v.is_object_reference()) {
+        _struct_data = v._struct_data;
+    } else {
+        if (_struct_data.size() != v._struct_data.size()) {
+            _struct_data.resize(v._struct_data.size());
+        }
 
-    for (size_t i = 0; i < v._struct_data.size(); ++i) {
-        copy_struct_data(_struct_data[i], v._struct_data[i]);
+        for (size_t i = 0; i < v._struct_data.size(); ++i) {
+            copy_struct_data(_struct_data[i], v._struct_data[i]);
+        }
     }
 }
 
@@ -628,6 +653,9 @@ variant_t& variant_t::operator=(variant_t&& v)
         _data = std::move(v._data);
         _struct_data = std::move(v._struct_data);
         _struct_data_type_name = std::move(v._struct_data_type_name);
+        _declared_class_type = std::move(v._declared_class_type);
+        _class_type = std::move(v._class_type);
+        _object_ids = std::move(v._object_ids);
 
         _vector_type = std::move(v._vector_type);
         _vect_size = std::move(v._vect_size);
@@ -644,14 +672,21 @@ variant_t& variant_t::operator=(const variant_t& v)
 {
     if (this != &v) {
         _data = v._data;
+        _class_type = v._class_type;
+        _object_ids = v._object_ids;
 
-        if (_struct_data.size() != v._struct_data.size())
-            _struct_data.resize(v._struct_data.size());
+        if (v.is_object_reference()) {
+            _struct_data = v._struct_data;
+        } else {
+            if (_struct_data.size() != v._struct_data.size())
+                _struct_data.resize(v._struct_data.size());
 
-        for (size_t i = 0; i < v._struct_data.size(); ++i)
-            copy_struct_data(_struct_data[i], v._struct_data[i]);
+            for (size_t i = 0; i < v._struct_data.size(); ++i)
+                copy_struct_data(_struct_data[i], v._struct_data[i]);
+        }
 
         _struct_data_type_name = v._struct_data_type_name;
+        _declared_class_type = v._declared_class_type;
 
         _vector_type = v._vector_type;
         _vect_size = v._vect_size;
@@ -659,6 +694,71 @@ variant_t& variant_t::operator=(const variant_t& v)
     }
 
     return *this;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+variant_t variant_t::make_object_instance(
+    const variant_t& prototype, const size_t vect_size)
+{
+    rt_error_code_t::get_instance().throw_if(
+        prototype.get_type() != type_t::STRUCT || !prototype._class_type, 0,
+        rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
+
+    variant_t value(
+        struct_variant_t(prototype._struct_data_type_name, true), vect_size);
+    value._declared_class_type = prototype._struct_data_type_name;
+
+    const size_t size
+        = value._struct_data.empty() ? 1 : value._struct_data.size();
+    value._struct_data.resize(size);
+    value._object_ids.resize(size);
+
+    for (size_t i = 0; i < size; ++i) {
+        const auto& src = prototype._struct_data.empty()
+            ? variant_t::struct_data_t()
+            : prototype
+                  ._struct_data[std::min(i, prototype._struct_data.size() - 1)];
+        copy_struct_data(value._struct_data[i], src, true);
+        value._object_ids[i] = new_object_id();
+    }
+
+    return value;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+variant_t variant_t::make_nothing(
+    const std::string& type_name, const size_t vect_size)
+{
+    variant_t value(struct_variant_t(type_name, true), vect_size);
+    value._declared_class_type = type_name;
+    const size_t size
+        = value._struct_data.empty() ? 1 : value._struct_data.size();
+    value._struct_data.resize(size);
+    value._object_ids.resize(size);
+    return value;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool variant_t::same_object_reference(const variant_t& other) const noexcept
+{
+    if (!is_object_reference() || !other.is_object_reference()) {
+        return false;
+    }
+
+    const bool this_null = is_nothing();
+    const bool other_null = other.is_nothing();
+
+    if (this_null || other_null) {
+        return this_null && other_null;
+    }
+
+    return _object_ids[0] == other._object_ids[0];
 }
 
 
@@ -689,6 +789,9 @@ variant_t::handle_t variant_t::struct_member(
         _type != type_t::STRUCT || vector_idx >= _struct_data.size(), 0,
         rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
+    rt_error_code_t::get_instance().throw_if(is_nothing(vector_idx), 0,
+        rt_error_code_t::value_t::E_NULL_REFERENCE, _struct_data_type_name);
+
     const auto it = _struct_data[vector_idx].find(field_name);
 
     rt_error_code_t::get_instance().throw_if(
@@ -706,13 +809,22 @@ void variant_t::_resize(const size_t size)
     if (is_struct()) {
         if (size != _struct_data.size()) {
             _struct_data.resize(size);
+            if (is_object_reference())
+                _object_ids.resize(size);
 
             if (size > 0) {
                 auto it = _struct_data.begin();
                 auto prototype = *it;
+                auto object_id = is_object_reference() && !_object_ids.empty()
+                    ? _object_ids.front()
+                    : std::shared_ptr<size_t>();
                 ++it;
-                for (; it != _struct_data.end(); ++it)
+                size_t idx = 1;
+                for (; it != _struct_data.end(); ++it, ++idx) {
                     copy_struct_data(*it, prototype);
+                    if (is_object_reference() && idx < _object_ids.size())
+                        _object_ids[idx] = object_id;
+                }
             }
         }
     } else {
@@ -819,6 +931,16 @@ const string_t variant_t::to_str(const size_t idx) const
 variant_t variant_t::operator[](const size_t idx) const
 {
     if (is_struct()) {
+        if (is_object_reference()) {
+            variant_t value(struct_variant_t(struct_type_name(), true));
+            value._declared_class_type = _declared_class_type;
+            value._struct_data[0] = _struct_data[idx];
+            value._object_ids.resize(1);
+            value._object_ids[0] = idx < _object_ids.size()
+                ? _object_ids[idx]
+                : std::shared_ptr<size_t>();
+            return value;
+        }
         return variant_t(struct_type_name(), _struct_data[idx]);
     } else {
         if (is_number()) {
@@ -840,12 +962,19 @@ variant_t variant_t::operator[](const size_t idx) const
 
 /* -------------------------------------------------------------------------- */
 
-void variant_t::copy_struct_data(struct_data_t& dst, const struct_data_t& src)
+void variant_t::copy_struct_data(struct_data_t& dst, const struct_data_t& src,
+    bool instantiate_class_prototypes)
 {
     dst = src;
     for (auto& [key, value] : dst) {
         if (value) {
-            value = std::make_shared<variant_t>(*value);
+            if (instantiate_class_prototypes && value->_class_type
+                && !value->is_object_reference()) {
+                value = std::make_shared<variant_t>(
+                    variant_t::make_object_instance(*value));
+            } else {
+                value = std::make_shared<variant_t>(*value);
+            }
         }
     }
 }

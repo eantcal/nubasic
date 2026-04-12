@@ -87,22 +87,31 @@ void stmt_dim_t::run(rt_prog_ctx_t& ctx)
         case variable_t::type_t::UNDEFINED: {
             auto& sprototypes = ctx.struct_prototypes.data;
             auto it = sprototypes.find(vtype);
+            auto ctor_it = _ctor_args.find(name);
+            const bool is_class_type = ctx.is_class_type(vtype);
 
             rt_error_if(it == sprototypes.end(),
                 rt_error_code_t::value_t::E_STRUCT_UNDEF,
                 "Dim: '" + name + "'");
 
-            auto value = it->second.second; // struct prototype
+            variant_t value;
 
-            if (vsize > 0)
-                value.resize(vsize);
+            if (is_class_type) {
+                value = ctor_it != _ctor_args.end()
+                    ? variant_t::make_object_instance(it->second.second, vsize)
+                    : variant_t::make_nothing(vtype, vsize);
+            } else {
+                value = it->second.second; // struct prototype
+
+                if (vsize > 0)
+                    value.resize(vsize);
+            }
 
             scope->define(name, var_value_t(value, VAR_ACCESS_RW));
 
             // Invoke parameterized constructor Sub New(...) if defined and args
             // present
             {
-                auto ctor_it = _ctor_args.find(name);
                 if (ctor_it != _ctor_args.end()) {
                     const std::string ctor_key = vtype + ".new";
                     auto proto_it = ctx.proc_prototypes.data.find(ctor_key);

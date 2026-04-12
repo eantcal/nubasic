@@ -54,6 +54,7 @@ void prog_ctx_t::clear_metadata()
     compiling_class_name.clear();
     class_member_visibility.clear();
     class_member_owner.clear();
+    class_names.clear();
     class_bases.clear();
     class_overridable_methods.clear();
     class_static_methods.clear();
@@ -386,6 +387,40 @@ bool prog_ctx_t::is_class_member_access_allowed(
     }
 
     return !owner_class.empty() && current_class_scope_name() == owner_class;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool prog_ctx_t::is_class_type(const std::string& type_name) const
+{
+    return class_names.find(type_name) != class_names.end();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool prog_ctx_t::is_class_assignable(
+    const std::string& target_type, const std::string& source_type) const
+{
+    if (target_type.empty() || source_type.empty()
+        || target_type == source_type) {
+        return true;
+    }
+
+    std::string cls = source_type;
+    while (!cls.empty()) {
+        auto base_it = class_bases.find(cls);
+        if (base_it == class_bases.end()) {
+            break;
+        }
+        cls = base_it->second;
+        if (cls == target_type) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 

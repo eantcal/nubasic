@@ -79,7 +79,7 @@ AssertEq "Add(10, Mul(2,3)) = Add(10,6) = 16", Str$(s), "16"
 ' -----------------------------------------------------------------------
 Print "--- 4. Instance method still works ---"
 
-Dim h As MathHelper
+Dim h As New MathHelper()
 h.x = 42
 AssertEq "GetX()=42", Str$(h.GetX()), "42"
 

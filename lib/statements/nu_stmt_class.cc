@@ -36,7 +36,9 @@ stmt_class_t::stmt_class_t(prog_ctx_t& ctx, const std::string& id)
     }
 
     ctx.struct_prototypes.data.insert(std::make_pair(id,
-        std::make_pair(ctx.compiletime_pc, variant_t(struct_variant_t(id)))));
+        std::make_pair(
+            ctx.compiletime_pc, variant_t(struct_variant_t(id, true)))));
+    ctx.class_names.insert(id);
 
     ctx.class_metadata.compile_begin(ctx.compiletime_pc, id);
     ctx.compiling_class_name = id;

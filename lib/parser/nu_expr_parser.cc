@@ -235,6 +235,12 @@ expr_any_t::handle_t expr_parser_t::parse_operand(token_list_t& tl)
 
                 ret_handle = expr_any_t::handle_t(
                     std::make_shared<expr_literal_t>(variant_t(false)));
+            } else if (id == "nothing") {
+                tl.data().erase(tl.begin());
+
+                ret_handle
+                    = expr_any_t::handle_t(std::make_shared<expr_literal_t>(
+                        variant_t::make_nothing()));
             }
             // 0xnnnnnn  (hexadecimal value)
             else if (id.size() > 2 && id.c_str()[0] == '&'

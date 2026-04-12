@@ -127,6 +127,7 @@ rt_error_code_t::rt_error_code_t()
     e[value_t::E_CLASS_UNDEF] = "Class not defined";
     e[value_t::E_NO_MATCH_CLASS] = "matching Class statement not found";
     e[value_t::E_MEMBER_ACCESS] = "cannot access private member";
+    e[value_t::E_NULL_REFERENCE] = "null object reference";
 }
 
 

@@ -109,6 +109,8 @@ void stmt_method_call_t::run(rt_prog_ctx_t& ctx)
     rt_error_if(!obj_ptr->is_struct(),
         rt_error_code_t::value_t::E_TYPE_MISMATCH,
         _obj_name + " is not a class instance");
+    rt_error_if(obj_ptr->is_nothing(),
+        rt_error_code_t::value_t::E_NULL_REFERENCE, _obj_name);
 
     // Mangle to "ClassName.MethodName"
     const std::string class_name = obj_ptr->struct_type_name();

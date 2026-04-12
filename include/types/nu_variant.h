@@ -36,15 +36,19 @@ namespace nu {
 
 //! Structure type
 struct struct_variant_t {
-    explicit struct_variant_t(const std::string& prototype_name) noexcept
+    explicit struct_variant_t(
+        const std::string& prototype_name, bool class_type = false) noexcept
         : _prototype_name(prototype_name)
+        , _class_type(class_type)
     {
     }
 
     const std::string& get() const noexcept { return _prototype_name; }
+    bool is_class_type() const noexcept { return _class_type; }
 
 private:
     std::string _prototype_name;
+    bool _class_type = false;
 };
 
 
@@ -138,12 +142,20 @@ public:
         const struct_variant_t& value, const size_t vect_size = 0)
         : _type(type_t::STRUCT)
         , _struct_data_type_name(value.get())
+        , _declared_class_type(value.is_class_type() ? value.get() : "")
+        , _class_type(value.is_class_type())
     {
         _struct_data.resize(1 > vect_size ? 1 : vect_size);
         _vector_type = vect_size > 0;
     }
 
-    static void copy_struct_data(struct_data_t& dst, const struct_data_t& src);
+    static variant_t make_object_instance(
+        const variant_t& prototype, const size_t vect_size = 0);
+    static variant_t make_nothing(
+        const std::string& type_name = "", const size_t vect_size = 0);
+
+    static void copy_struct_data(struct_data_t& dst, const struct_data_t& src,
+        bool instantiate_class_prototypes = false);
 
     variant_t(const string_t& value, const type_t t, const size_t vect_size = 0)
         : _type(t)
@@ -289,6 +301,34 @@ public:
     {
         return _struct_data_type_name;
     }
+
+    const std::string& declared_class_type() const noexcept
+    {
+        return _declared_class_type;
+    }
+
+    void set_declared_class_type(const std::string& type_name)
+    {
+        _declared_class_type = type_name;
+    }
+
+    bool is_class_type() const noexcept
+    {
+        return _type == type_t::STRUCT && _class_type;
+    }
+
+    bool is_object_reference() const noexcept
+    {
+        return is_class_type() && !_object_ids.empty();
+    }
+
+    bool is_nothing(const size_t idx = 0) const noexcept
+    {
+        return is_object_reference()
+            && (idx >= _object_ids.size() || !_object_ids[idx]);
+    }
+
+    bool same_object_reference(const variant_t& other) const noexcept;
 
     // Read-only view of slot-0 field map; only meaningful when is_struct().
     const struct_data_t& struct_fields() const noexcept
@@ -449,6 +489,9 @@ protected:
 
     std::vector<struct_data_t> _struct_data;
     std::string _struct_data_type_name;
+    std::string _declared_class_type;
+    bool _class_type = false;
+    std::vector<std::shared_ptr<size_t>> _object_ids;
 
     template <class T> T _at(size_t idx) const
     {
