@@ -12,6 +12,30 @@ The Win32/64 build created with Visual Studio 2022 requires the
 
 2026 (WIP)
 * Released nuBASIC 2.0
+- Added SELECT CASE / End Select statement: multi-branch dispatch on any scalar
+  expression. Supported arm forms: Case value, Case v1, v2, ..., Case v1 To v2,
+  Case Is OP value, and Case Else (fallback). Works with integers, doubles, and
+  strings; nesting supported.
+- Added Classes with static methods: Static Function / Static Sub inside a Class
+  body define class-level procedures that can be called as ClassName.Method(args)
+  without an instance. Instance methods (using Me) continue to work as before.
+- Added main() entry point: if a function named main is defined, execution starts
+  there instead of the first statement. Three supported signatures:
+    Function main() As Integer
+    Function main(argc As Integer) As Integer
+    Function main(argc As Integer, argv() As String) As Integer
+  argc is set to 1 + the number of CLI arguments; argv(0) is the script filename,
+  argv(1)..argv(argc-1) are the remaining arguments from the command line.
+  When main is present in an included file the entry-point behaviour is suppressed.
+- Added open-ended array parameters: a Sub or Function may declare a parameter as
+  param() As Type (empty parentheses) to accept an array of any size. This enables
+  writing generic procedures that operate on caller-sized arrays without requiring
+  a fixed dimension in the signature.
+- Added namespaced modules: "Syntax Modern" activates module-qualified names
+  (math::sin, string::left$, runtime::sizeof, etc.). "Using <module>" imports a
+  module's members accessible without qualification. "Syntax Legacy"
+  restores the classic single-namespace behaviour. Both modes coexist; any
+  Include'd file honours the Syntax directive in force at the include site.
 - Removed all deprecated scalar date/time built-in functions: SysDay, SysMonth,
   SysYear, SysWDay, SysYDay, SysHour, SysMin, SysSec. Use GetDateTime() instead.
 - Removed all deprecated scalar mouse built-in functions: GetMouseX, GetMouseY,
@@ -26,6 +50,9 @@ The Win32/64 build created with Visual Studio 2022 requires the
 - Fixed On...GoTo: inline label+statement syntax "lbl: stmt" on the same logical
   line following an On...GoTo dispatch no longer raises a syntax error.
 - Added regression tests for On...GoTo (all three dispatch indices).
+- Improved CLI arg parsing: when -e FILE is given, arguments that follow the
+  filename are passed to the script as CLI args (available via argc/argv in main)
+  and are no longer incorrectly appended to the interpreter command string.
 
 April 2026
 * Released nuBASIC 1.62

@@ -10,6 +10,9 @@
 - [Operators](#operators)
 - [Control Flow](#control-flow)
 - [Subroutines and Functions](#subroutines-and-functions)
+- [Classes and Objects](#classes-and-objects)
+- [main() Entry Point](#main-entry-point)
+- [Namespaced Modules](#namespaced-modules)
 - [Structures](#structures)
 - [Arrays](#arrays)
 - [Hash Tables](#hash-tables)
@@ -251,6 +254,48 @@ expert:
 setup_done:
 ```
 
+### Select Case
+
+`Select Case` dispatches on a scalar expression. Each `Case` arm is tested in order; the first match wins and execution continues after `End Select`. `Case Else` (optional) matches when no earlier arm does.
+
+```basic
+Select Case score%
+   Case Is >= 90
+      grade$ = "A"
+   Case Is >= 75
+      grade$ = "B"
+   Case Is >= 60
+      grade$ = "C"
+   Case Else
+      grade$ = "F"
+End Select
+```
+
+Supported arm forms:
+
+| Form | Example | Matches when… |
+| --- | --- | --- |
+| Single value | `Case 1` | expression = 1 |
+| Value list | `Case 1, 3, 5` | expression is any listed value |
+| Range | `Case 1 To 10` | 1 ≤ expression ≤ 10 |
+| Comparison | `Case Is > 100` | expression > 100 |
+| Fallback | `Case Else` | no previous arm matched |
+
+Works with integers, doubles, and strings. `Select Case` blocks may be nested.
+
+```basic
+' String matching
+Select Case cmd$
+   Case "quit", "exit", "q"
+      Print "Goodbye"
+      End
+   Case "help", "?"
+      Print "Type a command"
+   Case Else
+      Print "Unknown: "; cmd$
+End Select
+```
+
 ---
 
 ## Subroutines and Functions
@@ -339,6 +384,25 @@ be enclosed in parentheses:
 Call ClearArea(0, 0, 640, 480)   ' same as: ClearArea 0, 0, 640, 480
 ```
 
+### Open-ended Array Parameters
+
+A Sub or Function may declare a parameter with empty parentheses (`param() As Type`) to
+accept an array of any size. This lets you write generic procedures without fixing the
+dimension in the signature:
+
+```basic
+Sub PrintAll(items() As String)
+   Dim i% As Integer
+   For i% = 0 To SizeOf(items) - 1
+      Print items(i%)
+   Next i%
+End Sub
+
+Dim names$(2)
+names$(0) = "Alice" : names$(1) = "Bob" : names$(2) = "Carol"
+Call PrintAll(names$())
+```
+
 ### Include directive
 
 `Include "filename.bas"` (also `#Include`) loads and executes another source file at the
@@ -347,6 +411,155 @@ point of the directive — useful for splitting programs across multiple files:
 ```basic
 Include "utils.bas"
 Call DrawBorder(0, 0, 639, 479)
+```
+
+---
+
+## Classes and Objects
+
+Classes group related data (fields) and behaviour (methods) into a single type. Declare a
+class with `Class`/`End Class`; create instances with `Dim`:
+
+```basic
+Class Counter
+   Public count% As Integer
+
+   Sub Reset()
+      Me.count% = 0
+   End Sub
+
+   Sub Increment()
+      Me.count% = Me.count% + 1
+   End Sub
+
+   Function Value() As Integer
+      Value = Me.count%
+   End Function
+End Class
+
+Dim c As Counter
+Call c.Reset()
+Call c.Increment()
+Call c.Increment()
+Print c.Value()   ' 2
+```
+
+`Me` refers to the current instance inside an instance method.
+
+### Static Methods
+
+`Static Function` and `Static Sub` inside a `Class` body define class-level procedures.
+They do not receive an implicit instance and cannot access `Me`. Call them with
+`ClassName.Method(args)` — no instance required:
+
+```basic
+Class MathHelper
+   Static Function Add(a As Integer, b As Integer) As Integer
+      Add = a + b
+   End Function
+
+   Static Sub PrintSum(a As Integer, b As Integer)
+      Print "Sum ="; a + b
+   End Sub
+End Class
+
+Dim result% As Integer
+result% = MathHelper.Add(3, 7)   ' 10
+MathHelper.PrintSum 2, 3          ' Sum = 5
+```
+
+Static and instance methods may coexist in the same class.
+
+---
+
+## main() Entry Point
+
+If a `Function` named `main` is defined in the program, the interpreter calls it as the
+entry point instead of executing from the first statement. The function must return an
+`Integer` (used as the process exit code). Three signatures are supported:
+
+```basic
+' No arguments
+Function main() As Integer
+   Print "Hello from main"
+   main = 0
+End Function
+
+' Argument count only
+Function main(argc As Integer) As Integer
+   Print "argc ="; argc
+   main = 0
+End Function
+
+' Full argc / argv
+Function main(argc As Integer, argv() As String) As Integer
+   Dim i% As Integer
+   Print "Script: "; argv(0)
+   For i% = 1 To argc - 1
+      Print "  arg "; i%; " = "; argv(i%)
+   Next i%
+   main = 0
+End Function
+```
+
+`argc` equals 1 plus the number of extra command-line arguments. `argv(0)` is the script
+filename; `argv(1)` through `argv(argc-1)` are the additional arguments supplied on the
+command line after the script name:
+
+```sh
+nubasic -t -e myprog.bas hello world
+' → argc = 3, argv(0)="myprog.bas", argv(1)="hello", argv(2)="world"
+```
+
+When `main` is defined inside an `Include`d file, the entry-point behaviour is suppressed
+in that file — only the top-level program's `main` is used.
+
+---
+
+## Namespaced Modules
+
+In **Modern syntax mode** (`Syntax Modern`), built-in functions are organised into named
+modules and can be called with a qualified name (`module::function`). Legacy programs
+continue to work with `Syntax Legacy` (the default).
+
+```basic
+Syntax Modern
+
+' Qualified calls
+Dim s As Double
+s = math::sin(0.0)
+Dim h$ As String
+h$ = string::left$("Hello", 2)   ' "He"
+Dim n% As Integer
+n% = runtime::sizeof(myArray)
+```
+
+### Using — Import a Module
+
+`Using ModuleName` imports all names from a module into the current scope so they can be
+called without qualification:
+
+```basic
+Syntax Modern
+Using math
+Using string
+
+Dim v As Double
+v = Sin(0.785398)          ' math::sin without prefix
+Dim s$ As String
+s$ = Left$("World", 3)     ' string::left$ without prefix
+```
+
+### Switching Modes
+
+`Syntax Legacy` restores the classic single-namespace mode. The directive can appear
+anywhere in a file; each `Include`d file honours the mode active at its include site.
+
+```basic
+Syntax Legacy
+' All classic global names work as before
+Print Len("abc")    ' 3
+Print Sin(0)        ' 0
 ```
 
 ---

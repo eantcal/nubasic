@@ -15,12 +15,15 @@
    - 4.2 [Operatori](#42-operatori)
    - 4.3 [Controllo del flusso](#43-controllo-del-flusso)
    - 4.4 [Subroutine e funzioni](#44-subroutine-e-funzioni)
-   - 4.5 [Strutture](#45-strutture)
-   - 4.6 [Array](#46-array)
-   - 4.7 [Tabelle hash](#47-tabelle-hash)
-   - 4.8 [I/O su file](#48-io-su-file)
-   - 4.9 [DATA, READ, RESTORE](#49-data-read-restore)
-   - 4.10 [Gestione delle stringhe](#410-gestione-delle-stringhe)
+   - 4.5 [Classi e oggetti](#45-classi-e-oggetti)
+   - 4.6 [Punto di ingresso main()](#46-punto-di-ingresso-main)
+   - 4.7 [Moduli con namespace](#47-moduli-con-namespace)
+   - 4.8 [Strutture](#48-strutture)
+   - 4.9 [Array](#49-array)
+   - 4.10 [Tabelle hash](#410-tabelle-hash)
+   - 4.11 [I/O su file](#411-io-su-file)
+   - 4.12 [DATA, READ, RESTORE](#412-data-read-restore)
+   - 4.13 [Gestione delle stringhe](#413-gestione-delle-stringhe)
 5. [Grafica e multimedia](#5-grafica-e-multimedia)
    - 5.1 [Primitive di disegno](#51-primitive-di-disegno)
    - 5.2 [Rendering senza sfarfallio — ScreenLock / ScreenUnlock / Refresh](#52-rendering-senza-sfarfallio)
@@ -733,6 +736,49 @@ expert:
 setup_done:
 ```
 
+#### Select Case
+
+`Select Case` / `End Select` smista il controllo in base a un'espressione scalare. I rami
+`Case` vengono valutati in ordine; il primo che corrisponde viene eseguito e il controllo
+passa a `End Select`. `Case Else` è il ramo facoltativo di default.
+
+```basic
+Select Case punteggio%
+   Case Is >= 90
+      voto$ = "A"
+   Case Is >= 75
+      voto$ = "B"
+   Case Is >= 60
+      voto$ = "C"
+   Case Else
+      voto$ = "F"
+End Select
+```
+
+Forme di ramo supportate:
+
+| Forma | Esempio | Corrisponde quando… |
+| --- | --- | --- |
+| Valore singolo | `Case 1` | espressione = 1 |
+| Lista di valori | `Case 1, 3, 5` | espressione è uno dei valori elencati |
+| Intervallo | `Case 1 To 10` | 1 ≤ espressione ≤ 10 |
+| Confronto | `Case Is > 100` | espressione soddisfa il confronto |
+| Default | `Case Else` | nessun ramo precedente ha corrisposto |
+
+Funziona con interi, double e stringhe. I blocchi `Select Case` possono essere annidati.
+
+```basic
+' Smistamento su stringa
+Select Case cmd$
+   Case "esci", "quit", "q"
+      Print "Arrivederci" : End
+   Case "aiuto", "?"
+      Print "Digita un comando"
+   Case Else
+      Print "Sconosciuto: "; cmd$
+End Select
+```
+
 ### 4.4 Subroutine e funzioni
 
 nuBASIC supporta due tipi di procedure con nome: `Sub` (senza valore di ritorno) e `Function`
@@ -894,7 +940,190 @@ Il percorso del file viene risolto rispetto alla directory contenente il file ch
 direttiva. `Include` viene elaborato al momento del caricamento, quindi tutte le definizioni
 nel file incluso sono disponibili al resto del file che lo include.
 
-### 4.5 Strutture
+#### Parametri array a dimensione aperta
+
+Una Sub o Function può accettare un array di qualsiasi dimensione dichiarando il parametro
+con parentesi vuote — `param() As Tipo`. Questo elimina la necessità di fissare la
+dimensione nella firma e permette di scrivere procedure generiche:
+
+```basic
+Sub SommaArray(numeri() As Integer, ByRef totale% As Integer)
+   totale% = 0
+   Dim i% As Integer
+   For i% = 0 To SizeOf(numeri) - 1
+      totale% = totale% + numeri(i%)
+   Next i%
+End Sub
+
+Dim dati%(4)
+dati%(0) = 10 : dati%(1) = 20 : dati%(2) = 30 : dati%(3) = 40 : dati%(4) = 50
+Dim s% As Integer
+Call SommaArray(dati%(), s%)
+Print s%   ' 150
+```
+
+Il chiamante passa l'array con il suffisso `()`; il callee accede agli elementi con la
+normale notazione a indice.
+
+---
+
+### 4.5 Classi e oggetti
+
+Le classi raggruppano dati correlati (campi) e comportamenti (metodi) sotto un unico tipo.
+Si dichiarano con `Class`/`End Class`; le istanze si creano con `Dim`.
+
+```basic
+Class Rettangolo
+   Public larghezza  As Double
+   Public altezza    As Double
+
+   Function Area() As Double
+      Area = Me.larghezza * Me.altezza
+   End Function
+
+   Function Perimetro() As Double
+      Perimetro = 2.0 * (Me.larghezza + Me.altezza)
+   End Function
+End Class
+
+Dim r As Rettangolo
+r.larghezza = 8.0
+r.altezza   = 5.0
+Print "Area ="; r.Area()         ' 40
+Print "Perimetro ="; r.Perimetro()  ' 26
+```
+
+`Me` è un riferimento implicito all'istanza corrente all'interno di ogni metodo di istanza.
+
+#### Metodi statici
+
+`Static Function` e `Static Sub` all'interno di un blocco `Class` definiscono procedure
+a livello di classe. Non ricevono un'istanza implicita e non possono usare `Me`. Si
+invocano con `NomeClasse.Metodo(argomenti)` — senza bisogno di un'istanza:
+
+```basic
+Class Util
+   Static Function Massimo(a As Integer, b As Integer) As Integer
+      If a > b Then Massimo = a Else Massimo = b
+   End Function
+
+   Static Sub StampaProdotto(a As Integer, b As Integer)
+      Print "Prodotto ="; a * b
+   End Sub
+End Class
+
+Dim risultato% As Integer
+risultato% = Util.Massimo(3, 7)    ' 7
+Util.StampaProdotto 4, 5            ' Prodotto = 20
+```
+
+Metodi statici e di istanza possono coesistere nella stessa classe. I metodi statici sono
+ideali per funzioni di utilità e factory che non necessitano di stato dell'istanza.
+
+---
+
+### 4.6 Punto di ingresso main()
+
+Se il programma di primo livello definisce una `Function` denominata `main`, l'interprete
+la chiama come punto di ingresso anziché eseguire le istruzioni dall'inizio del file. La
+funzione deve restituire un `Integer` (codice di uscita del processo). Sono supportate tre
+firme:
+
+```basic
+' Forma più semplice — nessun argomento
+Function main() As Integer
+   Print "Ciao da main"
+   main = 0
+End Function
+```
+
+```basic
+' Solo conteggio argomenti
+Function main(argc As Integer) As Integer
+   Print "Numero di argomenti:"; argc
+   main = 0
+End Function
+```
+
+```basic
+' argc e argv completi
+Function main(argc As Integer, argv() As String) As Integer
+   Dim i% As Integer
+   Print "Script: "; argv(0)
+   For i% = 1 To argc - 1
+      Print "  Arg "; i%; ": "; argv(i%)
+   Next i%
+   main = 0   ' zero = successo
+End Function
+```
+
+`argc` è uguale a 1 più il numero di argomenti extra passati dalla riga di comando.
+`argv(0)` è il nome del file script; `argv(1)` fino a `argv(argc-1)` sono gli argomenti
+aggiuntivi forniti dopo il nome del file:
+
+```sh
+nubasic -t -e mioprogramma.bas ciao mondo
+' → argc = 3
+' → argv(0) = "mioprogramma.bas"
+' → argv(1) = "ciao"
+' → argv(2) = "mondo"
+```
+
+Quando `main` è definita in un file `Include`to, il comportamento di punto di ingresso
+viene soppresso in quel file — viene invocata solo la `main` del programma di primo livello.
+
+---
+
+### 4.7 Moduli con namespace
+
+In **modalità sintassi moderna** (`Syntax Modern`), la libreria integrata è organizzata in
+moduli con nome. Le funzioni possono essere chiamate con il prefisso qualificato
+`modulo::nome`. `Syntax Legacy` (la modalità predefinita) ripristina il namespace
+piatto classico, quindi tutti i programmi esistenti continuano a funzionare invariati.
+
+```basic
+Syntax Modern
+
+' Chiamate qualificate
+Dim s As Double
+s = math::sin(0.785398)          ' ≈ 0.7071
+Dim h$ As String
+h$ = string::left$("Ciao", 3)    ' "Cia"
+Dim n% As Integer
+n% = runtime::sizeof(mioArray)
+```
+
+#### Using — Importare un modulo
+
+`Using NomeModulo` importa tutti i nomi di un modulo nello scope corrente, eliminando la
+necessità del prefisso `modulo::`:
+
+```basic
+Syntax Modern
+Using math
+Using string
+
+Dim v As Double
+v = Sin(0.785398)         ' math::sin senza prefisso
+Dim s$ As String
+s$ = Left$("Mondo", 3)   ' string::left$ senza prefisso
+```
+
+#### Cambio di modalità
+
+`Syntax Legacy` può comparire in qualsiasi punto; ogni file `Include`to rispetta la
+modalità attiva nel punto di inclusione.
+
+```basic
+Syntax Legacy
+' I nomi globali classici tornano a funzionare
+Print Len("abc")    ' 3
+Print Sin(0)        ' 0
+```
+
+---
+
+### 4.8 Strutture
 
 Un `Struct` definisce un tipo di dati composito che raggruppa diversi campi con nome sotto un
 unico nome. I campi possono essere di qualsiasi tipo integrato, e le strutture possono essere
@@ -935,7 +1164,7 @@ enemies(0).name$ = "Goblin"
 enemies(0).pos.x = 50
 ```
 
-### 4.6 Array
+### 4.9 Array
 
 Gli array memorizzano più valori dello stesso tipo sotto un unico nome, accessibili tramite un
 indice numerico. In nuBASIC, gli array devono essere dichiarati con `Dim` prima dell'uso, e la
@@ -993,7 +1222,7 @@ grid%(2 * W% + 3) = 42
 Print grid%(2 * W% + 3)
 ```
 
-### 4.7 Tabelle hash
+### 4.10 Tabelle hash
 
 Le tabelle hash (dette anche dizionari o array associativi) mappano chiavi stringa a valori di
 qualsiasi tipo. In nuBASIC una tabella hash è identificata da una stringa di nome piuttosto che
@@ -1033,7 +1262,7 @@ HDel "config", "fullscreen#"
 HDel "config"
 ```
 
-### 4.8 I/O su file
+### 4.11 I/O su file
 
 nuBASIC fornisce tre livelli di accesso ai file: **sequenziale** (testo orientato alle righe),
 **binario** (accesso a livello di byte tramite `FOpen` e `Read#`), e **ad accesso casuale**
@@ -1111,7 +1340,7 @@ Print Pwd$()              ' stampa la directory di lavoro corrente
 ChDir ".."                ' cambia alla directory genitore
 ```
 
-### 4.9 DATA, READ, RESTORE
+### 4.12 DATA, READ, RESTORE
 
 `Data`, `Read` e `Restore` implementano un meccanismo classico del BASIC per incorporare tabelle
 di costanti strutturate direttamente nel codice sorgente. Gli elementi di dati vengono memorizzati
@@ -1154,7 +1383,7 @@ Restore -1
 Un pattern comune è usare `Data` per guidare una macchina a stati o per inizializzare gli array
 all'avvio, evitando assegnazioni di indici hard-coded sparse nel codice.
 
-### 4.10 Gestione delle stringhe
+### 4.13 Gestione delle stringhe
 
 Le stringhe in nuBASIC sono sequenze di caratteri a lunghezza variabile. Tutti i letterali stringa
 nel codice sorgente sono memorizzati come UTF-8, e la console GDI li renderizza correttamente per

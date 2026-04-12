@@ -104,7 +104,66 @@ Version 1.60 was the largest infrastructure release since the original:
   shortcuts, and clean uninstallation.
 - Scintilla updated to its latest version.
 
-## Breaking Changes: Removed Deprecated APIs, Parser Refactor (April 2026, v2.0)
+## nuBASIC 2.0 — New Language Features (2026)
+
+Version 2.0 is a major release that both removes deprecated APIs and introduces significant
+new language capabilities.
+
+### SELECT CASE
+
+A `Select Case` / `End Select` block dispatches on any scalar expression. Each `Case` arm
+is tested in order; the first matching arm executes and control passes to `End Select`.
+`Case Else` is the optional fallback.
+
+Supported arm forms: single values (`Case 1`), comma-separated lists (`Case 1, 3, 5`),
+inclusive ranges (`Case 1 To 10`), comparison guards (`Case Is > 100`), and string values.
+Nesting is supported.
+
+### Classes with Static Methods
+
+The `Class`/`End Class` block gained `Static Function` and `Static Sub` members — class-level
+procedures that can be invoked without an instance:
+
+```basic
+Class Utils
+   Static Function Max(a As Integer, b As Integer) As Integer
+      If a > b Then Max = a Else Max = b
+   End Function
+End Class
+
+Print Utils.Max(3, 7)   ' 7
+```
+
+Instance methods continue to use `Me` to refer to the receiver.
+
+### main() Entry Point
+
+When a `Function main(...)` is present in the top-level program, execution starts there
+rather than at the first statement. Three signatures are accepted:
+
+- `Function main() As Integer`
+- `Function main(argc As Integer) As Integer`
+- `Function main(argc As Integer, argv() As String) As Integer`
+
+`argv(0)` is the script filename; remaining elements are extra arguments passed on the
+command line after the filename. The entry-point behaviour is suppressed in `Include`d files
+so libraries can define their own `main` helpers without hijacking execution.
+
+### Open-ended Array Parameters
+
+Subs and Functions can now declare a parameter with empty parentheses — `param() As Type`
+— to accept an array of any caller-determined size. Previously the dimension had to be
+specified in the signature, preventing generic array-processing procedures.
+
+### Namespaced Modules
+
+`Syntax Modern` activates a two-namespace view of the built-in library: functions are
+addressable as `module::name` (e.g. `math::sin`, `string::left$`, `runtime::sizeof`).
+`Using ModuleName` imports a module's names into the local scope for unqualified access.
+`Syntax Legacy` (the default) restores the classic flat namespace so all existing programs
+continue to work unchanged.
+
+### Breaking Changes: Removed Deprecated APIs, Parser Refactor (April 2026, v2.0)
 
 Version 2.0 removes all deprecated built-in functions announced in v1.62 and refactors the
 statement parser internals.
@@ -125,6 +184,8 @@ statements), `nu_parser_flow.cc` (control-flow statements), and `nu_parser_struc
 - `Print #n` with a space between `Print` and `#n` now works correctly.
 - `On expr GoTo lbl1, lbl2, ...` now dispatches to all labels in the list, not only the first.
 - `lbl: statement` inline syntax after an `On...GoTo` dispatch no longer raises a syntax error.
+- CLI: arguments following `-e filename` are now passed to the script as `argv` entries and
+  no longer corrupted into the filename string.
 
 ---
 

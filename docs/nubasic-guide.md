@@ -15,12 +15,15 @@
    - 4.2 [Operators](#42-operators)
    - 4.3 [Control Flow](#43-control-flow)
    - 4.4 [Subroutines and Functions](#44-subroutines-and-functions)
-   - 4.5 [Structures](#45-structures)
-   - 4.6 [Arrays](#46-arrays)
-   - 4.7 [Hash Tables](#47-hash-tables)
-   - 4.8 [File I/O](#48-file-io)
-   - 4.9 [DATA, READ, RESTORE](#49-data-read-restore)
-   - 4.10 [String Handling](#410-string-handling)
+   - 4.5 [Classes and Objects](#45-classes-and-objects)
+   - 4.6 [main() Entry Point](#46-main-entry-point)
+   - 4.7 [Namespaced Modules](#47-namespaced-modules)
+   - 4.8 [Structures](#48-structures)
+   - 4.9 [Arrays](#49-arrays)
+   - 4.10 [Hash Tables](#410-hash-tables)
+   - 4.11 [File I/O](#411-file-io)
+   - 4.12 [DATA, READ, RESTORE](#412-data-read-restore)
+   - 4.13 [String Handling](#413-string-handling)
 5. [Graphics and Multimedia](#5-graphics-and-multimedia)
    - 5.1 [Drawing Primitives](#51-drawing-primitives)
    - 5.2 [Flicker-free Rendering — ScreenLock / ScreenUnlock / Refresh](#52-flicker-free-rendering)
@@ -723,6 +726,49 @@ expert:
 setup_done:
 ```
 
+#### Select Case
+
+`Select Case` / `End Select` dispatches on a scalar expression. Each `Case` arm is tested
+in order; the first matching arm executes and control passes to `End Select`. `Case Else`
+is the optional catch-all.
+
+```basic
+Select Case score%
+   Case Is >= 90
+      grade$ = "A"
+   Case Is >= 75
+      grade$ = "B"
+   Case Is >= 60
+      grade$ = "C"
+   Case Else
+      grade$ = "F"
+End Select
+```
+
+Supported arm forms:
+
+| Form | Example | Matches when… |
+| --- | --- | --- |
+| Single value | `Case 1` | expression = 1 |
+| Value list | `Case 1, 3, 5` | expression is one of the listed values |
+| Range | `Case 1 To 10` | 1 ≤ expression ≤ 10 |
+| Comparison | `Case Is > 100` | expression satisfies the comparison |
+| Fallback | `Case Else` | no earlier arm matched |
+
+Works with integers, doubles, and strings. `Select Case` blocks may be nested.
+
+```basic
+' String dispatch
+Select Case cmd$
+   Case "quit", "exit", "q"
+      Print "Goodbye" : End
+   Case "help", "?"
+      Print "Type a command"
+   Case Else
+      Print "Unknown: "; cmd$
+End Select
+```
+
 ### 4.4 Subroutines and Functions
 
 nuBASIC supports two kinds of named procedures: `Sub` (no return value) and `Function`
@@ -882,7 +928,188 @@ The file path is resolved relative to the directory containing the file that iss
 directive. `Include` is processed at load time, so all definitions in the included file are
 available to the rest of the including file.
 
-### 4.5 Structures
+#### Open-ended Array Parameters
+
+A Sub or Function can accept an array of any size by declaring a parameter with empty
+parentheses — `param() As Type`. This removes the need to fix the dimension in the
+signature and enables generic array-processing routines:
+
+```basic
+Sub SumArray(nums() As Integer, ByRef total% As Integer)
+   total% = 0
+   Dim i% As Integer
+   For i% = 0 To SizeOf(nums) - 1
+      total% = total% + nums(i%)
+   Next i%
+End Sub
+
+Dim data%(4)
+data%(0) = 10 : data%(1) = 20 : data%(2) = 30 : data%(3) = 40 : data%(4) = 50
+Dim s% As Integer
+Call SumArray(data%(), s%)
+Print s%   ' 150
+```
+
+The caller passes the array with its `()` suffix; the callee accesses elements with the
+usual index notation.
+
+---
+
+### 4.5 Classes and Objects
+
+Classes group related data (fields) and behaviour (methods) into a single named type.
+Declare with `Class`/`End Class`; instantiate with `Dim`.
+
+```basic
+Class Rectangle
+   Public width  As Double
+   Public height As Double
+
+   Function Area() As Double
+      Area = Me.width * Me.height
+   End Function
+
+   Function Perimeter() As Double
+      Perimeter = 2.0 * (Me.width + Me.height)
+   End Function
+End Class
+
+Dim r As Rectangle
+r.width  = 8.0
+r.height = 5.0
+Print "Area ="; r.Area()        ' 40
+Print "Perimeter ="; r.Perimeter()  ' 26
+```
+
+`Me` is an implicit reference to the current instance inside every instance method.
+
+#### Static Methods
+
+`Static Function` and `Static Sub` inside a `Class` body are class-level procedures. They
+do not receive an implicit instance; they cannot use `Me`. Call them with
+`ClassName.Method(args)` — no instance is required:
+
+```basic
+Class MathHelper
+   Static Function Add(a As Integer, b As Integer) As Integer
+      Add = a + b
+   End Function
+
+   Static Sub PrintProduct(a As Integer, b As Integer)
+      Print "Product ="; a * b
+   End Sub
+End Class
+
+Dim result% As Integer
+result% = MathHelper.Add(3, 7)    ' 10
+MathHelper.PrintProduct 4, 5       ' Product = 20
+```
+
+Static and instance methods may coexist in the same class. Static methods are ideal for
+utility and factory functions that do not need instance state.
+
+---
+
+### 4.6 main() Entry Point
+
+When the top-level program defines a `Function` named `main`, the interpreter calls it as
+the program entry point instead of executing statements from the top of the file. The
+function must return an `Integer` (the process exit code). Three signatures are supported:
+
+```basic
+' Simplest form — no arguments
+Function main() As Integer
+   Print "Hello from main"
+   main = 0
+End Function
+```
+
+```basic
+' Argument count
+Function main(argc As Integer) As Integer
+   Print "Number of args:"; argc
+   main = 0
+End Function
+```
+
+```basic
+' Full argc / argv
+Function main(argc As Integer, argv() As String) As Integer
+   Dim i% As Integer
+   Print "Script: "; argv(0)
+   For i% = 1 To argc - 1
+      Print "  Arg "; i%; ": "; argv(i%)
+   Next i%
+   main = 0   ' zero = success
+End Function
+```
+
+`argc` equals 1 plus the number of extra command-line arguments. `argv(0)` is the script
+filename; `argv(1)` through `argv(argc-1)` are the extra arguments supplied after the
+filename:
+
+```sh
+nubasic -t -e myprog.bas hello world
+' → argc = 3
+' → argv(0) = "myprog.bas"
+' → argv(1) = "hello"
+' → argv(2) = "world"
+```
+
+When `main` is defined inside an `Include`d file the entry-point behaviour is suppressed in
+that file — only the top-level program's `main` is invoked.
+
+---
+
+### 4.7 Namespaced Modules
+
+In **Modern syntax mode** (`Syntax Modern`), the built-in library is organised into named
+modules. Functions can be called with a qualified `module::name` prefix. `Syntax Legacy`
+(the default) restores the classic flat namespace, so all existing programs work unchanged.
+
+```basic
+Syntax Modern
+
+' Qualified calls
+Dim s As Double
+s = math::sin(0.785398)          ' ≈ 0.7071
+Dim h$ As String
+h$ = string::left$("Hello", 3)   ' "Hel"
+Dim n% As Integer
+n% = runtime::sizeof(myArray)
+```
+
+#### Using — Import a Module
+
+`Using ModuleName` imports all names from a module into the current scope, removing the
+need for the `module::` prefix:
+
+```basic
+Syntax Modern
+Using math
+Using string
+
+Dim v As Double
+v = Sin(0.785398)         ' math::sin without prefix
+Dim s$ As String
+s$ = Left$("World", 3)   ' string::left$ without prefix
+```
+
+#### Switching Modes
+
+`Syntax Legacy` may appear anywhere; each `Include`d file honours the mode active at its
+include site.
+
+```basic
+Syntax Legacy
+' Classic global names work again
+Print Len("abc")    ' 3
+Print Sin(0)        ' 0
+```
+
+---
+
+### 4.8 Structures
 
 A `Struct` defines a composite data type that groups several named fields under one name.
 Fields can be of any built-in type, and structs can be nested — a field of one struct can be
@@ -949,7 +1176,7 @@ If m.btn = 1 Then Print "Left click at "; m.x; ", "; m.y
 
 Fields: `x`, `y` (pixels), `btn` (0=none, 1=left, 2=middle, 4=right).
 
-### 4.6 Arrays
+### 4.9 Arrays
 
 Arrays store multiple values of the same type under a single name, accessed by a numeric
 index. In nuBASIC, arrays must be declared with `Dim` before use, and the declaration
@@ -1006,7 +1233,7 @@ grid%(2 * W% + 3) = 42
 Print grid%(2 * W% + 3)
 ```
 
-### 4.7 Hash Tables
+### 4.10 Hash Tables
 
 Hash tables (also called dictionaries or associative arrays) map string keys to values of any
 type. In nuBASIC a hash table is identified by a name string rather than a variable — the
@@ -1046,7 +1273,7 @@ HDel "config", "fullscreen#"
 HDel "config"
 ```
 
-### 4.8 File I/O
+### 4.11 File I/O
 
 nuBASIC provides three layers of file access: **sequential** (line-oriented text),
 **binary** (byte-level access via `FOpen` and `Read#`), and **random access** (seekable).
@@ -1123,7 +1350,7 @@ Print Pwd$()              ' print current working directory
 ChDir ".."                ' change to parent directory
 ```
 
-### 4.9 DATA, READ, RESTORE
+### 4.12 DATA, READ, RESTORE
 
 `Data`, `Read`, and `Restore` implement a classic BASIC mechanism for embedding structured
 constant tables directly in the source code. Data items are stored in a sequential store when
@@ -1166,7 +1393,7 @@ Restore -1
 A common pattern is to use `Data` to drive a state machine or to initialise arrays at startup,
 avoiding hard-coded index assignments scattered through the code.
 
-### 4.10 String Handling
+### 4.13 String Handling
 
 Strings in nuBASIC are variable-length sequences of characters. All source-code string literals
 are stored as UTF-8, and the GDI console renders them correctly for any script that the

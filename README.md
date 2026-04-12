@@ -4,7 +4,10 @@ nuBASIC is a modern, open-source BASIC interpreter written in modern C++, availa
 
 ## Features
 
-- **Structured programming** — `Sub`, `Function`, `For`, `While`, `Do…Loop While`, `If/ElIf/Else`; `Call` keyword; `ByRef` / `ByVal` parameter passing; `Include` / `#Include` for multi-file programs
+- **Structured programming** — `Sub`, `Function`, `For`, `While`, `Do…Loop While`, `If/ElIf/Else`, `Select Case`; `Call` keyword; `ByRef` / `ByVal` parameter passing; open-ended array parameters (`param() As Type`); `Include` / `#Include` for multi-file programs
+- **Classes with static methods** — `Class`/`End Class` with instance fields, instance methods (`Me`), and `Static Function`/`Static Sub` callable as `ClassName.Method()` without an instance
+- **`main()` entry point** — if a `Function main(...)` is defined, execution starts there; CLI arguments are available via `argc` and `argv() As String`
+- **Namespaced modules** — `Syntax Modern` activates qualified names (`math::sin`, `string::left$`); `Using Module` imports a module for unqualified access; `Syntax Legacy` restores classic mode
 - **Rich type system** — Integer, Double, Boolean, Long64, String, Byte, Any, user-defined `Struct`
 - **Arrays and hash tables** built into the language
 - **Full file I/O** — sequential, binary, and random access
