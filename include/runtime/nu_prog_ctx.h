@@ -119,6 +119,14 @@ public:
     // Set to true while compiling a Static method declaration
     bool compiling_class_member_is_static = false;
 
+    // Set to true while compiling an Overridable method declaration.
+    // Cleared by parse_procedure after it records the full mangled name.
+    bool compiling_method_is_overridable = false;
+
+    // Set to true while compiling an Overrides method declaration.
+    // Cleared by parse_procedure after it validates the override target.
+    bool compiling_method_is_override = false;
+
     // Set to true while loading an included file (depth > 0).
     // Used to suppress "main" registration from included files.
     bool in_include_file = false;

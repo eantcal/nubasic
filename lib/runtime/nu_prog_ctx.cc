@@ -57,6 +57,8 @@ void prog_ctx_t::clear_metadata()
     class_overridable_methods.clear();
     class_static_methods.clear();
     compiling_class_member_is_static = false;
+    compiling_method_is_overridable = false;
+    compiling_method_is_override = false;
     in_include_file = false;
     stop_metadata.pc_stop_stmt.clear();
 

@@ -306,13 +306,13 @@ stmt_t::handle_t statement_parser_t::parse_class_member(
 
     // Consume optional Overridable / Overrides keyword before Sub/Function
     if (token.identifier() == "overridable") {
-        ctx.class_overridable_methods.insert(ctx.compiling_class_name + "."
-            + ""); // placeholder; full name known after Sub
+        ctx.compiling_method_is_overridable = true;
         --tl;
         remove_blank(tl);
         syntax_error_if(tl.empty(), token.expression(), token.position());
         token = *tl.begin();
     } else if (token.identifier() == "overrides") {
+        ctx.compiling_method_is_override = true;
         --tl;
         remove_blank(tl);
         syntax_error_if(tl.empty(), token.expression(), token.position());

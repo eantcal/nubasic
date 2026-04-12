@@ -832,6 +832,48 @@ stmt_t::handle_t statement_parser_t::parse_procedure(
             ctx.class_static_methods.insert(id);
             ctx.compiling_class_member_is_static = false;
         }
+
+        // id is already mangled as "ClassName.MethodName" at this point.
+        // Short name = everything after the last '.'.
+        const auto dot_pos = id.rfind('.');
+        const std::string short_name
+            = (dot_pos != std::string::npos) ? id.substr(dot_pos + 1) : id;
+
+        // Overridable: record the full mangled name (replaces the old placeholder)
+        if (ctx.compiling_method_is_overridable) {
+            ctx.class_overridable_methods.insert(id);
+            ctx.compiling_method_is_overridable = false;
+        }
+
+        // Overrides: validate that a base class provides the target method
+        if (ctx.compiling_method_is_override) {
+            ctx.compiling_method_is_override = false;
+
+            auto base_it = ctx.class_bases.find(ctx.compiling_class_name);
+            syntax_error_if(base_it == ctx.class_bases.end(),
+                token.expression(), token.position(),
+                "'" + ctx.compiling_class_name
+                    + "' has no base class; 'Overrides' requires inheritance");
+
+            // Walk the inheritance chain to find the method being overridden.
+            std::string cls = base_it->second;
+            bool found = false;
+            while (!cls.empty() && !found) {
+                const std::string key = cls + "." + short_name;
+                if (ctx.proc_prototypes.data.count(key) > 0
+                    || ctx.class_overridable_methods.count(key) > 0) {
+                    found = true;
+                } else {
+                    auto it = ctx.class_bases.find(cls);
+                    if (it == ctx.class_bases.end())
+                        break;
+                    cls = it->second;
+                }
+            }
+            syntax_error_if(!found, token.expression(), token.position(),
+                "'" + id + "': no matching method '" + short_name
+                    + "' found in base class hierarchy to override");
+        }
     }
 
     return stmt_handle;
