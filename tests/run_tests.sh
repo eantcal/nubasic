@@ -33,11 +33,12 @@ done
 # ── locate interpreter ────────────────────────────────────────────────────────
 if [[ -z "$INTERPRETER" ]]; then
     CANDIDATES=(
-        # Visual Studio cmake layout (build/debug or build/release)
-        "$REPO_ROOT/build/release/cli/win/Release/nubasic.exe"
-        "$REPO_ROOT/build/release/cli/win/Debug/nubasic.exe"
+        # Visual Studio cmake layout — debug build dir (most recently built)
         "$REPO_ROOT/build/debug/cli/win/Debug/nubasic.exe"
         "$REPO_ROOT/build/debug/cli/win/Release/nubasic.exe"
+        # Visual Studio cmake layout — release build dir
+        "$REPO_ROOT/build/release/cli/win/Release/nubasic.exe"
+        "$REPO_ROOT/build/release/cli/win/Debug/nubasic.exe"
         # Ninja / single-config cmake layout
         "$REPO_ROOT/build/debug/cli/win/nubasic.exe"
         "$REPO_ROOT/build/release/cli/win/nubasic.exe"

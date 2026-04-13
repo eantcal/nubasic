@@ -117,7 +117,10 @@ public:
     // Single-inheritance chain: derived class name -> direct base class name
     std::map<std::string, std::string> class_bases;
 
-    // Methods declared Overridable (reserved for future strict enforcement)
+    // Methods declared Overridable.  Enforced at compile time: an Overrides
+    // method must target an Overridable method in the base hierarchy, and its
+    // signature must match exactly (Sub/Function, return type, parameter count,
+    // parameter types, and ByRef/ByVal passing convention).
     std::set<std::string> class_overridable_methods;
 
     // Methods declared Static: callable as ClassName.Method() without instance

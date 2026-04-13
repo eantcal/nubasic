@@ -847,7 +847,9 @@ stmt_t::handle_t statement_parser_t::parse_procedure(
             ctx.compiling_method_is_overridable = false;
         }
 
-        // Overrides: validate that a base class provides the target method
+        // Overrides: validate that the base class provides an Overridable
+        // method, and that the override's signature exactly matches
+        // (Sub/Function, return type, parameter count, types, ByRef/ByVal).
         if (ctx.compiling_method_is_override) {
             ctx.compiling_method_is_override = false;
 
@@ -857,14 +859,13 @@ stmt_t::handle_t statement_parser_t::parse_procedure(
                 "'" + ctx.compiling_class_name
                     + "' has no base class; 'Overrides' requires inheritance");
 
-            // Walk the inheritance chain to find the method being overridden.
+            // Walk the inheritance chain to find an Overridable method.
             std::string cls = base_it->second;
-            bool found = false;
-            while (!cls.empty() && !found) {
+            std::string found_key;
+            while (!cls.empty() && found_key.empty()) {
                 const std::string key = cls + "." + short_name;
-                if (ctx.proc_prototypes.data.count(key) > 0
-                    || ctx.class_overridable_methods.count(key) > 0) {
-                    found = true;
+                if (ctx.class_overridable_methods.count(key) > 0) {
+                    found_key = key;
                 } else {
                     auto it = ctx.class_bases.find(cls);
                     if (it == ctx.class_bases.end())
@@ -872,9 +873,65 @@ stmt_t::handle_t statement_parser_t::parse_procedure(
                     cls = it->second;
                 }
             }
-            syntax_error_if(!found, token.expression(), token.position(),
-                "'" + id + "': no matching method '" + short_name
-                    + "' found in base class hierarchy to override");
+            syntax_error_if(found_key.empty(), token.expression(),
+                token.position(),
+                "'" + id + "': no Overridable method '" + short_name
+                    + "' found in base class hierarchy");
+
+            // --- Signature check ---
+
+            // Sub vs Function
+            const bool ov_is_func = ctx.function_tbl.count(id) > 0;
+            const bool bs_is_func = ctx.function_tbl.count(found_key) > 0;
+            syntax_error_if(ov_is_func != bs_is_func,
+                token.expression(), token.position(),
+                "'" + id + "': cannot override "
+                    + (bs_is_func ? "Function" : "Sub") + " with "
+                    + (ov_is_func ? "Function" : "Sub"));
+
+            auto ov_it = ctx.proc_prototypes.data.find(id);
+            auto bs_it = ctx.proc_prototypes.data.find(found_key);
+
+            if (ov_it != ctx.proc_prototypes.data.end()
+                && bs_it != ctx.proc_prototypes.data.end()) {
+                const func_prototype_t& op = ov_it->second.second;
+                const func_prototype_t& bp = bs_it->second.second;
+
+                // Return type
+                syntax_error_if(op.ret_type != bp.ret_type,
+                    token.expression(), token.position(),
+                    "'" + id + "': return type '" + op.ret_type
+                        + "' does not match base '" + bp.ret_type + "'");
+
+                // Parameter count
+                syntax_error_if(
+                    op.parameters.size() != bp.parameters.size(),
+                    token.expression(), token.position(),
+                    "'" + id + "': parameter count "
+                        + std::to_string(op.parameters.size())
+                        + " does not match base "
+                        + std::to_string(bp.parameters.size()));
+
+                // Per-parameter: type and passing convention
+                auto oit = op.parameters.begin();
+                auto bit = bp.parameters.begin();
+                int pidx = 1;
+                for (; oit != op.parameters.end(); ++oit, ++bit, ++pidx) {
+                    syntax_error_if(oit->type_name != bit->type_name,
+                        token.expression(), token.position(),
+                        "'" + id + "': parameter " + std::to_string(pidx)
+                            + " type '" + oit->type_name
+                            + "' does not match base '" + bit->type_name
+                            + "'");
+                    syntax_error_if(oit->by_ref != bit->by_ref,
+                        token.expression(), token.position(),
+                        "'" + id + "': parameter " + std::to_string(pidx)
+                            + " is "
+                            + (oit->by_ref ? "ByRef" : "ByVal")
+                            + " but base declares it "
+                            + (bit->by_ref ? "ByRef" : "ByVal"));
+                }
+            }
         }
     }
 
