@@ -1,5 +1,7 @@
 ' EXPECT_ERROR: no Overridable method
 
+Syntax Modern
+
 Class Base
     Sub Foo()
     End Sub

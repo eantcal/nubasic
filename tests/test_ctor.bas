@@ -1,11 +1,14 @@
 ' test_ctor.bas — parameterized constructors
 
+Syntax Modern
+Using string
+
 Dim pass% As Integer
 Dim fail% As Integer
 pass% = 0
 fail% = 0
 
-Sub AssertEq(label$, got$, expected$)
+Sub AssertEq(label$ As String, got$ As String, expected$ As String)
     If got$ = expected$ Then
         Print "  PASS  " + label$
         pass% = pass% + 1

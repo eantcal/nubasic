@@ -1,5 +1,7 @@
 ' EXPECT_ERROR: cannot override
 
+Syntax Modern
+
 Class Base
     Overridable Sub Foo()
     End Sub

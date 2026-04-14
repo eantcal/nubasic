@@ -31,6 +31,10 @@ stmt_function_t::stmt_function_t(prog_ctx_t& ctx, const std::string& id)
         return;
     }
 
+    syntax_error_if(id == "main"
+            && ctx.get_syntax_mode() != prog_ctx_t::syntax_mode_t::MODERN,
+        "'Function main' requires Syntax Modern");
+
     // Get a reference to global function set
     auto& funcs = global_function_tbl_t::get_instance();
 

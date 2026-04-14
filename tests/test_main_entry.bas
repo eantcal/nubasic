@@ -2,6 +2,9 @@
 ' Tests the main() entry point with argc and argv().
 ' ARGS: hello world
 
+Syntax Modern
+Using string
+
 Function main(argc As Integer, argv() As String) As Integer
     Dim pass% As Integer
     Dim fail% As Integer

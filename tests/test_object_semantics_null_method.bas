@@ -1,5 +1,7 @@
 ' EXPECT_ERROR: null object reference
 
+Syntax Modern
+
 Class Box
     Public Value% As Integer
 

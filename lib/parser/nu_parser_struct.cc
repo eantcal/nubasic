@@ -274,6 +274,9 @@ stmt_t::handle_t statement_parser_t::parse_class(
     remove_blank(tl);
     syntax_error_if(!tl.empty(), token.expression(), token.position());
 
+    syntax_error_if(ctx.get_syntax_mode() != prog_ctx_t::syntax_mode_t::MODERN,
+        token.expression(), token.position(), "'Class' requires Syntax Modern");
+
     ctx.compiling_class_name = id;
 
     return stmt_t::handle_t(std::make_shared<stmt_class_t>(ctx, id));

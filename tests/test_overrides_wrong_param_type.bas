@@ -1,5 +1,7 @@
 ' EXPECT_ERROR: type
 
+Syntax Modern
+
 Class Base
     Overridable Sub Foo(x% As Integer)
     End Sub

@@ -158,11 +158,14 @@ protected:
             type = variable_t::typename_by_type(
                 variable_t::type_by_name(variable_name));
 
+            bool has_explicit_type = false;
+
             if (!tl.empty()) {
                 token = *tl.begin();
 
                 if (token.type() == tkncl_t::IDENTIFIER
                     && token.identifier() == "as") {
+                    has_explicit_type = true;
                     --tl;
                     remove_blank(tl);
 
@@ -271,6 +274,18 @@ protected:
                     }
                 }
             }
+
+            // Modern mode: a type suffix without an explicit 'As Type' clause
+            // is not allowed.  If 'As Type' was provided the suffix is
+            // tolerated (for backward compatibility of mixed-style code).
+            syntax_error_if(
+                ctx.get_syntax_mode() == prog_ctx_t::syntax_mode_t::MODERN
+                    && variable_t::has_type_suffix(variable_name)
+                    && !has_explicit_type,
+                token.expression(), token.position(),
+                "'" + variable_name
+                    + "': type suffix without explicit 'As Type' is not"
+                      " allowed in Syntax Modern");
         };
 
         stmt_t::handle_t handle(std::make_shared<T>(std::forward<E>(xprms)...));

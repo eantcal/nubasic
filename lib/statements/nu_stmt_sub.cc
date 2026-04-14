@@ -31,6 +31,10 @@ stmt_sub_t::stmt_sub_t(prog_ctx_t& ctx, const std::string& id)
         return;
     }
 
+    syntax_error_if(id == "main"
+            && ctx.get_syntax_mode() != prog_ctx_t::syntax_mode_t::MODERN,
+        "'Sub main' requires Syntax Modern");
+
     const auto i = ctx.proc_prototypes.data.find(id);
 
     const auto found = i != ctx.proc_prototypes.data.end();

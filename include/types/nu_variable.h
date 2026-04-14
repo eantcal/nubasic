@@ -42,6 +42,10 @@ struct variable_t {
     static type_t type_by_typename(std::string name);
     static std::string typename_by_type(type_t type);
 
+    // Returns true when the name ends with a type-implying suffix (%, $, !, @, &, #).
+    // Used to enforce Syntax Modern rules that forbid implicit suffix-based typing.
+    static bool has_type_suffix(const std::string& name) noexcept;
+
 
     static inline bool is_number(type_t t) noexcept
     {

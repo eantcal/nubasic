@@ -106,6 +106,25 @@ std::string variable_t::typename_by_type(variable_t::type_t type)
 
 /* -------------------------------------------------------------------------- */
 
+bool variable_t::has_type_suffix(const std::string& name) noexcept
+{
+    if (name.empty())
+        return false;
+    switch (*name.rbegin()) {
+    case '%':
+    case '$':
+    case '@':
+    case '!':
+    case '&':
+    case '#':
+        return true;
+    }
+    return false;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 variable_t::type_t variable_t::type_by_name(const std::string& name)
 {
     assert(name.size() > 0);

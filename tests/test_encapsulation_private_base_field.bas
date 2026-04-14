@@ -1,5 +1,7 @@
 ' EXPECT_ERROR: cannot access private member
 
+Syntax Modern
+
 Class BaseVault
     Private Secret As String
 End Class
