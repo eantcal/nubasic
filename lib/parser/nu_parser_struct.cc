@@ -288,24 +288,30 @@ stmt_t::handle_t statement_parser_t::parse_class(
 stmt_t::handle_t statement_parser_t::parse_class_member(
     prog_ctx_t& ctx, nu::token_t token, nu::token_list_t& tl)
 {
-    // Consume optional Public/Private modifier
-    bool is_public = true;
+    // Consume optional Public/Protected/Private modifier
+    auto access = prog_ctx_t::access_level_t::PUBLIC;
 
     if (token.identifier() == "public") {
-        is_public = true;
+        access = prog_ctx_t::access_level_t::PUBLIC;
+        --tl;
+        remove_blank(tl);
+        syntax_error_if(tl.empty(), token.expression(), token.position());
+        token = *tl.begin();
+    } else if (token.identifier() == "protected") {
+        access = prog_ctx_t::access_level_t::PROTECTED;
         --tl;
         remove_blank(tl);
         syntax_error_if(tl.empty(), token.expression(), token.position());
         token = *tl.begin();
     } else if (token.identifier() == "private") {
-        is_public = false;
+        access = prog_ctx_t::access_level_t::PRIVATE;
         --tl;
         remove_blank(tl);
         syntax_error_if(tl.empty(), token.expression(), token.position());
         token = *tl.begin();
     }
 
-    ctx.compiling_class_member_is_public = is_public;
+    ctx.compiling_class_member_access = access;
 
     // Consume optional Overridable / Overrides keyword before Sub/Function
     if (token.identifier() == "overridable") {
@@ -367,7 +373,7 @@ stmt_t::handle_t statement_parser_t::parse_class_member(
 
     // Register access level for the field
     ctx.class_member_visibility[ctx.compiling_class_name + "." + field_name]
-        = is_public;
+        = access;
     ctx.class_member_owner[ctx.compiling_class_name + "." + field_name]
         = ctx.compiling_class_name;
 

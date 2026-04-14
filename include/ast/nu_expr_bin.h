@@ -204,17 +204,34 @@ public:
                 }
 
                 const std::string class_name = obj_value.struct_type_name();
-                const std::string mangled = class_name + "." + member_element;
-                if (ctx.function_tbl.count(mangled) > 0) {
-                    if (!ctx.is_class_member_access_allowed(mangled)) {
+
+                // Walk the inheritance chain to find the method,
+                // mirroring the dispatch logic in nu_stmt_method_call.cc.
+                std::string resolved_mangled;
+                {
+                    std::string cls = class_name;
+                    while (!cls.empty()) {
+                        const std::string key = cls + "." + member_element;
+                        if (ctx.function_tbl.count(key) > 0) {
+                            resolved_mangled = key;
+                            break;
+                        }
+                        const auto base_it = ctx.class_bases.find(cls);
+                        if (base_it == ctx.class_bases.end())
+                            break;
+                        cls = base_it->second;
+                    }
+                }
+                if (!resolved_mangled.empty()) {
+                    if (!ctx.is_class_member_access_allowed(resolved_mangled)) {
                         throw exception_t(
                             std::string("Cannot access private member '")
-                            + mangled + "'");
+                            + resolved_mangled + "'");
                     }
 
                     // Method call: dispatch with Me injected
                     return ctx.program().run_method(
-                        mangled, _var2->get_args(), var_name, obj_value);
+                        resolved_mangled, _var2->get_args(), var_name, obj_value);
                 }
             }
 

@@ -43,7 +43,7 @@ std::set<std::string>& reserved_keywords_t::list()
         "elseif", "setpixel", "getpixel", "struct", "integer", "double",
         "float", "boolean", "string", "long64", "quit", "settopmost", "stop",
         "screenlock", "screenunlock", "refresh", "byref", "byval", "call",
-        "include", "class", "new", "public", "private", "inherits",
+        "include", "class", "new", "public", "protected", "private", "inherits",
         "overridable", "overrides", "select", "case", "me", "using", "syntax",
         "legacy", "modern", "static", "mybase" };
 

@@ -42,7 +42,7 @@ stmt_class_t::stmt_class_t(prog_ctx_t& ctx, const std::string& id)
 
     ctx.class_metadata.compile_begin(ctx.compiletime_pc, id);
     ctx.compiling_class_name = id;
-    ctx.compiling_class_member_is_public = true;
+    ctx.compiling_class_member_access = prog_ctx_t::access_level_t::PUBLIC;
 }
 
 

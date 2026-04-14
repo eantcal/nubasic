@@ -42,6 +42,7 @@ namespace nu {
 class prog_ctx_t {
 public:
     enum class syntax_mode_t { LEGACY, MODERN };
+    enum class access_level_t { PUBLIC, PROTECTED, PRIVATE };
 
     prog_ctx_t() = delete;
     prog_ctx_t(const prog_ctx_t&) = delete;
@@ -102,10 +103,10 @@ public:
     // Class metadata (created compiling BASIC source code)
     instrblock_metadata_t class_metadata;
     std::string compiling_class_name;
-    bool compiling_class_member_is_public = true;
+    access_level_t compiling_class_member_access = access_level_t::PUBLIC;
 
-    // Class member access visibility: "ClassName.MemberName" -> is_public
-    std::map<std::string, bool> class_member_visibility;
+    // Class member access visibility: "ClassName.MemberName" -> access level
+    std::map<std::string, access_level_t> class_member_visibility;
 
     // Class member declaring owner: "RuntimeClass.MemberName" -> "OwnerClass"
     std::map<std::string, std::string> class_member_owner;
