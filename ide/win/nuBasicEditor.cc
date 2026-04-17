@@ -167,6 +167,8 @@ namespace {
     constexpr COLORREF kErrorBodyText = RGB(0, 0, 0);
     constexpr COLORREF kErrorLineBack = RGB(255, 232, 232);
     constexpr COLORREF kErrorIndicatorColor = RGB(210, 0, 0);
+    constexpr COLORREF kExecutionLineBack = RGB(0, 255, 0);
+    constexpr COLORREF kRuntimeErrorLineBack = RGB(255, 210, 64);
     constexpr int kErrorIndicator = 0;
 
     struct parsed_error_t {
@@ -242,6 +244,12 @@ namespace {
 
         value = result;
         return true;
+    }
+
+    static bool is_debug_execution_command(const std::string& cmd) noexcept
+    {
+        return cmd == "run" || cmd == "cont" || cmd == "resume"
+            || cmd.rfind("run ", 0) == 0;
     }
 
     static std::string join_lines(
@@ -457,6 +465,8 @@ public:
         PROGCOUNTER = 2,
         LINESELECTION = 4,
     };
+
+    enum class debug_stop_t { NONE, COMPLETED, PAUSED, RUNTIME_ERROR };
 
     enum { TIMER_EVAL_SELECTION, TIMER_CTX_HELP };
 
@@ -800,7 +810,8 @@ public:
     /**
      * Show execution point
      */
-    bool show_execution_point(int line) noexcept;
+    bool show_execution_point(
+        int line, COLORREF line_back = kExecutionLineBack) noexcept;
 
     /**
      * Show error line
@@ -1329,6 +1340,7 @@ protected:
     bool _program_running = false;
     bool _pending_rebuild = false; // set when user asks to stop-and-rebuild
     std::string _pending_open_file; // non-empty: open this file after stop
+    debug_stop_t _last_debug_stop = debug_stop_t::NONE;
 
     int _goto_line = 0;
     std::string _command_line;
@@ -2268,6 +2280,8 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
 
     reset_all_breakpoints();
     remove_prog_cnt_marker();
+    _last_debug_stop = debug_stop_t::COMPLETED;
+    const auto line_before = interpreter().get_cur_line_n();
 
     if (g_tab_container) {
         if (g_tab_container->is_console_detached()) {
@@ -2290,16 +2304,34 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
         exec_interpreter_cmd("ston", false);
         exec_interpreter_cmd("cont", false);
         exec_interpreter_cmd("stoff", false);
+        if (_last_debug_stop == debug_stop_t::COMPLETED
+            && interpreter().get_cur_line_n() != line_before) {
+            _last_debug_stop = debug_stop_t::PAUSED;
+        }
         break;
     }
 
-    show_execution_point(interpreter().get_cur_line_n());
+    switch (_last_debug_stop) {
+    case debug_stop_t::PAUSED:
+        show_execution_point(interpreter().get_cur_line_n());
+        break;
+
+    case debug_stop_t::RUNTIME_ERROR:
+        show_execution_point(
+            interpreter().get_cur_line_n(), kRuntimeErrorLineBack);
+        break;
+
+    case debug_stop_t::COMPLETED:
+    case debug_stop_t::NONE:
+        remove_prog_cnt_marker();
+        break;
+    }
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-bool nu::editor_t::show_execution_point(int line) noexcept
+bool nu::editor_t::show_execution_point(int line, COLORREF line_back) noexcept
 {
     remove_prog_cnt_marker();
 
@@ -2318,7 +2350,7 @@ bool nu::editor_t::show_execution_point(int line) noexcept
         const auto l = int(marker_t::LINESELECTION);
 
         send_command(SCI_MARKERDEFINE, l, SC_MARK_BACKGROUND);
-        send_command(SCI_MARKERSETBACK, l, RGB(0, 255, 0));
+        send_command(SCI_MARKERSETBACK, l, line_back);
         send_command(SCI_MARKERADD, line - 1, l);
 
 
@@ -2528,22 +2560,54 @@ void nu::editor_t::queue_present_floating_gdi_console(
 
 bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
 {
+    std::string pending_error_title;
+    std::string pending_error_popup;
+
+    auto show_pending_error_dialog = [&]() {
+        if (!pending_error_popup.empty()) {
+            ::MessageBox(get_main_hwnd(), pending_error_popup.c_str(),
+                pending_error_title.c_str(), MB_ICONERROR);
+        }
+    };
+
     auto async_fn = [&]() {
         try {
-            g_editor.interpreter().exec_command(cmd);
+            const auto res = g_editor.interpreter().exec_command(cmd);
+            if (is_debug_execution_command(cmd)) {
+                if (res == interpreter_t::exec_res_t::BREAKPOINT
+                    || res == interpreter_t::exec_res_t::STOP_REQ
+                    || g_editor.interpreter().is_breakpoint_active()
+                    || g_editor.interpreter().is_stop_stmt_line()) {
+                    g_editor._last_debug_stop = debug_stop_t::PAUSED;
+                } else {
+                    g_editor._last_debug_stop = debug_stop_t::COMPLETED;
+                }
+            }
         } catch (nu::runtime_error_t& e) {
+            if (is_debug_execution_command(cmd)) {
+                g_editor._last_debug_stop = debug_stop_t::RUNTIME_ERROR;
+            }
+
             int line = e.get_line_num();
             line = line <= 0 ? g_editor.interpreter().get_cur_line_n() : line;
 
             const auto popup = g_editor.add_error_info(
                 "Runtime Error #" + std::to_string(e.get_error_code()), line,
                 e.what());
+            pending_error_title = "Runtime Error";
+            pending_error_popup = popup;
 
             nu_winconsole_write((popup + "\n").c_str());
 
         } catch (std::exception& e) {
+            if (is_debug_execution_command(cmd)) {
+                g_editor._last_debug_stop = debug_stop_t::RUNTIME_ERROR;
+            }
+
             const auto popup = g_editor.add_error_info("Syntax Error",
                 g_editor.interpreter().get_cur_line_n(), e.what());
+            pending_error_title = "Syntax Error";
+            pending_error_popup = popup;
 
             nu_winconsole_write((popup + "\n").c_str());
         }
@@ -2684,8 +2748,14 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
             g_toolbar->disable(IDM_DEBUG_STOP);
         }
 
-        add_info("Stop Program\n", CFM_ITALIC);
+        if (pending_error_popup.empty()) {
+            add_info("Stop Program\n", CFM_ITALIC);
+        }
         enable_menu_item(IDM_CONSOLE_DETACH, true);
+
+        if (!app_quit_pending) {
+            show_pending_error_dialog();
+        }
 
         // If the user requested a stop-and-rebuild, do the rebuild now that
         // the interpreter thread has fully exited and the toolbar is restored.
@@ -2706,7 +2776,9 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
         return true;
     }
 
-    return async_fn();
+    const auto result = async_fn();
+    show_pending_error_dialog();
+    return result;
 }
 
 
@@ -3009,6 +3081,9 @@ void nu::editor_t::set_title()
 
 void nu::editor_t::set_new_document(bool clear_title)
 {
+    remove_prog_cnt_marker();
+    interpreter().clear_all();
+
     send_command(SCI_CLEARALL);
     send_command(EM_EMPTYUNDOBUFFER);
 
