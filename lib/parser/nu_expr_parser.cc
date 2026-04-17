@@ -20,6 +20,8 @@
 #include "nu_expr_var.h"
 #include "nu_variant.h"
 
+#include <cstring>
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -55,6 +57,42 @@ static void merge_namespace_qualifier(token_list_t& tl)
 
 /* -------------------------------------------------------------------------- */
 
+static constexpr const char* NEW_EXPR_PREFIX = "__nu_new::";
+
+
+/* -------------------------------------------------------------------------- */
+
+static void rewrite_new_expressions(token_list_t& tl)
+{
+    for (size_t i = 0; i + 1 < tl.size(); ++i) {
+        if (tl[i].type() != tkncl_t::IDENTIFIER || tl[i].identifier() != "new"
+            || tl[i + 1].type() != tkncl_t::IDENTIFIER) {
+            continue;
+        }
+
+        token_t new_token = tl[i];
+        new_token.set_identifier(
+            std::string(NEW_EXPR_PREFIX) + tl[i + 1].identifier(),
+            token_t::case_t::LOWER);
+        tl.data()[i] = new_token;
+        tl.data().erase(tl.begin() + i + 1);
+
+        if (i + 1 == tl.size() || tl[i + 1].type() != tkncl_t::SUBEXP_BEGIN) {
+            const auto pos = tl[i].position();
+            const auto expr_ptr = tl[i].expression_ptr();
+            tl.data().insert(tl.begin() + i + 1,
+                token_t(NU_BASIC_BEGIN_SUBEXPR_OP, tkncl_t::SUBEXP_BEGIN, pos,
+                    expr_ptr));
+            tl.data().insert(tl.begin() + i + 2,
+                token_t(NU_BASIC_END_SUBEXPR_OP, tkncl_t::SUBEXP_END, pos,
+                    expr_ptr));
+        }
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 expr_any_t::handle_t expr_parser_t::compile(expr_tknzr_t& tknzr)
 {
     token_list_t tl;
@@ -67,6 +105,7 @@ expr_any_t::handle_t expr_parser_t::compile(expr_tknzr_t& tknzr)
 
     fix_minus_prefixed_expressions(tl);
     merge_namespace_qualifier(tl);
+    rewrite_new_expressions(tl);
 
     // Finally parse the expression tree in order to generate
     // an executable object
@@ -87,6 +126,7 @@ expr_any_t::handle_t expr_parser_t::compile(token_list_t tl, size_t expr_pos)
 
     fix_minus_prefixed_expressions(tl);
     merge_namespace_qualifier(tl);
+    rewrite_new_expressions(tl);
     convert_subscription_brackets(tl);
     tl = est(tl);
 
@@ -212,8 +252,14 @@ expr_any_t::handle_t expr_parser_t::parse_operand(token_list_t& tl)
 
             } else {
                 // Create an executable object for the parsed function
-                ret_handle = std::make_shared<expr_function_t>(
-                    function_name, function_args);
+                if (function_name.rfind(NEW_EXPR_PREFIX, 0) == 0) {
+                    ret_handle = std::make_shared<expr_new_t>(
+                        function_name.substr(std::strlen(NEW_EXPR_PREFIX)),
+                        function_args);
+                } else {
+                    ret_handle = std::make_shared<expr_function_t>(
+                        function_name, function_args);
+                }
             }
 
             // Check if we have other to parse

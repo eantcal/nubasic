@@ -32,6 +32,7 @@
 static const UINT g_wmPresentGdiConsole = WM_APP + 64;
 
 #include <filesystem>
+#include <limits>
 #include <regex>
 #include <set>
 #include <sstream>
@@ -218,6 +219,31 @@ namespace {
         return lines;
     }
 
+    static bool try_parse_positive_int(const std::string& text, int& value)
+    {
+        if (text.empty()) {
+            return false;
+        }
+
+        int result = 0;
+
+        for (const auto ch : text) {
+            if (ch < '0' || ch > '9') {
+                return false;
+            }
+
+            const auto digit = ch - '0';
+            if (result > ((std::numeric_limits<int>::max)() - digit) / 10) {
+                return false;
+            }
+
+            result = result * 10 + digit;
+        }
+
+        value = result;
+        return true;
+    }
+
     static std::string join_lines(
         const std::vector<std::string>& lines, size_t first)
     {
@@ -269,7 +295,10 @@ namespace {
         std::smatch match;
         if (std::regex_match(parsed.summary, match, s_column_regex)) {
             parsed.summary = trim_copy(match[1].str());
-            parsed.column = std::stoi(match[2].str());
+            int column = 0;
+            if (try_parse_positive_int(match[2].str(), column)) {
+                parsed.column = column;
+            }
         }
 
         if (lines.size() > 2) {
@@ -1941,9 +1970,9 @@ int nu::editor_t::replace_all(
 
             length = _search_flags & SCFIND_REGEXP
                 ? (long)send_command(
-                    SCI_REPLACETARGETRE, szlen, (LPARAM)szReplace)
+                      SCI_REPLACETARGETRE, szlen, (LPARAM)szReplace)
                 : (long)send_command(
-                    SCI_REPLACETARGET, szlen, (LPARAM)szReplace);
+                      SCI_REPLACETARGET, szlen, (LPARAM)szReplace);
 
             // the end of the selection was changed - recalc the end
             end = long(get_selection_end());
@@ -1979,9 +2008,9 @@ int nu::editor_t::replace_all(
             // check for regular expression flag
             length = _search_flags & SCFIND_REGEXP
                 ? (long)send_command(
-                    SCI_REPLACETARGETRE, szlen, (LPARAM)szReplace)
+                      SCI_REPLACETARGETRE, szlen, (LPARAM)szReplace)
                 : (long)send_command(
-                    SCI_REPLACETARGET, szlen, (LPARAM)szReplace);
+                      SCI_REPLACETARGET, szlen, (LPARAM)szReplace);
 
             // the end of the selection was changed - recalc the end
             end = long(send_command(SCI_GETTEXTLENGTH, 0, 0));
@@ -3808,7 +3837,7 @@ void nu::editor_t::init_editor(const std::string& fontname, const int height)
     {
         HMODULE hSci = GetModuleHandle(EDITOR_DLL_NAME);
         auto createLexer = hSci ? reinterpret_cast<Lexilla::CreateLexerFn>(
-                               GetProcAddress(hSci, "CreateLexer"))
+                                      GetProcAddress(hSci, "CreateLexer"))
                                 : nullptr;
         if (createLexer) {
             ILexer5* lexer = createLexer("vb");

@@ -109,55 +109,24 @@ void stmt_dim_t::run(rt_prog_ctx_t& ctx)
 
             scope->define(name, var_value_t(value, VAR_ACCESS_RW));
 
-            // Invoke parameterized constructor Sub New(...) if defined and args
-            // present
-            {
-                if (ctor_it != _ctor_args.end()) {
-                    const std::string ctor_key = vtype + ".new";
-                    auto proto_it = ctx.proc_prototypes.data.find(ctor_key);
-                    if (proto_it != ctx.proc_prototypes.data.end()) {
-                        const auto& prototype = proto_it->second.second;
+            if (ctor_it != _ctor_args.end()) {
+                const std::string ctor_key = vtype + ".new";
+                auto proto_it = ctx.proc_prototypes.data.find(ctor_key);
+                if (proto_it != ctx.proc_prototypes.data.end()) {
+                    rt_error_if(!ctx.is_class_member_access_allowed(ctor_key),
+                        rt_error_code_t::value_t::E_MEMBER_ACCESS, ctor_key);
 
-                        rt_error_if(prototype.parameters.size()
-                                != ctor_it->second.size(),
-                            rt_error_code_t::value_t::E_WRG_NUM_ARGS, ctor_key);
-
-                        // Evaluate constructor arguments
-                        std::vector<variant_t> values;
-                        values.reserve(ctor_it->second.size());
-                        for (const auto& arg : ctor_it->second) {
-                            values.emplace_back(arg.first ? arg.first->eval(ctx)
-                                                          : variant_t(""));
-                        }
-
-                        // ByRef writeback frame: Me → object variable name
-                        std::vector<rt_prog_ctx_t::byref_entry_t> frame;
-                        frame.emplace_back("me", name);
-                        ctx.byref_writeback_stack.push_back(std::move(frame));
-
-                        // Jump to constructor; return address = this Dim
-                        // statement
-                        ctx.set_return_line(std::make_pair(
-                            ctx.runtime_pc.get_line(), get_stmt_id()));
-                        ctx.go_to(proto_it->second.first);
-                        ctx.proc_scope.enter_scope(ctor_key, false);
-
-                        // Inject Me and formal parameters into the callee scope
-                        auto callee_scope = ctx.proc_scope.get();
-                        callee_scope->define("me",
-                            var_value_t((*scope)[name].first, VAR_ACCESS_RW));
-
-                        auto arg_it = prototype.parameters.begin();
-                        for (const auto& val : values) {
-                            callee_scope->define(arg_it->var_name,
-                                var_value_t(val, VAR_ACCESS_RW));
-                            ++arg_it;
-                        }
-
-                        // Do NOT call go_to_next(): the constructor handles
-                        // flow
-                        return;
+                    std::vector<expr_any_t::handle_t> ctor_args;
+                    ctor_args.reserve(ctor_it->second.size());
+                    for (const auto& arg : ctor_it->second) {
+                        ctor_args.push_back(arg.first);
                     }
+
+                    ctx.program().run_method(
+                        ctor_key, ctor_args, name, (*scope)[name].first);
+                } else {
+                    rt_error_if(!ctor_it->second.empty(),
+                        rt_error_code_t::value_t::E_SUB_UNDEF, ctor_key);
                 }
             }
 

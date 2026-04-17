@@ -114,7 +114,8 @@ public:
         }
 
         const auto var_name = _var1->name();
-        const auto var_idx = _var1->get_args();
+        const auto var_idx
+            = var_name.empty() ? func_args_t() : _var1->get_args();
 
         const auto member_element = _var2->name();
 
@@ -197,6 +198,11 @@ public:
                 }
             }
 
+            if (!obj_found && var_name.empty()) {
+                obj_value = _var1->eval(ctx);
+                obj_found = obj_value.is_struct();
+            }
+
             if (obj_found && obj_value.is_struct()) {
                 if (obj_value.is_nothing()) {
                     rt_error_code_t::get_instance().throw_if(true, 0,
@@ -253,6 +259,22 @@ public:
         size_t element_vec_idx = 0;
         if (!var_member_idx.empty()) {
             element_vec_idx = size_t(var_member_idx[0]->eval(ctx).to_int());
+        }
+
+        if (var_name.empty()) {
+            const variant_t obj_value = _var1->eval(ctx);
+            if (obj_value.is_struct()) {
+                const std::string member_key
+                    = obj_value.struct_type_name() + "." + member_element;
+                if (!ctx.is_class_member_access_allowed(member_key)) {
+                    throw exception_t(
+                        std::string("Cannot access private member '")
+                        + member_key + "'");
+                }
+
+                variant_t obj_copy = obj_value;
+                return *obj_copy.struct_member(member_element, element_vec_idx);
+            }
         }
 
         std::string err;

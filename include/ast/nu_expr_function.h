@@ -56,6 +56,35 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 
+//! This class represents a class allocation expression: New ClassName(...)
+class expr_new_t : public expr_any_t {
+public:
+    expr_new_t(const std::string& class_name, func_args_t args) noexcept
+        : _class_name(class_name)
+        , _args(args)
+    {
+    }
+
+    expr_new_t() = delete;
+    expr_new_t(const expr_new_t&) = default;
+    expr_new_t& operator=(const expr_new_t&) = default;
+
+    variant_t eval(rt_prog_ctx_t& ctx) const override;
+
+    bool empty() const noexcept override;
+
+    std::string name() const noexcept override { return std::string(); }
+
+    func_args_t get_args() const noexcept override { return _args; }
+
+protected:
+    std::string _class_name;
+    func_args_t _args;
+};
+
+
+/* -------------------------------------------------------------------------- */
+
 } // namespace nu
 
 
