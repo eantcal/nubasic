@@ -346,6 +346,15 @@ void nu_winconsole_set_mouse_text_selection_enabled(int enabled)
 
 /* -------------------------------------------------------------------------- */
 
+void nu_winconsole_set_app_mouse_input_enabled(int enabled)
+{
+    if (!g_console)
+        return;
+    g_console->set_app_mouse_input_enabled(enabled != 0);
+}
+
+/* -------------------------------------------------------------------------- */
+
 void* nu_winconsole_get_hwnd()
 {
     return g_console ? (void*)g_console->get_hwnd() : nullptr;

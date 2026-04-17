@@ -198,7 +198,22 @@ void console_window_t::set_cursor_visible(bool visible)
 void console_window_t::set_mouse_text_selection_enabled(bool enabled)
 {
     _mouse_text_selection_enabled = enabled;
+    if (enabled)
+        _app_mouse_input_enabled.store(false);
     if (!enabled && _selecting && _hwnd) {
+        _selecting = false;
+        ReleaseCapture();
+    }
+    if (_hwnd)
+        InvalidateRect(_hwnd, nullptr, FALSE);
+}
+
+/* -------------------------------------------------------------------------- */
+
+void console_window_t::set_app_mouse_input_enabled(bool enabled) noexcept
+{
+    _app_mouse_input_enabled.store(enabled);
+    if (enabled && _selecting && _hwnd) {
         _selecting = false;
         ReleaseCapture();
     }
@@ -1086,6 +1101,7 @@ void console_window_t::unlock_rendering()
 
 void console_window_t::restore_text_mode()
 {
+    _app_mouse_input_enabled.store(false);
     if (!_hwnd || !_graphics_mode.load())
         return;
     std::lock_guard<std::recursive_mutex> surf_lock(_surface_mutex);
@@ -1336,7 +1352,7 @@ void console_window_t::mouse_to_buffer(int mx, int my, int& row, int& col) const
 void console_window_t::on_lbutton_down(int x, int y)
 {
     SetFocus(_hwnd);
-    if (!_mouse_text_selection_enabled)
+    if (_app_mouse_input_enabled.load() || !_mouse_text_selection_enabled)
         return;
     int row, col;
     mouse_to_buffer(x, y, row, col);
@@ -1352,7 +1368,7 @@ void console_window_t::on_lbutton_down(int x, int y)
 void console_window_t::on_lbutton_dblclk(int x, int y)
 {
     SetFocus(_hwnd);
-    if (!_mouse_text_selection_enabled)
+    if (_app_mouse_input_enabled.load() || !_mouse_text_selection_enabled)
         return;
     int row, col;
     mouse_to_buffer(x, y, row, col);
@@ -1390,7 +1406,8 @@ void console_window_t::on_lbutton_dblclk(int x, int y)
 
 void console_window_t::on_mouse_move(int x, int y)
 {
-    if (!_mouse_text_selection_enabled || !_selecting)
+    if (_app_mouse_input_enabled.load() || !_mouse_text_selection_enabled
+        || !_selecting)
         return;
     int row, col;
     mouse_to_buffer(x, y, row, col);
@@ -1403,6 +1420,14 @@ void console_window_t::on_mouse_move(int x, int y)
 
 void console_window_t::on_lbutton_up(int x, int y)
 {
+    if (_app_mouse_input_enabled.load()) {
+        if (_selecting) {
+            _selecting = false;
+            ReleaseCapture();
+        }
+        return;
+    }
+
     if (_mouse_text_selection_enabled && _selecting) {
         _selecting = false;
         ReleaseCapture();
@@ -1418,7 +1443,7 @@ void console_window_t::on_lbutton_up(int x, int y)
 
 void console_window_t::on_rbutton_up(int x, int y)
 {
-    if (!_mouse_text_selection_enabled)
+    if (_app_mouse_input_enabled.load() || !_mouse_text_selection_enabled)
         return;
     POINT pt = { x, y };
     ClientToScreen(_hwnd, &pt);

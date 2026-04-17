@@ -286,6 +286,7 @@ static int nuBASIC_console(int argc, char* argv[])
                     nu_winconsole_get_vkey();
             }
             nu_winconsole_restore_text_mode();
+            nu_winconsole_set_app_mouse_input_enabled(0);
         }
 
         switch (res) {

@@ -113,6 +113,11 @@ void nu_winconsole_restore_text_mode();
 // embedded.
 void nu_winconsole_set_mouse_text_selection_enabled(int enabled);
 
+// Enable/disable application mouse input ownership. When enabled, the custom
+// console does not open text-selection UI from mouse button messages, allowing
+// BASIC graphics programs that poll GetMouse() to use right-click events.
+void nu_winconsole_set_app_mouse_input_enabled(int enabled);
+
 /* -------------------------------------------------------------------------- */
 /* Graphics Support (for GDI functions) */
 

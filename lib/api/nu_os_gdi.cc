@@ -397,6 +397,8 @@ int _os_get_screen_height() noexcept
 
 variant_t _os_get_mouse_state()
 {
+    nu_winconsole_set_app_mouse_input_enabled(1);
+
     POINT pt = { 0 };
     GetPhysicalCursorPos(&pt);
     MapWindowPoints(NULL, gdi_ctx_t::_get_target_hwnd(), &pt, 1);

@@ -26,6 +26,7 @@ Debug
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
+*.aps
 /build-nucli
 /build-fix
 /build-fix/CMakeFiles

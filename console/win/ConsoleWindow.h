@@ -122,9 +122,13 @@ public:
      * prompt. Used by nuBasicCLI; leave unset in the IDE. */
     void set_readline_cancel_hook(void (*fn)()) { _readline_cancel_hook = fn; }
 
-    /* When false, mouse drag / double-click selection and the R-button menu
-     * for copy/select-all are ignored (IDE embedded console while RUN). */
+    // When false, mouse drag / double-click selection and the R-button menu
+    // for copy/select-all are ignored (IDE embedded console while RUN).
     void set_mouse_text_selection_enabled(bool enabled);
+
+    // When true, BASIC code is actively polling mouse state; mouse button
+    // messages are left to the program instead of opening text UI affordances.
+    void set_app_mouse_input_enabled(bool enabled) noexcept;
 
 private:
     static LRESULT CALLBACK window_proc(
@@ -229,6 +233,7 @@ private:
     int _sel_r1 = 0, _sel_c1 = 0; // cursor (current drag end)
     bool _selecting = false;
     bool _mouse_text_selection_enabled = true;
+    std::atomic<bool> _app_mouse_input_enabled{ false };
     // If WM_KEYDOWN handled Ctrl+V paste, ignore the following WM_CHAR (0x16).
     bool _skip_next_ctrl_v_char = false;
 };
