@@ -212,6 +212,12 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
     while (prog_ptr != _prog_line.end()) {
         _ctx.runtime_pc.set(prog_ptr->first, return_stmt_id);
 
+        const auto stmt_class = prog_ptr->second.first->get_cl();
+        const bool global_scope = _ctx.proc_scope.get_scope_id().empty();
+        const bool global_proc_boundary = global_scope
+            && (stmt_class == stmt_t::stmt_cl_t::SUB_BEGIN
+                || stmt_class == stmt_t::stmt_cl_t::SUB_END);
+
         if (_ctx.flag[rt_prog_ctx_t::FLG_STOP_REQUEST]) {
             dbginfo_t dbg;
             dbg.break_point = true;
@@ -222,11 +228,15 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
         if (prog_ptr->second.second.single_step_break_point
             && !_function_call) {
             prog_ptr->second.second.single_step_break_point = false;
-            _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
-            break;
+
+            if (!global_proc_boundary) {
+                _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
+                break;
+            }
         }
 
-        if (prog_ptr->second.second.break_point && !_function_call) {
+        if (prog_ptr->second.second.break_point && !_function_call
+            && !global_proc_boundary) {
             if (prog_ptr->second.second.condition_stmt != nullptr) {
                 prog_ptr->second.second.condition_stmt->run(_ctx);
             } else {
@@ -244,7 +254,7 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
 
 
         // Skip execute empty stmt
-        if (prog_ptr->second.first->get_cl() == stmt_t::stmt_cl_t::EMPTY) {
+        if (stmt_class == stmt_t::stmt_cl_t::EMPTY) {
             ++prog_ptr;
             continue;
         }
