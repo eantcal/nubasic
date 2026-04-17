@@ -36,6 +36,29 @@ The Win32/64 build created with Visual Studio 2022 requires the
   module's members accessible without qualification. "Syntax Legacy"
   restores the classic single-namespace behaviour. Both modes coexist; any
   Include'd file honours the Syntax directive in force at the include site.
+- Added true object reference semantics for classes: class instances now preserve
+  identity and are copied/assigned as references instead of value-like struct
+  copies. Added support for Nothing, null-reference errors, reference comparison,
+  inheritance-based assignability, and reference-preserving object parameters and
+  return values.
+- Added MyBase for explicit base-class dispatch from overriding methods, including
+  support in both statement and expression contexts.
+- Added Protected access modifier with visibility across the inheritance chain.
+- Added first-class New expressions: object construction is now supported directly
+  in expressions via `New ClassName(...)`, including no-arg construction,
+  constructor argument forwarding, inline temporary usage, field assignment,
+  function return, parameter passing, and temporary member access.
+- Enforced stricter Overrides semantics: Overrides now requires a matching
+  Overridable method in the base-class chain, with full compile-time signature
+  validation (procedure kind, return type, parameter count/types, and ByRef/ByVal
+  convention).
+- Enforced stronger OOP encapsulation: private members remain accessible only
+  within the declaring class, including inherited private members, private
+  instance methods, and private static members.
+- Enforced Syntax Modern strict mode:
+  - variables must be explicitly declared with Dim before use
+  - type suffixes (%, $, !, @, &, #) require an explicit As Type clause
+  - Class definitions and Sub/Function main are only available in Syntax Modern
 - Removed all deprecated scalar date/time built-in functions: SysDay, SysMonth,
   SysYear, SysWDay, SysYDay, SysHour, SysMin, SysSec. Use GetDateTime() instead.
 - Removed all deprecated scalar mouse built-in functions: GetMouseX, GetMouseY,
@@ -43,16 +66,32 @@ The Win32/64 build created with Visual Studio 2022 requires the
 - Refactored the statement parser: class renamed from stmt_parser_t to
   statement_parser_t; source split into nu_parser_io.cc, nu_parser_flow.cc, and
   nu_parser_struct.cc for maintainability.
+- Added optional Visual Studio Code extension support for nuBASIC, including
+  syntax highlighting for `.bas` files, Run/Stop commands, executable discovery
+  via configuration, registry, or PATH, and optional CMake targets to package and
+  install the extension when the required tools are available.
+- Improved Windows IDE runtime diagnostics: runtime failures now follow the same
+  reporting path as syntax errors, with structured Output-pane details, dialog
+  reporting, and consistent execution-marker updates.
 - Fixed Print #n syntax: "Print #1 s$" (space between Print and #n) now works
   identically to "Print#1 s$".
 - Fixed On...GoTo: multiple labels in the label list were not parsed correctly
   (only the first label was recognized). Now all labels are dispatched correctly.
 - Fixed On...GoTo: inline label+statement syntax "lbl: stmt" on the same logical
   line following an On...GoTo dispatch no longer raises a syntax error.
-- Added regression tests for On...GoTo (all three dispatch indices).
+- Fixed Str$(double) formatting: trailing zeros are no longer emitted by default
+  and round-trip-friendly precision is preserved.
+- Hardened Windows IDE syntax error parsing so diagnostics carrying source
+  position metadata cannot raise `std::invalid_argument` while the IDE is already
+  reporting an error.
+- Replaced project include guards with `#pragma once` across headers, preserving
+  special conditional cases where needed.
 - Improved CLI arg parsing: when -e FILE is given, arguments that follow the
   filename are passed to the script as CLI args (available via argc/argv in main)
   and are no longer incorrectly appended to the interpreter command string.
+- Added extensive regression coverage for OOP features, mutation through Me,
+  polymorphism, private/protected access control, Overrides enforcement, New
+  expressions, and object construction edge cases.
 
 April 2026
 * Released nuBASIC 1.62
