@@ -79,7 +79,7 @@ async function runFile() {
 
     getOrCreateTerminal();
     terminal!.show(true);
-    terminal!.sendText(`& "${exe}" "${filePath}"`);
+    terminal!.sendText(`& "${exe}" -e "${filePath}"`);
 }
 
 function stopFile() {

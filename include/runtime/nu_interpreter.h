@@ -177,6 +177,7 @@ public:
 
     bool load(FILE* f);
     bool load(const std::string& filepath);
+    bool load(std::stringstream& source, const std::string& base_dir = "");
     bool append(std::stringstream& is, int& n_of_lines);
 
     bool save(const std::string& filepath);
@@ -218,6 +219,8 @@ protected:
     // depth: recursion guard (max 64 levels).
     bool load_with_includes(
         FILE* f, int& ln, const std::string& base_dir, int depth = 0);
+    bool load_with_includes(std::stringstream& source, int& ln,
+        const std::string& base_dir, int depth = 0);
 
     program_t::yield_cbk_t _yield_cbk = nullptr;
     void* _yield_data = nullptr;

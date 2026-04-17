@@ -2922,66 +2922,86 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) noexcept
     std::vector<char> data(doc_size + 1);
     get_text_range(0, int(doc_size), data.data());
 
-    int i = 0;
-    std::string line;
-    int line_num = 1;
     g_editor.interpreter().clear_all();
-    bool old_style_prog = false;
 
     remove_funcs_menu();
 
-    bool first_is_special_comment = false;
-
-    while (i < doc_size) {
-        if ((i % 10) == 0)
-            SendMessage(hwndPB, PBM_STEPIT, 0, 0);
-
-        char ch = data[i];
-
-        // Use unsigned char for the comparison so that UTF-8 bytes (>= 0x80)
-        // are not misinterpreted as negative values and silently dropped.
-        if (static_cast<unsigned char>(ch) >= ' ')
-            line += ch;
-
-        if (i >= (doc_size - 1) || ch == '\n'
-            || (ch == '\r' && i < doc_size && data[i + 1] == '\n')) {
-            if (ch == '\r')
-                ++i;
-
-            if (line_num == 1 && line.size() > 2 && line.substr(0, 2) == "#!") {
-                first_is_special_comment = true;
-            } else if (line_num == 1
-                || (line_num == 2 && first_is_special_comment)) {
-                try {
-                    auto tokens = split(line);
-                    if (!tokens.empty()) {
-                        auto lnum = std::stoi(tokens[0]);
-                        old_style_prog = lnum >= 1;
-                    }
-                } catch (...) {
-                }
-            }
-
-            auto res = build_basic_line(
-                line, old_style_prog ? 0 : line_num, show_err_msg);
-
-            ::SetWindowText(get_main_hwnd(), line.c_str());
-
-            if (!res) {
-                DestroyWindow(hwndPB);
-                return false;
-            }
-
-            line.clear();
-            ++line_num;
+    std::string source(data.data(), doc_size);
+    std::stringstream source_stream(source);
+    bool old_style_prog = false;
+    {
+        std::stringstream probe(source);
+        std::string first;
+        std::getline(probe, first);
+        if (!first.empty() && first.back() == '\r')
+            first.pop_back();
+        if (first.size() > 2 && first.substr(0, 2) == "#!") {
+            std::getline(probe, first);
+            if (!first.empty() && first.back() == '\r')
+                first.pop_back();
         }
-
-        ++i;
+        try {
+            auto tokens = split(first);
+            if (!tokens.empty()) {
+                auto lnum = std::stoi(tokens[0]);
+                old_style_prog = lnum >= 1;
+            }
+        } catch (...) {
+        }
     }
 
-    // Ensure that lines are mapped 1:1 with editing lines
-    if (old_style_prog) {
-        interpreter().exec_command("renum 1");
+    std::string base_dir;
+    if (!_full_path_str.empty()) {
+        base_dir = std::filesystem::path(_full_path_str).parent_path().string();
+    }
+
+    try {
+        if (!interpreter().load(source_stream, base_dir)) {
+            if (show_err_msg) {
+                const auto popup = add_error_info(
+                    "Build Error", 0, "Could not load source or included file");
+                MessageBox(get_main_hwnd(), popup.c_str(), "Build Error",
+                    MB_ICONERROR);
+            }
+            DestroyWindow(hwndPB);
+            return false;
+        }
+
+        // Ensure that old numbered programs are mapped 1:1 with editing lines.
+        if (old_style_prog) {
+            interpreter().exec_command("renum 1");
+        }
+    } catch (nu::runtime_error_t& e) {
+        if (show_err_msg) {
+            int line = e.get_line_num();
+            line = line <= 0 ? interpreter().get_cur_line_n() : line;
+
+            char lbuf[2048] = { 0 };
+            _snprintf(lbuf, sizeof(lbuf) - 1, "%s", e.what());
+
+            const auto popup = add_error_info(
+                "Runtime Error #" + std::to_string(e.get_error_code()), line,
+                lbuf);
+
+            MessageBox(
+                get_main_hwnd(), popup.c_str(), "Runtime Error", MB_ICONERROR);
+        }
+        DestroyWindow(hwndPB);
+        return false;
+    } catch (std::exception& e) {
+        if (show_err_msg) {
+            const auto line = interpreter().get_cur_line_n();
+
+            char lbuf[2048] = { 0 };
+            _snprintf(lbuf, sizeof(lbuf) - 1, "%s", e.what());
+
+            const auto popup = add_error_info("Syntax Error", line, lbuf);
+
+            MessageBox(
+                get_main_hwnd(), popup.c_str(), "Syntax Error", MB_ICONERROR);
+        }
+        DestroyWindow(hwndPB);
+        return false;
     }
 
     set_title();

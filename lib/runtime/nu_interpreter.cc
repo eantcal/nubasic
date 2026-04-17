@@ -50,28 +50,37 @@ namespace {
         return s;
     }
 
-    /** Try fopen(arg); then examples_dir/name and name.bas. */
-    static FILE* open_program_file(const std::string& arg)
+    static bool can_open_program_file(const fs::path& path)
     {
-        FILE* f = fopen(arg.c_str(), "r");
-        if (f)
-            return f;
+        FILE* f = fopen(path.string().c_str(), "r");
+        if (!f)
+            return false;
+
+        fclose(f);
+        return true;
+    }
+
+    /** Try arg; then examples_dir/name and name.bas. */
+    static std::string resolve_program_file(const std::string& arg)
+    {
+        if (can_open_program_file(arg))
+            return arg;
 
         const std::string ex = examples_directory();
         if (ex.empty())
-            return nullptr;
+            return "";
 
         fs::path p = fs::path(ex) / arg;
-        f = fopen(p.string().c_str(), "r");
-        if (f)
-            return f;
+        if (can_open_program_file(p))
+            return p.string();
 
         if (arg.find('.') == std::string::npos) {
             p = fs::path(ex) / (arg + ".bas");
-            f = fopen(p.string().c_str(), "r");
+            if (can_open_program_file(p))
+                return p.string();
         }
 
-        return f;
+        return "";
     }
 
 } // namespace
@@ -664,6 +673,96 @@ bool interpreter_t::load_with_includes(
 
 /* -------------------------------------------------------------------------- */
 
+bool interpreter_t::load_with_includes(
+    std::stringstream& source, int& ln, const std::string& base_dir, int depth)
+{
+    if (depth > 64)
+        return false; // guard against infinite include recursion
+
+    bool old_format = false;
+
+    // Detect format from the first non-shebang line
+    {
+        std::string first = read_line(source);
+        if (!first.empty() && first.size() >= 2 && first.substr(0, 2) == "#!")
+            first = read_line(source);
+
+        if (!first.empty()) {
+            tokenizer_t ltknzr(first);
+            if (!ltknzr.eol()) {
+                nu::token_t token(ltknzr.next());
+                skip_blank(ltknzr, token);
+                if (token.type() == tkncl_t::INTEGRAL)
+                    old_format = true;
+            }
+        }
+    }
+
+    source.clear();
+    source.seekg(0, std::ios::beg);
+
+    while (!source.eof() && !source.bad()) {
+        std::string line = read_line(source);
+
+        if (!line.empty() && ln == 0) {
+            // skip shebang on very first line of the top-level source
+            if (line.size() > 1 && line.substr(0, 2) == "#!") {
+                line = read_line(source);
+            }
+        }
+
+        if (line.empty() && source.eof())
+            break;
+
+        if (line.empty() && source.bad())
+            return false;
+
+        // Only process Include directives in new-format sources
+        if (!old_format) {
+            std::string inc_path = parse_include_directive(line);
+            if (!inc_path.empty()) {
+                if (find_builtin_module(inc_path) != nullptr) {
+                    if (!update_program("Using " + inc_path, ++ln))
+                        return false;
+
+                    _source_line[ln] = line;
+                    continue;
+                }
+
+                // Resolve relative to the including source's directory
+                if (!base_dir.empty() && !fs::path(inc_path).is_absolute()) {
+                    inc_path = (fs::path(base_dir) / inc_path).string();
+                }
+
+                FILE* inc_f = fopen(inc_path.c_str(), "r");
+                if (!inc_f)
+                    return false;
+
+                std::string inc_base
+                    = fs::path(inc_path).parent_path().string();
+                const bool saved_in_include = _prog_ctx.in_include_file;
+                _prog_ctx.in_include_file = true;
+                bool ok = load_with_includes(inc_f, ln, inc_base, depth + 1);
+                _prog_ctx.in_include_file = saved_in_include;
+                fclose(inc_f);
+                if (!ok)
+                    return false;
+
+                continue;
+            }
+        }
+
+        if ((!old_format || !line.empty())
+            && !update_program(line, old_format ? 0 : ++ln))
+            return false;
+    }
+
+    return true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 bool interpreter_t::load(const std::string& filepath)
 {
     FILE* f = fopen(filepath.c_str(), "r");
@@ -675,6 +774,15 @@ bool interpreter_t::load(const std::string& filepath)
     bool ok = load_with_includes(f, ln, base_dir);
     fclose(f);
     return ok;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool interpreter_t::load(std::stringstream& source, const std::string& base_dir)
+{
+    int ln = 0;
+    return load_with_includes(source, ln, base_dir);
 }
 
 
@@ -1186,15 +1294,15 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                 return exec_res_t::SYNTAX_ERROR;
             }
 
-            FILE* f = open_program_file(arg);
+            const std::string resolved = resolve_program_file(arg);
 
-            if (!f) {
+            if (resolved.empty()) {
                 return exec_res_t::IO_ERROR;
             }
 
             clear_all();
 
-            if (!load(f)) {
+            if (!load(resolved)) {
                 return exec_res_t::IO_ERROR;
             }
 
@@ -1462,12 +1570,10 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
     }
 
     // Try to load and exec filename
-    FILE* f = fopen(command.c_str(), "r");
-
-    if (f) {
+    if (can_open_program_file(command)) {
         clear_all();
 
-        if (load(f)) {
+        if (load(command)) {
             set_ignore_break_event(true);
             signal_mgr_t::instance().disable_notifications();
             bool res = run_main_or_default();
