@@ -31,3 +31,8 @@ Debug
 /build-fix/CMakeFiles
 /build-test-install
 /tests/nu_test_*.txt
+
+# VS Code extension (vscode-nubasic)
+vscode-nubasic/node_modules/
+vscode-nubasic/out/
+vscode-nubasic/*.vsix

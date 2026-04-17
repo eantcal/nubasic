@@ -425,3 +425,59 @@ elseif(NOT WIN32)
     VERBATIM
   )
 endif()
+
+# ---------------------------------------------------------------------------
+# VS Code extension (vscode-nubasic) — optional
+# Requires Node.js + npm. Emits a warning and skips if not found.
+#
+# Targets (grouped under "VSCode" in Solution Explorer):
+#   VscodeExtensionBuild   — npm install + compile TypeScript + package .vsix
+#   VscodeExtensionInstall — install the .vsix into the local VS Code instance
+# ---------------------------------------------------------------------------
+find_program(NODE_EXE node DOC "Node.js runtime (required for VS Code extension)")
+find_program(NPM_EXE  npm  DOC "npm (required for VS Code extension)")
+
+if(NOT NODE_EXE OR NOT NPM_EXE)
+  message(WARNING
+    "Node.js or npm not found — VS Code extension targets are disabled. "
+    "Install Node.js from https://nodejs.org to enable them.")
+else()
+  set(_ext_dir "${CMAKE_SOURCE_DIR}/vscode-nubasic")
+
+  add_custom_target(VscodeExtensionBuild
+    COMMAND "${NPM_EXE}" install
+    COMMAND "${NPM_EXE}" run package
+    WORKING_DIRECTORY "${_ext_dir}"
+    COMMENT "Building VS Code extension (vscode-nubasic)..."
+    VERBATIM
+  )
+  set_property(TARGET VscodeExtensionBuild PROPERTY FOLDER "VSCode")
+
+  # Locate the VS Code CLI to enable the install target
+  if(WIN32)
+    find_program(VSCODE_CLI
+      NAMES code.cmd
+      HINTS
+        "$ENV{LOCALAPPDATA}/Programs/Microsoft VS Code/bin"
+        "$ENV{ProgramFiles}/Microsoft VS Code/bin"
+      DOC "VS Code CLI (code.cmd)")
+  else()
+    find_program(VSCODE_CLI NAMES code code-insiders DOC "VS Code CLI")
+  endif()
+
+  if(NOT VSCODE_CLI)
+    message(WARNING
+      "VS Code CLI not found — VscodeExtensionInstall target is disabled. "
+      "Ensure 'code' (or code.cmd) is on PATH to enable it.")
+  else()
+    set(_vsix "${_ext_dir}/nubasic-0.1.0.vsix")
+    add_custom_target(VscodeExtensionInstall
+      COMMAND "${VSCODE_CLI}" --install-extension "${_vsix}" --force
+      WORKING_DIRECTORY "${_ext_dir}"
+      DEPENDS VscodeExtensionBuild
+      COMMENT "Installing VS Code extension into local VS Code..."
+      VERBATIM
+    )
+    set_property(TARGET VscodeExtensionInstall PROPERTY FOLDER "VSCode")
+  endif()
+endif()

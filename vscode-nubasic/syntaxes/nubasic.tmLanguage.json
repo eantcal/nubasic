@@ -1,0 +1,122 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "nuBASIC",
+  "scopeName": "source.nubasic",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#keywords-control" },
+    { "include": "#keywords-oop" },
+    { "include": "#keywords-types" },
+    { "include": "#keywords-builtin" },
+    { "include": "#keywords-operators" },
+    { "include": "#constants" },
+    { "include": "#functions" },
+    { "include": "#type-suffixes" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.apostrophe.nubasic",
+          "match": "'.*$"
+        },
+        {
+          "name": "comment.line.rem.nubasic",
+          "match": "(?i)\\bREM\\b.*$"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.nubasic",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": []
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.nubasic",
+          "match": "\\b0[xX][0-9A-Fa-f]+\\b"
+        },
+        {
+          "name": "constant.numeric.float.nubasic",
+          "match": "\\b\\d+\\.\\d*([eE][+-]?\\d+)?\\b"
+        },
+        {
+          "name": "constant.numeric.integer.nubasic",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    },
+    "keywords-control": {
+      "name": "keyword.control.nubasic",
+      "match": "(?i)\\b(if|then|else|elif|elseif|end|for|to|step|next|while|wend|do|loop|until|exit|return|goto|gosub|on|select|case|call|sub|function|stop|quit)\\b"
+    },
+    "keywords-oop": {
+      "name": "keyword.other.oop.nubasic",
+      "match": "(?i)\\b(class|new|public|protected|private|inherits|overridable|overrides|me|mybase|static|struct|type)\\b"
+    },
+    "keywords-types": {
+      "name": "storage.type.nubasic",
+      "match": "(?i)\\b(dim|redim|const|as|integer|double|float|boolean|string|long64|byte|any|object)\\b"
+    },
+    "keywords-builtin": {
+      "name": "support.function.nubasic",
+      "match": "(?i)\\b(print|input|open|close|read|write|data|restore|let|cls|line|rect|fillrect|ellipse|fillellipse|circle|textout|plotimage|setpixel|getpixel|rgb|locate|movewindow|screen|screenlock|screenunlock|refresh|shell|include|using|syntax|legacy|modern|erase|beep|sleep|delay|mdelay|msgbox|eval|help|apropos|ver|time|fopen|eof|ferror|ftell|fsize|mkdir|rmdir|chdir|pwd|getenv|setenv|unsetenv|getapppath|getplatid|getvkey|errno)\\b"
+    },
+    "keywords-operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.logical.nubasic",
+          "match": "(?i)\\b(and|or|xor|not|band|bor|bxor|bnot|bshl|bshr|mod|div)\\b"
+        },
+        {
+          "name": "keyword.operator.comparison.nubasic",
+          "match": "<>|<=|>=|<|>|="
+        },
+        {
+          "name": "keyword.operator.arithmetic.nubasic",
+          "match": "[+\\-*/^\\\\]"
+        }
+      ]
+    },
+    "constants": {
+      "name": "constant.language.nubasic",
+      "match": "(?i)\\b(true|false)\\b"
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "support.function.math.nubasic",
+          "match": "(?i)\\b(abs|acos|asin|atan|cos|exp|int|log|rnd|sin|sqr|sqrt|tan|max|min|conv|sizeof)\\b(?=\\s*\\()"
+        },
+        {
+          "name": "support.function.string.nubasic",
+          "match": "(?i)\\b(chr|asc|hex|len|left|right|mid|instr|instrcs|lcase|ucase|space|str|val|substr|pstr)\\b(?=\\s*\\()"
+        },
+        {
+          "name": "support.function.io.nubasic",
+          "match": "(?i)\\b(inkey|getmousex|getmousey|getmousebtn|getwindowx|getwindowy|getwindowdx|getwindowdy|getswidth|getsheight|systime|sysday|syshour|sysmin|syssec|sysyday|syswday|sysyear|sysmonth)\\b"
+        },
+        {
+          "name": "support.function.hash.nubasic",
+          "match": "(?i)\\b(hset|hget|hcnt|hchk|hdel)\\b(?=\\s*\\()"
+        },
+        {
+          "name": "entity.name.function.nubasic",
+          "match": "(?i)(?<=\\b(sub|function)\\s)\\w+"
+        }
+      ]
+    },
+    "type-suffixes": {
+      "patterns": [
+        {
+          "name": "storage.type.suffix.nubasic",
+          "match": "\\w+[%$](?![\\w(])"
+        }
+      ]
+    }
+  }
+}

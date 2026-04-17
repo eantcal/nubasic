@@ -1,0 +1,103 @@
+{
+  "name": "nubasic",
+  "displayName": "nuBASIC",
+  "description": "nuBASIC language support for Visual Studio Code",
+  "version": "0.1.0",
+  "publisher": "eantcal",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eantcal/nubasic"
+  },
+  "main": "./out/extension.js",
+"contributes": {
+    "languages": [
+      {
+        "id": "nubasic",
+        "aliases": [
+          "nuBASIC",
+          "nubasic"
+        ],
+        "extensions": [
+          ".bas"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "nubasic",
+        "scopeName": "source.nubasic",
+        "path": "./syntaxes/nubasic.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "nubasic.run",
+        "title": "Run nuBASIC File",
+        "icon": "$(play)",
+        "category": "nuBASIC"
+      },
+      {
+        "command": "nubasic.stop",
+        "title": "Stop nuBASIC",
+        "icon": "$(stop)",
+        "category": "nuBASIC"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "nubasic.run",
+        "key": "f5",
+        "when": "editorLangId == nubasic"
+      },
+      {
+        "command": "nubasic.stop",
+        "key": "shift+f5",
+        "when": "editorLangId == nubasic"
+      }
+    ],
+    "menus": {
+      "editor/title/run": [
+        {
+          "command": "nubasic.run",
+          "when": "editorLangId == nubasic",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "nubasic.run",
+          "when": "editorLangId == nubasic",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "nuBASIC",
+      "properties": {
+        "nubasic.executablePath": {
+          "type": "string",
+          "default": "nubasic",
+          "description": "Path to the nubasic executable. Defaults to 'nubasic' (must be in PATH)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "npm run compile && npx @vscode/vsce package --allow-missing-repository"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.75.0",
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}
