@@ -119,3 +119,6 @@ Bug reports and feature requests: antonino.calderone@gmail.com
 
 ![nuBASIC IDE on Linux/GTK](https://user-images.githubusercontent.com/13032534/27808819-69aaa2c2-6042-11e7-9132-675d1c71d162.png)
 
+<img width="1283" height="1305" alt="Visual Code extension" src="https://github.com/user-attachments/assets/d26871c2-adbc-4947-b63b-9059c44f8e59" />
+
+
