@@ -1024,6 +1024,34 @@ interpreter_t::exec_res_t interpreter_t::set_step_mode(bool on)
 
 /* -------------------------------------------------------------------------- */
 
+void interpreter_t::set_debug_mode(bool on) noexcept
+{
+    auto& ctx = get_rt_ctx();
+    ctx.debug_mode = on;
+    if (!on)
+        ctx.call_stack.clear();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool interpreter_t::get_debug_mode() const noexcept
+{
+    return _prog_ctx.debug_mode;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+const std::vector<rt_prog_ctx_t::call_frame_t>&
+interpreter_t::get_call_stack() const noexcept
+{
+    return _prog_ctx.call_stack;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 bool interpreter_t::get_fileparameter(tokenizer_t& tknzr, std::string& filename)
 {
     auto token = tknzr.next();
@@ -1345,6 +1373,25 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
             auto line = get_rt_ctx().runtime_pc.get_line();
             auto stmt_id = get_rt_ctx().runtime_pc.get_stmt_pos();
 
+            // If the last break fired inside an expression-called function the
+            // checkpoint mechanism restored runtime_pc to the call site, so
+            // continue_afterbrk(line) finds no breakpoint there and returns
+            // false — nothing would advance.  Instead: mark the real breakpoint
+            // as continue_after_break, suppress step mode so the function's
+            // re-execution (from its top) runs straight through without pausing
+            // again at intermediate lines, then restore step mode so the outer
+            // program resumes in whatever mode the caller expects.
+            const auto break_line = get_rt_ctx().last_break_line;
+            if (break_line > 0 && break_line != line) {
+                continue_afterbrk(break_line);
+                const bool was_step = get_rt_ctx().step_mode_active;
+                get_rt_ctx().step_mode_active = false;
+                if (!cont(line, stmt_id))
+                    rebuild();
+                get_rt_ctx().step_mode_active = was_step;
+                return exec_res_t::CMD_EXEC;
+            }
+
             if (line == 0 || continue_afterbrk(line)) {
                 if (!cont(line, stmt_id))
                     rebuild();
@@ -1606,6 +1653,9 @@ bool interpreter_t::run(runnable_t::line_num_t line)
         ~_guard_t() { _os_config_term(true); }
     } _guard;
 
+    _prog_ctx.call_stack.clear();
+    _prog_ctx.last_break_line = 0;
+
     program_t prog(_prog_line, _prog_ctx, false);
 
     if (_yield_cbk) {
@@ -1758,6 +1808,12 @@ bool interpreter_t::set_global_var(
 
 prog_pointer_t::line_number_t interpreter_t::get_cur_line_n() const noexcept
 {
+    // When a breakpoint fired inside an expression-called function the
+    // checkpoint mechanism restores runtime_pc to the call site; use the
+    // recorded break line instead so the IDE highlights the right source line.
+    if (_prog_ctx.last_break_line > 0)
+        return _prog_ctx.last_break_line;
+
     auto line = _prog_ctx.runtime_pc.get_line();
 
     if (line < 1) {

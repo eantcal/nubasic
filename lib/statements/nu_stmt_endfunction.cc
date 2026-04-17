@@ -103,6 +103,9 @@ void stmt_endfunction_t::run(rt_prog_ctx_t& ctx)
         const auto scope_name = ctx.proc_scope.get_scope_id();
         ctx.for_loop_tbl.cleanup_data(scope_name);
 
+        if (ctx.debug_mode && !ctx.call_stack.empty())
+            ctx.call_stack.pop_back();
+
         // Leave the function scope
         ctx.proc_scope.exit_scope();
 

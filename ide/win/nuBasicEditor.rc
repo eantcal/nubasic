@@ -58,6 +58,21 @@ BEGIN
    LTEXT           "Press OK to break running program", IDC_STATIC, 4, 4, 130, 11
 END
 
+IDD_FORMATTER DIALOGEX 0, 0, 220, 104
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Formatter Options"
+FONT 8, "Tahoma", 0, 0, 0x1
+BEGIN
+    LTEXT           "Indent size (spaces)", IDC_STATIC, 10, 14, 78, 8
+    EDITTEXT        IDC_FORMAT_INDENT_SIZE, 94, 11, 28, 14, ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Trim trailing whitespace", IDC_FORMAT_TRIM_TRAILING, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 10, 35, 115, 10
+    CONTROL         "Indent blank lines", IDC_FORMAT_INDENT_BLANK, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 10, 51, 95, 10
+    CONTROL         "Auto-indent new lines", IDC_FORMAT_AUTO_INDENT, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 10, 67, 105, 10
+    LTEXT           "Tabs are always inserted as spaces.", IDC_STATIC, 10, 84, 120, 8
+    DEFPUSHBUTTON   "OK", IDOK, 158, 10, 50, 14
+    PUSHBUTTON      "Cancel", IDCANCEL, 158, 28, 50, 14
+END
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // DESIGNINFO
@@ -107,6 +122,9 @@ BEGIN
         MENUITEM "&Delete\tDel",                IDM_EDIT_DELETE
         MENUITEM "Select A&ll\tCtrl+A",         IDM_EDIT_SELECTALL
         MENUITEM SEPARATOR
+        MENUITEM "Format &Selection\tCtrl+Shift+I", IDM_EDIT_FORMAT_SELECTION
+        MENUITEM "Format &Document\tCtrl+Shift+F", IDM_EDIT_FORMAT_DOCUMENT
+        MENUITEM SEPARATOR
         MENUITEM "&Zoom in\tF3",                IDM_ZOOM_IN
         MENUITEM "Z&oom out\tCtrl+F3",          IDM_ZOOM_OUT
 
@@ -121,6 +139,7 @@ BEGIN
         MENUITEM "Detach Console &Window",  IDM_CONSOLE_DETACH
         MENUITEM SEPARATOR
         MENUITEM "&Font...",                    IDM_SETTINGS_FONT
+        MENUITEM "For&matter...",               IDM_SETTINGS_FORMATTER
         MENUITEM SEPARATOR
         MENUITEM "&Reset default",              IDM_SETTINGS_RESETDEFAULTS
     END
@@ -194,6 +213,8 @@ BEGIN
     VK_F9,          IDM_DEBUG_TOGGLEBRK,    VIRTKEY, NOINVERT
     "B",            IDM_INTERPRETER_BUILD, VIRTKEY, CONTROL, NOINVERT
     "C",            IDM_EDIT_COPY,          VIRTKEY, CONTROL, NOINVERT
+    "F",            IDM_EDIT_FORMAT_DOCUMENT, VIRTKEY, CONTROL, SHIFT, NOINVERT
+    "I",            IDM_EDIT_FORMAT_SELECTION, VIRTKEY, CONTROL, SHIFT, NOINVERT
     "X",            IDM_EDIT_CUT,           VIRTKEY, CONTROL, NOINVERT
     VK_DELETE,      IDM_EDIT_DELETE,        VIRTKEY, NOINVERT
     "V",            IDM_EDIT_PASTE,         VIRTKEY, CONTROL, NOINVERT
@@ -257,4 +278,3 @@ IDI_NUBASIC_TOOLBAR            BITMAP                  "toolbar.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
-

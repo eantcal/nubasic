@@ -11,8 +11,10 @@
 # Test-file meta-comments (first 5 lines):
 #   ' ARGS: arg1 arg2   -- extra CLI args passed to the interpreter.
 #   ' OUTFILE: name.txt -- read test output from this file instead of stdout.
+#   ' COMMANDS: name.txt -- feed commands to the interactive interpreter.
 #   ' SKIP              -- skip this test with a note.
 #   ' EXPECT_ERROR: text  -- output must contain text.
+#   ' EXPECT_OUTPUT: a|b  -- output must contain all pipe-separated fragments.
 
 param(
     [string]$Interpreter = "",
@@ -86,17 +88,23 @@ foreach ($f in $TestFiles) {
     $ArgsLine = ""
     $OutFile = ""
     $Skip = ""
+    $CommandsFile = ""
     $ExpectError = ""
+    $ExpectOutput = ""
 
     foreach ($line in (Get-Content -Path $Path -TotalCount 5)) {
         if ($line -match "^\s*'\s*ARGS\s*:?\s*(.*)$") {
             $ArgsLine = $Matches[1].Trim()
         } elseif ($line -match "^\s*'\s*OUTFILE\s*:?\s*(.*)$") {
             $OutFile = $Matches[1].Trim()
+        } elseif ($line -match "^\s*'\s*COMMANDS\s*:?\s*(.*)$") {
+            $CommandsFile = $Matches[1].Trim()
         } elseif ($line -match "^\s*'\s*SKIP\s*:?\s*(.*)$") {
             $Skip = $Matches[1].Trim()
         } elseif ($line -match "^\s*'\s*EXPECT_ERROR\s*:?\s*(.*)$") {
             $ExpectError = $Matches[1].Trim()
+        } elseif ($line -match "^\s*'\s*EXPECT_OUTPUT\s*:?\s*(.*)$") {
+            $ExpectOutput = $Matches[1].Trim()
         }
     }
 
@@ -123,13 +131,22 @@ foreach ($f in $TestFiles) {
         $ExtraArgs = $ArgsLine -split "\s+"
     }
 
-    $CmdLine = '"' + $Interpreter + '" -t -e "' + $ExecPath + '"'
-    foreach ($arg in $ExtraArgs) {
-        $CmdLine += ' "' + ($arg -replace '"', '\"') + '"'
+    if ($CommandsFile -ne "") {
+        $CommandsPath = Join-Path $TestDir $CommandsFile
+        $CmdLine = '"' + $Interpreter + '" -t < "' + $CommandsPath + '"'
+    } else {
+        $CmdLine = '"' + $Interpreter + '" -t -e "' + $ExecPath + '"'
+        foreach ($arg in $ExtraArgs) {
+            $CmdLine += ' "' + ($arg -replace '"', '\"') + '"'
+        }
     }
     $CmdLine += ' > "' + $TempOut + '" 2>&1'
 
-    Push-Location $RepoRoot
+    if ($CommandsFile -ne "") {
+        Push-Location $TestDir
+    } else {
+        Push-Location $RepoRoot
+    }
     try {
         & cmd.exe /d /s /c $CmdLine | Out-Null
         $ExitCode = $LASTEXITCODE
@@ -160,6 +177,31 @@ foreach ($f in $TestFiles) {
         } else {
             Write-Host "  [EXPECTED ERROR FAIL] $Name  expected='$ExpectError' exit=$ExitCode"
             $TotalFail++
+            $SuiteFail++
+            $FailedSuites += $Name
+        }
+        continue
+    }
+
+    if ($ExpectOutput -ne "") {
+        $OutputText = (@($Output) -join "`n")
+        $ExpectedParts = $ExpectOutput -split "\|"
+        $MissingParts = @()
+
+        foreach ($ExpectedPart in $ExpectedParts) {
+            if ($OutputText.IndexOf($ExpectedPart, [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+                $MissingParts += $ExpectedPart
+            }
+        }
+
+        if ($MissingParts.Count -eq 0 -and $ExitCode -eq 0) {
+            Write-Host "  [EXPECTED OUTPUT PASS] $Name  ($($ExpectedParts.Count) assertions)"
+            $TotalPass += $ExpectedParts.Count
+            $SuitePass++
+        } else {
+            Write-Host "  [EXPECTED OUTPUT FAIL] $Name  missing='$($MissingParts -join ', ')' exit=$ExitCode"
+            $TotalFail += $MissingParts.Count
+            if ($ExitCode -ne 0) { $TotalFail++ }
             $SuiteFail++
             $FailedSuites += $Name
         }

@@ -178,6 +178,10 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
         cp_data.runtime_pc = _ctx.runtime_pc;
         cp_data.return_stack = _ctx.return_stack;
         _ctx.return_stack.clear();
+    } else {
+        // Fresh main-program run: clear any stale breakpoint line from a
+        // previous paused-inside-function stop.
+        _ctx.last_break_line = 0;
     }
 
     auto prog_ptr = _prog_line.begin();
@@ -225,17 +229,20 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
             _ctx.flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, false);
         }
 
+        const bool breakpoints_active = !_function_call || _ctx.debug_mode;
+
         if (prog_ptr->second.second.single_step_break_point
-            && !_function_call) {
+            && breakpoints_active) {
             prog_ptr->second.second.single_step_break_point = false;
 
             if (!global_proc_boundary) {
+                _ctx.last_break_line = prog_ptr->first;
                 _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
                 break;
             }
         }
 
-        if (prog_ptr->second.second.break_point && !_function_call
+        if (prog_ptr->second.second.break_point && breakpoints_active
             && !global_proc_boundary) {
             if (prog_ptr->second.second.condition_stmt != nullptr) {
                 prog_ptr->second.second.condition_stmt->run(_ctx);
@@ -244,6 +251,7 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
             }
 
             if (_ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST]) {
+                _ctx.last_break_line = prog_ptr->first;
                 break;
             }
         } else if (prog_ptr->second.second.continue_after_break) {

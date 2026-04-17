@@ -63,8 +63,17 @@ stmt_function_t::stmt_function_t(prog_ctx_t& ctx, const std::string& id)
     // Create an execution object (using a lamda)
     auto this_func = [](rt_prog_ctx_t& ctx, const std::string& name,
                          const func_args_t& args) -> variant_t {
+        // Track the call site for the debug call stack
+        if (ctx.debug_mode)
+            ctx.call_stack.push_back({ name, ctx.runtime_pc.get_line() });
+
         // Run the function
         ctx.program().run(name, args);
+
+        // If a debug breakpoint interrupted execution early, return empty
+        // rather than throwing — the outer run loop detects the break state.
+        if (ctx.debug_mode && ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST])
+            return variant_t();
 
         // Retrieve the return value
         const auto i = ctx.function_retval_tbl.find(name);

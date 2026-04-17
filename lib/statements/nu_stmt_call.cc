@@ -110,6 +110,11 @@ void stmt_call_t::run(
     ctx.go_to(i->second.first);
     ctx.proc_scope.enter_scope(_name, _fncall);
 
+    if (ctx.debug_mode) {
+        const auto call_line = (line != 0) ? line : ctx.runtime_pc.get_line();
+        ctx.call_stack.push_back({ _name, call_line });
+    }
+
     if (!function_prototype.ret_type.empty()) {
         auto sub_xscope = ctx.proc_scope.get();
         const auto vtype_code
@@ -170,7 +175,7 @@ void stmt_call_t::run(
         auto sub_xscope = ctx.proc_scope.get();
 
         for (auto values_it = values.cbegin(); values_it != values.cend();
-             ++values_it) {
+            ++values_it) {
             variant_t val = *values_it;
 
             const auto& variable_name = arg_it->var_name;

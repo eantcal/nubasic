@@ -31,6 +31,10 @@
 // menu closes (wParam: bit0=topmost, bit1=activate console).
 static const UINT g_wmPresentGdiConsole = WM_APP + 64;
 
+BOOL CALLBACK DlgProc_FormatOptions(HWND, UINT, WPARAM, LPARAM);
+static void save_settings(HWND hWnd);
+
+#include <cctype>
 #include <filesystem>
 #include <limits>
 #include <regex>
@@ -178,6 +182,16 @@ namespace {
         int highlight_length = 1;
     };
 
+    struct formatter_options_t {
+        int indent_size = 3;
+        bool trim_trailing_whitespace = true;
+        bool indent_blank_lines = false;
+        bool auto_indent = true;
+    };
+
+    static std::string normalize_newlines(const std::string& text);
+    static std::vector<std::string> split_lines(const std::string& text);
+
     static std::string trim_copy(const std::string& value)
     {
         const auto begin = value.find_first_not_of(" \t\r\n");
@@ -187,6 +201,204 @@ namespace {
 
         const auto end = value.find_last_not_of(" \t\r\n");
         return value.substr(begin, end - begin + 1);
+    }
+
+    static std::string rtrim_copy(const std::string& value)
+    {
+        const auto end = value.find_last_not_of(" \t\r\n");
+        return end == std::string::npos ? "" : value.substr(0, end + 1);
+    }
+
+    static std::string to_lower_ascii(std::string value)
+    {
+        for (auto& ch : value) {
+            ch = static_cast<char>(
+                std::tolower(static_cast<unsigned char>(ch)));
+        }
+
+        return value;
+    }
+
+    static int clamp_indent_size(int value) noexcept
+    {
+        return (std::max)(1, (std::min)(16, value));
+    }
+
+    static std::string make_indent(int level, int indent_size)
+    {
+        return std::string(
+            static_cast<size_t>((std::max)(0, level) * indent_size), ' ');
+    }
+
+    static bool starts_with_word(
+        const std::string& text, const std::string& word)
+    {
+        if (text.size() < word.size()
+            || text.compare(0, word.size(), word) != 0) {
+            return false;
+        }
+
+        return text.size() == word.size()
+            || !std::isalnum(static_cast<unsigned char>(text[word.size()]));
+    }
+
+    static std::string remove_line_number_prefix(const std::string& text)
+    {
+        size_t pos = 0;
+        while (pos < text.size()
+            && std::isdigit(static_cast<unsigned char>(text[pos]))) {
+            ++pos;
+        }
+
+        if (pos == 0
+            || (pos < text.size()
+                && !std::isspace(static_cast<unsigned char>(text[pos])))) {
+            return text;
+        }
+
+        while (pos < text.size()
+            && std::isspace(static_cast<unsigned char>(text[pos]))) {
+            ++pos;
+        }
+
+        return text.substr(pos);
+    }
+
+    static std::string remove_leading_modifiers(const std::string& text)
+    {
+        std::string result = text;
+
+        for (;;) {
+            const auto blank = result.find(' ');
+            const auto word
+                = blank == std::string::npos ? result : result.substr(0, blank);
+
+            if (word != "public" && word != "private" && word != "protected"
+                && word != "static" && word != "shared" && word != "overrides"
+                && word != "overridable") {
+                return result;
+            }
+
+            result = blank == std::string::npos
+                ? ""
+                : trim_copy(result.substr(blank + 1));
+        }
+    }
+
+    static std::string analysis_text(const std::string& line)
+    {
+        return remove_leading_modifiers(to_lower_ascii(
+            trim_copy(remove_line_number_prefix(trim_copy(line)))));
+    }
+
+    static bool is_comment_or_empty(const std::string& code)
+    {
+        return code.empty() || code[0] == '\'' || starts_with_word(code, "rem");
+    }
+
+    static bool is_block_if(const std::string& code)
+    {
+        if (!starts_with_word(code, "if")) {
+            return false;
+        }
+
+        const auto then_pos = code.rfind(" then");
+        if (then_pos == std::string::npos) {
+            return false;
+        }
+
+        const auto tail = trim_copy(code.substr(then_pos + 5));
+        return tail.empty() || tail[0] == '\'' || starts_with_word(tail, "rem");
+    }
+
+    static bool closes_block_before(const std::string& code)
+    {
+        return starts_with_word(code, "end") || starts_with_word(code, "else")
+            || starts_with_word(code, "elseif")
+            || starts_with_word(code, "case") || starts_with_word(code, "next")
+            || starts_with_word(code, "wend") || starts_with_word(code, "loop");
+    }
+
+    static bool opens_block_after(const std::string& code)
+    {
+        if (is_comment_or_empty(code) || starts_with_word(code, "end")
+            || starts_with_word(code, "next") || starts_with_word(code, "wend")
+            || starts_with_word(code, "loop")) {
+            return false;
+        }
+
+        return starts_with_word(code, "else")
+            || starts_with_word(code, "elseif")
+            || starts_with_word(code, "case") || starts_with_word(code, "for")
+            || starts_with_word(code, "while") || starts_with_word(code, "do")
+            || starts_with_word(code, "select") || starts_with_word(code, "sub")
+            || starts_with_word(code, "function")
+            || starts_with_word(code, "class") || starts_with_word(code, "type")
+            || starts_with_word(code, "struct") || is_block_if(code);
+    }
+
+    static std::string format_basic_source(const std::string& text,
+        const formatter_options_t& options, int initial_indent)
+    {
+        const auto normalized = normalize_newlines(text);
+        const bool ends_with_newline
+            = !normalized.empty() && normalized.back() == '\n';
+
+        auto lines = split_lines(normalized);
+        if (normalized.empty()) {
+            lines.clear();
+        }
+
+        std::string formatted;
+        int indent = (std::max)(0, initial_indent);
+
+        for (size_t i = 0; i < lines.size(); ++i) {
+            std::string code = options.trim_trailing_whitespace
+                ? rtrim_copy(lines[i])
+                : lines[i];
+            code = trim_copy(code);
+            const auto probe = analysis_text(code);
+
+            if (!is_comment_or_empty(probe) && closes_block_before(probe)) {
+                indent = (std::max)(0, indent - 1);
+            }
+
+            if (i > 0) {
+                formatted += "\r\n";
+            }
+
+            if (!code.empty() || options.indent_blank_lines) {
+                formatted += make_indent(indent, options.indent_size);
+                formatted += code;
+            }
+
+            if (!is_comment_or_empty(probe) && opens_block_after(probe)) {
+                ++indent;
+            }
+        }
+
+        if (ends_with_newline) {
+            formatted += "\r\n";
+        }
+
+        return formatted;
+    }
+
+    static int next_indent_level_after_line(
+        const std::string& line, int current_indent)
+    {
+        const auto code = analysis_text(line);
+        int indent = current_indent;
+
+        if (!is_comment_or_empty(code) && closes_block_before(code)) {
+            indent = (std::max)(0, indent - 1);
+        }
+
+        if (!is_comment_or_empty(code) && opens_block_after(code)) {
+            ++indent;
+        }
+
+        return indent;
     }
 
     static std::string normalize_newlines(const std::string& text)
@@ -437,8 +649,6 @@ namespace {
 
 } // namespace
 
-
-/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 
@@ -1110,6 +1320,30 @@ public:
 
 
     /**
+     * Format current selection or current line if no text is selected.
+     */
+    void format_selection();
+
+    /**
+     * Format the whole document.
+     */
+    void format_document();
+
+    /**
+     * Show formatter options dialog.
+     */
+    void show_formatter_options_dialog();
+
+    const formatter_options_t& formatter_options() const noexcept
+    {
+        return _formatter_options;
+    }
+
+    void set_formatter_options(const formatter_options_t& options) noexcept;
+
+    void apply_formatter_options() noexcept;
+
+    /**
      * Replace a text in a selection or in the complete file multiple times
      * \return number of replacements
      */
@@ -1283,6 +1517,11 @@ public:
         bool topmost, bool activate_console);
 
     /**
+     * Indent the current line after Enter inserts a new one.
+     */
+    void auto_indent_current_line();
+
+    /**
      * Send a command to interpreter
      */
     bool exec_interpreter_cmd(const std::string& cmd, bool bgmode);
@@ -1341,6 +1580,7 @@ protected:
     bool _pending_rebuild = false; // set when user asks to stop-and-rebuild
     std::string _pending_open_file; // non-empty: open this file after stop
     debug_stop_t _last_debug_stop = debug_stop_t::NONE;
+    formatter_options_t _formatter_options;
 
     int _goto_line = 0;
     std::string _command_line;
@@ -1956,6 +2196,197 @@ std::string nu::editor_t::get_selection()
 
 /* -------------------------------------------------------------------------- */
 
+void nu::editor_t::apply_formatter_options() noexcept
+{
+    _formatter_options.indent_size
+        = clamp_indent_size(_formatter_options.indent_size);
+
+    if (!_hwnd_editor) {
+        return;
+    }
+
+    send_command(SCI_SETTABWIDTH, _formatter_options.indent_size, 0);
+    send_command(SCI_SETINDENT, _formatter_options.indent_size, 0);
+    send_command(SCI_SETUSETABS, 0, 0);
+    send_command(SCI_SETTABINDENTS, 1, 0);
+    send_command(SCI_SETBACKSPACEUNINDENTS, 1, 0);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::set_formatter_options(
+    const formatter_options_t& options) noexcept
+{
+    _formatter_options = options;
+    apply_formatter_options();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::show_formatter_options_dialog()
+{
+    DialogBox(_hInstance, MAKEINTRESOURCE(IDD_FORMATTER), _hwnd_main,
+        (DLGPROC)::DlgProc_FormatOptions);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::format_document()
+{
+    const auto line_count = get_line_count();
+    if (line_count <= 0) {
+        return;
+    }
+
+    const auto start = long(send_command(SCI_POSITIONFROMLINE, 0, 0));
+    const auto end = long(send_command(SCI_GETTEXTLENGTH, 0, 0));
+
+    std::vector<char> source(static_cast<size_t>(end - start) + 1, '\0');
+    get_text_range(start, end, source.data());
+
+    const std::string original(source.data(), static_cast<size_t>(end - start));
+    const auto formatted = format_basic_source(original, _formatter_options, 0);
+
+    if (formatted == original) {
+        return;
+    }
+
+    send_command(SCI_BEGINUNDOACTION);
+    send_command(SCI_SETTARGETSTART, start, 0);
+    send_command(SCI_SETTARGETEND, end, 0);
+    send_command(
+        SCI_REPLACETARGET, formatted.size(), (LPARAM)formatted.c_str());
+    send_command(SCI_ENDUNDOACTION);
+    send_command(SCI_SETSEL, start, start + formatted.size());
+    set_dirty_flag();
+    refresh();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::format_selection()
+{
+    const auto line_count = get_line_count();
+    if (line_count <= 0) {
+        return;
+    }
+
+    long sel_start = long(get_selection_begin());
+    long sel_end = long(get_selection_end());
+
+    int first_line = 0;
+    int last_line = 0;
+
+    if (sel_start == sel_end) {
+        first_line = last_line
+            = int(send_command(SCI_LINEFROMPOSITION, sel_start, 0));
+    } else {
+        if (sel_end < sel_start) {
+            std::swap(sel_start, sel_end);
+        }
+
+        first_line = int(send_command(SCI_LINEFROMPOSITION, sel_start, 0));
+        last_line = int(send_command(SCI_LINEFROMPOSITION, sel_end, 0));
+
+        if (sel_end > sel_start
+            && sel_end
+                == long(send_command(SCI_POSITIONFROMLINE, last_line, 0))) {
+            --last_line;
+        }
+    }
+
+    first_line = (std::max)(0, first_line);
+    last_line = (std::min)(line_count - 1, (std::max)(first_line, last_line));
+
+    auto get_line = [this](int line) {
+        const auto len = int(send_command(SCI_LINELENGTH, line, 0));
+        std::vector<char> buffer(static_cast<size_t>(len) + 1, '\0');
+        send_command(
+            SCI_GETLINE, line, reinterpret_cast<LPARAM>(buffer.data()));
+        return std::string(buffer.data(), static_cast<size_t>(len));
+    };
+
+    int initial_indent = 0;
+    for (int line = 0; line < first_line; ++line) {
+        initial_indent
+            = next_indent_level_after_line(get_line(line), initial_indent);
+    }
+
+    const auto start = long(send_command(SCI_POSITIONFROMLINE, first_line, 0));
+    const auto end = last_line + 1 < line_count
+        ? long(send_command(SCI_POSITIONFROMLINE, last_line + 1, 0))
+        : long(send_command(SCI_GETTEXTLENGTH, 0, 0));
+
+    std::vector<char> source(static_cast<size_t>(end - start) + 1, '\0');
+    get_text_range(start, end, source.data());
+
+    const std::string original(source.data(), static_cast<size_t>(end - start));
+    const auto formatted
+        = format_basic_source(original, _formatter_options, initial_indent);
+
+    if (formatted == original) {
+        return;
+    }
+
+    send_command(SCI_BEGINUNDOACTION);
+    send_command(SCI_SETTARGETSTART, start, 0);
+    send_command(SCI_SETTARGETEND, end, 0);
+    send_command(
+        SCI_REPLACETARGET, formatted.size(), (LPARAM)formatted.c_str());
+    send_command(SCI_ENDUNDOACTION);
+    send_command(SCI_SETSEL, start, start + formatted.size());
+    set_dirty_flag();
+    refresh();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::auto_indent_current_line()
+{
+    if (!_formatter_options.auto_indent) {
+        return;
+    }
+
+    const auto current_pos = long(send_command(SCI_GETCURRENTPOS, 0, 0));
+    const auto current_line
+        = int(send_command(SCI_LINEFROMPOSITION, current_pos, 0));
+
+    if (current_line <= 0) {
+        return;
+    }
+
+    auto get_line = [this](int line) {
+        const auto len = int(send_command(SCI_LINELENGTH, line, 0));
+        std::vector<char> buffer(static_cast<size_t>(len) + 1, '\0');
+        send_command(
+            SCI_GETLINE, line, reinterpret_cast<LPARAM>(buffer.data()));
+        return std::string(buffer.data(), static_cast<size_t>(len));
+    };
+
+    if (!trim_copy(get_line(current_line)).empty()) {
+        return;
+    }
+
+    int indent = 0;
+    for (int line = 0; line < current_line; ++line) {
+        indent = next_indent_level_after_line(get_line(line), indent);
+    }
+
+    const auto spaces = make_indent(indent, _formatter_options.indent_size);
+    if (!spaces.empty()) {
+        send_command(
+            SCI_REPLACESEL, 0, reinterpret_cast<LPARAM>(spaces.c_str()));
+    }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 int nu::editor_t::replace_all(
     LPCSTR szFind, LPCSTR szReplace, BOOL bUseSelection)
 {
@@ -2278,6 +2709,8 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
         return;
     }
 
+    interpreter().set_debug_mode(true);
+
     reset_all_breakpoints();
     remove_prog_cnt_marker();
     _last_debug_stop = debug_stop_t::COMPLETED;
@@ -2314,16 +2747,32 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
     switch (_last_debug_stop) {
     case debug_stop_t::PAUSED:
         show_execution_point(interpreter().get_cur_line_n());
+        if (g_tab_container) {
+            const auto& frames = interpreter().get_call_stack();
+            std::vector<std::pair<std::string, int>> frame_list;
+            frame_list.reserve(frames.size());
+            for (const auto& f : frames)
+                frame_list.emplace_back(
+                    f.func_name, static_cast<int>(f.call_site_line));
+            g_tab_container->update_call_stack(frame_list);
+            if (!frames.empty())
+                g_tab_container->switch_to_tab(
+                    tab_container_t::tab_id_t::CALLSTACK);
+        }
         break;
 
     case debug_stop_t::RUNTIME_ERROR:
         show_execution_point(
             interpreter().get_cur_line_n(), kRuntimeErrorLineBack);
+        if (g_tab_container)
+            g_tab_container->clear_call_stack();
         break;
 
     case debug_stop_t::COMPLETED:
     case debug_stop_t::NONE:
         remove_prog_cnt_marker();
+        if (g_tab_container)
+            g_tab_container->clear_call_stack();
         break;
     }
 }
@@ -3425,6 +3874,67 @@ BOOL CALLBACK DlgProc_GotoLine(
 }
 
 
+BOOL CALLBACK DlgProc_FormatOptions(
+    HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (Msg) {
+    case WM_INITDIALOG: {
+        const auto& options = g_editor.formatter_options();
+        SetDlgItemInt(hWnd, IDC_FORMAT_INDENT_SIZE,
+            static_cast<UINT>(options.indent_size), FALSE);
+        CheckDlgButton(hWnd, IDC_FORMAT_TRIM_TRAILING,
+            options.trim_trailing_whitespace ? BST_CHECKED : BST_UNCHECKED);
+        CheckDlgButton(hWnd, IDC_FORMAT_INDENT_BLANK,
+            options.indent_blank_lines ? BST_CHECKED : BST_UNCHECKED);
+        CheckDlgButton(hWnd, IDC_FORMAT_AUTO_INDENT,
+            options.auto_indent ? BST_CHECKED : BST_UNCHECKED);
+        return TRUE;
+    }
+
+    case WM_COMMAND:
+        switch (LOWORD(wParam)) {
+        case IDOK: {
+            BOOL ok = FALSE;
+            const UINT indent_size
+                = GetDlgItemInt(hWnd, IDC_FORMAT_INDENT_SIZE, &ok, FALSE);
+            if (!ok || indent_size < 1 || indent_size > 16) {
+                MessageBox(hWnd, "Indent size must be between 1 and 16.",
+                    "Formatter Options", MB_ICONWARNING | MB_OK);
+                return TRUE;
+            }
+
+            auto options = g_editor.formatter_options();
+            options.indent_size = static_cast<int>(indent_size);
+            options.trim_trailing_whitespace
+                = IsDlgButtonChecked(hWnd, IDC_FORMAT_TRIM_TRAILING)
+                == BST_CHECKED;
+            options.indent_blank_lines
+                = IsDlgButtonChecked(hWnd, IDC_FORMAT_INDENT_BLANK)
+                == BST_CHECKED;
+            options.auto_indent
+                = IsDlgButtonChecked(hWnd, IDC_FORMAT_AUTO_INDENT)
+                == BST_CHECKED;
+
+            g_editor.set_formatter_options(options);
+            save_settings(g_editor.get_main_hwnd());
+            EndDialog(hWnd, IDOK);
+            break;
+        }
+
+        case IDCANCEL:
+            EndDialog(hWnd, IDCANCEL);
+            break;
+        }
+        break;
+
+    default:
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+
 //------------------------------------------------------------------------------
 
 void nu::editor_t::exec_command(int id)
@@ -3480,6 +3990,14 @@ void nu::editor_t::exec_command(int id)
 
     case IDM_EDIT_SELECTALL:
         send_command(SCI_SELECTALL);
+        break;
+
+    case IDM_EDIT_FORMAT_SELECTION:
+        format_selection();
+        break;
+
+    case IDM_EDIT_FORMAT_DOCUMENT:
+        format_document();
         break;
 
     case IDM_INTERPRETER_BUILD:
@@ -3677,7 +4195,12 @@ void nu::editor_t::exec_command(int id)
         break;
     }
 
+    case IDM_SETTINGS_FORMATTER:
+        show_formatter_options_dialog();
+        break;
+
     case IDM_SETTINGS_RESETDEFAULTS:
+        g_editor.set_formatter_options(formatter_options_t());
         g_editor.init_editor(EDITOR_DEF_FONT, EDITOR_DEF_SIZE);
         break;
 
@@ -3785,6 +4308,8 @@ void nu::editor_t::check_menus()
     enable_menu_item(IDM_EDIT_UNDO, send_command(EM_CANUNDO) != FALSE);
     enable_menu_item(IDM_EDIT_REDO, send_command(SCI_CANREDO) != FALSE);
     enable_menu_item(IDM_EDIT_PASTE, send_command(EM_CANPASTE) != FALSE);
+    enable_menu_item(IDM_EDIT_FORMAT_SELECTION, !_program_running);
+    enable_menu_item(IDM_EDIT_FORMAT_DOCUMENT, !_program_running);
 }
 
 
@@ -3837,6 +4362,9 @@ void nu::editor_t::notify(SCNotification* notification)
         break;
 
     case SCN_CHARADDED:
+        if (notification->ch == '\n') {
+            auto_indent_current_line();
+        }
         break;
 
     case SCN_MODIFYATTEMPTRO:
@@ -3922,10 +4450,8 @@ void nu::editor_t::init_editor(const std::string& fontname, const int height)
     // a code block to the end of the block
     send_command(SCI_SETINDENTATIONGUIDES, TRUE, 0);
 
-    send_command(SCI_SETTABWIDTH, DEF_TABWIDTH, 0);
-    send_command(SCI_SETINDENT, DEF_INDENT, 0);
     send_command(SCI_SETCARETPERIOD, DEF_CARETPERIOD, 0);
-    send_command(SCI_SETUSETABS, 0, 0L);
+    apply_formatter_options();
     // SCI_SETLEXER was removed in Scintilla 5.x.
     // Use the Lexilla API: get CreateLexer from the loaded DLL, then
     // SCI_SETILEXER.
@@ -4058,6 +4584,8 @@ void nu::editor_t::init_editor(const std::string& fontname, const int height)
         clearKey('N', SCMOD_CTRL); // Ctrl+N  → IDM_FILE_NEW
         clearKey('O', SCMOD_CTRL); // Ctrl+O  → IDM_FILE_OPEN
         clearKey('S', SCMOD_CTRL); // Ctrl+S  → IDM_FILE_SAVE
+        clearKey('F', SCMOD_CTRL | SCMOD_SHIFT);
+        clearKey('I', SCMOD_CTRL | SCMOD_SHIFT);
     }
 
     // Refresh style
@@ -4490,6 +5018,24 @@ static void save_settings(HWND hWnd)
     RegSetValueExA(hk, "ConsoleDetached", 0, REG_DWORD,
         reinterpret_cast<const BYTE*>(&detached), sizeof(detached));
 
+    const auto& formatter = g_editor.formatter_options();
+    DWORD formatterIndent = static_cast<DWORD>(formatter.indent_size);
+    DWORD formatterTrim = formatter.trim_trailing_whitespace ? 1 : 0;
+    DWORD formatterIndentBlank = formatter.indent_blank_lines ? 1 : 0;
+    DWORD formatterAutoIndent = formatter.auto_indent ? 1 : 0;
+
+    RegSetValueExA(hk, "FormatterIndentSize", 0, REG_DWORD,
+        reinterpret_cast<const BYTE*>(&formatterIndent),
+        sizeof(formatterIndent));
+    RegSetValueExA(hk, "FormatterTrimTrailing", 0, REG_DWORD,
+        reinterpret_cast<const BYTE*>(&formatterTrim), sizeof(formatterTrim));
+    RegSetValueExA(hk, "FormatterIndentBlank", 0, REG_DWORD,
+        reinterpret_cast<const BYTE*>(&formatterIndentBlank),
+        sizeof(formatterIndentBlank));
+    RegSetValueExA(hk, "FormatterAutoIndent", 0, REG_DWORD,
+        reinterpret_cast<const BYTE*>(&formatterAutoIndent),
+        sizeof(formatterAutoIndent));
+
     RegCloseKey(hk);
 }
 
@@ -4540,6 +5086,38 @@ static void load_settings(HWND hWnd)
         && detached) {
         PostMessage(hWnd, WM_COMMAND, MAKEWPARAM(IDM_CONSOLE_DETACH, 0), 0);
     }
+
+    auto formatter = g_editor.formatter_options();
+    DWORD formatterValue = 0;
+    sz = sizeof(formatterValue);
+    if (RegQueryValueExA(hk, "FormatterIndentSize", nullptr, nullptr,
+            reinterpret_cast<BYTE*>(&formatterValue), &sz)
+        == ERROR_SUCCESS) {
+        formatter.indent_size = static_cast<int>(formatterValue);
+    }
+
+    sz = sizeof(formatterValue);
+    if (RegQueryValueExA(hk, "FormatterTrimTrailing", nullptr, nullptr,
+            reinterpret_cast<BYTE*>(&formatterValue), &sz)
+        == ERROR_SUCCESS) {
+        formatter.trim_trailing_whitespace = formatterValue != 0;
+    }
+
+    sz = sizeof(formatterValue);
+    if (RegQueryValueExA(hk, "FormatterIndentBlank", nullptr, nullptr,
+            reinterpret_cast<BYTE*>(&formatterValue), &sz)
+        == ERROR_SUCCESS) {
+        formatter.indent_blank_lines = formatterValue != 0;
+    }
+
+    sz = sizeof(formatterValue);
+    if (RegQueryValueExA(hk, "FormatterAutoIndent", nullptr, nullptr,
+            reinterpret_cast<BYTE*>(&formatterValue), &sz)
+        == ERROR_SUCCESS) {
+        formatter.auto_indent = formatterValue != 0;
+    }
+
+    g_editor.set_formatter_options(formatter);
 
     RegCloseKey(hk);
 }

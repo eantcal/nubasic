@@ -11,6 +11,7 @@
 #include "textinfobox.h"
 
 #include <cassert>
+#include <commctrl.h>
 
 /* -------------------------------------------------------------------------- */
 
@@ -32,6 +33,28 @@ tab_container_t::tab_container_t(HWND hwnd_parent, HINSTANCE hinstance)
 
     // ---- Output infobox (rich-edit) ----------------------------------------
     _infobox = new txtinfobox_t(_hwnd_parent, _hinstance);
+
+    // ---- Call Stack ListView -----------------------------------------------
+    _hwnd_callstack = CreateWindowExW(0, WC_LISTVIEWW, L"",
+        WS_CHILD | WS_CLIPSIBLINGS | LVS_REPORT | LVS_NOSORTHEADER
+            | LVS_SHOWSELALWAYS,
+        0, 0, 0, 0, _hwnd_parent, nullptr, _hinstance, nullptr);
+    if (_hwnd_callstack) {
+        ListView_SetExtendedListViewStyle(
+            _hwnd_callstack, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+        LVCOLUMNW col = {};
+        col.mask = LVCF_TEXT | LVCF_WIDTH;
+        wchar_t fn[] = L"Function";
+        col.pszText = fn;
+        col.cx = 240;
+        SendMessageW(_hwnd_callstack, LVM_INSERTCOLUMNW, 0,
+            reinterpret_cast<LPARAM>(&col));
+        wchar_t ln[] = L"Called from line";
+        col.pszText = ln;
+        col.cx = 120;
+        SendMessageW(_hwnd_callstack, LVM_INSERTCOLUMNW, 1,
+            reinterpret_cast<LPARAM>(&col));
+    }
 
     // ---- GDI console (embedded) --------------------------------------------
     if (!nu_winconsole_is_active()) {
@@ -76,18 +99,68 @@ tab_container_t::~tab_container_t()
 
 /* -------------------------------------------------------------------------- */
 
+void tab_container_t::insert_tab_item(
+    int index, const wchar_t* text, tab_id_t id)
+{
+    TCITEMW tie = {};
+    tie.mask = TCIF_TEXT | TCIF_PARAM;
+    tie.pszText = const_cast<wchar_t*>(text);
+    tie.lParam = static_cast<LPARAM>(id);
+    SendMessageW(_hwnd_tab, TCM_INSERTITEMW, static_cast<WPARAM>(index),
+        reinterpret_cast<LPARAM>(&tie));
+}
+
 void tab_container_t::create_tab_items()
 {
-    TCITEMW tie;
-    tie.mask = TCIF_TEXT;
+    insert_tab_item(0, L"Output", tab_id_t::OUTPUT);
+    insert_tab_item(1, L"Console", tab_id_t::CONSOLE);
+    insert_tab_item(2, L"Call Stack", tab_id_t::CALLSTACK);
+}
 
-    wchar_t output_text[] = L"Output";
-    tie.pszText = output_text;
-    SendMessageW(_hwnd_tab, TCM_INSERTITEMW, 0, (LPARAM)&tie);
+tab_container_t::tab_id_t tab_container_t::tab_id_at(int sel) const
+{
+    if (sel < 0)
+        return tab_id_t::OUTPUT;
+    TCITEMW item = {};
+    item.mask = TCIF_PARAM;
+    TabCtrl_GetItem(_hwnd_tab, sel, &item);
+    return static_cast<tab_id_t>(item.lParam);
+}
 
-    wchar_t console_text[] = L"Console";
-    tie.pszText = console_text;
-    SendMessageW(_hwnd_tab, TCM_INSERTITEMW, 1, (LPARAM)&tie);
+/* -------------------------------------------------------------------------- */
+
+void tab_container_t::update_call_stack(
+    const std::vector<std::pair<std::string, int>>& frames)
+{
+    if (!_hwnd_callstack)
+        return;
+
+    ListView_DeleteAllItems(_hwnd_callstack);
+
+    int row = 0;
+    for (auto it = frames.rbegin(); it != frames.rend(); ++it, ++row) {
+        LVITEMW lvi = {};
+        lvi.mask = LVIF_TEXT;
+        lvi.iItem = row;
+
+        std::wstring name(it->first.begin(), it->first.end());
+        lvi.pszText = name.data();
+        SendMessageW(_hwnd_callstack, LVM_INSERTITEMW, 0,
+            reinterpret_cast<LPARAM>(&lvi));
+
+        std::wstring line_str = std::to_wstring(it->second);
+        LVITEMW lvi_sub = {};
+        lvi_sub.iSubItem = 1;
+        lvi_sub.pszText = line_str.data();
+        SendMessageW(_hwnd_callstack, LVM_SETITEMTEXTW,
+            static_cast<WPARAM>(row), reinterpret_cast<LPARAM>(&lvi_sub));
+    }
+}
+
+void tab_container_t::clear_call_stack()
+{
+    if (_hwnd_callstack)
+        ListView_DeleteAllItems(_hwnd_callstack);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -122,6 +195,9 @@ void tab_container_t::layout_content(const RECT& rc)
 
     if (_hwnd_console && !_console_detached)
         MoveWindow(_hwnd_console, x, y, cx, cy, TRUE);
+
+    if (_hwnd_callstack)
+        MoveWindow(_hwnd_callstack, x, y, cx, cy, TRUE);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -129,15 +205,16 @@ void tab_container_t::layout_content(const RECT& rc)
 void tab_container_t::update_visibility()
 {
     bool show_output = (_current_tab == tab_id_t::OUTPUT);
+    bool show_callstack = (_current_tab == tab_id_t::CALLSTACK);
 
     if (_infobox)
         ShowWindow(_infobox->get_hwnd(), show_output ? SW_SHOW : SW_HIDE);
 
+    if (_hwnd_callstack)
+        ShowWindow(_hwnd_callstack, show_callstack ? SW_SHOW : SW_HIDE);
+
     if (_hwnd_console) {
         if (_console_detached) {
-            // Detached mode removes the Console tab; _current_tab stays OUTPUT.
-            // Every arrange()/resize must keep the free console visible — do
-            // not gate on CONSOLE tab (that index no longer exists).
             ShowWindow(_hwnd_console, SW_SHOW);
         } else {
             bool show_console = (_current_tab == tab_id_t::CONSOLE);
@@ -168,6 +245,9 @@ void tab_container_t::arrange(WORD x_pos, WORD y_pos, WORD dx, WORD dy)
     if (_current_tab == tab_id_t::CONSOLE && _hwnd_console
         && !_console_detached)
         InvalidateRect(_hwnd_console, nullptr, TRUE);
+
+    if (_current_tab == tab_id_t::CALLSTACK && _hwnd_callstack)
+        InvalidateRect(_hwnd_callstack, nullptr, TRUE);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -188,7 +268,7 @@ void tab_container_t::on_notify(LPNMHDR pnmhdr)
     if (pnmhdr->hwndFrom == _hwnd_tab && pnmhdr->code == TCN_SELCHANGE) {
         int sel = TabCtrl_GetCurSel(_hwnd_tab);
         if (sel >= 0)
-            switch_to_tab(static_cast<tab_id_t>(sel));
+            switch_to_tab(tab_id_at(sel));
     }
 }
 
@@ -259,12 +339,8 @@ void tab_container_t::toggle_console_detach()
                 | SWP_NOACTIVATE);
 
         // Re-insert the Console tab at its original position (index 1).
-        TCITEMW tie;
-        tie.mask = TCIF_TEXT;
-        wchar_t console_text[] = L"Console";
-        tie.pszText = console_text;
-        SendMessageW(_hwnd_tab, TCM_INSERTITEMW,
-            static_cast<int>(tab_id_t::CONSOLE), (LPARAM)&tie);
+        insert_tab_item(
+            static_cast<int>(tab_id_t::CONSOLE), L"Console", tab_id_t::CONSOLE);
 
         RECT rc = display_rect_in_parent();
         layout_content(rc);

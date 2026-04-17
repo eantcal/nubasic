@@ -11,21 +11,22 @@
 
 #include "stdafx.h"
 #include <string>
+#include <utility>
+#include <vector>
 
 class txtinfobox_t;
 
 /* -------------------------------------------------------------------------- */
 
-//! Bottom panel with "Output" and "Console" tabs.
+//! Bottom panel with "Output", "Console" and "Call Stack" tabs.
 //
-// Output tab  — txtinfobox_t (rich-edit) showing interpreter messages.
-// Console tab — nuBASIC GDI console.  The console is created via
-// nu_winconsole_init() so that nu_winconsole_write() /
-// nu_winconsole_read_line() target the same window that is embedded here.
+// Output tab     — txtinfobox_t (rich-edit) showing interpreter messages.
+// Console tab    — nuBASIC GDI console.
+// Call Stack tab — ListView showing the debug call stack (debug_mode only).
 
 class tab_container_t {
 public:
-    enum class tab_id_t { OUTPUT = 0, CONSOLE = 1 };
+    enum class tab_id_t { OUTPUT = 0, CONSOLE = 1, CALLSTACK = 2 };
 
     tab_container_t(HWND hwnd_parent, HINSTANCE hinstance);
     ~tab_container_t();
@@ -45,6 +46,11 @@ public:
     /* Access child controls */
     txtinfobox_t* get_infobox() { return _infobox; }
 
+    /* Call Stack tab — frames as (func_name, call_site_line) pairs */
+    void update_call_stack(
+        const std::vector<std::pair<std::string, int>>& frames);
+    void clear_call_stack();
+
     /* WM_NOTIFY forwarding */
     void on_notify(LPNMHDR pnmhdr);
 
@@ -56,6 +62,8 @@ public:
 
 private:
     void create_tab_items();
+    void insert_tab_item(int index, const wchar_t* text, tab_id_t id);
+    tab_id_t tab_id_at(int sel) const;
     void layout_content(const RECT& display_rc_in_parent);
     void update_visibility();
     // Returns the display area inside the tab strip, in PARENT-client
@@ -69,6 +77,7 @@ private:
     txtinfobox_t* _infobox;
 
     HWND _hwnd_console; // owned by nu_winconsole_api
+    HWND _hwnd_callstack = nullptr; // ListView for Call Stack tab
     bool _console_detached = false;
 
     tab_id_t _current_tab;

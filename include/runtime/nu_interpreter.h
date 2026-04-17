@@ -132,6 +132,17 @@ public:
     exec_res_t exec_command(const std::string& cmd);
     std::string version();
 
+    // Enable/disable debug mode.
+    // In debug mode breakpoints fire even inside function calls from
+    // expressions; the call_stack in rt_prog_ctx_t is maintained.
+    void set_debug_mode(bool on) noexcept;
+    bool get_debug_mode() const noexcept;
+
+    // Returns the current user-visible call stack (only populated in debug
+    // mode).
+    const std::vector<rt_prog_ctx_t::call_frame_t>&
+    get_call_stack() const noexcept;
+
     prog_pointer_t::line_number_t get_cur_line_n() const noexcept;
     prog_pointer_t::line_number_t get_last_line_n() const noexcept;
 
@@ -139,8 +150,13 @@ public:
 
     bool is_breakpoint_active() const noexcept
     {
-        return _breakpoints.find(_prog_ctx.runtime_pc.get_line())
-            != _breakpoints.end();
+        // Prefer last_break_line: it records where a breakpoint actually fired
+        // even when runtime_pc was restored to the call site by the
+        // function-call checkpoint mechanism.
+        const auto line = _prog_ctx.last_break_line > 0
+            ? _prog_ctx.last_break_line
+            : _prog_ctx.runtime_pc.get_line();
+        return _breakpoints.find(line) != _breakpoints.end();
     }
 
     bool is_stop_stmt_line() const noexcept

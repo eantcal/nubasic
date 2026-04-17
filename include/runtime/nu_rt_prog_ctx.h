@@ -113,6 +113,26 @@ public:
     using byref_entry_t = std::pair<std::string, std::string>;
     std::deque<std::vector<byref_entry_t>> byref_writeback_stack;
 
+    // Debug mode: when true, breakpoints fire even inside function calls
+    // triggered from expressions (i.e. when _function_call==true in program_t).
+    bool debug_mode = false;
+
+    // User-visible call stack populated only when debug_mode is true.
+    // Each frame is pushed on Sub/Function entry and popped on End
+    // Sub/Function.
+    struct call_frame_t {
+        std::string func_name;
+        prog_pointer_t::line_number_t call_site_line = 0;
+    };
+    std::vector<call_frame_t> call_stack;
+
+    // Line number where the last breakpoint actually fired.  Used when a
+    // breakpoint fires inside an expression-called function: the checkpoint
+    // restore mechanism puts runtime_pc back to the call site, so
+    // is_breakpoint_active() / get_cur_line_n() use this field instead.
+    // Cleared at the start of each fresh (non-function-call) _run().
+    prog_pointer_t::line_number_t last_break_line = 0;
+
 private:
     runnable_t& _program_code;
     source_line_t& _source_line;
