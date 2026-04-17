@@ -370,7 +370,8 @@ bool prog_ctx_t::is_class_member_access_allowed(
 {
     const auto vis_it = class_member_visibility.find(member_key);
 
-    if (vis_it == class_member_visibility.end() || vis_it->second) {
+    if (vis_it == class_member_visibility.end()
+        || vis_it->second == access_level_t::PUBLIC) {
         return true;
     }
 
@@ -386,7 +387,31 @@ bool prog_ctx_t::is_class_member_access_allowed(
         }
     }
 
-    return !owner_class.empty() && current_class_scope_name() == owner_class;
+    if (owner_class.empty()) {
+        return false;
+    }
+
+    const std::string current = current_class_scope_name();
+
+    // PRIVATE: only the declaring class itself
+    if (vis_it->second == access_level_t::PRIVATE) {
+        return current == owner_class;
+    }
+
+    // PROTECTED: declaring class or any derived class in the hierarchy
+    // Walk up the inheritance chain from 'current' looking for 'owner_class'
+    std::string cls = current;
+    while (!cls.empty()) {
+        if (cls == owner_class) {
+            return true;
+        }
+        const auto base_it = class_bases.find(cls);
+        if (base_it == class_bases.end()) {
+            break;
+        }
+        cls = base_it->second;
+    }
+    return false;
 }
 
 

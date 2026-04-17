@@ -67,8 +67,9 @@ stmt_endclass_t::stmt_endclass_t(prog_ctx_t& ctx)
 
     // Copy base visibility entries into derived (no-overwrite, same principle).
     const std::string base_prefix = base_name + ".";
-    std::vector<std::pair<std::string, std::pair<bool, std::string>>> to_add;
-    for (const auto& [vis_key, is_public] : ctx.class_member_visibility) {
+    using access_level_t = prog_ctx_t::access_level_t;
+    std::vector<std::pair<std::string, std::pair<access_level_t, std::string>>> to_add;
+    for (const auto& [vis_key, access] : ctx.class_member_visibility) {
         if (vis_key.rfind(base_prefix, 0) == 0) {
             const std::string member = vis_key.substr(base_prefix.size());
             const auto owner_it = ctx.class_member_owner.find(vis_key);
@@ -76,7 +77,7 @@ stmt_endclass_t::stmt_endclass_t(prog_ctx_t& ctx)
                 ? base_name
                 : owner_it->second;
             to_add.emplace_back(
-                derived + "." + member, std::make_pair(is_public, owner));
+                derived + "." + member, std::make_pair(access, owner));
         }
     }
     for (auto& entry : to_add) {
