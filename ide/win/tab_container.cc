@@ -23,6 +23,11 @@ tab_container_t::tab_container_t(HWND hwnd_parent, HINSTANCE hinstance)
     , _hwnd_console(nullptr)
     , _current_tab(tab_id_t::OUTPUT)
 {
+    INITCOMMONCONTROLSEX icc = {};
+    icc.dwSize = sizeof(icc);
+    icc.dwICC = ICC_TAB_CLASSES;
+    InitCommonControlsEx(&icc);
+
     // ---- Tab control -------------------------------------------------------
     _hwnd_tab = CreateWindowW(WC_TABCONTROLW, L"",
         WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | TCS_BOTTOM, 0, 0, 0, 0,
@@ -34,26 +39,17 @@ tab_container_t::tab_container_t(HWND hwnd_parent, HINSTANCE hinstance)
     // ---- Output infobox (rich-edit) ----------------------------------------
     _infobox = new txtinfobox_t(_hwnd_parent, _hinstance);
 
-    // ---- Call Stack ListView -----------------------------------------------
-    _hwnd_callstack = CreateWindowExW(0, WC_LISTVIEWW, L"",
-        WS_CHILD | WS_CLIPSIBLINGS | LVS_REPORT | LVS_NOSORTHEADER
-            | LVS_SHOWSELALWAYS,
+    // ---- Call Stack text view ----------------------------------------------
+    _hwnd_callstack = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"",
+        WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP | ES_MULTILINE | ES_READONLY
+            | ES_AUTOVSCROLL | ES_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL,
         0, 0, 0, 0, _hwnd_parent, nullptr, _hinstance, nullptr);
     if (_hwnd_callstack) {
-        ListView_SetExtendedListViewStyle(
-            _hwnd_callstack, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
-        LVCOLUMNW col = {};
-        col.mask = LVCF_TEXT | LVCF_WIDTH;
-        wchar_t fn[] = L"Function";
-        col.pszText = fn;
-        col.cx = 240;
-        SendMessageW(_hwnd_callstack, LVM_INSERTCOLUMNW, 0,
-            reinterpret_cast<LPARAM>(&col));
-        wchar_t ln[] = L"Called from line";
-        col.pszText = ln;
-        col.cx = 120;
-        SendMessageW(_hwnd_callstack, LVM_INSERTCOLUMNW, 1,
-            reinterpret_cast<LPARAM>(&col));
+        HFONT fixed_font
+            = reinterpret_cast<HFONT>(GetStockObject(ANSI_FIXED_FONT));
+        if (fixed_font)
+            SendMessageW(_hwnd_callstack, WM_SETFONT,
+                reinterpret_cast<WPARAM>(fixed_font), TRUE);
     }
 
     // ---- GDI console (embedded) --------------------------------------------
@@ -117,6 +113,23 @@ void tab_container_t::create_tab_items()
     insert_tab_item(2, L"Call Stack", tab_id_t::CALLSTACK);
 }
 
+int tab_container_t::tab_index_of(tab_id_t tab) const
+{
+    const int count = TabCtrl_GetItemCount(_hwnd_tab);
+
+    for (int index = 0; index < count; ++index) {
+        TCITEMW item = {};
+        item.mask = TCIF_PARAM;
+
+        if (TabCtrl_GetItem(_hwnd_tab, index, &item)
+            && static_cast<tab_id_t>(item.lParam) == tab) {
+            return index;
+        }
+    }
+
+    return -1;
+}
+
 tab_container_t::tab_id_t tab_container_t::tab_id_at(int sel) const
 {
     if (sel < 0)
@@ -135,32 +148,35 @@ void tab_container_t::update_call_stack(
     if (!_hwnd_callstack)
         return;
 
-    ListView_DeleteAllItems(_hwnd_callstack);
+    std::wstring text;
+    if (frames.empty()) {
+        text = L"No active function calls\r\n";
+    } else {
+        text = L"Function                  Called from line\r\n";
+        text += L"-----------------------------------------\r\n";
 
-    int row = 0;
-    for (auto it = frames.rbegin(); it != frames.rend(); ++it, ++row) {
-        LVITEMW lvi = {};
-        lvi.mask = LVIF_TEXT;
-        lvi.iItem = row;
+        for (auto it = frames.rbegin(); it != frames.rend(); ++it) {
+            std::wstring name(it->first.begin(), it->first.end());
+            if (name.size() < 26)
+                name.append(26 - name.size(), L' ');
+            else
+                name += L"  ";
 
-        std::wstring name(it->first.begin(), it->first.end());
-        lvi.pszText = name.data();
-        SendMessageW(_hwnd_callstack, LVM_INSERTITEMW, 0,
-            reinterpret_cast<LPARAM>(&lvi));
-
-        std::wstring line_str = std::to_wstring(it->second);
-        LVITEMW lvi_sub = {};
-        lvi_sub.iSubItem = 1;
-        lvi_sub.pszText = line_str.data();
-        SendMessageW(_hwnd_callstack, LVM_SETITEMTEXTW,
-            static_cast<WPARAM>(row), reinterpret_cast<LPARAM>(&lvi_sub));
+            text += name;
+            text += std::to_wstring(it->second);
+            text += L"\r\n";
+        }
     }
+
+    SetWindowTextW(_hwnd_callstack, text.c_str());
+    InvalidateRect(_hwnd_callstack, nullptr, TRUE);
+    UpdateWindow(_hwnd_callstack);
 }
 
 void tab_container_t::clear_call_stack()
 {
     if (_hwnd_callstack)
-        ListView_DeleteAllItems(_hwnd_callstack);
+        SetWindowTextW(_hwnd_callstack, L"");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -210,8 +226,15 @@ void tab_container_t::update_visibility()
     if (_infobox)
         ShowWindow(_infobox->get_hwnd(), show_output ? SW_SHOW : SW_HIDE);
 
-    if (_hwnd_callstack)
-        ShowWindow(_hwnd_callstack, show_callstack ? SW_SHOW : SW_HIDE);
+    if (_hwnd_callstack) {
+        if (show_callstack) {
+            SetWindowPos(_hwnd_callstack, HWND_TOP, 0, 0, 0, 0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+            InvalidateRect(_hwnd_callstack, nullptr, TRUE);
+        } else {
+            ShowWindow(_hwnd_callstack, SW_HIDE);
+        }
+    }
 
     if (_hwnd_console) {
         if (_console_detached) {
@@ -254,11 +277,19 @@ void tab_container_t::arrange(WORD x_pos, WORD y_pos, WORD dx, WORD dy)
 
 void tab_container_t::switch_to_tab(tab_id_t tab)
 {
+    const int tab_index = tab_index_of(tab);
+    if (tab_index < 0)
+        return;
+
     _current_tab = tab;
-    TabCtrl_SetCurSel(_hwnd_tab, static_cast<int>(tab));
+    TabCtrl_SetCurSel(_hwnd_tab, tab_index);
     update_visibility();
     if (tab == tab_id_t::CONSOLE && _hwnd_console)
         nu_winconsole_refresh();
+    if (tab == tab_id_t::CALLSTACK && _hwnd_callstack) {
+        InvalidateRect(_hwnd_callstack, nullptr, TRUE);
+        UpdateWindow(_hwnd_callstack);
+    }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -284,9 +315,13 @@ void tab_container_t::toggle_console_detach()
         _console_detached = true;
 
         // Remove the Console tab from the tab control while detached.
-        TabCtrl_DeleteItem(_hwnd_tab, static_cast<int>(tab_id_t::CONSOLE));
+        const int console_tab_index = tab_index_of(tab_id_t::CONSOLE);
+        if (console_tab_index >= 0)
+            TabCtrl_DeleteItem(_hwnd_tab, console_tab_index);
         _current_tab = tab_id_t::OUTPUT;
-        TabCtrl_SetCurSel(_hwnd_tab, static_cast<int>(tab_id_t::OUTPUT));
+        const int output_tab_index = tab_index_of(tab_id_t::OUTPUT);
+        if (output_tab_index >= 0)
+            TabCtrl_SetCurSel(_hwnd_tab, output_tab_index);
 
         ShowWindow(_hwnd_console, SW_HIDE);
 
@@ -339,8 +374,7 @@ void tab_container_t::toggle_console_detach()
                 | SWP_NOACTIVATE);
 
         // Re-insert the Console tab at its original position (index 1).
-        insert_tab_item(
-            static_cast<int>(tab_id_t::CONSOLE), L"Console", tab_id_t::CONSOLE);
+        insert_tab_item(1, L"Console", tab_id_t::CONSOLE);
 
         RECT rc = display_rect_in_parent();
         layout_content(rc);

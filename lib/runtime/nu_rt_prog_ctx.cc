@@ -12,6 +12,7 @@
 #include "nu_global_function_tbl.h"
 #include "nu_os_std.h"
 
+#include <algorithm>
 #include <iomanip>
 
 
@@ -94,6 +95,12 @@ void rt_prog_ctx_t::clear_rtdata()
     // Reset RETURN stack
     return_stack.clear();
 
+    // Reset debug resume state
+    call_stack.clear();
+    debug_function_checkpoints.clear();
+    debug_pending_returns.clear();
+    last_break_line = 0;
+
     // Reset program counter
     runtime_pc.reset();
 
@@ -116,12 +123,58 @@ void rt_prog_ctx_t::clear_rtdata()
     select_case_values.clear();
     select_case_matched.clear();
 
+    // Clear any pending ByRef writeback frames
+    byref_writeback_stack.clear();
+
     // Clear hash tables
     hash_tbls.clear();
 
     // Clear read-data store
     read_data_store.clear();
     read_data_store_index = 0;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void rt_prog_ctx_t::queue_debug_pending_return(const std::string& function_name,
+    prog_pointer_t::line_number_t call_site_line)
+{
+    debug_pending_returns.push_back({ function_name, call_site_line });
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool rt_prog_ctx_t::consume_debug_pending_return(
+    const std::string& function_name,
+    prog_pointer_t::line_number_t call_site_line, variant_t& value)
+{
+    auto pending = std::find_if(debug_pending_returns.begin(),
+        debug_pending_returns.end(), [&](const auto& item) {
+            return item.function_name == function_name
+                && item.call_site_line == call_site_line;
+        });
+
+    if (pending == debug_pending_returns.end()) {
+        return false;
+    }
+
+    auto ret = function_retval_tbl.find(function_name);
+    if (ret == function_retval_tbl.end() || ret->second.empty()) {
+        debug_pending_returns.erase(pending);
+        return false;
+    }
+
+    value = ret->second.front();
+    ret->second.pop_front();
+
+    if (ret->second.empty()) {
+        function_retval_tbl.erase(ret);
+    }
+
+    debug_pending_returns.erase(pending);
+    return true;
 }
 
 
@@ -155,6 +208,15 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
        << (flag[rt_prog_ctx_t::FLG_JUMP_REQUEST] ? "Y" : "N") << std::endl;
     ss << "Step mode on: " << (step_mode_active ? "Y" : "N") << std::endl;
 
+    if (!call_stack.empty()) {
+        ss << "Call stack:" << std::endl;
+
+        for (auto it = call_stack.rbegin(); it != call_stack.rend(); ++it) {
+            ss << "\t" << it->func_name << " called from line "
+               << it->call_site_line << std::endl;
+        }
+    }
+
     const auto var = proc_scope.get();
     const auto& scope_id = proc_scope.get_scope_id();
 
@@ -183,7 +245,7 @@ void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
                 auto it = tbl.second.begin();
 
                 for (size_t i = 0; it != tbl.second.end() && i < 10;
-                     ++i, ++it) {
+                    ++i, ++it) {
                     ss << "\t" << it->first << ":" << it->second << std::endl;
                 }
 

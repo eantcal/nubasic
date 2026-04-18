@@ -1,0 +1,14 @@
+load "test_debug_function_nested_break_order.bas"
+break 17
+run
+vars
+ston
+cont
+stoff
+vars
+ston
+cont
+stoff
+vars
+cont
+exit

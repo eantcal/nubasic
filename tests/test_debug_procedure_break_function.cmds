@@ -1,0 +1,4 @@
+load "test_debug_procedure_break_function.bas"
+break 8
+run
+exit

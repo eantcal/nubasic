@@ -11,6 +11,7 @@
 #
 #   ' EXPECT_ERROR: text -- output must contain text
 #   ' EXPECT_OUTPUT: a|b -- output must contain all pipe-separated fragments
+#   ' EXPECT_NOT_OUTPUT: a|b -- output must not contain these fragments
 #   ' COMMANDS: name.txt -- feed commands to the interactive interpreter
 #
 # Exit code: 0 = all passed, 1 = one or more failures.
@@ -120,6 +121,25 @@ read_meta() {
         | sed "s/^[[:space:]]*'[[:space:]]*${key}[[:space:]]*:*[[:space:]]*//"
 }
 
+contains_ci() {
+    local haystack="$1" needle="$2"
+    local had_nocasematch=0
+
+    if shopt -q nocasematch; then
+        had_nocasematch=1
+    fi
+
+    shopt -s nocasematch
+    [[ "$haystack" == *"$needle"* ]]
+    local res=$?
+
+    if [[ "$had_nocasematch" -eq 0 ]]; then
+        shopt -u nocasematch
+    fi
+
+    return "$res"
+}
+
 # ── collect test files (bash 3 compatible) ───────────────────────────────────
 TEST_FILES=()
 while IFS= read -r f; do
@@ -176,6 +196,7 @@ for f in "${TEST_FILES[@]}"; do
     commands_file=$(read_meta "$f" "COMMANDS")
     expect_error=$(read_meta "$f" "EXPECT_ERROR")
     expect_output=$(read_meta "$f" "EXPECT_OUTPUT")
+    expect_not_output=$(read_meta "$f" "EXPECT_NOT_OUTPUT")
 
     # ── run ───────────────────────────────────────────────────────────────────
     if [[ -n "$commands_file" ]]; then
@@ -195,7 +216,7 @@ for f in "${TEST_FILES[@]}"; do
     while IFS= read -r line; do printf '  %s\n' "$line"; done <<< "$output"
 
     if [[ -n "$expect_error" ]]; then
-        if printf '%s' "$output" | grep -Fqi "$expect_error"; then
+        if contains_ci "$output" "$expect_error"; then
             printf '  [EXPECTED ERROR PASS] %s\n' "$name"
             total_pass=$(( total_pass + 1 ))
             suite_pass=$(( suite_pass + 1 ))
@@ -209,25 +230,40 @@ for f in "${TEST_FILES[@]}"; do
         continue
     fi
 
-    if [[ -n "$expect_output" ]]; then
-        IFS='|' read -r -a expected_parts <<< "$expect_output"
+    if [[ -n "$expect_output" || -n "$expect_not_output" ]]; then
+        expected_parts=()
+        not_expected_parts=()
+        if [[ -n "$expect_output" ]]; then
+            IFS='|' read -r -a expected_parts <<< "$expect_output"
+        fi
+        if [[ -n "$expect_not_output" ]]; then
+            IFS='|' read -r -a not_expected_parts <<< "$expect_not_output"
+        fi
         missing_parts=()
+        forbidden_parts=()
 
         for expected in "${expected_parts[@]}"; do
-            if ! printf '%s' "$output" | grep -Fqi "$expected"; then
+            if ! contains_ci "$output" "$expected"; then
                 missing_parts+=("$expected")
             fi
         done
 
-        if [[ ${#missing_parts[@]} -eq 0 && "$interp_exit" -eq 0 ]]; then
+        for forbidden in "${not_expected_parts[@]}"; do
+            if contains_ci "$output" "$forbidden"; then
+                forbidden_parts+=("$forbidden")
+            fi
+        done
+
+        assertion_count=$(( ${#expected_parts[@]} + ${#not_expected_parts[@]} ))
+        if [[ ${#missing_parts[@]} -eq 0 && ${#forbidden_parts[@]} -eq 0 && "$interp_exit" -eq 0 ]]; then
             printf '  [EXPECTED OUTPUT PASS] %s  (%d assertions)\n' \
-                   "$name" "${#expected_parts[@]}"
-            total_pass=$(( total_pass + ${#expected_parts[@]} ))
+                   "$name" "$assertion_count"
+            total_pass=$(( total_pass + assertion_count ))
             suite_pass=$(( suite_pass + 1 ))
         else
-            printf '  [EXPECTED OUTPUT FAIL] %s  missing=%q exit=%d\n' \
-                   "$name" "${missing_parts[*]}" "$interp_exit"
-            total_fail=$(( total_fail + ${#missing_parts[@]} + (interp_exit == 0 ? 0 : 1) ))
+            printf '  [EXPECTED OUTPUT FAIL] %s  missing=%q forbidden=%q exit=%d\n' \
+                   "$name" "${missing_parts[*]}" "${forbidden_parts[*]}" "$interp_exit"
+            total_fail=$(( total_fail + ${#missing_parts[@]} + ${#forbidden_parts[@]} + (interp_exit == 0 ? 0 : 1) ))
             suite_fail=$(( suite_fail + 1 ))
             failed_suites+=("$name")
         fi

@@ -151,8 +151,7 @@ public:
     bool is_breakpoint_active() const noexcept
     {
         // Prefer last_break_line: it records where a breakpoint actually fired
-        // even when runtime_pc was restored to the call site by the
-        // function-call checkpoint mechanism.
+        // while expression-called functions are being suspended/resumed.
         const auto line = _prog_ctx.last_break_line > 0
             ? _prog_ctx.last_break_line
             : _prog_ctx.runtime_pc.get_line();

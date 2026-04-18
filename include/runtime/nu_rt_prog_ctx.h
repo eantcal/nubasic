@@ -14,12 +14,18 @@
 #include "nu_prog_ctx.h"
 #include "nu_runnable.h"
 
+#include <deque>
 #include <unordered_map>
 
 
 /* -------------------------------------------------------------------------- */
 
 namespace nu {
+
+
+/* -------------------------------------------------------------------------- */
+
+struct debug_suspend_t {};
 
 
 /* -------------------------------------------------------------------------- */
@@ -126,11 +132,35 @@ public:
     };
     std::vector<call_frame_t> call_stack;
 
-    // Line number where the last breakpoint actually fired.  Used when a
-    // breakpoint fires inside an expression-called function: the checkpoint
-    // restore mechanism puts runtime_pc back to the call site, so
-    // is_breakpoint_active() / get_cur_line_n() use this field instead.
-    // Cleared at the start of each fresh (non-function-call) _run().
+    // Debug resume support for functions invoked while evaluating an
+    // expression.  The C++ expression stack cannot be kept alive while the IDE
+    // is stopped, so the interpreter resumes the suspended function first,
+    // then lets the caller re-enter the expression and consume the return value
+    // that was already produced.
+    struct debug_function_checkpoint_t {
+        std::string function_name;
+        flag_map_t caller_flag;
+        prog_pointer_t caller_runtime_pc;
+        prog_pointer_t caller_goingto_pc;
+        return_stack_t caller_return_stack;
+    };
+    std::deque<debug_function_checkpoint_t> debug_function_checkpoints;
+
+    struct debug_pending_return_t {
+        std::string function_name;
+        prog_pointer_t::line_number_t call_site_line = 0;
+    };
+    std::deque<debug_pending_return_t> debug_pending_returns;
+
+    void queue_debug_pending_return(const std::string& function_name,
+        prog_pointer_t::line_number_t call_site_line);
+
+    bool consume_debug_pending_return(const std::string& function_name,
+        prog_pointer_t::line_number_t call_site_line, variant_t& value);
+
+    // Line number where the last breakpoint actually fired while a debug run
+    // is suspended.  Cleared at the start of each fresh (non-function-call)
+    // _run().
     prog_pointer_t::line_number_t last_break_line = 0;
 
 private:

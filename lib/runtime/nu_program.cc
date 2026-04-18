@@ -36,6 +36,16 @@ class prog_line_iterator_t : public prog_line_t::iterator {};
 
 /* -------------------------------------------------------------------------- */
 
+static std::string procedure_name_from_scope(const std::string& scope_id)
+{
+    const auto bracket = scope_id.find('[');
+    return bracket == std::string::npos ? scope_id
+                                        : scope_id.substr(0, bracket);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 program_t::program_t(prog_line_t& pl, rt_prog_ctx_t& ctx, bool chkpt)
     : _prog_line(pl)
     , _ctx(ctx)
@@ -172,12 +182,26 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
     checkpoint_data_t cp_data;
     reset_break_event();
 
+    const std::string function_name = _function_call
+        ? procedure_name_from_scope(_ctx.proc_scope.get_scope_id())
+        : std::string();
+    const bool using_debug_function_checkpoint
+        = _function_call && !_ctx.debug_function_checkpoints.empty();
+
     if (_function_call) {
-        cp_data.flag = _ctx.flag;
-        cp_data.goingto_pc = _ctx.goingto_pc;
-        cp_data.runtime_pc = _ctx.runtime_pc;
-        cp_data.return_stack = _ctx.return_stack;
-        _ctx.return_stack.clear();
+        if (using_debug_function_checkpoint) {
+            const auto& checkpoint = _ctx.debug_function_checkpoints.front();
+            cp_data.flag = checkpoint.caller_flag;
+            cp_data.goingto_pc = checkpoint.caller_goingto_pc;
+            cp_data.runtime_pc = checkpoint.caller_runtime_pc;
+            cp_data.return_stack = checkpoint.caller_return_stack;
+        } else {
+            cp_data.flag = _ctx.flag;
+            cp_data.goingto_pc = _ctx.goingto_pc;
+            cp_data.runtime_pc = _ctx.runtime_pc;
+            cp_data.return_stack = _ctx.return_stack;
+            _ctx.return_stack.clear();
+        }
     } else {
         // Fresh main-program run: clear any stale breakpoint line from a
         // previous paused-inside-function stop.
@@ -268,9 +292,14 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
         }
 
         // Run statement and update prog_ptr
-        if (run_statement(prog_ptr->second.first, return_stmt_id,
-                static_cast<prog_line_iterator_t&>(prog_ptr))) {
-            return_stmt_id = 0;
+        try {
+            if (run_statement(prog_ptr->second.first, return_stmt_id,
+                    static_cast<prog_line_iterator_t&>(prog_ptr))) {
+                return_stmt_id = 0;
+            }
+        } catch (const debug_suspend_t&) {
+            _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
+            break;
         }
 
         check_break_event();
@@ -362,10 +391,49 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
     NU_TRACE_CTX(_ctx);
 
     if (_function_call) {
+        if (end_flg && _ctx.debug_mode) {
+            if (!using_debug_function_checkpoint) {
+                rt_prog_ctx_t::debug_function_checkpoint_t checkpoint;
+                checkpoint.function_name = function_name;
+                checkpoint.caller_flag = cp_data.flag;
+                checkpoint.caller_runtime_pc = cp_data.runtime_pc;
+                checkpoint.caller_goingto_pc = cp_data.goingto_pc;
+                checkpoint.caller_return_stack = cp_data.return_stack;
+                _ctx.debug_function_checkpoints.push_back(checkpoint);
+            }
+
+            _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
+            return prog_ptr != _prog_line.end();
+        }
+
+        bool debug_checkpoint_completed = false;
+        if (using_debug_function_checkpoint
+            && !_ctx.debug_function_checkpoints.empty()) {
+            const auto active_function
+                = procedure_name_from_scope(_ctx.proc_scope.get_scope_id());
+            debug_checkpoint_completed = active_function
+                != _ctx.debug_function_checkpoints.front().function_name;
+        }
+
+        if (using_debug_function_checkpoint && !debug_checkpoint_completed) {
+            _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, end_flg);
+            return prog_ptr != _prog_line.end();
+        }
+
         _ctx.flag = cp_data.flag;
         _ctx.goingto_pc = cp_data.goingto_pc;
         _ctx.runtime_pc = cp_data.runtime_pc;
         _ctx.return_stack = cp_data.return_stack;
+
+        if (using_debug_function_checkpoint
+            && !_ctx.debug_function_checkpoints.empty()) {
+            const auto checkpoint = _ctx.debug_function_checkpoints.front();
+            _ctx.debug_function_checkpoints.pop_front();
+            _ctx.queue_debug_pending_return(checkpoint.function_name,
+                checkpoint.caller_runtime_pc.get_line());
+        }
+
+        _ctx.last_break_line = 0;
 
         // Propagate end-program flag
         _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, end_flg);
@@ -417,6 +485,12 @@ variant_t program_t::run_method(const std::string& name,
     const std::vector<expr_any_t::handle_t>& args,
     const std::string& me_obj_name, const variant_t& me_obj_value)
 {
+    variant_t pending_return;
+    if (_ctx.consume_debug_pending_return(
+            name, _ctx.runtime_pc.get_line(), pending_return)) {
+        return pending_return;
+    }
+
     // Convert args to arg_list_t
     arg_list_t arg_list;
     for (auto& arg : args) {
@@ -446,6 +520,10 @@ variant_t program_t::run_method(const std::string& name,
     syntax_error_if(prototype == _ctx.proc_prototypes.data.end(),
         "Cannot execute method " + name + ", prototype not found");
     run(prototype->second.first.get_line());
+
+    if (_ctx.debug_mode && _ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST]) {
+        throw debug_suspend_t();
+    }
 
     // Retrieve and return the function return value
     auto it = _ctx.function_retval_tbl.find(name);

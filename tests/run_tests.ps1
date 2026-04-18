@@ -15,6 +15,7 @@
 #   ' SKIP              -- skip this test with a note.
 #   ' EXPECT_ERROR: text  -- output must contain text.
 #   ' EXPECT_OUTPUT: a|b  -- output must contain all pipe-separated fragments.
+#   ' EXPECT_NOT_OUTPUT: a|b  -- output must not contain these fragments.
 
 param(
     [string]$Interpreter = "",
@@ -91,6 +92,7 @@ foreach ($f in $TestFiles) {
     $CommandsFile = ""
     $ExpectError = ""
     $ExpectOutput = ""
+    $ExpectNotOutput = ""
 
     foreach ($line in (Get-Content -Path $Path -TotalCount 5)) {
         if ($line -match "^\s*'\s*ARGS\s*:?\s*(.*)$") {
@@ -105,6 +107,8 @@ foreach ($f in $TestFiles) {
             $ExpectError = $Matches[1].Trim()
         } elseif ($line -match "^\s*'\s*EXPECT_OUTPUT\s*:?\s*(.*)$") {
             $ExpectOutput = $Matches[1].Trim()
+        } elseif ($line -match "^\s*'\s*EXPECT_NOT_OUTPUT\s*:?\s*(.*)$") {
+            $ExpectNotOutput = $Matches[1].Trim()
         }
     }
 
@@ -183,10 +187,21 @@ foreach ($f in $TestFiles) {
         continue
     }
 
-    if ($ExpectOutput -ne "") {
+    if ($ExpectOutput -ne "" -or $ExpectNotOutput -ne "") {
         $OutputText = (@($Output) -join "`n")
-        $ExpectedParts = $ExpectOutput -split "\|"
+        $ExpectedParts = @()
+        $NotExpectedParts = @()
+
+        if ($ExpectOutput -ne "") {
+            $ExpectedParts = $ExpectOutput -split "\|"
+        }
+
+        if ($ExpectNotOutput -ne "") {
+            $NotExpectedParts = $ExpectNotOutput -split "\|"
+        }
+
         $MissingParts = @()
+        $ForbiddenParts = @()
 
         foreach ($ExpectedPart in $ExpectedParts) {
             if ($OutputText.IndexOf($ExpectedPart, [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
@@ -194,13 +209,20 @@ foreach ($f in $TestFiles) {
             }
         }
 
-        if ($MissingParts.Count -eq 0 -and $ExitCode -eq 0) {
-            Write-Host "  [EXPECTED OUTPUT PASS] $Name  ($($ExpectedParts.Count) assertions)"
-            $TotalPass += $ExpectedParts.Count
+        foreach ($NotExpectedPart in $NotExpectedParts) {
+            if ($OutputText.IndexOf($NotExpectedPart, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+                $ForbiddenParts += $NotExpectedPart
+            }
+        }
+
+        $AssertCount = $ExpectedParts.Count + $NotExpectedParts.Count
+        if ($MissingParts.Count -eq 0 -and $ForbiddenParts.Count -eq 0 -and $ExitCode -eq 0) {
+            Write-Host "  [EXPECTED OUTPUT PASS] $Name  ($AssertCount assertions)"
+            $TotalPass += $AssertCount
             $SuitePass++
         } else {
-            Write-Host "  [EXPECTED OUTPUT FAIL] $Name  missing='$($MissingParts -join ', ')' exit=$ExitCode"
-            $TotalFail += $MissingParts.Count
+            Write-Host "  [EXPECTED OUTPUT FAIL] $Name  missing='$($MissingParts -join ', ')' forbidden='$($ForbiddenParts -join ', ')' exit=$ExitCode"
+            $TotalFail += $MissingParts.Count + $ForbiddenParts.Count
             if ($ExitCode -ne 0) { $TotalFail++ }
             $SuiteFail++
             $FailedSuites += $Name

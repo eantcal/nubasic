@@ -901,6 +901,7 @@ interpreter_t::exec_res_t interpreter_t::set_breakpoint(
         dbg.condition_str = bp.condition_str;
 
         if (ptr->set_dbg_info(line, dbg)) {
+            set_debug_mode(true);
             _breakpoints.insert(std::make_pair(line, bp));
             return exec_res_t::CMD_EXEC;
         }
@@ -1028,8 +1029,12 @@ void interpreter_t::set_debug_mode(bool on) noexcept
 {
     auto& ctx = get_rt_ctx();
     ctx.debug_mode = on;
-    if (!on)
+    if (!on) {
         ctx.call_stack.clear();
+        ctx.debug_function_checkpoints.clear();
+        ctx.debug_pending_returns.clear();
+        ctx.last_break_line = 0;
+    }
 }
 
 
@@ -1370,31 +1375,22 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         }
 
         if (cmd == "cont") {
-            auto line = get_rt_ctx().runtime_pc.get_line();
-            auto stmt_id = get_rt_ctx().runtime_pc.get_stmt_pos();
+            auto continue_from_current_pc = [&]() {
+                const auto line = get_rt_ctx().runtime_pc.get_line();
+                const auto stmt_id = get_rt_ctx().runtime_pc.get_stmt_pos();
 
-            // If the last break fired inside an expression-called function the
-            // checkpoint mechanism restored runtime_pc to the call site, so
-            // continue_afterbrk(line) finds no breakpoint there and returns
-            // false — nothing would advance.  Instead: mark the real breakpoint
-            // as continue_after_break, suppress step mode so the function's
-            // re-execution (from its top) runs straight through without pausing
-            // again at intermediate lines, then restore step mode so the outer
-            // program resumes in whatever mode the caller expects.
-            const auto break_line = get_rt_ctx().last_break_line;
-            if (break_line > 0 && break_line != line) {
-                continue_afterbrk(break_line);
-                const bool was_step = get_rt_ctx().step_mode_active;
-                get_rt_ctx().step_mode_active = false;
-                if (!cont(line, stmt_id))
-                    rebuild();
-                get_rt_ctx().step_mode_active = was_step;
-                return exec_res_t::CMD_EXEC;
-            }
+                if (line == 0 || continue_afterbrk(line)) {
+                    if (!cont(line, stmt_id))
+                        rebuild();
+                }
+            };
 
-            if (line == 0 || continue_afterbrk(line)) {
-                if (!cont(line, stmt_id))
-                    rebuild();
+            continue_from_current_pc();
+
+            while (!get_rt_ctx().flag[rt_prog_ctx_t::FLG_END_REQUEST]
+                && !get_rt_ctx().debug_pending_returns.empty()
+                && !is_breakpoint_active() && !is_stop_stmt_line()) {
+                continue_from_current_pc();
             }
 
             return exec_res_t::CMD_EXEC;
@@ -1723,7 +1719,12 @@ bool interpreter_t::cont(
         ~_guard_t() { _os_config_term(true); }
     } _guard;
 
-    program_t prog(_prog_line, _prog_ctx, false);
+    const bool resume_function_call
+        = _prog_ctx.debug_mode && !_prog_ctx.debug_function_checkpoints.empty();
+
+    _prog_ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, false);
+
+    program_t prog(_prog_line, _prog_ctx, resume_function_call);
 
     if (_yield_cbk) {
         prog.set_yield_cbk(_yield_cbk, _yield_data);

@@ -15,6 +15,7 @@
 #include "nu_expr_any.h"
 #include "nu_global_function_tbl.h"
 #include "nu_proc_scope.h"
+#include "nu_rt_prog_ctx.h"
 #include "nu_var_scope.h"
 
 
@@ -236,8 +237,8 @@ public:
                     }
 
                     // Method call: dispatch with Me injected
-                    return ctx.program().run_method(
-                        resolved_mangled, _var2->get_args(), var_name, obj_value);
+                    return ctx.program().run_method(resolved_mangled,
+                        _var2->get_args(), var_name, obj_value);
                 }
             }
 
@@ -252,7 +253,18 @@ public:
                             + static_key + "'");
                     }
 
+                    variant_t pending_return;
+                    if (ctx.consume_debug_pending_return(static_key,
+                            ctx.runtime_pc.get_line(), pending_return)) {
+                        return pending_return;
+                    }
+
                     ctx.program().run(static_key, _var2->get_args());
+                    if (ctx.debug_mode
+                        && ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST]) {
+                        throw debug_suspend_t();
+                    }
+
                     // Retrieve function return value (empty for Sub)
                     auto it = ctx.function_retval_tbl.find(static_key);
                     if (it == ctx.function_retval_tbl.end()

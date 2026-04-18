@@ -22,7 +22,8 @@ class txtinfobox_t;
 //
 // Output tab     — txtinfobox_t (rich-edit) showing interpreter messages.
 // Console tab    — nuBASIC GDI console.
-// Call Stack tab — ListView showing the debug call stack (debug_mode only).
+// Call Stack tab — read-only text showing the debug call stack (debug_mode
+// only).
 
 class tab_container_t {
 public:
@@ -63,6 +64,7 @@ public:
 private:
     void create_tab_items();
     void insert_tab_item(int index, const wchar_t* text, tab_id_t id);
+    int tab_index_of(tab_id_t tab) const;
     tab_id_t tab_id_at(int sel) const;
     void layout_content(const RECT& display_rc_in_parent);
     void update_visibility();
@@ -77,7 +79,7 @@ private:
     txtinfobox_t* _infobox;
 
     HWND _hwnd_console; // owned by nu_winconsole_api
-    HWND _hwnd_callstack = nullptr; // ListView for Call Stack tab
+    HWND _hwnd_callstack = nullptr; // Read-only text control for Call Stack tab
     bool _console_detached = false;
 
     tab_id_t _current_tab;

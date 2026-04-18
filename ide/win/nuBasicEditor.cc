@@ -2705,7 +2705,10 @@ void nu::editor_t::alloc_console()
 
 void nu::editor_t::start_debugging(dbg_flg_t flg)
 {
-    if (_need_build && !rebuild_code(true)) {
+    const bool resuming_paused_program = flg != dbg_flg_t::NORMAL_EXECUTION
+        && _last_debug_stop == debug_stop_t::PAUSED;
+
+    if (_need_build && !resuming_paused_program && !rebuild_code(true)) {
         return;
     }
 
@@ -2755,9 +2758,8 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
                 frame_list.emplace_back(
                     f.func_name, static_cast<int>(f.call_site_line));
             g_tab_container->update_call_stack(frame_list);
-            if (!frames.empty())
-                g_tab_container->switch_to_tab(
-                    tab_container_t::tab_id_t::CALLSTACK);
+            g_tab_container->switch_to_tab(
+                tab_container_t::tab_id_t::CALLSTACK);
         }
         break;
 
