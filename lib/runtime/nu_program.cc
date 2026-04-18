@@ -182,11 +182,14 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
     checkpoint_data_t cp_data;
     reset_break_event();
 
-    const std::string function_name = _function_call
-        ? procedure_name_from_scope(_ctx.proc_scope.get_scope_id())
-        : std::string();
+    const bool debug_function_call = _function_call && _ctx.debug_mode;
     const bool using_debug_function_checkpoint
-        = _function_call && !_ctx.debug_function_checkpoints.empty();
+        = debug_function_call && !_ctx.debug_function_checkpoints.empty();
+    std::string function_name;
+    if (debug_function_call) {
+        function_name
+            = procedure_name_from_scope(_ctx.proc_scope.get_scope_id());
+    }
 
     if (_function_call) {
         if (using_debug_function_checkpoint) {
@@ -241,47 +244,54 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
         _ctx.runtime_pc.set(prog_ptr->first, return_stmt_id);
 
         const auto stmt_class = prog_ptr->second.first->get_cl();
-        const bool global_scope = _ctx.proc_scope.get_scope_id().empty();
-        const bool global_proc_boundary = global_scope
-            && (stmt_class == stmt_t::stmt_cl_t::SUB_BEGIN
-                || stmt_class == stmt_t::stmt_cl_t::SUB_END);
+        auto& dbg = prog_ptr->second.second;
+        const bool debug_checks_active = _ctx.debug_mode
+            || _ctx.step_mode_active
+            || _ctx.flag[rt_prog_ctx_t::FLG_STOP_REQUEST] || dbg.break_point
+            || dbg.single_step_break_point || dbg.continue_after_break;
 
-        if (_ctx.flag[rt_prog_ctx_t::FLG_STOP_REQUEST]) {
-            dbginfo_t dbg;
-            dbg.break_point = true;
-            set_dbg_info(prog_ptr->first, dbg);
-            _ctx.flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, false);
-        }
+        if (debug_checks_active) {
+            const bool global_scope = _ctx.proc_scope.get_scope_id().empty();
+            const bool global_proc_boundary = global_scope
+                && (stmt_class == stmt_t::stmt_cl_t::SUB_BEGIN
+                    || stmt_class == stmt_t::stmt_cl_t::SUB_END);
 
-        const bool breakpoints_active = !_function_call || _ctx.debug_mode;
-
-        if (prog_ptr->second.second.single_step_break_point
-            && breakpoints_active) {
-            prog_ptr->second.second.single_step_break_point = false;
-
-            if (!global_proc_boundary) {
-                _ctx.last_break_line = prog_ptr->first;
-                _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
-                break;
-            }
-        }
-
-        if (prog_ptr->second.second.break_point && breakpoints_active
-            && !global_proc_boundary) {
-            if (prog_ptr->second.second.condition_stmt != nullptr) {
-                prog_ptr->second.second.condition_stmt->run(_ctx);
-            } else {
-                _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
+            if (_ctx.flag[rt_prog_ctx_t::FLG_STOP_REQUEST]) {
+                dbginfo_t stop_dbg;
+                stop_dbg.break_point = true;
+                set_dbg_info(prog_ptr->first, stop_dbg);
+                _ctx.flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, false);
             }
 
-            if (_ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST]) {
-                _ctx.last_break_line = prog_ptr->first;
-                break;
+            const bool breakpoints_active = !_function_call || _ctx.debug_mode;
+
+            if (dbg.single_step_break_point && breakpoints_active) {
+                dbg.single_step_break_point = false;
+
+                if (!global_proc_boundary) {
+                    _ctx.last_break_line = prog_ptr->first;
+                    _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
+                    break;
+                }
             }
-        } else if (prog_ptr->second.second.continue_after_break) {
-            // Reset breakpoint for next stmt execution
-            prog_ptr->second.second.break_point = true;
-            prog_ptr->second.second.continue_after_break = false;
+
+            if (dbg.break_point && breakpoints_active
+                && !global_proc_boundary) {
+                if (dbg.condition_stmt != nullptr) {
+                    dbg.condition_stmt->run(_ctx);
+                } else {
+                    _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
+                }
+
+                if (_ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST]) {
+                    _ctx.last_break_line = prog_ptr->first;
+                    break;
+                }
+            } else if (dbg.continue_after_break) {
+                // Reset breakpoint for next stmt execution
+                dbg.break_point = true;
+                dbg.continue_after_break = false;
+            }
         }
 
 
@@ -485,10 +495,12 @@ variant_t program_t::run_method(const std::string& name,
     const std::vector<expr_any_t::handle_t>& args,
     const std::string& me_obj_name, const variant_t& me_obj_value)
 {
-    variant_t pending_return;
-    if (_ctx.consume_debug_pending_return(
-            name, _ctx.runtime_pc.get_line(), pending_return)) {
-        return pending_return;
+    if (_ctx.debug_mode) {
+        variant_t pending_return;
+        if (_ctx.consume_debug_pending_return(
+                name, _ctx.runtime_pc.get_line(), pending_return)) {
+            return pending_return;
+        }
     }
 
     // Convert args to arg_list_t

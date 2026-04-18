@@ -1467,6 +1467,11 @@ public:
     void start_debugging(dbg_flg_t flg = dbg_flg_t::NORMAL_EXECUTION);
 
     /**
+     * Start program execution with debugging disabled
+     */
+    void start_without_debugging();
+
+    /**
      * Start program debugging
      */
     void continue_debugging()
@@ -2712,9 +2717,8 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
         return;
     }
 
-    interpreter().set_debug_mode(true);
-
     reset_all_breakpoints();
+    interpreter().set_debug_mode(true);
     remove_prog_cnt_marker();
     _last_debug_stop = debug_stop_t::COMPLETED;
     const auto line_before = interpreter().get_cur_line_n();
@@ -2751,15 +2755,19 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
     case debug_stop_t::PAUSED:
         show_execution_point(interpreter().get_cur_line_n());
         if (g_tab_container) {
-            const auto& frames = interpreter().get_call_stack();
-            std::vector<std::pair<std::string, int>> frame_list;
-            frame_list.reserve(frames.size());
-            for (const auto& f : frames)
-                frame_list.emplace_back(
-                    f.func_name, static_cast<int>(f.call_site_line));
-            g_tab_container->update_call_stack(frame_list);
-            g_tab_container->switch_to_tab(
-                tab_container_t::tab_id_t::CALLSTACK);
+            if (interpreter().get_debug_mode()) {
+                const auto& frames = interpreter().get_call_stack();
+                std::vector<std::pair<std::string, int>> frame_list;
+                frame_list.reserve(frames.size());
+                for (const auto& f : frames)
+                    frame_list.emplace_back(
+                        f.func_name, static_cast<int>(f.call_site_line));
+                g_tab_container->update_call_stack(frame_list);
+                g_tab_container->switch_to_tab(
+                    tab_container_t::tab_id_t::CALLSTACK);
+            } else {
+                g_tab_container->clear_call_stack();
+            }
         }
         break;
 
@@ -2777,6 +2785,52 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
             g_tab_container->clear_call_stack();
         break;
     }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::start_without_debugging()
+{
+    if (_need_build && !rebuild_code(true)) {
+        return;
+    }
+
+    interpreter().exec_command("clrbrk");
+    interpreter().set_debug_mode(false);
+    remove_prog_cnt_marker();
+    _last_debug_stop = debug_stop_t::COMPLETED;
+
+    if (g_tab_container) {
+        g_tab_container->clear_call_stack();
+        if (g_tab_container->is_console_detached()) {
+            present_floating_gdi_console(true, true);
+        } else {
+            g_tab_container->switch_to_tab(tab_container_t::tab_id_t::CONSOLE);
+        }
+    }
+
+    g_editor.interpreter().register_break_event();
+    exec_interpreter_cmd("run", true);
+
+    switch (_last_debug_stop) {
+    case debug_stop_t::RUNTIME_ERROR:
+        show_execution_point(
+            interpreter().get_cur_line_n(), kRuntimeErrorLineBack);
+        break;
+
+    case debug_stop_t::PAUSED:
+        show_execution_point(interpreter().get_cur_line_n());
+        break;
+
+    case debug_stop_t::COMPLETED:
+    case debug_stop_t::NONE:
+        remove_prog_cnt_marker();
+        break;
+    }
+
+    if (g_tab_container)
+        g_tab_container->clear_call_stack();
 }
 
 
@@ -3788,26 +3842,163 @@ int nu::editor_t::save_if_unsure()
 
 /* -------------------------------------------------------------------------- */
 
-static bool exec_process(const std::string& cmd_line)
+static bool is_regular_file_path(const std::filesystem::path& path)
 {
-    STARTUPINFO StartInfo;
+    std::error_code ec;
+    return std::filesystem::is_regular_file(path, ec);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+static std::string quote_process_arg(const std::string& arg)
+{
+    if (arg.empty())
+        return "\"\"";
+
+    const bool needs_quotes
+        = arg.find_first_of(" \t\n\v\"") != std::string::npos;
+    if (!needs_quotes)
+        return arg;
+
+    std::string out;
+    out.reserve(arg.size() + 2);
+    out.push_back('"');
+
+    size_t backslashes = 0;
+    for (const char ch : arg) {
+        if (ch == '\\') {
+            ++backslashes;
+            continue;
+        }
+
+        if (ch == '"') {
+            out.append(backslashes * 2 + 1, '\\');
+            out.push_back('"');
+            backslashes = 0;
+            continue;
+        }
+
+        out.append(backslashes, '\\');
+        backslashes = 0;
+        out.push_back(ch);
+    }
+
+    out.append(backslashes * 2, '\\');
+    out.push_back('"');
+    return out;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+static std::string module_directory()
+{
+    char buf[MAX_PATH] = { 0 };
+    const DWORD n = GetModuleFileNameA(nullptr, buf, MAX_PATH);
+    if (n == 0 || n >= MAX_PATH)
+        return {};
+
+    return std::filesystem::path(buf).parent_path().string();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+static std::string search_path_executable(const char* exe_name)
+{
+    char buf[MAX_PATH] = { 0 };
+    const DWORD n = SearchPathA(nullptr, exe_name, nullptr,
+        static_cast<DWORD>(sizeof(buf)), buf, nullptr);
+    if (n == 0 || n >= sizeof(buf))
+        return {};
+
+    return is_regular_file_path(buf) ? std::string(buf) : std::string{};
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+static std::string resolve_nubasic_executable()
+{
+    namespace fs = std::filesystem;
+
+    std::vector<fs::path> candidates;
+
+    const std::string install_root = nu::examples_install_root();
+    if (!install_root.empty()) {
+        const fs::path root(install_root);
+        candidates.push_back(root / "bin" / "nubasic.exe");
+        candidates.push_back(root / "nubasic.exe");
+        candidates.push_back(root / "build" / "release" / "cli" / "win"
+            / "Release" / "nubasic.exe");
+        candidates.push_back(
+            root / "build" / "debug" / "cli" / "win" / "Debug" / "nubasic.exe");
+    }
+
+    const std::string mod_dir = module_directory();
+    if (!mod_dir.empty()) {
+        const fs::path base(mod_dir);
+        candidates.push_back(base / "nubasic.exe");
+        candidates.push_back(base / ".." / "nubasic.exe");
+        candidates.push_back(base / ".." / ".." / ".." / "cli" / "win"
+            / "Release" / "nubasic.exe");
+        candidates.push_back(base / ".." / ".." / ".." / "cli" / "win" / "Debug"
+            / "nubasic.exe");
+    }
+
+    for (const auto& candidate : candidates) {
+        std::error_code ec;
+        const auto canonical = fs::weakly_canonical(candidate, ec);
+        const fs::path path = ec ? candidate : canonical;
+        if (is_regular_file_path(path))
+            return path.string();
+    }
+
+    return search_path_executable("nubasic.exe");
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+static bool exec_process(const std::string& exe_path,
+    const std::vector<std::string>& args = {},
+    const std::string& working_directory = {})
+{
+    STARTUPINFOA StartInfo;
     memset(&StartInfo, 0, sizeof(StartInfo));
+    StartInfo.cb = sizeof(StartInfo);
 
-    char cmd[MAX_PATH] = { 0 };
-    strncpy(cmd, cmd_line.c_str(), MAX_PATH - 1);
+    std::string cmd_line = quote_process_arg(exe_path);
+    for (const auto& arg : args) {
+        cmd_line.push_back(' ');
+        cmd_line += quote_process_arg(arg);
+    }
 
-    PROCESS_INFORMATION proc_info;
+    PROCESS_INFORMATION proc_info = {};
 
-    const BOOL bFuncRetn = CreateProcess(NULL,
-        cmd, // command line
+    std::vector<char> mutable_cmd(cmd_line.begin(), cmd_line.end());
+    mutable_cmd.push_back('\0');
+
+    const char* app_name = exe_path.empty() ? nullptr : exe_path.c_str();
+    const char* work_dir
+        = working_directory.empty() ? nullptr : working_directory.c_str();
+
+    const BOOL bFuncRetn = CreateProcessA(app_name,
+        mutable_cmd.data(), // command line
         NULL, // process security attributes
         NULL, // primary thread security attributes
-        NULL, // handles are inherited
+        FALSE, // handles are inherited
         0, // creation flags
         NULL, // use parent's environment
-        NULL, // use parent's current directory
+        work_dir, // working directory
         &StartInfo, // STARTUPINFO pointer
         &proc_info); // receives PROCESS_INFORMATION
+
+    if (bFuncRetn != FALSE) {
+        CloseHandle(proc_info.hThread);
+        CloseHandle(proc_info.hProcess);
+    }
 
     return bFuncRetn != FALSE;
 }
@@ -4070,29 +4261,31 @@ void nu::editor_t::exec_command(int id)
         break;
 
     case IDM_DEBUG_RUN:
-        if (!_full_path_str.empty()) {
-            save_if_unsure();
-            std::string nubasic_exe = "nubasic -e \"" + _full_path_str + "\"";
-            std::replace(nubasic_exe.begin(), nubasic_exe.end(), '\\', '/');
-            if (!exec_process(nubasic_exe.c_str())) {
-                add_info("Error loading nuBasic", CFM_BOLD | CFM_ITALIC);
+        if (save_if_unsure() == IDCANCEL) {
+            break;
+        }
 
-                MessageBox(get_main_hwnd(), "Error loading nuBasic",
-                    "Run Interpreter", MB_ICONASTERISK | MB_OK);
-            }
-        } else {
-            const auto decision = MessageBox(get_main_hwnd(),
-                "Source file not specified, proceed anyway ?",
-                "Run Interpreter", MB_YESNOCANCEL);
-
-            if (decision == IDYES) {
-                if (!exec_process("nubasic.exe")) {
-                    add_info("Error loading nuBasic", CFM_BOLD | CFM_ITALIC);
-                    MessageBox(get_main_hwnd(), "Error loading nuBasic",
-                        "Run Interpreter", MB_ICONASTERISK | MB_OK);
+        if (!_full_path_str.empty() && !_is_dirty) {
+            const std::string nubasic_exe = resolve_nubasic_executable();
+            if (!nubasic_exe.empty()) {
+                const std::filesystem::path src(_full_path_str);
+                const std::string work_dir = src.parent_path().string();
+                if (exec_process(
+                        nubasic_exe, { "-e", _full_path_str }, work_dir)) {
+                    break;
                 }
+
+                add_info("Error loading standalone nuBasic\n",
+                    CFM_BOLD | CFM_ITALIC);
+            } else {
+                add_info(
+                    "Standalone nuBasic not found; running inside IDE without "
+                    "debugging\n",
+                    CFM_ITALIC);
             }
         }
+
+        start_without_debugging();
         break;
 
     case IDC_AUTOCOMPLETE:

@@ -63,10 +63,12 @@ stmt_function_t::stmt_function_t(prog_ctx_t& ctx, const std::string& id)
     // Create an execution object (using a lamda)
     auto this_func = [](rt_prog_ctx_t& ctx, const std::string& name,
                          const func_args_t& args) -> variant_t {
-        variant_t pending_return;
-        if (ctx.consume_debug_pending_return(
-                name, ctx.runtime_pc.get_line(), pending_return)) {
-            return pending_return;
+        if (ctx.debug_mode) {
+            variant_t pending_return;
+            if (ctx.consume_debug_pending_return(
+                    name, ctx.runtime_pc.get_line(), pending_return)) {
+                return pending_return;
+            }
         }
 
         // Run the function

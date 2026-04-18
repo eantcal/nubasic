@@ -253,10 +253,12 @@ public:
                             + static_key + "'");
                     }
 
-                    variant_t pending_return;
-                    if (ctx.consume_debug_pending_return(static_key,
-                            ctx.runtime_pc.get_line(), pending_return)) {
-                        return pending_return;
+                    if (ctx.debug_mode) {
+                        variant_t pending_return;
+                        if (ctx.consume_debug_pending_return(static_key,
+                                ctx.runtime_pc.get_line(), pending_return)) {
+                            return pending_return;
+                        }
                     }
 
                     ctx.program().run(static_key, _var2->get_args());
