@@ -69,24 +69,4 @@ target_link_libraries(nuWinConsole PUBLIC
   kernel32
 )
 
-# ===== Test Executable (optional) =====
-
-# Source files for test executable
-set(TEST_SOURCES
-  main.cpp
-)
-
-# Create test executable
-add_executable(nuWinConsole_test WIN32 ${TEST_SOURCES})
-
-# Output name for test
-set_target_properties(nuWinConsole_test PROPERTIES OUTPUT_NAME "nubasic_console")
-
-# Link against the library
-target_link_libraries(nuWinConsole_test PRIVATE
-  nuWinConsole
-)
-
-# Install targets
-install(TARGETS nuWinConsole nuWinConsole_test DESTINATION bin)
 

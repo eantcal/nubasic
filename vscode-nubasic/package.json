@@ -16,7 +16,7 @@
     "url": "https://github.com/eantcal/nubasic"
   },
   "main": "./out/extension.js",
-"contributes": {
+  "contributes": {
     "languages": [
       {
         "id": "nubasic",
@@ -39,6 +39,12 @@
     ],
     "commands": [
       {
+        "command": "nubasic.debug",
+        "title": "Debug nuBASIC File",
+        "icon": "$(debug-start)",
+        "category": "nuBASIC"
+      },
+      {
         "command": "nubasic.run",
         "title": "Run nuBASIC File",
         "icon": "$(play)",
@@ -53,8 +59,13 @@
     ],
     "keybindings": [
       {
-        "command": "nubasic.run",
+        "command": "nubasic.debug",
         "key": "f5",
+        "when": "editorLangId == nubasic"
+      },
+      {
+        "command": "nubasic.run",
+        "key": "ctrl+f5",
         "when": "editorLangId == nubasic"
       },
       {
@@ -66,19 +77,74 @@
     "menus": {
       "editor/title/run": [
         {
-          "command": "nubasic.run",
+          "command": "nubasic.debug",
           "when": "editorLangId == nubasic",
           "group": "navigation"
+        },
+        {
+          "command": "nubasic.run",
+          "when": "editorLangId == nubasic",
+          "group": "navigation@2"
         }
       ],
       "editor/context": [
         {
-          "command": "nubasic.run",
+          "command": "nubasic.debug",
           "when": "editorLangId == nubasic",
           "group": "navigation"
+        },
+        {
+          "command": "nubasic.run",
+          "when": "editorLangId == nubasic",
+          "group": "navigation@2"
         }
       ]
     },
+    "debuggers": [
+      {
+        "type": "nubasic",
+        "label": "nuBASIC",
+        "languages": [
+          "nubasic"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "nuBASIC source file to debug.",
+                "default": "${file}"
+              },
+              "executablePath": {
+                "type": "string",
+                "description": "Path to the nubasic executable. Defaults to nubasic.executablePath."
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Working directory for the nuBASIC debugger. Defaults to the program directory."
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Stop on the first executable statement.",
+                "default": false
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "nubasic",
+            "request": "launch",
+            "name": "Debug nuBASIC File",
+            "program": "${file}",
+            "stopOnEntry": false
+          }
+        ]
+      }
+    ],
     "configuration": {
       "title": "nuBASIC",
       "properties": {

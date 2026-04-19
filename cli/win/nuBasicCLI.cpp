@@ -122,8 +122,6 @@ static nu::interpreter_t::exec_res_t exec_command(
 
 static int nuBASIC_console(int argc, char* argv[])
 {
-    nu::_os_cls();
-
     nu::interpreter_t nuBASIC;
     // Pump the GDI message queue, but not after every single statement:
     // tight loops (e.g. rosettatxt.bas) would call PeekMessage ~70k times and
@@ -195,15 +193,24 @@ static int nuBASIC_console(int argc, char* argv[])
                 && param != "--text-mode") {
                 if (argc > 1 && param.size() == 2 && param.c_str()[0] == '-') {
                     switch (param.c_str()[1]) {
-                    case NU_BASIC_EXEC_MACRO:
-                        param = "EXEC \"" + std::string(argv[++i]) + "\"";
+                    case NU_BASIC_EXEC_MACRO: {
+                        std::string fp = argv[++i];
+                        for (auto& c : fp)
+                            if (c == '\\')
+                                c = '/';
+                        param = "EXEC \"" + fp + "\"";
                         argc = 1;
                         break;
-
-                    case NU_BASIC_LOAD_MACRO:
-                        param = "LOAD \"" + std::string(argv[++i]) + "\"";
+                    }
+                    case NU_BASIC_LOAD_MACRO: {
+                        std::string fp = argv[++i];
+                        for (auto& c : fp)
+                            if (c == '\\')
+                                c = '/';
+                        param = "LOAD \"" + fp + "\"";
                         --argc;
                         break;
+                    }
 
                     case NU_BASIC_HELP_MACRO: {
                         auto item = std::string(argv[++i]);
@@ -234,6 +241,11 @@ static int nuBASIC_console(int argc, char* argv[])
     std::string command;
     // batch_mode: a command was supplied on the CLI → run it and exit.
     const bool batch_mode = !command_line.empty();
+
+    // In text batch mode (-t -e ...) don't clear the screen: output must
+    // appear inline in the invoking terminal window without disruption.
+    if (!batch_mode || nu::_os_get_screen_mode() != 0)
+        nu::_os_cls();
 
     if (command_line.empty()) {
         const auto ver_str = nuBASIC.version();
@@ -269,10 +281,18 @@ static int nuBASIC_console(int argc, char* argv[])
             break;
         }
 
-        // In GDI mode: if a graphics program ran, show "Press any key" overlay.
+        // In GDI mode: show "Press any key" then optionally exit.
         if (nu::_os_get_screen_mode() != 0) {
+            const bool need_key_wait
+                = nu_winconsole_is_graphics_mode() || batch_mode;
+
             if (nu_winconsole_is_graphics_mode()) {
                 nu_winconsole_show_graphics_end_prompt();
+            } else if (batch_mode) {
+                cli_printf("\nPress any key to exit...");
+            }
+
+            if (need_key_wait) {
                 while (!nu_winconsole_key_available()
                     && !nu_winconsole_vkey_available()) {
                     if (!nu_winconsole_process_messages())
@@ -287,6 +307,9 @@ static int nuBASIC_console(int argc, char* argv[])
             }
             nu_winconsole_restore_text_mode();
             nu_winconsole_set_app_mouse_input_enabled(0);
+
+            if (batch_mode)
+                break;
         }
 
         switch (res) {
@@ -358,47 +381,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     if (text_mode) {
         nu::_os_set_screen_mode(0);
-        // For a WINDOWS-subsystem binary the CRT stdio streams are not
-        // connected to anything by default.  Reconnect them to the Win32
-        // standard handles that the parent process (PowerShell, cmd.exe,
-        // bash via WSL, etc.) already set up — which may be pipes, files,
-        // or a console.  This lets the test runner capture stdout/stderr
-        // normally.  Only allocate a new console as a last resort (e.g.
-        // double-clicked from Explorer with no inherited handles).
-        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-        HANDLE hErr = GetStdHandle(STD_ERROR_HANDLE);
-        HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
-
-        if (hOut == NULL || hOut == INVALID_HANDLE_VALUE) {
-            // No inherited stdout: create a console window.
-            AllocConsole();
-            freopen("CONOUT$", "w", stdout);
-            freopen("CONOUT$", "w", stderr);
-            freopen("CONIN$", "r", stdin);
-        } else {
-            // Reconnect the CRT FILE* streams to the inherited Win32 handles.
-            // _open_osfhandle takes ownership, so _close the intermediate fd.
-            int fdOut
-                = _open_osfhandle(reinterpret_cast<intptr_t>(hOut), _O_TEXT);
-            int fdErr
-                = _open_osfhandle(reinterpret_cast<intptr_t>(hErr), _O_TEXT);
-            int fdIn = _open_osfhandle(
-                reinterpret_cast<intptr_t>(hIn), _O_RDONLY | _O_TEXT);
-            if (fdOut >= 0) {
-                _dup2(fdOut, _fileno(stdout));
-                _close(fdOut);
-            }
-            if (fdErr >= 0) {
-                _dup2(fdErr, _fileno(stderr));
-                _close(fdErr);
-            }
-            if (fdIn >= 0) {
-                _dup2(fdIn, _fileno(stdin));
-                _close(fdIn);
-            }
-            setvbuf(stdout, nullptr, _IONBF, 0);
-            setvbuf(stderr, nullptr, _IONBF, 0);
-        }
+        // Attach to the parent process's existing console (no new window).
+        // AttachConsole fails silently if already attached or no parent
+        // console; freopen("CONOUT$"/"CONIN$") still works either way because
+        // the OS resolves those names via the currently-attached console.
+        AttachConsole(ATTACH_PARENT_PROCESS);
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
+        freopen("CONIN$", "r", stdin);
+        setvbuf(stdout, nullptr, _IONBF, 0);
+        setvbuf(stderr, nullptr, _IONBF, 0);
     } else {
         // Initialize GDI console
         if (!nu_winconsole_init(hInstance, SW_SHOW)) {

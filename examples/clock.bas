@@ -38,8 +38,8 @@ MoveWindow GetWindowX(),GetWindowY(), 500,500
 FillRect 0,0,500,500,0
 Cls
 
-' Call Main procedure
-Main  
+' Call Run procedure
+Run
 
 ' Exit program
 End   
@@ -154,7 +154,7 @@ end sub
 
 ' -----------------------------------------------------------------------------
 
-sub Main()
+sub Run()
    ScreenLock
    DrawBg
    DrawHands getTime()

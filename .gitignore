@@ -37,3 +37,4 @@ Debug
 vscode-nubasic/node_modules/
 vscode-nubasic/out/
 vscode-nubasic/*.vsix
+/_CPack_Packages

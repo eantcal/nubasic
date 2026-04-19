@@ -130,13 +130,28 @@ $nsmgr2   = New-Object System.Xml.XmlNamespaceManager($featDoc.NameTable)
 $nsmgr2.AddNamespace('wix', $WixNs)
 
 if (-not $featDoc.SelectSingleNode('//wix:ComponentRef[@Id="CM_COMP_StartMenuShortcuts"]', $nsmgr2)) {
-    # Add ComponentRefs to existing FeatureRef
-    $featureRef = $featDoc.SelectSingleNode('//wix:FeatureRef[@Id="ProductFeature"]', $nsmgr2)
+    # Find the feature to attach our ComponentRefs to.
+    # CPack may generate CM_FP_Core, ProductFeature (Feature or FeatureRef), or
+    # a single unnamed Feature — try all candidates in order.
+    $targetFeature = $featDoc.SelectSingleNode('//wix:Feature[@Id="CM_FP_Core"]', $nsmgr2)
+    if (-not $targetFeature) {
+        $targetFeature = $featDoc.SelectSingleNode('//wix:Feature[@Id="ProductFeature"]', $nsmgr2)
+    }
+    if (-not $targetFeature) {
+        $targetFeature = $featDoc.SelectSingleNode('//wix:FeatureRef[@Id="ProductFeature"]', $nsmgr2)
+    }
+    if (-not $targetFeature) {
+        $targetFeature = $featDoc.SelectSingleNode('//wix:Feature', $nsmgr2)
+    }
+    if (-not $targetFeature) {
+        throw "Cannot find Feature or FeatureRef in features.wxs.`nContent:`n$($featDoc.OuterXml)"
+    }
+    Write-Host "Attaching ComponentRefs to feature: $($targetFeature.GetAttribute('Id'))"
     foreach ($id in 'CM_COMP_StartMenuShortcuts','CM_COMP_DesktopShortcut',
                      'CM_COMP_RegistryKeys','CM_COMP_BASFileAssoc') {
         $node = $featDoc.CreateElement('ComponentRef', $WixNs)
         $node.SetAttribute('Id', $id)
-        [void]$featureRef.AppendChild($node)
+        [void]$targetFeature.AppendChild($node)
     }
 
     # Append new Fragment with registry and .bas file-assoc components
@@ -190,7 +205,56 @@ if (-not $featDoc.SelectSingleNode('//wix:ComponentRef[@Id="CM_COMP_StartMenuSho
 }
 
 # ---------------------------------------------------------------------------
-# 3. Recompile patched WXS files
+# 3. Patch main.wxs — add VS Code extension install custom action.
+#    Runs install-vscode-ext.ps1 (installed alongside the binaries) as a
+#    deferred impersonated action so it executes in the user's context.
+# ---------------------------------------------------------------------------
+$mainFile = Join-Path $WixPkgDir 'main.wxs'
+$mainDoc  = [xml](Get-Content $mainFile -Encoding UTF8)
+$nsmgr3   = New-Object System.Xml.XmlNamespaceManager($mainDoc.NameTable)
+$nsmgr3.AddNamespace('wix', $WixNs)
+
+if (-not $mainDoc.SelectSingleNode('//wix:CustomAction[@Id="CA_InstallVSCodeExt"]', $nsmgr3)) {
+    $product = $mainDoc.SelectSingleNode('//wix:Product', $nsmgr3)
+
+    Add-WixChild $mainDoc $product @'
+<CustomAction xmlns="http://schemas.microsoft.com/wix/2006/wi"
+              Id="CA_InstallVSCodeExt"
+              Execute="deferred"
+              Impersonate="yes"
+              Return="ignore"
+              Directory="TARGETDIR"
+              ExeCommand="powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File &quot;[INSTALL_ROOT]bin\install-vscode-ext.ps1&quot; -InstallDir &quot;[INSTALL_ROOT]&quot;"/>
+'@
+
+    # Run on install/repair but not on uninstall.
+    # Return="ignore" and the script's own VSIX-existence check make this safe
+    # even when VS Code is not installed.
+    $caCondition    = 'NOT REMOVE~="ALL"'
+    $caConditionXml = $caCondition
+    $seq = $mainDoc.SelectSingleNode('//wix:InstallExecuteSequence', $nsmgr3)
+    if (-not $seq) {
+        Add-WixChild $mainDoc $product @"
+<InstallExecuteSequence xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Custom Action="CA_InstallVSCodeExt" Before="InstallFinalize">$caConditionXml</Custom>
+</InstallExecuteSequence>
+"@
+    } else {
+        $node = $mainDoc.CreateElement('Custom', $WixNs)
+        $node.SetAttribute('Action', 'CA_InstallVSCodeExt')
+        $node.SetAttribute('Before', 'InstallFinalize')
+        $node.InnerText = $caCondition   # InnerText auto-encodes & → &amp;
+        [void]$seq.AppendChild($node)
+    }
+
+    $mainDoc.Save($mainFile)
+    Write-Host "Patched: $mainFile"
+} else {
+    Write-Host "Already patched, skipping: $mainFile"
+}
+
+# ---------------------------------------------------------------------------
+# 4. Recompile patched WXS files
 # ---------------------------------------------------------------------------
 Write-Host "Recompiling directories.wxs..."
 & $Candle -nologo -arch x64 -out "$WixPkgDir\directories.wixobj" $dirFile
@@ -200,8 +264,12 @@ Write-Host "Recompiling features.wxs..."
 & $Candle -nologo -arch x64 -out "$WixPkgDir\features.wixobj" $featFile
 if ($LASTEXITCODE -ne 0) { throw "candle.exe failed on features.wxs" }
 
+Write-Host "Recompiling main.wxs..."
+& $Candle -nologo -arch x64 "-I$WixPkgDir" -out "$WixPkgDir\main.wixobj" $mainFile
+if ($LASTEXITCODE -ne 0) { throw "candle.exe failed on main.wxs" }
+
 # ---------------------------------------------------------------------------
-# 4. Relink — omit WixPatch.wixobj (all content is now inlined)
+# 5. Relink — omit WixPatch.wixobj (all content is now inlined)
 # ---------------------------------------------------------------------------
 Write-Host "Relinking MSI -> $MsiOutput ..."
 & $Light -nologo -out $MsiOutput -ext WixUIExtension `

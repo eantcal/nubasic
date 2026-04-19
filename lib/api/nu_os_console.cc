@@ -58,10 +58,10 @@ void _os_init()
 void _os_u16write(const std::u16string& output)
 {
     if (g_screen_mode == 0) {
-        HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-        DWORD written = 0;
-        WriteConsoleW(hOut, output.c_str(), static_cast<DWORD>(output.size()),
-            &written, nullptr);
+        // Text mode: use standard printf so output works on any handle type
+        // (real console, ConPTY pipe, redirect to file, etc.).
+        const std::string utf8 = nu::u16_to_utf8(output);
+        printf("%s", utf8.c_str());
     } else {
         nu_winconsole_write_w((const wchar_t*)output.c_str());
     }

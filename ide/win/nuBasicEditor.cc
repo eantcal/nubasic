@@ -98,29 +98,29 @@ namespace editor {
 
               { 3, IDM_DEBUG_START, toolbar_btn_state, toolbar_btn_style, { 0 },
                   NULL, (INT_PTR) "Run" },
-              { 3, IDM_DEBUG_STOP, 0 /*initially disabled*/, toolbar_btn_style,
+              { 4, IDM_DEBUG_STOP, 0 /*initially disabled*/, toolbar_btn_style,
                   { 0 }, NULL, (INT_PTR) "Stop" },
-              { 4, IDM_DEBUG_STEP, toolbar_btn_state, toolbar_btn_style, { 0 },
+              { 5, IDM_DEBUG_STEP, toolbar_btn_state, toolbar_btn_style, { 0 },
                   NULL, (INT_PTR) "Step" },
-              { 5, IDM_DEBUG_CONT, toolbar_btn_state, toolbar_btn_style, { 0 },
+              { 6, IDM_DEBUG_CONT, toolbar_btn_state, toolbar_btn_style, { 0 },
                   NULL, (INT_PTR) "Continue" },
-              { 6, IDM_DEBUG_TOGGLEBRK, toolbar_btn_state, toolbar_btn_style,
+              { 7, IDM_DEBUG_TOGGLEBRK, toolbar_btn_state, toolbar_btn_style,
                   { 0 }, NULL, (INT_PTR) "Breakpoint" },
-              { 7, IDM_INTERPRETER_BUILD, toolbar_btn_state, toolbar_btn_style,
+              { 8, IDM_INTERPRETER_BUILD, toolbar_btn_state, toolbar_btn_style,
                   { 0 }, NULL, (INT_PTR) "Build" },
-              { 8, IDM_DEBUG_EVALSEL, toolbar_btn_state, toolbar_btn_style,
+              { 9, IDM_DEBUG_EVALSEL, toolbar_btn_state, toolbar_btn_style,
                   { 0 }, NULL, (INT_PTR) "Evaluate" },
 
               { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-              { 9, IDM_SEARCH_FIND, toolbar_btn_state, toolbar_btn_style, { 0 },
-                  NULL, (INT_PTR) "Find" },
+              { 10, IDM_SEARCH_FIND, toolbar_btn_state, toolbar_btn_style,
+                  { 0 }, NULL, (INT_PTR) "Find" },
 
               { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
 
-              { 10, IDM_DEBUG_TOPMOST, toolbar_btn_state, toolbar_btn_style,
+              { 11, IDM_DEBUG_TOPMOST, toolbar_btn_state, toolbar_btn_style,
                   { 0 }, NULL, (INT_PTR) "Con Top" },
-              { 11, IDM_DEBUG_NOTOPMOST, toolbar_btn_state, toolbar_btn_style,
+              { 12, IDM_DEBUG_NOTOPMOST, toolbar_btn_state, toolbar_btn_style,
                   { 0 }, NULL, (INT_PTR) "Ide Top" }
 
           };
@@ -4271,7 +4271,7 @@ void nu::editor_t::exec_command(int id)
                 const std::filesystem::path src(_full_path_str);
                 const std::string work_dir = src.parent_path().string();
                 if (exec_process(
-                        nubasic_exe, { "-e", _full_path_str }, work_dir)) {
+                        nubasic_exe, { "-t", "-e", _full_path_str }, work_dir)) {
                     break;
                 }
 

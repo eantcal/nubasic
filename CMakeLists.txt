@@ -167,7 +167,7 @@ link_directories(${lib_BINARY_DIR})
 
 # Build Unix/Linux console executable
 if (NOT WIN32)
-  file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/cli/unix/*.cc")
+  set(SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/cli/main.cc")
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20" )
 
@@ -279,9 +279,8 @@ if(WIN32)
     set(CPACK_WIX_UI_BANNER "${CMAKE_SOURCE_DIR}/cmake/nubasic_banner.bmp")
     set(CPACK_WIX_UI_DIALOG "${CMAKE_SOURCE_DIR}/cmake/nubasic_dialog.bmp")
 
-    # WixUI_Mondo: shows Repair/Remove when already installed (maintenance mode).
-    # Trade-off: no custom install-directory page (installs to ProgramFiles\nuBASIC).
-    set(CPACK_WIX_UI_REF "WixUI_Mondo")
+    # WixUI_FeatureTree: shows optional-component selection on every install.
+    set(CPACK_WIX_UI_REF "WixUI_FeatureTree")
 
     # License text shown on the first page of the installer.
     set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/cmake/License.rtf")
@@ -299,6 +298,24 @@ if(WIN32)
 
     # 64-bit target: CPack WIX uses CPACK_WIX_SIZEOF_VOID_P (set automatically
     # by CMake) to select ProgramFiles64Folder vs ProgramFilesFolder.
+
+    # ---------------------------------------------------------------------------
+    # Optional install components shown in the WixUI_FeatureTree dialog.
+    # ---------------------------------------------------------------------------
+    set(CPACK_COMPONENTS_ALL "Core;IDE;VSCodeExtension;Examples")
+
+    set(CPACK_COMPONENT_CORE_DISPLAY_NAME   "nuBASIC Runtime")
+    set(CPACK_COMPONENT_CORE_DESCRIPTION    "CLI interpreter (nubasic.exe / nubasic_t.exe)")
+    set(CPACK_COMPONENT_CORE_REQUIRED       TRUE)
+
+    set(CPACK_COMPONENT_IDE_DISPLAY_NAME    "nuBASIC IDE")
+    set(CPACK_COMPONENT_IDE_DESCRIPTION     "Windows Integrated Development Environment")
+
+    set(CPACK_COMPONENT_VSCODEEXTENSION_DISPLAY_NAME  "VS Code Extension")
+    set(CPACK_COMPONENT_VSCODEEXTENSION_DESCRIPTION   "Syntax highlighting and debugger for Visual Studio Code")
+
+    set(CPACK_COMPONENT_EXAMPLES_DISPLAY_NAME "Example Programs")
+    set(CPACK_COMPONENT_EXAMPLES_DESCRIPTION  "Sample nuBASIC source files (.bas)")
   endif()
 
 else()
@@ -326,7 +343,7 @@ INCLUDE(CPack)
 if(WIN32 AND MSVC)
   # Collect the targets that must be built before packaging.
   set(_installer_deps "")
-  foreach(_t nuBasicIDE nuBasicCLI nuWinConsole_test SciLexer)
+  foreach(_t nuBasicIDE nuBasicCLI nuBasicGDI SciLexer)
     if(TARGET ${_t})
       list(APPEND _installer_deps ${_t})
     endif()
@@ -347,33 +364,23 @@ if(WIN32 AND MSVC)
       "C:/Program Files (x86)/WiX Toolset v3.10/bin"
     DOC "WiX Toolset light.exe linker")
 
-  set(_wix_pkg_dir
-      "${CMAKE_BINARY_DIR}/_CPack_Packages/win64/WIX")
   set(_msi_out
       "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}_${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}.msi")
 
-  # Base command list — always run CPack first.
   set(_installer_cmds
-    COMMAND "${CMAKE_CPACK_COMMAND}"
-            -G "${NUBASIC_INSTALLER}"
-            -C "$<CONFIG>"
-            --config "${CMAKE_BINARY_DIR}/CPackConfig.cmake"
+    COMMAND powershell
+            -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/cmake/RunCpackInstaller.ps1"
+            -CPackExe   "${CMAKE_CPACK_COMMAND}"
+            -Generator  "${NUBASIC_INSTALLER}"
+            -Config     "$<CONFIG>"
+            -ConfigFile "${CMAKE_BINARY_DIR}/CPackConfig.cmake"
+            -BinaryDir  "${CMAKE_BINARY_DIR}"
+            -SourceDir  "${CMAKE_SOURCE_DIR}"
+            -MsiOutput  "${_msi_out}"
+            -Candle     "${WIX_CANDLE}"
+            -Light      "${WIX_LIGHT}"
   )
-
-  if(NUBASIC_INSTALLER STREQUAL "WIX" AND WIX_CANDLE AND WIX_LIGHT)
-    # After CPack produces the base MSI, patch directories.wxs and
-    # features.wxs to inject Start Menu / Desktop shortcuts, registry
-    # keys, and .bas file association; then recompile + relink.
-    list(APPEND _installer_cmds
-      COMMAND powershell
-              -NoProfile -ExecutionPolicy Bypass
-              -File "${CMAKE_SOURCE_DIR}/cmake/PatchWixMSI.ps1"
-              -WixPkgDir "${_wix_pkg_dir}"
-              -Candle    "${WIX_CANDLE}"
-              -Light     "${WIX_LIGHT}"
-              -MsiOutput "${_msi_out}"
-    )
-  endif()
 
   add_custom_target(CreateInstaller
     ${_installer_cmds}
@@ -414,6 +421,20 @@ if(WIN32 AND MSVC)
     VERBATIM
   )
   set_property(TARGET RunTests PROPERTY FOLDER "Tests")
+
+  add_custom_target(RunRosettaBenchmark
+    COMMAND powershell -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/benchmarks/run_rosetta.ps1"
+            -Interpreter "$<TARGET_FILE:nuBasicCLI>"
+            -Script "${CMAKE_SOURCE_DIR}/examples/rosetta.bas"
+            -Iterations 5
+            -Warmup 1
+    DEPENDS nuBasicCLI
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    COMMENT "Running nuBASIC Rosetta benchmark..."
+    VERBATIM
+  )
+  set_property(TARGET RunRosettaBenchmark PROPERTY FOLDER "Tests")
 elseif(NOT WIN32)
   add_custom_target(RunTests
     COMMAND bash "${CMAKE_SOURCE_DIR}/tests/run_tests.sh"
@@ -443,6 +464,12 @@ if(NOT NODE_EXE OR NOT NPM_EXE)
     "Install Node.js from https://nodejs.org to enable them.")
 else()
   set(_ext_dir "${CMAKE_SOURCE_DIR}/vscode-nubasic")
+
+  # Bundle the pre-built VSIX and its install helper in the MSI.
+  install(FILES "${_ext_dir}/nubasic-0.1.0.vsix"
+          DESTINATION bin OPTIONAL COMPONENT VSCodeExtension)
+  install(FILES "${CMAKE_SOURCE_DIR}/cmake/install-vscode-ext.ps1"
+          DESTINATION bin COMPONENT VSCodeExtension)
 
   add_custom_target(VscodeExtensionBuild
     COMMAND "${NPM_EXE}" install
