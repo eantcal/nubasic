@@ -30,18 +30,50 @@ try {
         exit 0
     }
 
-    # Use .NET folder resolution — $env:LOCALAPPDATA may be unset in deferred CAs.
-    $localAppData = [System.Environment]::GetFolderPath('LocalApplicationData')
-    $programFiles = [System.Environment]::GetFolderPath('ProgramFiles')
+    # Use .NET APIs — env vars may be unset in deferred MSI custom actions.
+    $localAppData    = [System.Environment]::GetFolderPath('LocalApplicationData')
+    $programFiles    = [System.Environment]::GetFolderPath('ProgramFiles')
+    $programFilesX86 = [System.Environment]::GetFolderPath('ProgramFilesX86')
 
-    $candidates = [System.Collections.Generic.List[string]]@(
-        "$localAppData\Programs\Microsoft VS Code\bin\code.cmd",
-        "$programFiles\Microsoft VS Code\bin\code.cmd"
+    $candidates = [System.Collections.Generic.List[string]]::new()
+
+    # --- Registry lookup (most reliable) ---
+    $regBases = @(
+        'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall',
+        'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall',
+        'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall'
     )
+    foreach ($base in $regBases) {
+        if (-not (Test-Path $base)) { continue }
+        $key = Get-ChildItem $base -ErrorAction SilentlyContinue |
+            Where-Object { $_.GetValue('DisplayName') -like '*Visual Studio Code*' } |
+            Select-Object -First 1
+        if ($key) {
+            $loc = $key.GetValue('InstallLocation')
+            if ($loc) {
+                $loc = $loc.TrimEnd('\')
+                $candidates.Add("$loc\bin\code.cmd")
+                $candidates.Add("$loc\Code.exe")
+                Write-Host "Registry install location: $loc"
+            }
+        }
+    }
+
+    # --- Common default paths ---
+    foreach ($root in @(
+        "$localAppData\Programs\Microsoft VS Code",
+        "$programFiles\Microsoft VS Code",
+        "$programFilesX86\Microsoft VS Code"
+    )) {
+        $candidates.Add("$root\bin\code.cmd")
+        $candidates.Add("$root\Code.exe")
+    }
+
+    # --- PATH fallback ---
     $fromPath = Get-Command code.cmd -ErrorAction SilentlyContinue
     if ($fromPath) { $candidates.Add($fromPath.Source) }
 
-    Write-Host "Searching for code.cmd..."
+    Write-Host "Searching for VS Code..."
     foreach ($c in $candidates) { Write-Host "  candidate: $c" }
 
     $code = $candidates |
