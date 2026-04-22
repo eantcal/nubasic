@@ -9,6 +9,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include/statements)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include/runtime)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include/types)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include/api)
+include_directories(${CMAKE_BINARY_DIR}/generated/include/util)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include/util)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../)
 

@@ -22,7 +22,7 @@ try {
     Write-Host "User       : $env:USERNAME"
     Write-Host "Time       : $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 
-    $vsix = Join-Path $InstallDir "bin\nubasic-0.1.0.vsix"
+    $vsix = Join-Path $InstallDir "bin\nubasic-0.1.2.vsix"
     Write-Host "VSIX path  : $vsix"
 
     if (-not (Test-Path $vsix)) {

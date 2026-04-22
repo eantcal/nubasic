@@ -17,13 +17,208 @@
 #include "nu_reserved_keywords.h"
 #include "nu_terminal_frame.h"
 
+#include <algorithm>
 #include <cassert>
+#include <cctype>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
 #include <variant>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+/* -------------------------------------------------------------------------- */
+
+#ifdef _WIN32
+
+static std::string ascii_lower(std::string s)
+{
+    std::transform(s.begin(), s.end(), s.begin(),
+        [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return s;
+}
+
+static std::string strip_basic_comment(const std::string& line)
+{
+    bool in_string = false;
+
+    for (size_t i = 0; i < line.size(); ++i) {
+        if (line[i] == '"') {
+            in_string = !in_string;
+        } else if (line[i] == '\'' && !in_string) {
+            return line.substr(0, i);
+        }
+    }
+
+    return line;
+}
+
+static std::string drop_leading_line_number(std::string line)
+{
+    size_t pos = 0;
+    while (pos < line.size() && std::isspace((unsigned char)line[pos]))
+        ++pos;
+
+    const size_t number_begin = pos;
+    while (pos < line.size() && std::isdigit((unsigned char)line[pos]))
+        ++pos;
+
+    if (pos > number_begin
+        && (pos == line.size() || std::isspace((unsigned char)line[pos]))) {
+        while (pos < line.size() && std::isspace((unsigned char)line[pos]))
+            ++pos;
+        return line.substr(pos);
+    }
+
+    return line;
+}
+
+static bool contains_basic_keyword(
+    const std::string& line, const std::string& keyword)
+{
+    size_t pos = line.find(keyword);
+    while (pos != std::string::npos) {
+        const auto is_ident = [](char c) {
+            return std::isalnum((unsigned char)c) || c == '_' || c == '%'
+                || c == '$';
+        };
+
+        const bool left_ok = pos == 0 || !is_ident(line[pos - 1]);
+        const size_t right = pos + keyword.size();
+        const bool right_ok = right >= line.size() || !is_ident(line[right]);
+
+        if (left_ok && right_ok)
+            return true;
+
+        pos = line.find(keyword, pos + keyword.size());
+    }
+
+    return false;
+}
+
+static bool source_line_uses_graphics(const std::string& raw_line)
+{
+    static const char* const graphics_keywords[]
+        = { "ellipse", "fillellipse", "fillrect", "getpixel", "line",
+              "movewindow", "plotimage", "rect", "refresh", "screen",
+              "screenlock", "screenunlock", "setpixel", "textout" };
+
+    auto line
+        = ascii_lower(drop_leading_line_number(strip_basic_comment(raw_line)));
+    size_t pos = 0;
+    while (pos < line.size() && std::isspace((unsigned char)line[pos]))
+        ++pos;
+
+    if (pos >= line.size())
+        return false;
+
+    if (line.compare(pos, 3, "rem") == 0
+        && (pos + 3 == line.size()
+            || std::isspace((unsigned char)line[pos + 3]))) {
+        return false;
+    }
+
+    for (const auto* keyword : graphics_keywords) {
+        if (contains_basic_keyword(line, keyword))
+            return true;
+    }
+
+    return false;
+}
+
+static bool source_file_uses_graphics(const std::string& filepath)
+{
+    std::ifstream in(filepath);
+    if (!in)
+        return false;
+
+    std::string line;
+    while (std::getline(in, line)) {
+        if (source_line_uses_graphics(line))
+            return true;
+    }
+
+    return false;
+}
+
+static std::string find_exec_file_arg(int argc, char* argv[])
+{
+    for (int j = 1; j + 1 < argc; ++j) {
+        if (argv[j][0] == '-' && argv[j][1] == NU_BASIC_EXEC_MACRO
+            && argv[j][2] == '\0') {
+            return argv[j + 1];
+        }
+    }
+
+    return "";
+}
+
+static std::string quote_arg(const std::string& arg)
+{
+    std::string quoted = "\"";
+    for (const char c : arg) {
+        if (c == '"')
+            quoted += '\\';
+        quoted += c;
+    }
+    quoted += '"';
+    return quoted;
+}
+
+static std::string sibling_gdi_exe(const char* argv0)
+{
+    char full_path[MAX_PATH] = { 0 };
+    if (GetModuleFileNameA(nullptr, full_path, MAX_PATH)) {
+        std::string path = full_path;
+        const auto slash = path.find_last_of("\\/");
+        if (slash != std::string::npos)
+            return path.substr(0, slash + 1) + "nubasicgdi.exe";
+    }
+
+    std::string path = argv0 ? argv0 : "nubasic.exe";
+    const auto slash = path.find_last_of("\\/");
+    if (slash != std::string::npos)
+        return path.substr(0, slash + 1) + "nubasicgdi.exe";
+
+    return "nubasicgdi.exe";
+}
+
+static bool launch_gdi_cli(int argc, char* argv[])
+{
+    const std::string gdi_exe = sibling_gdi_exe(argv[0]);
+    std::string command_line = quote_arg(gdi_exe);
+
+    for (int i = 1; i < argc; ++i) {
+        const std::string arg = argv[i];
+        if (arg == "-t" || arg == "--text-mode")
+            continue;
+        command_line += " " + quote_arg(arg);
+    }
+
+    STARTUPINFOA si{};
+    si.cb = sizeof(si);
+    PROCESS_INFORMATION pi{};
+
+    std::vector<char> mutable_cmd(command_line.begin(), command_line.end());
+    mutable_cmd.push_back('\0');
+
+    if (!CreateProcessA(nullptr, mutable_cmd.data(), nullptr, nullptr, FALSE, 0,
+            nullptr, nullptr, &si, &pi)) {
+        return false;
+    }
+
+    WaitForSingleObject(pi.hProcess, INFINITE);
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    return true;
+}
+
+#endif
 
 /* -------------------------------------------------------------------------- */
 
@@ -275,6 +470,12 @@ static int nuBASIC_console(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
 #ifdef _WIN32
+    const std::string exec_file = find_exec_file_arg(argc, argv);
+    if (!exec_file.empty() && source_file_uses_graphics(exec_file)
+        && launch_gdi_cli(argc, argv)) {
+        return 0;
+    }
+
     // Console-subsystem build: always text mode — no GDI window.
     nu::_os_set_screen_mode(0);
 #endif

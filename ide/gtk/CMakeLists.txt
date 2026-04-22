@@ -46,6 +46,7 @@ include_directories(
     ../../include/runtime
     ../../include/types
     ../../include/api
+    ${CMAKE_BINARY_DIR}/generated/include/util
     ../../include/util
     mipjson/include
     mipjson/miptknzr/include

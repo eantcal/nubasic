@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as cp from 'child_process';
 
 let terminal: vscode.Terminal | undefined;
+let debugLog: vscode.OutputChannel | undefined;
 
 type DebugProtocolMessage = {
     seq: number;
@@ -30,6 +31,7 @@ type PendingCommand = {
 
 export function activate(context: vscode.ExtensionContext) {
     const debugProvider = new NuBasicDebugConfigurationProvider();
+    debugLog = vscode.window.createOutputChannel('nuBASIC Debug');
 
     context.subscriptions.push(
         vscode.commands.registerCommand('nubasic.debug', debugFile),
@@ -40,6 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
             'nubasic',
             new NuBasicDebugAdapterFactory()
         ),
+        debugLog,
         vscode.window.onDidCloseTerminal(t => {
             if (t === terminal) terminal = undefined;
         })
@@ -109,6 +112,14 @@ async function debugFile() {
         await editor!.document.save();
     }
 
+    if (documentUsesGraphics(editor!.document)) {
+        vscode.window.showInformationMessage(
+            'This nuBASIC program uses graphics; launching it in the GDI console.'
+        );
+        await runFile();
+        return;
+    }
+
     const folder = vscode.workspace.getWorkspaceFolder(editor!.document.uri);
     const config: vscode.DebugConfiguration = {
         type: 'nubasic',
@@ -176,6 +187,62 @@ function workspaceRoot(): string {
     return process.cwd();
 }
 
+function documentUsesGraphics(document: vscode.TextDocument): boolean {
+    const graphicsKeywords = [
+        'ellipse',
+        'fillellipse',
+        'fillrect',
+        'getpixel',
+        'line',
+        'movewindow',
+        'plotimage',
+        'rect',
+        'refresh',
+        'screen',
+        'screenlock',
+        'screenunlock',
+        'setpixel',
+        'textout',
+    ];
+
+    return document
+        .getText()
+        .split(/\r?\n/)
+        .some(line => sourceLineUsesAnyKeyword(line, graphicsKeywords));
+}
+
+function sourceLineUsesAnyKeyword(line: string, keywords: string[]): boolean {
+    const withoutComment = stripBasicComment(line).toLowerCase();
+    if (!withoutComment.trim()) {
+        return false;
+    }
+
+    const withoutLineNumber = withoutComment.replace(/^\s*\d+\s+/, '');
+    if (/^\s*rem(?:\s|$)/.test(withoutLineNumber)) {
+        return false;
+    }
+
+    return keywords.some(keyword => {
+        const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return new RegExp(`(^|[^a-z0-9_%$])${escaped}([^a-z0-9_%$]|$)`).test(
+            withoutLineNumber
+        );
+    });
+}
+
+function stripBasicComment(line: string): string {
+    let inString = false;
+    for (let i = 0; i < line.length; ++i) {
+        const ch = line[i];
+        if (ch === '"') {
+            inString = !inString;
+        } else if (ch === '\'' && !inString) {
+            return line.slice(0, i);
+        }
+    }
+    return line;
+}
+
 class NuBasicDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
     resolveDebugConfiguration(
         folder: vscode.WorkspaceFolder | undefined,
@@ -225,6 +292,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
     private variablesReference = 1;
     private lastVariables = '';
     private stepModeEnabled = false;
+    private pendingTimer: NodeJS.Timeout | undefined;
 
     handleMessage(message: DebugProtocolMessage): void {
         const request = message as DebugRequest;
@@ -335,14 +403,26 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         try {
             const exe = await resolveExecutable(this.launchArgs.executablePath);
             const cwd = this.launchArgs.cwd || path.dirname(this.launchArgs.program);
-            this.process = cp.spawn(exe, [], { cwd, windowsHide: true });
+            this.log(`launch exe="${exe}" cwd="${cwd}" program="${this.launchArgs.program}"`);
+            this.process = cp.spawn(exe, ['-t'], { cwd, windowsHide: true });
             this.process.stdout.on('data', (chunk: Buffer) => this.onOutput(chunk.toString()));
             this.process.stderr.on('data', (chunk: Buffer) => this.output(chunk.toString(), 'stderr'));
-            this.process.on('exit', () => this.event('terminated'));
+            this.process.on('exit', (code: number | null, signal: NodeJS.Signals | null) => {
+                if (this.pending) {
+                    const pending = this.pending;
+                    this.clearPendingState();
+                    const reason = signal
+                        ? `signal ${signal}`
+                        : `exit code ${code ?? 0}`;
+                    this.log(`process exit before response (${reason})`);
+                    pending.reject(new Error(`nuBASIC exited before responding (${reason}).`));
+                }
+                this.event('terminated');
+            });
             this.process.on('error', (err: Error) => {
                 if (this.pending) {
                     const pending = this.pending;
-                    this.pending = undefined;
+                    this.clearPendingState();
                     pending.reject(err);
                 }
                 this.output(`Unable to start nuBASIC: ${err.message}\n`, 'stderr');
@@ -446,6 +526,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
 
         return new Promise((resolve, reject) => {
             this.pending = { resolve, reject, output: '' };
+            this.log(`>>> ${command}`);
             this.process!.stdin.write(`${command}\n`);
         });
     }
@@ -456,10 +537,24 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         }
         return new Promise((resolve, reject) => {
             this.pending = { resolve, reject, output: '' };
+            this.pendingTimer = setTimeout(() => {
+                if (!this.pending) {
+                    return;
+                }
+
+                const pending = this.pending;
+                this.clearPendingState();
+                const details = pending.output.trim();
+                this.log('timeout waiting for prompt');
+                reject(new Error(details
+                    ? `Timed out waiting for the nuBASIC prompt. Output so far:\n${details}`
+                    : 'Timed out waiting for the nuBASIC prompt.'));
+            }, 5000);
         });
     }
 
     private onOutput(text: string) {
+        this.log(text.replace(/\r/g, '\\r').replace(/\n/g, '\\n\n'));
         this.output(text, 'stdout');
 
         if (!this.pending) {
@@ -469,9 +564,21 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         this.pending.output += text;
         if (this.hasCommandCompleted(this.pending.output)) {
             const pending = this.pending;
-            this.pending = undefined;
+            this.clearPendingState();
             pending.resolve(pending.output);
         }
+    }
+
+    private clearPendingState() {
+        if (this.pendingTimer) {
+            clearTimeout(this.pendingTimer);
+            this.pendingTimer = undefined;
+        }
+        this.pending = undefined;
+    }
+
+    private log(message: string) {
+        debugLog?.appendLine(message);
     }
 
     private hasCommandCompleted(output: string): boolean {
@@ -602,7 +709,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
     private shutdown() {
         if (this.pending) {
             const pending = this.pending;
-            this.pending = undefined;
+            this.clearPendingState();
             pending.resolve(pending.output);
         }
 

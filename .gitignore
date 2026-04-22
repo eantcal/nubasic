@@ -38,3 +38,12 @@ vscode-nubasic/node_modules/
 vscode-nubasic/out/
 vscode-nubasic/*.vsix
 /_CPack_Packages
+/.tmp-vsix
+/.tmp-vsix-check
+/vscode-nubasic/*.zip
+/vscode-nubasic/.vsix-repack
+/vscode-nubasic/nubasic-*.in.zip
+/vscode-nubasic/nubasic-*.out.zip
+/vscode-nubasic/nubasic-*.check.zip
+/vscode-nubasic/nubasic-*.new.zip
+/vscode-nubasic/.vsix-stage-*

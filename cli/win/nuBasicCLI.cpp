@@ -15,8 +15,11 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include <algorithm>
 #include <cassert>
+#include <cctype>
 #include <fcntl.h>
+#include <fstream>
 #include <io.h>
 #include <memory>
 #include <stdlib.h>
@@ -41,6 +44,130 @@
 #include "nu_basic_defs.h"
 #include "nu_signal_handling.h"
 #include <cstdio>
+
+/* -------------------------------------------------------------------------- */
+
+static std::string ascii_lower(std::string s)
+{
+    std::transform(s.begin(), s.end(), s.begin(),
+        [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return s;
+}
+
+static std::string strip_basic_comment(const std::string& line)
+{
+    bool in_string = false;
+
+    for (size_t i = 0; i < line.size(); ++i) {
+        if (line[i] == '"') {
+            in_string = !in_string;
+        } else if (line[i] == '\'' && !in_string) {
+            return line.substr(0, i);
+        }
+    }
+
+    return line;
+}
+
+static std::string drop_leading_line_number(std::string line)
+{
+    size_t pos = 0;
+    while (pos < line.size() && std::isspace((unsigned char)line[pos]))
+        ++pos;
+
+    const size_t number_begin = pos;
+    while (pos < line.size() && std::isdigit((unsigned char)line[pos]))
+        ++pos;
+
+    if (pos > number_begin
+        && (pos == line.size() || std::isspace((unsigned char)line[pos]))) {
+        while (pos < line.size() && std::isspace((unsigned char)line[pos]))
+            ++pos;
+        return line.substr(pos);
+    }
+
+    return line;
+}
+
+static bool contains_basic_keyword(
+    const std::string& line, const std::string& keyword)
+{
+    size_t pos = line.find(keyword);
+    while (pos != std::string::npos) {
+        const auto is_ident = [](char c) {
+            return std::isalnum((unsigned char)c) || c == '_' || c == '%'
+                || c == '$';
+        };
+
+        const bool left_ok = pos == 0 || !is_ident(line[pos - 1]);
+        const size_t right = pos + keyword.size();
+        const bool right_ok = right >= line.size() || !is_ident(line[right]);
+
+        if (left_ok && right_ok)
+            return true;
+
+        pos = line.find(keyword, pos + keyword.size());
+    }
+
+    return false;
+}
+
+static bool source_line_uses_graphics(const std::string& raw_line)
+{
+    static const char* const graphics_keywords[]
+        = { "ellipse", "fillellipse", "fillrect", "getpixel", "line",
+              "movewindow", "plotimage", "rect", "refresh", "screen",
+              "screenlock", "screenunlock", "setpixel", "textout" };
+
+    auto line
+        = ascii_lower(drop_leading_line_number(strip_basic_comment(raw_line)));
+    size_t pos = 0;
+    while (pos < line.size() && std::isspace((unsigned char)line[pos]))
+        ++pos;
+
+    if (pos >= line.size())
+        return false;
+
+    if (line.compare(pos, 3, "rem") == 0
+        && (pos + 3 == line.size()
+            || std::isspace((unsigned char)line[pos + 3]))) {
+        return false;
+    }
+
+    for (const auto* keyword : graphics_keywords) {
+        if (contains_basic_keyword(line, keyword))
+            return true;
+    }
+
+    return false;
+}
+
+static bool source_file_uses_graphics(const std::string& filepath)
+{
+    std::ifstream in(filepath);
+    if (!in)
+        return false;
+
+    std::string line;
+    while (std::getline(in, line)) {
+        if (source_line_uses_graphics(line))
+            return true;
+    }
+
+    return false;
+}
+
+static std::string find_exec_file_arg(int argc, char* argv[])
+{
+    for (int j = 1; j + 1 < argc; ++j) {
+        if (argv[j][0] == '-' && argv[j][1] == NU_BASIC_EXEC_MACRO
+            && argv[j][2] == '\0') {
+            return argv[j + 1];
+        }
+    }
+
+    return "";
+}
 
 /* -------------------------------------------------------------------------- */
 
@@ -380,6 +507,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
 
     if (text_mode) {
+        const std::string exec_file = find_exec_file_arg(argc, argv);
+        if (!exec_file.empty() && source_file_uses_graphics(exec_file)) {
+            text_mode = false;
+        }
+    }
+
+    if (text_mode) {
         nu::_os_set_screen_mode(0);
         // Attach to the parent process's existing console (no new window).
         // AttachConsole fails silently if already attached or no parent
@@ -416,7 +550,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     const auto errLevel = nuBASIC_console(argc, argv);
 
-    if (!text_mode)
+    if (nu_winconsole_is_active())
         nu_winconsole_shutdown();
 
     for (int i = 0; i < argc; ++i) {

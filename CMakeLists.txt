@@ -6,6 +6,34 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+set(MAJOR_VERSION 2)
+set(MINOR_VERSION 0)
+set(PATCH_VERSION 0)
+
+set(NUBASIC_BUILD_NUMBER "$ENV{BUILD_NUMBER}" CACHE STRING
+  "Optional build number appended to the nuBASIC version")
+if(NUBASIC_BUILD_NUMBER STREQUAL "")
+  set(NUBASIC_BUILD_NUMBER 0)
+endif()
+if(NOT NUBASIC_BUILD_NUMBER MATCHES "^[0-9]+$")
+  message(FATAL_ERROR "NUBASIC_BUILD_NUMBER must be numeric, got '${NUBASIC_BUILD_NUMBER}'")
+endif()
+
+set(NUBASIC_VERSION_BASE "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}")
+set(NUBASIC_VERSION_DISPLAY "${NUBASIC_VERSION_BASE}")
+if(NOT NUBASIC_BUILD_NUMBER STREQUAL "0")
+  set(NUBASIC_VERSION_DISPLAY
+      "${NUBASIC_VERSION_BASE}.${NUBASIC_BUILD_NUMBER}")
+endif()
+
+set(NUBASIC_GENERATED_INCLUDE_DIR "${CMAKE_BINARY_DIR}/generated/include/util")
+file(MAKE_DIRECTORY "${NUBASIC_GENERATED_INCLUDE_DIR}")
+configure_file(
+  "${CMAKE_SOURCE_DIR}/include/util/config.h.in"
+  "${NUBASIC_GENERATED_INCLUDE_DIR}/config.h"
+  @ONLY
+)
+
 # GCC/Clang-specific global flags (MSVC uses its own conventions)
 if(NOT MSVC)
   set(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++20")
@@ -155,6 +183,7 @@ if (WITH_IDE AND NOT _nubasic_console AND NOT WIN32)
 endif()
 
 include_directories(include
+  ${NUBASIC_GENERATED_INCLUDE_DIR}
   include/parser
   include/ast
   include/statements
@@ -180,10 +209,6 @@ if (NOT WIN32)
   install (TARGETS nubasic DESTINATION bin)
 endif()
 
-SET(MAJOR_VERSION 2)
-SET(MINOR_VERSION 0)
-SET(PATCH_VERSION 0)
-
 IF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
 INCLUDE(InstallRequiredSystemLibraries)
 
@@ -200,8 +225,8 @@ SET(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/eantcal/nubasic")
 SET(CPACK_PACKAGE_VERSION_MAJOR "${MAJOR_VERSION}")
 SET(CPACK_PACKAGE_VERSION_MINOR "${MINOR_VERSION}")
 SET(CPACK_PACKAGE_VERSION_PATCH "${PATCH_VERSION}")
-SET(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${MAJOR_VERSION}.${MINOR_VERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
-SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${MAJOR_VERSION}.${MINOR_VERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
+SET(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${NUBASIC_VERSION_DISPLAY}")
+SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${NUBASIC_VERSION_DISPLAY}")
 
 IF(USE_X11)
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libx11-dev (>=2:1.3.2)")
@@ -349,6 +374,10 @@ if(WIN32 AND MSVC)
     endif()
   endforeach()
 
+  if(TARGET VscodeExtensionBuild)
+    list(APPEND _installer_deps VscodeExtensionBuild)
+  endif()
+
   # Locate WiX Toolset v3 candle/light for the post-CPack patch step.
   # Typical install: "C:/Program Files (x86)/WiX Toolset v3.xx/bin/"
   find_program(WIX_CANDLE candle
@@ -464,9 +493,10 @@ if(NOT NODE_EXE OR NOT NPM_EXE)
     "Install Node.js from https://nodejs.org to enable them.")
 else()
   set(_ext_dir "${CMAKE_SOURCE_DIR}/vscode-nubasic")
+  set(_vsix "${_ext_dir}/nubasic-0.1.2.vsix")
 
   # Bundle the pre-built VSIX and its install helper in the MSI.
-  install(FILES "${_ext_dir}/nubasic-0.1.0.vsix"
+  install(FILES "${_vsix}"
           DESTINATION bin OPTIONAL COMPONENT VSCodeExtension)
   install(FILES "${CMAKE_SOURCE_DIR}/cmake/install-vscode-ext.ps1"
           DESTINATION bin COMPONENT VSCodeExtension)
@@ -497,7 +527,6 @@ else()
       "VS Code CLI not found — VscodeExtensionInstall target is disabled. "
       "Ensure 'code' (or code.cmd) is on PATH to enable it.")
   else()
-    set(_vsix "${_ext_dir}/nubasic-0.1.0.vsix")
     add_custom_target(VscodeExtensionInstall
       COMMAND "${VSCODE_CLI}" --install-extension "${_vsix}" --force
       WORKING_DIRECTORY "${_ext_dir}"

@@ -40,6 +40,7 @@ target_include_directories(nuBasicGDI PRIVATE
   ${CMAKE_SOURCE_DIR}/include/runtime
   ${CMAKE_SOURCE_DIR}/include/statements
   ${CMAKE_SOURCE_DIR}/include/types
+  ${CMAKE_BINARY_DIR}/generated/include/util
   ${CMAKE_SOURCE_DIR}/include/util
   ${CMAKE_SOURCE_DIR}/console/win
   .
@@ -87,6 +88,7 @@ target_include_directories(nuBasicCLI PRIVATE
   ${CMAKE_SOURCE_DIR}/include/runtime
   ${CMAKE_SOURCE_DIR}/include/statements
   ${CMAKE_SOURCE_DIR}/include/types
+  ${CMAKE_BINARY_DIR}/generated/include/util
   ${CMAKE_SOURCE_DIR}/include/util
   ${CMAKE_SOURCE_DIR}/console/win
   .
