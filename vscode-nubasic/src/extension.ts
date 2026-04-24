@@ -146,7 +146,10 @@ async function runFile() {
 
     getOrCreateTerminal();
     terminal!.show(true);
-    terminal!.sendText(`& "${exe}" -e "${filePath}"`);
+    const cmd = process.platform === 'win32'
+        ? `& "${exe}" -e "${filePath}"`
+        : `"${exe}" -e "${filePath}"`;
+    terminal!.sendText(cmd);
 }
 
 async function ensureNuBasicDocument(

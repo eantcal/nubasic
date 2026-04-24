@@ -167,7 +167,7 @@
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "package": "npm run compile && powershell -NoProfile -ExecutionPolicy Bypass -File ./package-vsix.ps1"
+    "package": "npm run compile && node -e \"const {execSync}=require('child_process');execSync(process.platform==='win32'?'powershell -NoProfile -ExecutionPolicy Bypass -File ./package-vsix.ps1':'bash ./package-vsix.sh',{stdio:'inherit',shell:true})\""
   },
   "devDependencies": {
     "@types/vscode": "^1.75.0",

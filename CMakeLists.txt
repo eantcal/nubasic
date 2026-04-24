@@ -495,11 +495,21 @@ else()
   set(_ext_dir "${CMAKE_SOURCE_DIR}/vscode-nubasic")
   set(_vsix "${_ext_dir}/nubasic-0.1.2.vsix")
 
-  # Bundle the pre-built VSIX and its install helper in the MSI.
+  # Bundle the pre-built VSIX and its platform-specific install helper.
   install(FILES "${_vsix}"
           DESTINATION bin OPTIONAL COMPONENT VSCodeExtension)
-  install(FILES "${CMAKE_SOURCE_DIR}/cmake/install-vscode-ext.ps1"
-          DESTINATION bin COMPONENT VSCodeExtension)
+  if(WIN32)
+    install(FILES "${CMAKE_SOURCE_DIR}/cmake/install-vscode-ext.ps1"
+            DESTINATION bin COMPONENT VSCodeExtension)
+  else()
+    install(FILES "${CMAKE_SOURCE_DIR}/cmake/install-vscode-ext.sh"
+            DESTINATION bin
+            PERMISSIONS
+              OWNER_READ OWNER_WRITE OWNER_EXECUTE
+              GROUP_READ GROUP_EXECUTE
+              WORLD_READ WORLD_EXECUTE
+            COMPONENT VSCodeExtension)
+  endif()
 
   add_custom_target(VscodeExtensionBuild
     COMMAND "${NPM_EXE}" install
