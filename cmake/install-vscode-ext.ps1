@@ -16,13 +16,28 @@ $InstallDir = $InstallDir.TrimEnd('"', '\', ' ')
 $log = Join-Path $env:TEMP 'nubasic-vscode-install.log'
 Start-Transcript -Path $log -Force | Out-Null
 
+function Show-InstallerError([string]$message) {
+    try {
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.MessageBox]::Show(
+            $message,
+            'nuBASIC VS Code Extension',
+            [System.Windows.Forms.MessageBoxButtons]::OK,
+            [System.Windows.Forms.MessageBoxIcon]::Error
+        ) | Out-Null
+    }
+    catch {
+        Write-Host "Could not display MessageBox: $_"
+    }
+}
+
 try {
     Write-Host "nuBASIC VS Code extension installer"
     Write-Host "InstallDir : $InstallDir"
     Write-Host "User       : $env:USERNAME"
     Write-Host "Time       : $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 
-    $vsix = Join-Path $InstallDir "bin\nubasic-0.1.2.vsix"
+    $vsix = Join-Path $InstallDir "bin\nubasic-0.1.4.vsix"
     Write-Host "VSIX path  : $vsix"
 
     if (-not (Test-Path $vsix)) {
@@ -87,11 +102,25 @@ try {
 
     Write-Host "Found: $code"
     Write-Host "Running: & `"$code`" --install-extension `"$vsix`" --force"
-    & $code --install-extension $vsix --force
+    $installOutput = & $code --install-extension $vsix --force 2>&1 | Out-String
+    if ($installOutput) {
+        Write-Host "--- VS Code CLI output ---"
+        Write-Host $installOutput.TrimEnd()
+        Write-Host "--- end VS Code CLI output ---"
+    }
     Write-Host "Exit code: $LASTEXITCODE"
+    if ($LASTEXITCODE -ne 0) {
+        throw "VS Code CLI failed with exit code $LASTEXITCODE."
+    }
 }
 catch {
-    Write-Host "ERROR: $_"
+    $details = $_ | Out-String
+    Write-Host "ERROR: $details"
+    Show-InstallerError(
+        "VS Code extension installation failed.`r`n`r`n" +
+        $details.Trim() +
+        "`r`n`r`nFull log: $log"
+    )
 }
 finally {
     Stop-Transcript | Out-Null

@@ -116,3 +116,52 @@ target_link_libraries(nuBasicCLI PRIVATE
 )
 
 install(TARGETS nuBasicCLI DESTINATION bin COMPONENT Core)
+
+# Dedicated console-subsystem binary for editor/debugger integration.
+# Keeps stdio attached to the invoking process so tools like VS Code can
+# drive the REPL over redirected stdin/stdout without relying on GDI or
+# console-attachment fallbacks.
+add_executable(nuBasicDebugCLI
+  ${CMAKE_SOURCE_DIR}/cli/main.cc
+)
+
+set_target_properties(nuBasicDebugCLI PROPERTIES OUTPUT_NAME "nubasicdebug")
+target_compile_features(nuBasicDebugCLI PRIVATE cxx_std_20)
+
+target_include_directories(nuBasicDebugCLI PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/include/api
+  ${CMAKE_SOURCE_DIR}/include/ast
+  ${CMAKE_SOURCE_DIR}/include/parser
+  ${CMAKE_SOURCE_DIR}/include/runtime
+  ${CMAKE_SOURCE_DIR}/include/statements
+  ${CMAKE_SOURCE_DIR}/include/types
+  ${CMAKE_BINARY_DIR}/generated/include/util
+  ${CMAKE_SOURCE_DIR}/include/util
+  ${CMAKE_SOURCE_DIR}/console/win
+  .
+)
+
+target_compile_definitions(nuBasicDebugCLI PRIVATE
+  _CRT_SECURE_NO_WARNINGS
+  NUBASIC_IDE_DEBUG_CLI=1
+  $<$<CONFIG:Debug>:_DEBUG>
+  $<$<CONFIG:Release>:NDEBUG>
+)
+
+if(MSVC)
+  target_compile_options(nuBasicDebugCLI PRIVATE
+    /W3
+    $<$<CONFIG:Release>:/O2>
+    $<$<CONFIG:Debug>:/Od /Zi>
+  )
+  set_property(TARGET nuBasicDebugCLI PROPERTY
+    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
+target_link_libraries(nuBasicDebugCLI PRIVATE
+  nuBasicInterpreter
+  nuWinConsole
+)
+
+install(TARGETS nuBasicDebugCLI DESTINATION bin COMPONENT Core)

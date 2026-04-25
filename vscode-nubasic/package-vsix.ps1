@@ -10,9 +10,13 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $stage = Join-Path $root ('.vsix-stage-' + [guid]::NewGuid().ToString('N'))
 $vsixOut = Join-Path $root "nubasic-$version.vsix"
+$zipOut = Join-Path $root "nubasic-$version.zip"
 
 if (Test-Path $vsixOut) {
     Remove-Item -LiteralPath $vsixOut -Force
+}
+if (Test-Path $zipOut) {
+    Remove-Item -LiteralPath $zipOut -Force
 }
 
 $extensionDir = Join-Path $stage 'extension'
@@ -80,10 +84,15 @@ Set-Content -LiteralPath (Join-Path $stage '[Content_Types].xml') -Value $conten
 
 [System.IO.Compression.ZipFile]::CreateFromDirectory(
     $stage,
-    $vsixOut,
+    $zipOut,
     [System.IO.Compression.CompressionLevel]::Optimal,
     $false
 )
+Move-Item -LiteralPath $zipOut -Destination $vsixOut -Force
+if (-not (Test-Path $vsixOut)) {
+    throw "VSIX packaging failed: '$vsixOut' was not created."
+}
+Write-Host "Created VSIX: $vsixOut"
 try {
     Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction Stop
 }

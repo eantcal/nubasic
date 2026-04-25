@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as cp from 'child_process';
+import * as fs from 'fs';
 
 let terminal: vscode.Terminal | undefined;
 let debugLog: vscode.OutputChannel | undefined;
+const machineInterfaceArg = '--machine-interface';
 
 type DebugProtocolMessage = {
     seq: number;
@@ -67,6 +69,48 @@ async function resolveExecutable(override?: string): Promise<string> {
     }
 
     return 'nubasic';
+}
+
+async function resolveDebugExecutable(override?: string): Promise<string> {
+    const exe = await resolveExecutable(override);
+    const debugExe = preferDebugExecutable(exe);
+    return debugExe ?? exe;
+}
+
+function preferDebugExecutable(executablePath: string): string | undefined {
+    const trimmed = executablePath.trim();
+    if (!trimmed) {
+        return undefined;
+    }
+
+    if (!trimmed.includes('\\') && !trimmed.includes('/')) {
+        if (/^nubasic(?:\.exe)?$/i.test(trimmed)) {
+            const hasExeSuffix = trimmed.toLowerCase().endsWith('.exe');
+            return hasExeSuffix ? 'nubasicdebug.exe' : 'nubasicdebug';
+        }
+        return undefined;
+    }
+
+    const parsed = path.parse(trimmed);
+    if (!/^nubasic$/i.test(parsed.name)) {
+        return undefined;
+    }
+
+    const extension = parsed.ext || (process.platform === 'win32' ? '.exe' : '');
+    const debugCandidates = [
+        path.join(parsed.dir, `nubasicdebug${extension}`),
+        path.join(parsed.dir, `nubasic${extension}`),
+        path.join(parsed.dir, `nubasic_t${extension}`),
+    ];
+    return debugCandidates.find(candidate => fileExists(candidate));
+}
+
+function fileExists(filePath: string): boolean {
+    try {
+        return fs.existsSync(filePath);
+    } catch {
+        return false;
+    }
 }
 
 function readRegistryInstallDir(): Promise<string | undefined> {
@@ -296,6 +340,11 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
     private lastVariables = '';
     private stepModeEnabled = false;
     private pendingTimer: NodeJS.Timeout | undefined;
+    private breakpointsDirty = false;
+    private breakpointSyncInFlight = false;
+    private readonly launchExtraArgs = process.platform === 'win32'
+        ? [machineInterfaceArg]
+        : [machineInterfaceArg, '-nx'];
 
     handleMessage(message: DebugProtocolMessage): void {
         const request = message as DebugRequest;
@@ -305,6 +354,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
                 this.respond(request, {
                     supportsConfigurationDoneRequest: true,
                     supportsTerminateRequest: true,
+                    supportsPauseRequest: true,
                     supportsRestartRequest: false,
                     supportsStepBack: false,
                     supportsEvaluateForHovers: false,
@@ -392,6 +442,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         const lines = (requested ?? []).map(bp => bp.line).filter(line => line > 0);
 
         this.breakpoints.set(sourcePath, lines);
+        this.scheduleBreakpointSync();
         this.respond(request, {
             breakpoints: lines.map(line => ({ verified: true, line }))
         });
@@ -404,10 +455,10 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         }
 
         try {
-            const exe = await resolveExecutable(this.launchArgs.executablePath);
+            const exe = await resolveDebugExecutable(this.launchArgs.executablePath);
             const cwd = this.launchArgs.cwd || path.dirname(this.launchArgs.program);
             this.log(`launch exe="${exe}" cwd="${cwd}" program="${this.launchArgs.program}"`);
-            this.process = cp.spawn(exe, ['-t'], { cwd, windowsHide: true });
+            this.process = cp.spawn(exe, this.launchExtraArgs, { cwd, windowsHide: true });
             this.process.stdout.on('data', (chunk: Buffer) => this.onOutput(chunk.toString()));
             this.process.stderr.on('data', (chunk: Buffer) => this.output(chunk.toString(), 'stderr'));
             this.process.on('exit', (code: number | null, signal: NodeJS.Signals | null) => {
@@ -434,11 +485,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
 
             await this.waitForPrompt();
             await this.sendCommand(`load "${path.basename(this.launchArgs.program)}"`);
-            await this.sendCommand('clrbrk');
-
-            for (const line of this.breakpointsForProgram()) {
-                await this.sendCommand(`break ${line}`);
-            }
+            await this.syncBreakpoints();
 
             if (this.launchArgs.stopOnEntry && this.breakpointsForProgram().length === 0) {
                 await this.sendCommand('ston');
@@ -446,14 +493,21 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             }
 
             const output = await this.sendCommand('run');
+            if (this.hasMachineEvent(output, 'terminated')) {
+                this.event('terminated');
+                this.shutdown();
+                return;
+            }
             const stoppedLine = this.parseStoppedLine(output)
                 || (this.launchArgs.stopOnEntry
                     ? await this.refreshCurrentLine(true)
                     : await this.refreshCurrentLine(true, true));
             if (stoppedLine > 0) {
                 this.currentLine = stoppedLine;
+                const stopReason = this.parseStoppedReason(output)
+                    || (this.launchArgs.stopOnEntry ? 'entry' : 'breakpoint');
                 this.event('stopped', {
-                    reason: this.launchArgs.stopOnEntry ? 'entry' : 'breakpoint',
+                    reason: stopReason,
                     threadId: 1,
                 });
             } else {
@@ -486,14 +540,22 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
                 this.stepModeEnabled = false;
             }
 
+            if (this.hasMachineEvent(output, 'terminated')) {
+                this.event('terminated');
+                this.shutdown();
+                return;
+            }
+
             const stoppedLine = this.parseStoppedLine(output)
                 || (step
                     ? await this.refreshCurrentLine(true)
                     : await this.refreshCurrentLine(true, true));
             if (stoppedLine > 0) {
                 this.currentLine = stoppedLine;
+                const stopReason = this.parseStoppedReason(output)
+                    || (step ? 'step' : 'breakpoint');
                 this.event('stopped', {
-                    reason: step ? 'step' : 'breakpoint',
+                    reason: stopReason,
                     threadId: 1,
                 });
             } else {
@@ -569,6 +631,47 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             const pending = this.pending;
             this.clearPendingState();
             pending.resolve(pending.output);
+            if (this.breakpointsDirty) {
+                void this.syncBreakpoints();
+            }
+        }
+    }
+
+    private scheduleBreakpointSync() {
+        if (!this.process || this.process.killed) {
+            return;
+        }
+
+        this.breakpointsDirty = true;
+        if (!this.pending && !this.breakpointSyncInFlight) {
+            void this.syncBreakpoints();
+        }
+    }
+
+    private async syncBreakpoints() {
+        if (!this.process || this.process.killed) {
+            return;
+        }
+        if (this.pending || this.breakpointSyncInFlight) {
+            this.breakpointsDirty = true;
+            return;
+        }
+
+        this.breakpointsDirty = false;
+        this.breakpointSyncInFlight = true;
+        try {
+            await this.sendCommand('clrbrk');
+            for (const line of this.breakpointsForProgram()) {
+                await this.sendCommand(`break ${line}`);
+            }
+        } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            this.log(`breakpoint sync failed: ${message}`);
+        } finally {
+            this.breakpointSyncInFlight = false;
+            if (this.breakpointsDirty && !this.pending) {
+                void this.syncBreakpoints();
+            }
         }
     }
 
@@ -585,7 +688,8 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
     }
 
     private hasCommandCompleted(output: string): boolean {
-        return /(^|\r?\n)Ok\.\r?\n/.test(output)
+        return /@@nubasic event="(?:ready|ok|stopped|runtimeError|syntaxError|ioError|terminated|interrupted)"/.test(output)
+            || /(^|\r?\n)Ok\.\r?\n/.test(output)
             || /(^|\r?\n)Ready\.\r?\n/.test(output)
             || /Type 'cont' to continue\r?\n/.test(output)
             || /Runtime Error #\d+ at \d+/.test(output)
@@ -619,8 +723,35 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
     }
 
     private parseStoppedLine(output: string): number {
+        const machineMatch = output.match(/@@nubasic event="stopped"(?:[^\n\r]*\sline="(\d+)")/i);
+        if (machineMatch) {
+            return Number(machineMatch[1]);
+        }
+
         const match = output.match(/Execution stopped at (?:breakpoint|STOP instruction), line (\d+)/i);
         return match ? Number(match[1]) : 0;
+    }
+
+    private parseStoppedReason(output: string): string | undefined {
+        const machineMatch = output.match(/@@nubasic event="stopped"(?:[^\n\r]*\sreason="([^"]+)")/i);
+        if (machineMatch) {
+            return machineMatch[1] === 'breakpoint' ? 'breakpoint'
+                : machineMatch[1] === 'stop' ? 'pause'
+                : machineMatch[1];
+        }
+
+        if (/Execution stopped at breakpoint/i.test(output)) {
+            return 'breakpoint';
+        }
+        if (/Execution stopped at STOP instruction/i.test(output)) {
+            return 'pause';
+        }
+        return undefined;
+    }
+
+    private hasMachineEvent(output: string, eventName: string): boolean {
+        const escaped = eventName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return new RegExp(`@@nubasic event="${escaped}"`).test(output);
     }
 
     private parseVariables(output: string): Array<{ name: string; value: string; variablesReference: number }> {
@@ -715,6 +846,9 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             this.clearPendingState();
             pending.resolve(pending.output);
         }
+
+        this.breakpointsDirty = false;
+        this.breakpointSyncInFlight = false;
 
         if (this.process && !this.process.killed) {
             this.process.kill();

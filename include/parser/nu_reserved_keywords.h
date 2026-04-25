@@ -14,6 +14,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <vector>
 
 /* -------------------------------------------------------------------------- */
 
@@ -24,6 +25,7 @@ namespace nu {
 struct reserved_keywords_t {
 public:
     static std::set<std::string>& list();
+    static const std::vector<std::string>& graphics();
 };
 
 

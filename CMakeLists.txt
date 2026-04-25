@@ -205,8 +205,15 @@ if (NOT WIN32)
 
   target_link_libraries(nubasic nuBasicInterpreter ${X11_LIBRARIES} -pthread)
 
+  add_executable(nubasicdebug ${SOURCES})
+  target_compile_features(nubasicdebug PRIVATE cxx_std_20)
+  target_compile_definitions(nubasicdebug PRIVATE NUBASIC_IDE_DEBUG_CLI=1)
+  target_link_libraries(
+    nubasicdebug nuBasicInterpreter ${X11_LIBRARIES} -pthread)
+
   # add the install targets
   install (TARGETS nubasic DESTINATION bin)
+  install (TARGETS nubasicdebug DESTINATION bin)
 endif()
 
 IF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
@@ -456,7 +463,7 @@ if(WIN32 AND MSVC)
             -File "${CMAKE_SOURCE_DIR}/benchmarks/run_rosetta.ps1"
             -Interpreter "$<TARGET_FILE:nuBasicCLI>"
             -Script "${CMAKE_SOURCE_DIR}/examples/rosetta.bas"
-            -Iterations 5
+            -Iterations 1
             -Warmup 1
     DEPENDS nuBasicCLI
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
@@ -485,7 +492,7 @@ endif()
 #   VscodeExtensionInstall — install the .vsix into the local VS Code instance
 # ---------------------------------------------------------------------------
 find_program(NODE_EXE node DOC "Node.js runtime (required for VS Code extension)")
-find_program(NPM_EXE  npm  DOC "npm (required for VS Code extension)")
+find_program(NPM_EXE NAMES npm.cmd npm DOC "npm (required for VS Code extension)")
 
 if(NOT NODE_EXE OR NOT NPM_EXE)
   message(WARNING
@@ -493,7 +500,7 @@ if(NOT NODE_EXE OR NOT NPM_EXE)
     "Install Node.js from https://nodejs.org to enable them.")
 else()
   set(_ext_dir "${CMAKE_SOURCE_DIR}/vscode-nubasic")
-  set(_vsix "${_ext_dir}/nubasic-0.1.2.vsix")
+  set(_vsix "${_ext_dir}/nubasic-0.1.4.vsix")
 
   # Bundle the pre-built VSIX and its platform-specific install helper.
   install(FILES "${_vsix}"
@@ -512,6 +519,7 @@ else()
   endif()
 
   add_custom_target(VscodeExtensionBuild
+    BYPRODUCTS "${_vsix}"
     COMMAND "${NPM_EXE}" install
     COMMAND "${NPM_EXE}" run package
     WORKING_DIRECTORY "${_ext_dir}"
