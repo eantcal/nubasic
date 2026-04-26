@@ -39,7 +39,13 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
     }
 
     for (auto const& variable : _vars) {
-        std::string value = _os_input(ctx.get_stdin_ptr());
+        auto input_result = _os_input_interruptible(ctx.get_stdin_ptr());
+        if (input_result.interrupted) {
+            ctx.flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, true);
+            throw debug_suspend_t();
+        }
+
+        std::string value = std::move(input_result.text);
 
         while (!value.empty() && (value.c_str()[value.size() - 1] == '\n')) {
             value.erase(value.end() - 1);

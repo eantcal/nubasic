@@ -20,11 +20,18 @@ namespace nu {
 
 /* -------------------------------------------------------------------------- */
 
+struct os_input_result_t {
+    std::string text;
+    bool interrupted = false;
+};
+
 void _os_init();
 void _os_locate(int y, int x);
 void _os_cls();
 std::string _os_input_str(int n);
+os_input_result_t _os_input_str_interruptible(int n);
 std::string _os_input(FILE* finput_ptr);
+os_input_result_t _os_input_interruptible(FILE* finput_ptr);
 int _os_kbhit();
 void _os_cursor_visible(bool on);
 void _os_config_term(bool on);

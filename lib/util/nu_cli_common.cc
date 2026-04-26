@@ -331,10 +331,13 @@ nu::interpreter_t::exec_res_t exec_command(nu::interpreter_t& basic,
 {
     try {
         const auto res = basic.exec_command(command);
+        const bool interrupted = basic.get_and_reset_break_event();
 
-        if (basic.get_and_reset_break_event()) {
+        if (interrupted) {
             output("Code execution has been interrupted by CTRL+C\n");
-            if (options.machine_interface) {
+            if (options.machine_interface
+                && res != nu::interpreter_t::exec_res_t::STOP_REQ
+                && res != nu::interpreter_t::exec_res_t::BREAKPOINT) {
                 output(machine_event("interrupted"));
             }
         }
@@ -353,8 +356,10 @@ nu::interpreter_t::exec_res_t exec_command(nu::interpreter_t& basic,
                 + std::to_string(basic.get_cur_line_n())
                 + ".\nType 'cont' to continue\n");
             if (options.machine_interface) {
+                const auto stop_reason
+                    = basic.get_rt_ctx().step_mode_active ? "step" : "stop";
                 output(machine_event("stopped",
-                    { { "reason", "stop" },
+                    { { "reason", stop_reason },
                         { "line", std::to_string(basic.get_cur_line_n()) } }));
             }
         }

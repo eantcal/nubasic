@@ -6,7 +6,9 @@
 // See COPYING file in the project root for full license information.
 //
 
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include "ConsoleBuffer.h"
 #include <algorithm>
 #include <windows.h>

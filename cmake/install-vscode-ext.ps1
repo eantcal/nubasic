@@ -9,8 +9,6 @@
 #>
 param([string]$InstallDir = $PSScriptRoot)
 
-# [INSTALL_ROOT] ends with \, so the WiX ExeCommand produces "path\" where the
-# backslash escapes the closing quote, leaving a trailing " in the parsed value.
 $InstallDir = $InstallDir.TrimEnd('"', '\', ' ')
 
 $log = Join-Path $env:TEMP 'nubasic-vscode-install.log'
@@ -37,27 +35,28 @@ try {
     Write-Host "User       : $env:USERNAME"
     Write-Host "Time       : $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 
-    $vsix = Join-Path $InstallDir "bin\nubasic-0.1.4.vsix"
+    $binDir = Join-Path $InstallDir "bin"
+    $vsix = Get-ChildItem -Path $binDir -Filter "nubasic-*.vsix" -File -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTime -Descending |
+        Select-Object -First 1 -ExpandProperty FullName
     Write-Host "VSIX path  : $vsix"
 
-    if (-not (Test-Path $vsix)) {
-        Write-Host "VSIX not found — skipping."
+    if (-not $vsix -or -not (Test-Path $vsix)) {
+        Write-Host "VSIX not found in $binDir - skipping."
         exit 0
     }
 
-    # Use .NET APIs — env vars may be unset in deferred MSI custom actions.
     $localAppData    = [System.Environment]::GetFolderPath('LocalApplicationData')
     $programFiles    = [System.Environment]::GetFolderPath('ProgramFiles')
     $programFilesX86 = [System.Environment]::GetFolderPath('ProgramFilesX86')
 
     $candidates = [System.Collections.Generic.List[string]]::new()
-
-    # --- Registry lookup (most reliable) ---
     $regBases = @(
         'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall',
         'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall',
         'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall'
     )
+
     foreach ($base in $regBases) {
         if (-not (Test-Path $base)) { continue }
         $key = Get-ChildItem $base -ErrorAction SilentlyContinue |
@@ -74,7 +73,6 @@ try {
         }
     }
 
-    # --- Common default paths ---
     foreach ($root in @(
         "$localAppData\Programs\Microsoft VS Code",
         "$programFiles\Microsoft VS Code",
@@ -84,7 +82,6 @@ try {
         $candidates.Add("$root\Code.exe")
     }
 
-    # --- PATH fallback ---
     $fromPath = Get-Command code.cmd -ErrorAction SilentlyContinue
     if ($fromPath) { $candidates.Add($fromPath.Source) }
 
@@ -96,7 +93,7 @@ try {
         Select-Object -First 1
 
     if (-not $code) {
-        Write-Host "VS Code not found — extension not installed."
+        Write-Host "VS Code not found - extension not installed."
         exit 0
     }
 

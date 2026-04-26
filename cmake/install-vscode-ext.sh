@@ -1,20 +1,19 @@
 #!/usr/bin/env bash
 # Installs the nuBASIC VS Code extension on macOS or Linux.
-# Safe to run even if VS Code is not installed (exits silently).
+# Safe to run even if VS Code is not installed.
 set -euo pipefail
 
 LOG="${TMPDIR:-/tmp}/nubasic-vscode-install.log"
 exec > >(tee -a "$LOG") 2>&1
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-VSIX="${SCRIPT_DIR}/nubasic-0.1.2.vsix"
+VSIX="$(find "${SCRIPT_DIR}" -maxdepth 1 -type f -name 'nubasic-*.vsix' | sort | tail -n 1)"
 
-if [ ! -f "$VSIX" ]; then
-    echo "VSIX not found at: $VSIX — skipping VS Code extension installation."
+if [ -z "${VSIX}" ] || [ ! -f "${VSIX}" ]; then
+    echo "VSIX not found next to installer script - skipping VS Code extension installation."
     exit 0
 fi
 
-# Locate VS Code CLI (code or code-insiders)
 CODE_CLI=""
 for candidate in code code-insiders; do
     if command -v "$candidate" >/dev/null 2>&1; then
@@ -23,7 +22,6 @@ for candidate in code code-insiders; do
     fi
 done
 
-# macOS: also check the application bundle when not on PATH
 if [ -z "$CODE_CLI" ] && [ "$(uname -s)" = "Darwin" ]; then
     for app_dir in \
         "/Applications/Visual Studio Code.app" \
@@ -38,7 +36,7 @@ if [ -z "$CODE_CLI" ] && [ "$(uname -s)" = "Darwin" ]; then
 fi
 
 if [ -z "$CODE_CLI" ]; then
-    echo "VS Code CLI not found — skipping extension installation."
+    echo "VS Code CLI not found - skipping extension installation."
     echo "To install manually run:"
     echo "  code --install-extension \"${VSIX}\" --force"
     exit 0

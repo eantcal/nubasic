@@ -458,6 +458,42 @@ if(WIN32 AND MSVC)
   )
   set_property(TARGET RunTests PROPERTY FOLDER "Tests")
 
+  add_custom_target(RunDebuggerContract
+    COMMAND powershell -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/tests/run_debugger_contract.ps1"
+            -Interpreter "$<TARGET_FILE:nuBasicDebugCLI>"
+            -TestDir "${CMAKE_SOURCE_DIR}/tests"
+    DEPENDS nuBasicDebugCLI
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    COMMENT "Running nuBASIC debugger backend contract test..."
+    VERBATIM
+  )
+  set_property(TARGET RunDebuggerContract PROPERTY FOLDER "Tests")
+
+  add_custom_target(RunInterruptibleInputContract
+    COMMAND powershell -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/tests/run_interruptible_input_contract.ps1"
+            -Interpreter "$<TARGET_FILE:nuBasicDebugCLI>"
+            -TestDir "${CMAKE_SOURCE_DIR}/tests"
+    DEPENDS nuBasicDebugCLI
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    COMMENT "Running nuBASIC interruptible INPUT contract test..."
+    VERBATIM
+  )
+  set_property(TARGET RunInterruptibleInputContract PROPERTY FOLDER "Tests")
+
+  add_custom_target(RunInterruptibleInputStrContract
+    COMMAND powershell -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/tests/run_interruptible_input_str_contract.ps1"
+            -Interpreter "$<TARGET_FILE:nuBasicDebugCLI>"
+            -TestDir "${CMAKE_SOURCE_DIR}/tests"
+    DEPENDS nuBasicDebugCLI
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    COMMENT "Running nuBASIC interruptible INPUT$ contract test..."
+    VERBATIM
+  )
+  set_property(TARGET RunInterruptibleInputStrContract PROPERTY FOLDER "Tests")
+
   add_custom_target(RunRosettaBenchmark
     COMMAND powershell -NoProfile -ExecutionPolicy Bypass
             -File "${CMAKE_SOURCE_DIR}/benchmarks/run_rosetta.ps1"
@@ -500,7 +536,20 @@ if(NOT NODE_EXE OR NOT NPM_EXE)
     "Install Node.js from https://nodejs.org to enable them.")
 else()
   set(_ext_dir "${CMAKE_SOURCE_DIR}/vscode-nubasic")
-  set(_vsix "${_ext_dir}/nubasic-0.1.4.vsix")
+  file(READ "${_ext_dir}/package.json" _nubasic_ext_package_json)
+  string(REGEX MATCH "\"version\"[ \t\r\n]*:[ \t\r\n]*\"([^\"]+)\"" _nubasic_ext_version_match "${_nubasic_ext_package_json}")
+  if(NOT CMAKE_MATCH_1)
+    message(FATAL_ERROR "Could not determine vscode-nubasic version from package.json")
+  endif()
+  set(_nubasic_ext_version "${CMAKE_MATCH_1}")
+  set(_vsix "${_ext_dir}/nubasic-${_nubasic_ext_version}.vsix")
+  if(WIN32)
+    set(_vsix_packager powershell -NoProfile -ExecutionPolicy Bypass -File "${_ext_dir}/package-vsix.ps1")
+    set(_vsix_verify powershell -NoProfile -Command "if (-not (Test-Path '${_vsix}')) { throw 'VSIX not created: ${_vsix}' }")
+  else()
+    set(_vsix_packager bash "${_ext_dir}/package-vsix.sh")
+    set(_vsix_verify bash -c "test -f '${_vsix}'")
+  endif()
 
   # Bundle the pre-built VSIX and its platform-specific install helper.
   install(FILES "${_vsix}"
@@ -521,7 +570,9 @@ else()
   add_custom_target(VscodeExtensionBuild
     BYPRODUCTS "${_vsix}"
     COMMAND "${NPM_EXE}" install
-    COMMAND "${NPM_EXE}" run package
+    COMMAND "${NPM_EXE}" run compile
+    COMMAND ${_vsix_packager}
+    COMMAND ${_vsix_verify}
     WORKING_DIRECTORY "${_ext_dir}"
     COMMENT "Building VS Code extension (vscode-nubasic)..."
     VERBATIM
@@ -553,5 +604,20 @@ else()
       VERBATIM
     )
     set_property(TARGET VscodeExtensionInstall PROPERTY FOLDER "VSCode")
+  endif()
+
+  if(WIN32)
+    set(_msi_path "${CMAKE_BINARY_DIR}/${CPACK_PACKAGE_FILE_NAME}.msi")
+    add_custom_target(ReinstallNuBasicDev
+      COMMAND powershell -NoProfile -ExecutionPolicy Bypass
+              -File "${CMAKE_SOURCE_DIR}/cmake/reinstall-nubasic-dev.ps1"
+              -MsiPath "${_msi_path}"
+              -VsixPath "${_vsix}"
+      WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+      DEPENDS CreateInstaller VscodeExtensionBuild
+      COMMENT "Reinstalling local nuBASIC MSI and VS Code extension..."
+      VERBATIM
+    )
+    set_property(TARGET ReinstallNuBasicDev PROPERTY FOLDER "VSCode")
   endif()
 endif()

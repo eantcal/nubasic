@@ -9,6 +9,7 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_os_console.h"
+#include "nu_signal_handling.h"
 #include "nu_unicode.h"
 #include <cstdio>
 #include <iostream>
@@ -31,6 +32,64 @@
 /* -------------------------------------------------------------------------- */
 
 namespace nu {
+
+namespace {
+
+    class input_break_listener_t : public signal_handler_t {
+    public:
+        input_break_listener_t()
+        {
+            signal_mgr_t::instance().register_handler(event_t::BREAK, this);
+        }
+
+        ~input_break_listener_t() override
+        {
+            signal_mgr_t::instance().unregister_handler(event_t::BREAK, this);
+        }
+
+        bool notify(const event_t& ev) override
+        {
+            _interrupted = ev == event_t::BREAK;
+            return true;
+        }
+
+        bool interrupted() const noexcept { return _interrupted; }
+
+    private:
+        volatile bool _interrupted = false;
+    };
+
+    static void append_input_char(std::string& line, int ch)
+    {
+        line += static_cast<char>(ch & 0xff);
+    }
+
+    static void erase_last_input_char(std::string& line)
+    {
+        if (!line.empty())
+            line.pop_back();
+    }
+
+    static os_input_result_t read_stream_line(FILE* finput_ptr)
+    {
+        os_input_result_t result;
+        char c = 0;
+
+        do {
+            c = getc(finput_ptr);
+
+            if (feof(finput_ptr) || ferror(finput_ptr))
+                return result;
+
+            if (c != '\n')
+                result.text += c;
+
+        } while (c != '\n');
+
+        return result;
+    }
+
+} // namespace
 
 /* -------------------------------------------------------------------------- */
 
@@ -113,35 +172,99 @@ void _os_locate(int y, int x)
 
 /* -------------------------------------------------------------------------- */
 
-std::string _os_input_str(int n)
+std::string _os_input_str(int n) { return _os_input_str_interruptible(n).text; }
+
+
+/* -------------------------------------------------------------------------- */
+
+os_input_result_t _os_input_str_interruptible(int n)
 {
     if (g_screen_mode == 0) {
-        std::string result;
-        result.reserve(n);
-        for (int i = 0; i < n; ++i) {
-            int ch = _getch();
+        input_break_listener_t break_listener;
+        os_input_result_t result;
+        result.text.reserve(n);
+        const HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+        const DWORD file_type = hIn && hIn != INVALID_HANDLE_VALUE
+            ? GetFileType(hIn)
+            : FILE_TYPE_UNKNOWN;
+
+        if (file_type == FILE_TYPE_PIPE) {
+            for (int i = 0; i < n && !break_listener.interrupted();) {
+                DWORD available = 0;
+                if (!PeekNamedPipe(
+                        hIn, nullptr, 0, nullptr, &available, nullptr)) {
+                    return result;
+                }
+
+                if (available == 0) {
+                    Sleep(10);
+                    continue;
+                }
+
+                char ch = 0;
+                DWORD read = 0;
+                if (!ReadFile(hIn, &ch, 1, &read, nullptr) || read == 0)
+                    return result;
+
+                if (ch == 0x03)
+                    return { result.text, true };
+
+                result.text += ch;
+                ++i;
+            }
+
+            return break_listener.interrupted()
+                ? os_input_result_t{ result.text, true }
+                : result;
+        }
+
+        if (file_type == FILE_TYPE_DISK) {
+            for (int i = 0; i < n && !break_listener.interrupted();) {
+                const int ch = fgetc(stdin);
+                if (ch == EOF)
+                    return result;
+
+                if (ch == 0x03)
+                    return { result.text, true };
+
+                result.text += static_cast<char>(ch & 0xff);
+                ++i;
+            }
+
+            return break_listener.interrupted()
+                ? os_input_result_t{ result.text, true }
+                : result;
+        }
+
+        for (int i = 0; i < n && !break_listener.interrupted(); ++i) {
+            const int ch = _getch();
             if (ch == 0x03)
-                break; // ETX / Ctrl+C
+                return { result.text, true };
             if (ch > 0 && ch < 256)
-                result += static_cast<char>(ch & 0xff);
+                result.text += static_cast<char>(ch & 0xff);
         }
         return result;
     }
 
-    std::string result;
-    for (int i = 0; i < n; ++i) {
+    input_break_listener_t break_listener;
+    os_input_result_t result;
+    result.text.reserve(n);
+    for (int i = 0; i < n && !break_listener.interrupted(); ++i) {
         while (!nu_winconsole_key_available()) {
+            if (break_listener.interrupted())
+                return { result.text, true };
             nu_winconsole_process_messages();
             Sleep(10);
         }
         int key = nu_winconsole_get_key();
         if (key == 0x03)
-            break; // ETX
+            return { result.text, true };
         if (key > 0 && key < 256) {
-            result += (char)(key & 0xff);
+            result.text += (char)(key & 0xff);
         }
     }
-    return result;
+    return break_listener.interrupted() ? os_input_result_t{ result.text, true }
+                                        : result;
 }
 
 
@@ -150,39 +273,156 @@ std::string _os_input_str(int n)
 // Implements INPUT semantic
 std::string _os_input(FILE* finput_ptr)
 {
-    if (finput_ptr == stdin) {
-        if (g_screen_mode == 0) {
-            char buffer[4096];
-            if (fgets(buffer, sizeof(buffer), stdin)) {
-                std::string s(buffer);
-                if (!s.empty() && s.back() == '\n')
-                    s.pop_back();
-                return s;
+    return _os_input_interruptible(finput_ptr).text;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+os_input_result_t _os_input_interruptible(FILE* finput_ptr)
+{
+    if (finput_ptr != stdin)
+        return read_stream_line(finput_ptr);
+
+    input_break_listener_t break_listener;
+
+    if (g_screen_mode == 0) {
+        const HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+        const DWORD file_type = hIn && hIn != INVALID_HANDLE_VALUE
+            ? GetFileType(hIn)
+            : FILE_TYPE_UNKNOWN;
+
+        if (file_type == FILE_TYPE_PIPE) {
+            os_input_result_t result;
+
+            while (!break_listener.interrupted()) {
+                DWORD available = 0;
+                if (!PeekNamedPipe(
+                        hIn, nullptr, 0, nullptr, &available, nullptr)) {
+                    return result;
+                }
+
+                if (available == 0) {
+                    Sleep(10);
+                    continue;
+                }
+
+                char ch = 0;
+                DWORD read = 0;
+                if (!ReadFile(hIn, &ch, 1, &read, nullptr) || read == 0)
+                    return result;
+
+                if (ch == 0x03)
+                    return { result.text, true };
+
+                if (ch == '\n')
+                    return result;
+
+                if (ch != '\r')
+                    result.text += ch;
             }
-            return "";
+
+            return { result.text, true };
         }
-        char buffer[4096];
-        int len = nu_winconsole_read_line(buffer, sizeof(buffer));
-        if (len > 0)
-            return std::string(buffer);
-        return "";
+
+        if (file_type == FILE_TYPE_CHAR) {
+            os_input_result_t result;
+
+            while (!break_listener.interrupted()) {
+                if (!_kbhit()) {
+                    Sleep(10);
+                    continue;
+                }
+
+                const int ch = _getch();
+                if (ch == 0x03)
+                    return { result.text, true };
+
+                if (ch == '\r') {
+                    printf("\n");
+                    fflush(stdout);
+                    return result;
+                }
+
+                if (ch == '\b') {
+                    if (!result.text.empty()) {
+                        erase_last_input_char(result.text);
+                        printf("\b \b");
+                        fflush(stdout);
+                    }
+                    continue;
+                }
+
+                if (ch >= 0x20 && ch < 0x100) {
+                    append_input_char(result.text, ch);
+                    printf("%c", ch & 0xff);
+                    fflush(stdout);
+                }
+            }
+
+            return { result.text, true };
+        }
+
+        if (file_type == FILE_TYPE_DISK) {
+            os_input_result_t result;
+
+            while (!break_listener.interrupted()) {
+                const int ch = fgetc(stdin);
+                if (ch == EOF)
+                    return result;
+
+                if (ch == 0x03)
+                    return { result.text, true };
+
+                if (ch == '\n')
+                    return result;
+
+                if (ch != '\r')
+                    result.text += static_cast<char>(ch & 0xff);
+            }
+
+            return { result.text, true };
+        }
+    } else {
+        os_input_result_t result;
+
+        while (!break_listener.interrupted()) {
+            while (!nu_winconsole_key_available()) {
+                if (break_listener.interrupted())
+                    return { result.text, true };
+
+                nu_winconsole_process_messages();
+                Sleep(10);
+            }
+
+            const int key = nu_winconsole_get_key();
+            if (key == 0x03)
+                return { result.text, true };
+
+            if (key == '\r' || key == '\n') {
+                nu_winconsole_write("\n");
+                return result;
+            }
+
+            if (key == '\b') {
+                if (!result.text.empty()) {
+                    erase_last_input_char(result.text);
+                    nu_winconsole_write("\b \b");
+                }
+                continue;
+            }
+
+            if (key >= 0x20 && key < 0x100) {
+                append_input_char(result.text, key);
+                char text[2] = { static_cast<char>(key & 0xff), '\0' };
+                nu_winconsole_write(text);
+            }
+        }
+
+        return { result.text, true };
     }
 
-    std::string s;
-    char c;
-
-    do {
-        c = getc(finput_ptr);
-
-        if (feof(finput_ptr) || ferror(finput_ptr))
-            return s;
-
-        if (c != '\n')
-            s += c;
-
-    } while (c != '\n');
-
-    return s;
+    return read_stream_line(finput_ptr);
 }
 
 
@@ -244,7 +484,7 @@ void _os_refresh()
 
 /* -------------------------------------------------------------------------- */
 
-#else /*--------------- LINUX / MAC                                            \
+#else /*--------------- LINUX / MAC \                                                                             \
          ------------------------------------------*/
 /* -------------------------------------------------------------------------- */
 
@@ -253,6 +493,7 @@ void _os_refresh()
 
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/select.h>
 #ifdef __linux__
 #include <stdio_ext.h>
 #endif
@@ -261,6 +502,77 @@ void _os_refresh()
 #include <unistd.h>
 
 namespace nu {
+
+namespace {
+
+    class input_break_listener_t : public signal_handler_t {
+    public:
+        input_break_listener_t()
+        {
+            signal_mgr_t::instance().register_handler(event_t::BREAK, this);
+        }
+
+        ~input_break_listener_t() override
+        {
+            signal_mgr_t::instance().unregister_handler(event_t::BREAK, this);
+        }
+
+        bool notify(const event_t& ev) override
+        {
+            _interrupted = ev == event_t::BREAK;
+            return true;
+        }
+
+        bool interrupted() const noexcept { return _interrupted; }
+
+    private:
+        volatile bool _interrupted = false;
+    };
+
+    static void append_input_char(std::string& line, int ch)
+    {
+        line += static_cast<char>(ch & 0xff);
+    }
+
+    static void erase_last_input_char(std::string& line)
+    {
+        if (!line.empty())
+            line.pop_back();
+    }
+
+    static os_input_result_t read_stream_line(FILE* finput_ptr)
+    {
+        os_input_result_t result;
+        char c = 0;
+
+        do {
+            c = fgetc(finput_ptr);
+
+            if (feof(finput_ptr) || ferror(finput_ptr))
+                return result;
+
+            if (c != '\n')
+                result.text += c;
+        } while (c != '\n');
+
+        return result;
+    }
+
+    static bool poll_input_ready(int fd, int timeout_ms)
+    {
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(fd, &fds);
+
+        struct timeval tv;
+        tv.tv_sec = timeout_ms / 1000;
+        tv.tv_usec = (timeout_ms % 1000) * 1000;
+
+        const int ret = ::select(fd + 1, &fds, nullptr, nullptr, &tv);
+        return ret > 0 && FD_ISSET(fd, &fds);
+    }
+
+} // namespace
 
 
 /* -------------------------------------------------------------------------- */
@@ -349,32 +661,35 @@ void _os_cursor_visible(bool on) { printf("%c[?25%c", 0x1B, !on ? 'l' : 'h'); }
 /* -------------------------------------------------------------------------- */
 
 // Implements INPUT$(x) semantic
-std::string _os_input_str(int n)
+std::string _os_input_str(int n) { return _os_input_str_interruptible(n).text; }
+
+
+/* -------------------------------------------------------------------------- */
+
+os_input_result_t _os_input_str_interruptible(int n)
 {
-    std::string ret;
-    std::string line;
+    input_break_listener_t break_listener;
+    os_input_result_t result;
+    result.text.reserve(n > 0 ? n : 0);
 
-    while (n > 0) {
-        terminal_input_t ti;
-        terminal_t terminal(ti);
-        terminal.set_max_line_length(n);
-        terminal.register_eol_ch(nu::terminal_input_t::CR);
-        terminal.register_eol_ch(nu::terminal_input_t::LF);
-        terminal.set_flags(terminal_t::ECHO_DIS);
-        terminal.get_line(line, true /* return if len(line) == n */);
+    while (n > 0 && !break_listener.interrupted()) {
+        if (!poll_input_ready(STDIN_FILENO, 50))
+            continue;
 
-        if (line.empty()) {
-            line = "\n";
-        }
+        char ch = 0;
+        const auto read_count = ::read(STDIN_FILENO, &ch, sizeof(ch));
+        if (read_count <= 0)
+            return result;
 
-        ret += line;
-        n -= line.size();
-        line.clear();
+        if (ch == 0x03)
+            return { result.text, true };
+
+        result.text += ch;
+        --n;
     }
 
-    ret += line;
-
-    return ret;
+    return break_listener.interrupted() ? os_input_result_t{ result.text, true }
+                                        : result;
 }
 
 
@@ -383,46 +698,62 @@ std::string _os_input_str(int n)
 // Implements INPUT semantic
 std::string _os_input(FILE* finput_ptr)
 {
-    if (finput_ptr == stdin) {
-        std::string line;
+    return _os_input_interruptible(finput_ptr).text;
+}
 
-        struct _term {
-            terminal_input_t ti;
-            terminal_t terminal;
 
-            _term()
-                : ti()
-                , terminal(ti)
-            {
-                terminal.register_eol_ch(nu::terminal_input_t::CR);
-                terminal.register_eol_ch(nu::terminal_input_t::LF);
-                terminal.set_insert_enabled(true);
+/* -------------------------------------------------------------------------- */
+
+os_input_result_t _os_input_interruptible(FILE* finput_ptr)
+{
+    if (finput_ptr != stdin)
+        return read_stream_line(finput_ptr);
+
+    input_break_listener_t break_listener;
+    os_input_result_t result;
+    const int fd = fileno(stdin);
+
+    while (!break_listener.interrupted()) {
+        if (!poll_input_ready(fd, 50))
+            continue;
+
+        char ch = 0;
+        const auto read_count = ::read(fd, &ch, sizeof(ch));
+        if (read_count <= 0)
+            return result;
+
+        if (ch == '\n' || ch == '\r') {
+            printf("\n");
+            fflush(stdout);
+            return result;
+        }
+
+        if (ch == 0x03) {
+            return { result.text, true };
+        }
+
+        if (ch == terminal_input_t::CTRL_D) {
+            return result;
+        }
+
+        if (ch == terminal_input_t::BACKSPACE
+            || ch == terminal_input_t::CTRL_H) {
+            if (!result.text.empty()) {
+                erase_last_input_char(result.text);
+                printf("\b \b");
+                fflush(stdout);
             }
-        };
+            continue;
+        }
 
-        static _term term;
-
-        term.terminal.get_line(line);
-        printf("\n");
-        fflush(stdout);
-
-        return line;
+        if (ch >= 0x20 && ch < 0x7f) {
+            append_input_char(result.text, ch);
+            printf("%c", ch);
+            fflush(stdout);
+        }
     }
 
-    std::string s;
-    char c;
-
-    do {
-        c = fgetc(finput_ptr);
-
-        if (feof(finput_ptr) || ferror(finput_ptr))
-            return s;
-
-        if (c != '\n')
-            s += c;
-    } while (c != '\n');
-
-    return s;
+    return { result.text, true };
 }
 
 

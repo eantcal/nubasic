@@ -46,13 +46,24 @@ namespace {
             fmap["len$"] = functor_int_string<_len_str>;
             fmap["len"] = functor_int_string<_len_str>;
 
-            struct _input_str {
-                std::string operator()(int n) noexcept
-                {
-                    return _os_input_str(n);
+            fmap["input$"] = [](rt_prog_ctx_t& ctx, const std::string& name,
+                                 const func_args_t& args) -> variant_t {
+                check_arg_num(args, 1, name);
+                const auto value = args[0]->eval(ctx);
+
+                syntax_error_if(value.get_type() != variant_t::type_t::INTEGER,
+                    "'" + name
+                        + "': expects to be passed argument 1 as Integer");
+
+                auto input_result = _os_input_str_interruptible(
+                    static_cast<int>(value.to_int()));
+                if (input_result.interrupted) {
+                    ctx.flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, true);
+                    throw debug_suspend_t();
                 }
+
+                return variant_t(input_result.text);
             };
-            fmap["input$"] = functor_string_int<_input_str>;
 
             struct _asc_str {
                 int operator()(const std::string x) noexcept

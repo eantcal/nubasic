@@ -167,9 +167,18 @@ static int nuBASIC_console(int argc, char* argv[])
             }
         }
 
-        if (!first_command)
-            command = nu::_os_input(stdin);
-        else
+        if (!first_command) {
+            auto input_result = nu::_os_input_interruptible(stdin);
+            if (input_result.interrupted) {
+                nuBASIC.get_and_reset_break_event();
+                if (runtime_options.machine_interface)
+                    cli_printf(
+                        "%s", nu::cli::machine_event("interrupted").c_str());
+                continue;
+            }
+
+            command = std::move(input_result.text);
+        } else
             first_command = false;
 
         if (command.empty()) {

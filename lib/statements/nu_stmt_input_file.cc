@@ -42,27 +42,63 @@ void stmt_input_file_t::run(rt_prog_ctx_t& ctx)
         long long llvalue = 0;
         double dvalue = 0.0;
 
-        switch (vtype) {
-        case nu::variable_t::type_t::INTEGER:
-            ret = fscanf(s_in, "%lli", &llvalue);
-            break;
+        const bool interactive_stdin = s_in == ctx.get_stdin_ptr();
 
-        case nu::variable_t::type_t::DOUBLE:
-            ret = fscanf(s_in, "%lf", &dvalue);
-            break;
+        if (interactive_stdin) {
+            auto input_result = _os_input_interruptible(s_in);
+            if (input_result.interrupted) {
+                ctx.flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, true);
+                throw debug_suspend_t();
+            }
 
-        case nu::variable_t::type_t::STRING:
-        case nu::variable_t::type_t::BOOLEAN:
-            svalue = _os_input(s_in);
-            break;
+            svalue = std::move(input_result.text);
 
-        case nu::variable_t::type_t::UNDEFINED:
-        case nu::variable_t::type_t::STRUCT:
-        default:
-            rt_error_code_t::get_instance().throw_if(true,
-                ctx.runtime_pc.get_line(),
-                rt_error_code_t::value_t::E_TYPE_ILLEGAL, "input#");
-            break;
+            switch (vtype) {
+            case nu::variable_t::type_t::INTEGER:
+                ret = std::sscanf(svalue.c_str(), "%lli", &llvalue);
+                break;
+
+            case nu::variable_t::type_t::DOUBLE:
+                ret = std::sscanf(svalue.c_str(), "%lf", &dvalue);
+                break;
+
+            case nu::variable_t::type_t::STRING:
+            case nu::variable_t::type_t::BOOLEAN:
+                ret = 1;
+                break;
+
+            case nu::variable_t::type_t::UNDEFINED:
+            case nu::variable_t::type_t::STRUCT:
+            default:
+                rt_error_code_t::get_instance().throw_if(true,
+                    ctx.runtime_pc.get_line(),
+                    rt_error_code_t::value_t::E_TYPE_ILLEGAL, "input#");
+                break;
+            }
+        } else {
+            switch (vtype) {
+            case nu::variable_t::type_t::INTEGER:
+                ret = fscanf(s_in, "%lli", &llvalue);
+                break;
+
+            case nu::variable_t::type_t::DOUBLE:
+                ret = fscanf(s_in, "%lf", &dvalue);
+                break;
+
+            case nu::variable_t::type_t::STRING:
+            case nu::variable_t::type_t::BOOLEAN:
+                svalue = _os_input(s_in);
+                ret = 1;
+                break;
+
+            case nu::variable_t::type_t::UNDEFINED:
+            case nu::variable_t::type_t::STRUCT:
+            default:
+                rt_error_code_t::get_instance().throw_if(true,
+                    ctx.runtime_pc.get_line(),
+                    rt_error_code_t::value_t::E_TYPE_ILLEGAL, "input#");
+                break;
+            }
         }
 
         const auto index = variable.second;

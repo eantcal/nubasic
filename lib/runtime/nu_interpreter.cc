@@ -1374,6 +1374,24 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
             return exec_res_t::CMD_EXEC;
         }
 
+        auto check_break_and_stop = [&]() {
+            if (get_rt_ctx().flag[rt_prog_ctx_t::FLG_STOP_REQUEST]) {
+                get_rt_ctx().flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, false);
+                return exec_res_t::STOP_REQ;
+            }
+
+            if (is_stop_stmt_line())
+                return exec_res_t::STOP_REQ;
+
+            if (is_breakpoint_active())
+                return exec_res_t::BREAKPOINT;
+
+            if (get_rt_ctx().step_mode_active && get_cur_line_n() > 0)
+                return exec_res_t::STOP_REQ;
+
+            return exec_res_t::CMD_EXEC;
+        };
+
         if (cmd == "cont") {
             auto continue_from_current_pc = [&]() {
                 const auto line = get_rt_ctx().runtime_pc.get_line();
@@ -1393,18 +1411,8 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                 continue_from_current_pc();
             }
 
-            return exec_res_t::CMD_EXEC;
+            return check_break_and_stop();
         }
-
-        auto check_break_and_stop = [&]() {
-            if (is_stop_stmt_line())
-                return exec_res_t::STOP_REQ;
-
-            if (is_breakpoint_active())
-                return exec_res_t::BREAKPOINT;
-
-            return exec_res_t::CMD_EXEC;
-        };
 
         if (cmd == "run") {
             token = tknzr.next();

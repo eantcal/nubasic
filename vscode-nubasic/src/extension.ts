@@ -31,6 +31,16 @@ type PendingCommand = {
     output: string;
 };
 
+type SourceLineMaps = {
+    editorToBasic: Map<number, number>;
+    basicToEditor: Map<number, number>;
+};
+
+type BreakpointInfo = {
+    id: number;
+    line: number;
+};
+
 export function activate(context: vscode.ExtensionContext) {
     const debugProvider = new NuBasicDebugConfigurationProvider();
     debugLog = vscode.window.createOutputChannel('nuBASIC Debug');
@@ -157,10 +167,9 @@ async function debugFile() {
     }
 
     if (documentUsesGraphics(editor!.document)) {
-        vscode.window.showInformationMessage(
-            'This nuBASIC program uses graphics; launching it in the GDI console.'
+        vscode.window.showWarningMessage(
+            'Graphics programs are not debuggable in VS Code yet. Use Run for now.'
         );
-        await runFile();
         return;
     }
 
@@ -170,6 +179,7 @@ async function debugFile() {
         request: 'launch',
         name: 'Debug nuBASIC File',
         program: editor!.document.fileName,
+        stopOnEntry: true,
     };
 
     await vscode.debug.startDebugging(folder, config);
@@ -290,6 +300,31 @@ function stripBasicComment(line: string): string {
     return line;
 }
 
+function buildSourceLineMaps(programPath: string): SourceLineMaps {
+    const editorToBasic = new Map<number, number>();
+    const basicToEditor = new Map<number, number>();
+
+    try {
+        const text = fs.readFileSync(programPath, 'utf8');
+        const lines = text.split(/\r?\n/);
+
+        for (let i = 0; i < lines.length; ++i) {
+            const editorLine = i + 1;
+            const match = lines[i].match(/^\s*(\d+)(?:\s|$)/);
+            const basicLine = match ? Number(match[1]) : editorLine;
+
+            editorToBasic.set(editorLine, basicLine);
+            if (!basicToEditor.has(basicLine)) {
+                basicToEditor.set(basicLine, editorLine);
+            }
+        }
+    } catch {
+        // Fall back to identity mapping if the source file is unavailable.
+    }
+
+    return { editorToBasic, basicToEditor };
+}
+
 class NuBasicDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
     resolveDebugConfiguration(
         folder: vscode.WorkspaceFolder | undefined,
@@ -307,6 +342,10 @@ class NuBasicDebugConfigurationProvider implements vscode.DebugConfigurationProv
             if (editor?.document.languageId === 'nubasic') {
                 config.program = editor.document.fileName;
             }
+        }
+
+        if (typeof config.stopOnEntry !== 'boolean') {
+            config.stopOnEntry = true;
         }
 
         if (!config.cwd
@@ -330,18 +369,25 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
     readonly onDidSendMessage = this.emitter.event;
 
     private seq = 1;
+    private nextBreakpointId = 1;
     private process: cp.ChildProcessWithoutNullStreams | undefined;
     private pending: PendingCommand | undefined;
     private breakpoints = new Map<string, number[]>();
+    private breakpointInfos = new Map<string, BreakpointInfo[]>();
     private launchArgs: LaunchArguments | undefined;
     private currentLine = 0;
     private programPath = '';
+    private sourceLineMaps: SourceLineMaps = {
+        editorToBasic: new Map<number, number>(),
+        basicToEditor: new Map<number, number>(),
+    };
     private variablesReference = 1;
     private lastVariables = '';
     private stepModeEnabled = false;
     private pendingTimer: NodeJS.Timeout | undefined;
     private breakpointsDirty = false;
     private breakpointSyncInFlight = false;
+    private isStopped = false;
     private readonly launchExtraArgs = process.platform === 'win32'
         ? [machineInterfaceArg]
         : [machineInterfaceArg, '-nx'];
@@ -365,6 +411,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             case 'launch':
                 this.launchArgs = request.arguments as LaunchArguments;
                 this.programPath = this.launchArgs.program;
+                this.sourceLineMaps = buildSourceLineMaps(this.programPath);
                 this.respond(request);
                 break;
 
@@ -413,7 +460,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
 
             case 'pause':
                 this.respond(request);
-                this.event('stopped', { reason: 'pause', threadId: 1 });
+                this.interruptExecution();
                 break;
 
             case 'disconnect':
@@ -440,11 +487,20 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         const sourcePath = source?.path ?? this.programPath;
         const requested = args.breakpoints as Array<{ line: number }> | undefined;
         const lines = (requested ?? []).map(bp => bp.line).filter(line => line > 0);
+        const infos = lines.map(line => ({
+            id: this.nextBreakpointId++,
+            line,
+        }));
 
         this.breakpoints.set(sourcePath, lines);
+        this.breakpointInfos.set(sourcePath, infos);
         this.scheduleBreakpointSync();
         this.respond(request, {
-            breakpoints: lines.map(line => ({ verified: true, line }))
+            breakpoints: infos.map(info => ({
+                id: info.id,
+                verified: true,
+                line: info.line,
+            }))
         });
     }
 
@@ -493,6 +549,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             }
 
             const output = await this.sendCommand('run');
+            this.isStopped = false;
             if (this.hasMachineEvent(output, 'terminated')) {
                 this.event('terminated');
                 this.shutdown();
@@ -503,14 +560,23 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
                     ? await this.refreshCurrentLine(true)
                     : await this.refreshCurrentLine(true, true));
             if (stoppedLine > 0) {
-                this.currentLine = stoppedLine;
+                this.currentLine = this.basicLineToEditorLine(stoppedLine);
                 const stopReason = this.parseStoppedReason(output)
                     || (this.launchArgs.stopOnEntry ? 'entry' : 'breakpoint');
+                this.isStopped = true;
                 this.event('stopped', {
                     reason: stopReason,
                     threadId: 1,
+                    allThreadsStopped: true,
+                    hitBreakpointIds: this.hitBreakpointIdsForCurrentLine(stopReason),
                 });
             } else {
+                if (this.launchArgs.stopOnEntry) {
+                    this.output(
+                        'nuBASIC did not stop on entry. Verify that the installed nubasicdebug binary is up to date.\n',
+                        'stderr'
+                    );
+                }
                 this.event('terminated');
                 this.shutdown();
             }
@@ -524,6 +590,14 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
 
     private async continueExecution(step: boolean) {
         try {
+            if (!this.isStopped) {
+                this.output(
+                    'nuBASIC is not currently stopped, so step/continue cannot run yet.\n',
+                    'stderr'
+                );
+                return;
+            }
+
             if (!step && this.stepModeEnabled) {
                 await this.sendCommand('stoff');
                 this.stepModeEnabled = false;
@@ -535,6 +609,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             }
 
             const output = await this.sendCommand('cont');
+            this.isStopped = false;
             if (step) {
                 await this.sendCommand('stoff');
                 this.stepModeEnabled = false;
@@ -551,12 +626,15 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
                     ? await this.refreshCurrentLine(true)
                     : await this.refreshCurrentLine(true, true));
             if (stoppedLine > 0) {
-                this.currentLine = stoppedLine;
+                this.currentLine = this.basicLineToEditorLine(stoppedLine);
                 const stopReason = this.parseStoppedReason(output)
                     || (step ? 'step' : 'breakpoint');
+                this.isStopped = true;
                 this.event('stopped', {
                     reason: stopReason,
                     threadId: 1,
+                    allThreadsStopped: true,
+                    hitBreakpointIds: this.hitBreakpointIdsForCurrentLine(stopReason),
                 });
             } else {
                 this.event('terminated');
@@ -578,6 +656,21 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             });
         } catch {
             this.respond(request, { variables: [] });
+        }
+    }
+
+    private interruptExecution() {
+        if (!this.process || this.process.killed || !this.process.stdin.writable) {
+            this.output('nuBASIC is not running.\n', 'stderr');
+            return;
+        }
+
+        try {
+            this.log('>>> <ETX>');
+            this.process.stdin.write('\x03');
+        } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            this.output(`Unable to interrupt nuBASIC: ${message}\n`, 'stderr');
         }
     }
 
@@ -662,7 +755,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         try {
             await this.sendCommand('clrbrk');
             for (const line of this.breakpointsForProgram()) {
-                await this.sendCommand(`break ${line}`);
+                await this.sendCommand(`break ${this.editorLineToBasicLine(line)}`);
             }
         } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
@@ -736,6 +829,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         const machineMatch = output.match(/@@nubasic event="stopped"(?:[^\n\r]*\sreason="([^"]+)")/i);
         if (machineMatch) {
             return machineMatch[1] === 'breakpoint' ? 'breakpoint'
+                : machineMatch[1] === 'step' ? 'step'
                 : machineMatch[1] === 'stop' ? 'pause'
                 : machineMatch[1];
         }
@@ -816,6 +910,42 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         return [];
     }
 
+    private breakpointInfosForProgram(): BreakpointInfo[] {
+        const direct = this.breakpointInfos.get(this.programPath);
+        if (direct) {
+            return direct;
+        }
+
+        const canonical = path.resolve(this.programPath).toLowerCase();
+        for (const [source, infos] of this.breakpointInfos) {
+            if (path.resolve(source).toLowerCase() === canonical) {
+                return infos;
+            }
+        }
+
+        return [];
+    }
+
+    private editorLineToBasicLine(editorLine: number): number {
+        return this.sourceLineMaps.editorToBasic.get(editorLine) ?? editorLine;
+    }
+
+    private basicLineToEditorLine(basicLine: number): number {
+        return this.sourceLineMaps.basicToEditor.get(basicLine) ?? basicLine;
+    }
+
+    private hitBreakpointIdsForCurrentLine(reason: string): number[] | undefined {
+        if (reason !== 'breakpoint') {
+            return undefined;
+        }
+
+        const ids = this.breakpointInfosForProgram()
+            .filter(info => info.line === this.currentLine)
+            .map(info => info.id);
+
+        return ids.length > 0 ? ids : undefined;
+    }
+
     private output(output: string, category: string) {
         this.event('output', { category, output });
     }
@@ -849,6 +979,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
 
         this.breakpointsDirty = false;
         this.breakpointSyncInFlight = false;
+        this.isStopped = false;
 
         if (this.process && !this.process.killed) {
             this.process.kill();

@@ -2,7 +2,7 @@
   "name": "nubasic",
   "displayName": "nuBASIC",
   "description": "nuBASIC language support for Visual Studio Code",
-  "version": "0.1.4",
+  "version": "0.1.6",
   "publisher": "eantcal",
   "license": "MIT",
   "engines": {
@@ -43,6 +43,11 @@
         "language": "nubasic",
         "scopeName": "source.nubasic",
         "path": "./syntaxes/nubasic.tmLanguage.json"
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "nubasic"
       }
     ],
     "commands": [
@@ -137,7 +142,7 @@
               "stopOnEntry": {
                 "type": "boolean",
                 "description": "Stop on the first executable statement.",
-                "default": false
+                "default": true
               }
             }
           }
@@ -148,7 +153,7 @@
             "request": "launch",
             "name": "Debug nuBASIC File",
             "program": "${file}",
-            "stopOnEntry": false
+            "stopOnEntry": true
           }
         ]
       }
