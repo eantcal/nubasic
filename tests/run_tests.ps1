@@ -66,6 +66,19 @@ if ($TestFiles.Count -eq 0) {
 }
 
 # ── run tests ────────────────────────────────────────────────────────────────
+function Remove-TestTempFiles {
+    $Names = @("nu_test_io.txt", "nu_test_rt.txt", "nu_test_app.txt")
+    $Roots = @($RepoRoot, $TestDir) | Select-Object -Unique
+
+    foreach ($Root in $Roots) {
+        foreach ($Name in $Names) {
+            Remove-Item -LiteralPath (Join-Path $Root $Name) -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+Remove-TestTempFiles
+
 $TotalPass   = 0
 $TotalFail   = 0
 $SuitePass   = 0
@@ -282,10 +295,12 @@ if ($FailedSuites.Count -gt 0) {
 Write-Host ("=" * $Width)
 
 if ($TotalFail -eq 0 -and $SuiteFail -eq 0) {
+    Remove-TestTempFiles
     Write-Host " ALL TESTS PASSED"
     Write-Host ("=" * $Width)
     exit 0
 } else {
+    Remove-TestTempFiles
     Write-Host " SOME TESTS FAILED"
     Write-Host ("=" * $Width)
     exit 1

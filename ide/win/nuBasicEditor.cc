@@ -37,6 +37,7 @@ static void save_settings(HWND hWnd);
 #include <cctype>
 #include <filesystem>
 #include <limits>
+#include <map>
 #include <regex>
 #include <set>
 #include <sstream>
@@ -50,6 +51,7 @@ static void save_settings(HWND hWnd);
 // declaration in editor_t resolves to the same symbol as the definition.
 namespace nu {
 LRESULT CALLBACK HSplitterWndProc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK VSplitterWndProc(HWND, UINT, WPARAM, LPARAM);
 }
 
 
@@ -656,6 +658,7 @@ namespace {
 //
 class editor_t {
     friend LRESULT CALLBACK HSplitterWndProc(HWND, UINT, WPARAM, LPARAM);
+    friend LRESULT CALLBACK VSplitterWndProc(HWND, UINT, WPARAM, LPARAM);
     nu::interpreter_t _interpreter;
 
 public:
@@ -720,11 +723,26 @@ public:
     void set_editor_hwnd(HWND hwnd) noexcept { _hwnd_editor = hwnd; }
 
     /**
+     * Create the document tab strip and bind the initial Scintilla document
+     */
+    void create_document_tabs(HWND hWnd);
+
+    /**
+     * Get document tab window handle
+     */
+    HWND get_document_tabs_hwnd() const noexcept { return _hwnd_doc_tabs; }
+
+    /**
+     * Switch the active editor document after a tab selection change
+     */
+    void switch_to_selected_document();
+
+    /**
      * Set splitter position
      */
-    void set_splitbar_pos(DWORD wDX, DWORD oDY)
+    void set_splitbar_pos(DWORD wDX, DWORD oDY, DWORD oX = 0)
     {
-        SetWindowPos(_h_splitter, HWND_TOP, 0, oDY, wDX, SPLIT_BAR_HEIGHT,
+        SetWindowPos(_h_splitter, HWND_TOP, oX, oDY, wDX, SPLIT_BAR_HEIGHT,
             SWP_SHOWWINDOW);
     }
 
@@ -744,6 +762,7 @@ public:
      * Create splitter control
      */
     void create_splitter(HWND hWnd);
+    void create_vsplitter(HWND hWnd);
 
     /**
      * Create search controls
@@ -846,6 +865,11 @@ public:
     void set_new_document(bool clear_title = true);
 
     /**
+     * Activate an already loaded document that matches a source path
+     */
+    bool activate_document_by_path(const std::string& path);
+
+    /**
      * Show open document dialog
      */
     void open_document();
@@ -854,6 +878,20 @@ public:
      * Open document filename
      */
     void open_document_file(const char* fileName);
+
+    /**
+     * Open/activate a source file and scroll to a line (no execution marker).
+     */
+    void navigate_to_source(const std::string& path, int line);
+
+    /**
+     * Load a .nbp project file; returns false on error.
+     */
+    bool load_project(const std::string& nbp_path);
+
+    void create_file_tree(HWND hWnd);
+    HWND get_file_tree_hwnd() const noexcept { return _hwnd_file_tree; }
+    void on_tree_notify(LPNMHDR pnmhdr);
 
     /**
      * Save editing document
@@ -1108,13 +1146,39 @@ public:
      */
     void reset_all_breakpoints() noexcept
     {
-        auto linecount = get_line_count();
-
         interpreter().exec_command("clrbrk");
 
-        for (int i = 0; i < linecount; ++i)
-            if (has_breakpoint(i + 1))
-                interpreter().exec_command("break " + std::to_string(i + 1));
+        sync_active_document_state();
+        const int original_document = _active_document;
+
+        for (size_t doc_index = 0; doc_index < _documents.size(); ++doc_index) {
+            send_command(
+                SCI_SETDOCPOINTER, 0, _documents[doc_index].scintilla_doc);
+
+            const auto linecount = get_line_count();
+            const auto source_name = _documents[doc_index].path.empty()
+                ? std::string("<memory>")
+                : _documents[doc_index].path;
+
+            for (int i = 0; i < linecount; ++i) {
+                if (!has_breakpoint(i + 1))
+                    continue;
+
+                runnable_t::line_num_t program_line = 0;
+                if (interpreter().try_get_program_line(
+                        source_name, i + 1, program_line)) {
+                    interpreter().exec_command(
+                        "break " + std::to_string(program_line));
+                }
+            }
+        }
+
+        if (original_document >= 0
+            && original_document < static_cast<int>(_documents.size())) {
+            send_command(SCI_SETDOCPOINTER, 0,
+                _documents[static_cast<size_t>(original_document)]
+                    .scintilla_doc);
+        }
     }
 
 
@@ -1544,9 +1608,15 @@ public:
 
 public:
     HWND get_splitter_handle() const noexcept { return _h_splitter; }
+    HWND get_vsplitter_handle() const noexcept { return _hwnd_vsplitter; }
+
+    const std::string& get_project_name() const noexcept { return _project_name; }
 
     int get_split_height() const noexcept { return _editor_split_height; }
     void set_split_height(int h) noexcept { _editor_split_height = h; }
+
+    int get_tree_panel_width() const noexcept { return _tree_panel_width; }
+    void set_tree_panel_width(int w) noexcept { _tree_panel_width = w; }
 
     HWND get_infobox_handle() const noexcept
     {
@@ -1571,6 +1641,7 @@ protected:
     HWND _current_dialog;
     HWND _hwnd_main;
     HWND _hwnd_editor;
+    HWND _hwnd_doc_tabs;
 
     HWND _h_splitter;
     // _h_infobox removed - now managed by tab_container_t
@@ -1585,7 +1656,33 @@ protected:
     bool _pending_rebuild = false; // set when user asks to stop-and-rebuild
     std::string _pending_open_file; // non-empty: open this file after stop
     debug_stop_t _last_debug_stop = debug_stop_t::NONE;
+    std::string _project_file;
+    std::string _project_name;
+    std::string _project_entry;
     formatter_options_t _formatter_options;
+
+    HWND _hwnd_file_tree = nullptr;
+    HWND _hwnd_vsplitter = nullptr;
+    std::map<HTREEITEM, std::string> _tree_item_paths;
+    // Ordered list of source file paths for the current project.
+    // Populated by the lightweight scanner in load_project; refreshed after
+    // build.
+    std::vector<std::string> _project_sources;
+    int _tree_panel_width = 200;
+
+    struct document_state_t {
+        sptr_t scintilla_doc = 0;
+        std::string path;
+        std::string title;
+        bool dirty = false;
+        bool need_build = true;
+        int caret_pos = 0;
+        int first_visible_line = 0;
+    };
+
+    std::vector<document_state_t> _documents;
+    int _active_document = -1;
+    int _untitled_document_counter = 1;
 
     int _goto_line = 0;
     std::string _command_line;
@@ -1598,7 +1695,22 @@ protected:
     {
         _is_dirty = true;
         _need_build = true;
+        sync_active_document_state();
     }
+
+    void sync_active_document_state();
+    void activate_document(size_t index);
+    void update_active_document_from_state();
+    void update_document_tab_title(size_t index);
+    void create_new_document_tab(const std::string& path = {});
+    int find_document_by_path(const std::string& path) const;
+    std::string active_source_name() const;
+    void open_included_source_files();
+    void close_all_documents();
+    void close_project();
+    void open_project_file();
+    void new_project_dialog();
+    void update_file_tree();
 
     /**
      * Called from notification handler. Set default folding
@@ -1770,6 +1882,34 @@ void nu::editor_t::create_splitter(HWND hWnd)
 
 /* -------------------------------------------------------------------------- */
 
+void nu::editor_t::create_vsplitter(HWND hWnd)
+{
+    WNDCLASSEX wcex{ 0 };
+
+    wcex.cbSize = sizeof(WNDCLASSEX);
+    wcex.style = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc = (WNDPROC)VSplitterWndProc;
+    wcex.cbClsExtra = 0;
+    wcex.cbWndExtra = 0;
+    wcex.hInstance = get_instance_handle();
+    wcex.hIcon = NULL;
+    wcex.hCursor = LoadCursor(NULL, IDC_SIZEWE);
+    wcex.hbrBackground = NULL;
+    wcex.lpszMenuName = NULL;
+    wcex.lpszClassName = "VSPLITTER_WND_CLASS";
+    wcex.hIconSm = NULL;
+
+    RegisterClassEx(&wcex);
+
+    _hwnd_vsplitter = CreateWindow(TEXT("VSPLITTER_WND_CLASS"), NULL,
+        WS_CHILD, 0, 0, CW_USEDEFAULT, CW_USEDEFAULT, hWnd,
+        (HMENU)IDD_VSPLITTER,
+        get_instance_handle(), NULL);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 void nu::editor_t::create_search_replace_cntrls(HWND hWnd)
 {
     // Infobox is now created by tab_container_t, not here
@@ -1826,10 +1966,8 @@ void nu::editor_t::on_drop_files(HDROP hDropInfo)
     // Get the number of files.
     const auto iFiles = DragQueryFile(hDropInfo, (DWORD)(-1), (LPSTR)NULL, 0);
 
-    if (iFiles != 1) {
-        MessageBox(get_main_hwnd(), "One file at a time, please.", NULL, MB_OK);
-    } else {
-        DragQueryFile(hDropInfo, 0, lpszFile, sizeof(lpszFile));
+    for (UINT i = 0; i < iFiles; ++i) {
+        DragQueryFile(hDropInfo, i, lpszFile, sizeof(lpszFile));
 
         if (lpszFile) {
             open_document_file(lpszFile);
@@ -1863,7 +2001,8 @@ void nu::editor_t::resize_info(int editor_tenth)
 
     LONG editor_size = 0;
 
-    const int available_h = rc.bottom - rc.top - dy;
+    const int doc_tab_h = _hwnd_doc_tabs ? 26 : 0;
+    const int available_h = rc.bottom - rc.top - dy - doc_tab_h;
     const int min_pane = 40; // minimum pixels for each pane
 
     if (_editor_split_height > 0) {
@@ -1880,16 +2019,53 @@ void nu::editor_t::resize_info(int editor_tenth)
             - nu::editor_t::SPLIT_BAR_HEIGHT;
     }
 
-    ::SetWindowPos(g_editor.get_editor_hwnd(), 0, rc.left, rc.top + dy,
-        rc.right - rc.left, editor_size, SWP_NOZORDER);
+    // File tree panel on the left side (visible only when a project is open).
+    const bool tree_visible
+        = _hwnd_file_tree != nullptr && !_project_name.empty();
+    const int min_tree_w = 60;
+    const int max_tree_w = (rc.right - rc.left) / 2;
+    if (_tree_panel_width < min_tree_w) _tree_panel_width = min_tree_w;
+    if (_tree_panel_width > max_tree_w && max_tree_w > min_tree_w) _tree_panel_width = max_tree_w;
+    const int vsplit_w = SPLIT_BAR_WIDTH;
+    const int tree_w = tree_visible ? _tree_panel_width : 0;
+    const int vsplit_total = tree_visible ? tree_w + vsplit_w : 0;
 
-    set_splitbar_pos(rc.right - rc.left, rc.top + dy + editor_size);
+    if (_hwnd_file_tree) {
+        if (tree_visible) {
+            ::SetWindowPos(_hwnd_file_tree, HWND_TOP, rc.left, rc.top + dy,
+                tree_w, rc.bottom - rc.top - dy, SWP_SHOWWINDOW);
+        } else {
+            ::ShowWindow(_hwnd_file_tree, SW_HIDE);
+        }
+    }
 
-    const auto y_bottom
-        = rc.top + dy + editor_size + nu::editor_t::SPLIT_BAR_HEIGHT;
+    if (_hwnd_vsplitter) {
+        if (tree_visible) {
+            ::SetWindowPos(_hwnd_vsplitter, HWND_TOP,
+                rc.left + tree_w, rc.top + dy,
+                vsplit_w, rc.bottom - rc.top - dy, SWP_SHOWWINDOW);
+        } else {
+            ::ShowWindow(_hwnd_vsplitter, SW_HIDE);
+        }
+    }
 
-    set_tab_container_pos(
-        0, y_bottom, rc.right - rc.left, rc.bottom - rc.top - y_bottom);
+    const int left = rc.left + vsplit_total;
+    const int width = rc.right - rc.left - vsplit_total;
+
+    if (_hwnd_doc_tabs) {
+        ::SetWindowPos(_hwnd_doc_tabs, 0, left, rc.top + dy, width, doc_tab_h,
+            SWP_NOZORDER);
+    }
+
+    ::SetWindowPos(g_editor.get_editor_hwnd(), 0, left, rc.top + dy + doc_tab_h,
+        width, editor_size, SWP_NOZORDER);
+
+    set_splitbar_pos(width, rc.top + dy + doc_tab_h + editor_size, left);
+
+    const auto y_bottom = rc.top + dy + doc_tab_h + editor_size
+        + nu::editor_t::SPLIT_BAR_HEIGHT;
+
+    set_tab_container_pos(left, y_bottom, width, rc.bottom - rc.top - y_bottom);
 }
 
 
@@ -2603,9 +2779,6 @@ void nu::editor_t::open_example_from_menu_id(int menu_id)
     if (path.empty())
         return;
 
-    if (save_if_unsure() == IDCANCEL)
-        return;
-
     open_document_file(path.c_str());
 }
 
@@ -2617,45 +2790,34 @@ void nu::editor_t::show_splash()
     HANDLE image = ::LoadBitmap(
         GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_NUBASIC_SPLASH));
 
-    if (!image) {
+    if (!image)
         return;
-    }
 
-    const int wdx = 800;
-    const int wdy = 400 + GetSystemMetrics(SM_CYCAPTION);
+    BITMAP bm = {};
+    ::GetObject(image, sizeof(bm), &bm);
 
-    RECT r = { 0 };
-    GetClientRect(GetDesktopWindow(), &r);
+    const int wdx = bm.bmWidth > 0 ? bm.bmWidth : 800;
+    const int wdy = bm.bmHeight > 0 ? bm.bmHeight : 400;
 
-    const auto wx = (r.right - r.left - wdx) / 2;
-    const auto wy = (r.bottom - r.top - wdy) / 2;
+    RECT desktop = {};
+    GetClientRect(GetDesktopWindow(), &desktop);
+    const int wx = (desktop.right - desktop.left - wdx) / 2;
+    const int wy = (desktop.bottom - desktop.top - wdy) / 2;
 
     HWND hwnd = ::CreateWindowA("STATIC", EDITOR_INFO, WS_VISIBLE, wx, wy, wdx,
         wdy, NULL, NULL, NULL, NULL);
 
     HDC hdc = GetDC(hwnd);
-
     HDC hdcMem = ::CreateCompatibleDC(hdc);
     auto hbmOld = ::SelectObject(hdcMem, (HGDIOBJ)image);
 
-    BITMAP bm = { 0 };
-    ::GetObject(image, sizeof(bm), &bm);
-
-    GetClientRect(hwnd, &r);
-
-    const int dx = r.right - r.left;
-    const int dy = r.bottom - r.top;
-
-    ::BitBlt(hdc, (dx - bm.bmWidth) / 2, (dy - bm.bmHeight) / 2, bm.bmWidth,
-        bm.bmHeight, hdcMem, 0, 0, SRCCOPY);
+    ::BitBlt(hdc, 0, 0, bm.bmWidth, bm.bmHeight, hdcMem, 0, 0, SRCCOPY);
 
     Sleep(3000);
 
     ::SelectObject(hdcMem, hbmOld);
     ::DeleteDC(hdcMem);
-
     ::ReleaseDC(hwnd, hdc);
-
     ::DestroyWindow(hwnd);
 }
 
@@ -2708,6 +2870,77 @@ void nu::editor_t::alloc_console()
 
 /* -------------------------------------------------------------------------- */
 
+static std::string format_variant_for_display(
+    const nu::variant_t& v, int depth = 0)
+{
+    if (v.is_struct()) {
+        std::string out;
+        const auto& tname = v.struct_type_name();
+        out = tname.empty() ? "{" : tname + "{";
+        const auto& fields = v.struct_fields();
+        bool first = true;
+        for (const auto& [fname, fhandle] : fields) {
+            if (!first)
+                out += ", ";
+            first = false;
+            out += fname + "=";
+            if (fhandle) {
+                out += depth < 3
+                    ? format_variant_for_display(*fhandle, depth + 1)
+                    : "...";
+            } else {
+                out += "null";
+            }
+        }
+        out += "}";
+        return out;
+    }
+    try {
+        return v.to_str();
+    } catch (...) {
+        return "?";
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+
+static std::wstring collect_scope_variables(nu::proc_scope_t& proc_scope)
+{
+    std::wstring text;
+
+    auto append_scope = [&](nu::var_scope_t::handle_t scope,
+                            const wchar_t* header) {
+        if (!scope || scope->empty())
+            return;
+        text += header;
+        text += L"\r\n";
+        text += L"----------------------------------------------\r\n";
+        const nu::var_scope_t& cscope = *scope;
+        for (const auto& [iname, val] : cscope.map()) {
+            const std::string& sname = iname.str();
+            std::wstring wname(sname.begin(), sname.end());
+            if (wname.size() < 24)
+                wname.append(24 - wname.size(), L' ');
+            else
+                wname += L"  ";
+            const std::string sval = format_variant_for_display(val.first);
+            std::wstring wval(sval.begin(), sval.end());
+            text += wname + wval + L"\r\n";
+        }
+        text += L"\r\n";
+    };
+
+    append_scope(proc_scope.get(nu::proc_scope_t::type_t::LOCAL), L"Local");
+    append_scope(proc_scope.get(nu::proc_scope_t::type_t::GLOBAL), L"Global");
+
+    if (text.empty())
+        text = L"No variables in current scope\r\n";
+
+    return text;
+}
+
+/* -------------------------------------------------------------------------- */
+
 void nu::editor_t::start_debugging(dbg_flg_t flg)
 {
     const bool resuming_paused_program = flg != dbg_flg_t::NORMAL_EXECUTION
@@ -2754,17 +2987,65 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
         show_execution_point(interpreter().get_cur_line_n());
         if (g_tab_container) {
             if (interpreter().get_debug_mode()) {
+                // Build the call stack display (innermost frame first).
+                //
+                // call_stack[i].func_name      = function that was entered
+                // call_stack[i].call_site_line = program line where that call
+                //                               was made (i.e. the caller's PC
+                //                               at the moment of the call)
+                //
+                // So the correct per-row source line is:
+                //   row 0 (current):   get_cur_line_n()
+                //   row k (caller k):  call_stack[n-k].call_site_line
+                //   last row (<main>): call_stack[0].call_site_line
+
                 const auto& frames = interpreter().get_call_stack();
-                std::vector<std::pair<std::string, int>> frame_list;
-                frame_list.reserve(frames.size());
-                for (const auto& f : frames)
-                    frame_list.emplace_back(
-                        f.func_name, static_cast<int>(f.call_site_line));
+                std::vector<tab_container_t::call_stack_frame_t> frame_list;
+
+                auto make_frame = [&](const std::string& fname,
+                    nu::prog_pointer_t::line_number_t prog_line) {
+                    tab_container_t::call_stack_frame_t csf;
+                    csf.func_name = fname;
+                    nu::source_location_t loc;
+                    if (interpreter().try_get_source_location(
+                            prog_line, loc) && loc.is_valid()) {
+                        csf.source_path = interpreter().lookup_source_name(
+                            loc.source_id);
+                        csf.source_file
+                            = std::filesystem::path(csf.source_path)
+                                  .filename().string();
+                        csf.source_line
+                            = static_cast<int>(loc.source_line);
+                    }
+                    return csf;
+                };
+
+                const auto cur = interpreter().get_cur_line_n();
+                if (!frames.empty()) {
+                    // innermost: current function at current line
+                    frame_list.push_back(
+                        make_frame(frames.back().func_name, cur));
+                    // outer callers
+                    for (int i = static_cast<int>(frames.size()) - 1;
+                         i > 0; --i) {
+                        frame_list.push_back(make_frame(
+                            frames[i - 1].func_name,
+                            frames[i].call_site_line));
+                    }
+                    // outermost: <main> at line where frames[0] was called
+                    frame_list.push_back(
+                        make_frame("<main>", frames[0].call_site_line));
+                } else {
+                    // top-level code: no function frames, just show position
+                    frame_list.push_back(make_frame("<main>", cur));
+                }
+
                 g_tab_container->update_call_stack(frame_list);
-                g_tab_container->switch_to_tab(
-                    tab_container_t::tab_id_t::CALLSTACK);
+                g_tab_container->update_variables(collect_scope_variables(
+                    interpreter().get_rt_ctx().proc_scope));
             } else {
                 g_tab_container->clear_call_stack();
+                g_tab_container->clear_variables();
             }
         }
         break;
@@ -2772,15 +3053,19 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
     case debug_stop_t::RUNTIME_ERROR:
         show_execution_point(
             interpreter().get_cur_line_n(), kRuntimeErrorLineBack);
-        if (g_tab_container)
+        if (g_tab_container) {
             g_tab_container->clear_call_stack();
+            g_tab_container->clear_variables();
+        }
         break;
 
     case debug_stop_t::COMPLETED:
     case debug_stop_t::NONE:
         remove_prog_cnt_marker();
-        if (g_tab_container)
+        if (g_tab_container) {
             g_tab_container->clear_call_stack();
+            g_tab_container->clear_variables();
+        }
         break;
     }
 }
@@ -2801,6 +3086,7 @@ void nu::editor_t::start_without_debugging()
 
     if (g_tab_container) {
         g_tab_container->clear_call_stack();
+        g_tab_container->clear_variables();
         if (g_tab_container->is_console_detached()) {
             present_floating_gdi_console(true, true);
         } else {
@@ -2840,6 +3126,21 @@ bool nu::editor_t::show_execution_point(int line, COLORREF line_back) noexcept
 
     if (line < 1) {
         line = 1;
+    }
+
+    nu::source_location_t source_location;
+    if (interpreter().try_get_source_location(line, source_location)
+        && source_location.is_valid()) {
+        const auto& source_name
+            = interpreter().lookup_source_name(source_location.source_id);
+        if (!source_name.empty() && source_name.front() != '<') {
+            const bool can_open = !_program_running
+                || _last_debug_stop == debug_stop_t::PAUSED
+                || _last_debug_stop == debug_stop_t::RUNTIME_ERROR;
+            if (!activate_document_by_path(source_name) && can_open)
+                open_document_file(source_name.c_str());
+        }
+        line = source_location.source_line;
     }
 
     const auto endpos
@@ -3307,7 +3608,8 @@ bool nu::editor_t::evaluate_expression(const std::string& expression)
 
     if (interpreter().get_rt_ctx().exported_result.get_type()
         != nu::variable_t::type_t::UNDEFINED) {
-        auto result = interpreter().get_rt_ctx().exported_result.to_str();
+        auto result = format_variant_for_display(
+            interpreter().get_rt_ctx().exported_result);
 
         std::string annotation = "\r\n";
         annotation += expression + " -> " + result + "\r\n";
@@ -3399,6 +3701,78 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) noexcept
 {
     remove_prog_cnt_marker();
 
+    // When a project entry is set, always compile from that file on disk so
+    // that all Include chains resolve relative to the entry's directory,
+    // regardless of which editor tab is currently active.
+    if (!_project_entry.empty()) {
+        RECT rcClient;
+        GetClientRect(_h_splitter, &rcClient);
+        int cyVScroll = GetSystemMetrics(SM_CYVSCROLL);
+        HWND hwndPB = CreateWindowEx(0, PROGRESS_CLASS, (LPTSTR)NULL,
+            WS_CHILD | WS_VISIBLE, rcClient.left, rcClient.bottom - cyVScroll,
+            rcClient.right, cyVScroll, _h_splitter, (HMENU)0,
+            get_instance_handle(), NULL);
+
+        g_editor.interpreter().clear_all();
+        remove_funcs_menu();
+
+        try {
+            if (!interpreter().load(_project_entry)) {
+                if (show_err_msg) {
+                    const auto popup = add_error_info("Build Error", 0,
+                        "Could not load project entry or included file");
+                    MessageBox(get_main_hwnd(), popup.c_str(), "Build Error",
+                        MB_ICONERROR);
+                }
+                DestroyWindow(hwndPB);
+                return false;
+            }
+        } catch (nu::runtime_error_t& e) {
+            if (show_err_msg) {
+                int line = e.get_line_num();
+                line = line <= 0 ? interpreter().get_cur_line_n() : line;
+                char lbuf[2048] = { 0 };
+                _snprintf(lbuf, sizeof(lbuf) - 1, "%s", e.what());
+                const auto popup = add_error_info(
+                    "Runtime Error #" + std::to_string(e.get_error_code()),
+                    line, lbuf);
+                MessageBox(get_main_hwnd(), popup.c_str(), "Runtime Error",
+                    MB_ICONERROR);
+            }
+            DestroyWindow(hwndPB);
+            return false;
+        } catch (std::exception& e) {
+            if (show_err_msg) {
+                const auto line = interpreter().get_cur_line_n();
+                char lbuf[2048] = { 0 };
+                _snprintf(lbuf, sizeof(lbuf) - 1, "%s", e.what());
+                const auto popup = add_error_info("Syntax Error", line, lbuf);
+                MessageBox(get_main_hwnd(), popup.c_str(), "Syntax Error",
+                    MB_ICONERROR);
+            }
+            DestroyWindow(hwndPB);
+            return false;
+        }
+
+        set_title();
+        create_funcs_menu();
+        DestroyWindow(hwndPB);
+        _need_build = false;
+        {
+            std::stringstream ss;
+            interpreter().get_rt_ctx().trace_metadata(ss);
+            const auto meta_str = ss.str();
+            if (!meta_str.empty())
+                add_info(meta_str, 0);
+        }
+        add_info("Build succeeded\n", CFM_ITALIC);
+        open_included_source_files();
+        extern tab_container_t* g_tab_container;
+        if (g_tab_container)
+            g_tab_container->switch_to_tab(tab_container_t::tab_id_t::OUTPUT);
+        return true;
+    }
+
     const auto doc_size = send_command(SCI_GETLENGTH);
 
     if (doc_size <= 0) {
@@ -3459,7 +3833,8 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) noexcept
     }
 
     try {
-        if (!interpreter().load(source_stream, base_dir)) {
+        if (!interpreter().load(
+                source_stream, base_dir, active_source_name())) {
             if (show_err_msg) {
                 const auto popup = add_error_info(
                     "Build Error", 0, "Could not load source or included file");
@@ -3524,6 +3899,8 @@ bool nu::editor_t::rebuild_code(bool show_err_msg) noexcept
 
     add_info("Build succeeded\n", CFM_ITALIC);
 
+    open_included_source_files();
+
     extern tab_container_t* g_tab_container;
     if (g_tab_container) {
         g_tab_container->switch_to_tab(tab_container_t::tab_id_t::OUTPUT);
@@ -3558,6 +3935,7 @@ nu::editor_t::editor_t()
     , _current_dialog(0)
     , _hwnd_main(0)
     , _hwnd_editor(0)
+    , _hwnd_doc_tabs(0)
     , _is_dirty(false)
     , _need_build(true)
 {
@@ -3566,6 +3944,714 @@ nu::editor_t::editor_t()
     memset(_replace_str, 0, sizeof(_replace_str));
 
     GetObject(GetStockObject(SYSTEM_FONT), sizeof(_logfont), &_logfont);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+static std::string normalize_editor_path(const std::string& path)
+{
+    if (path.empty())
+        return {};
+
+    std::string clean = path;
+    if (clean.size() >= 2 && clean.front() == '"' && clean.back() == '"') {
+        clean = clean.substr(1, clean.size() - 2);
+    }
+
+    std::error_code ec;
+    const auto canonical = std::filesystem::weakly_canonical(clean, ec);
+    return ec ? clean : canonical.string();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+static std::string make_document_title(
+    const std::string& path, const std::string& fallback)
+{
+    if (path.empty())
+        return fallback;
+
+    const auto filename = std::filesystem::path(path).filename().string();
+    return filename.empty() ? path : filename;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::sync_active_document_state()
+{
+    if (_active_document < 0
+        || _active_document >= static_cast<int>(_documents.size()))
+        return;
+
+    auto& doc = _documents[static_cast<size_t>(_active_document)];
+    doc.path = _full_path_str;
+    doc.dirty = _is_dirty;
+    doc.need_build = _need_build;
+    doc.caret_pos = static_cast<int>(send_command(SCI_GETCURRENTPOS));
+    doc.first_visible_line
+        = static_cast<int>(send_command(SCI_GETFIRSTVISIBLELINE));
+    doc.title = make_document_title(
+        doc.path, doc.title.empty() ? "Untitled" : doc.title);
+    update_document_tab_title(static_cast<size_t>(_active_document));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::update_active_document_from_state()
+{
+    if (_active_document < 0
+        || _active_document >= static_cast<int>(_documents.size()))
+        return;
+
+    const auto& doc = _documents[static_cast<size_t>(_active_document)];
+    _full_path_str = doc.path;
+    _is_dirty = doc.dirty;
+    _need_build = doc.need_build;
+    set_title();
+    check_menus();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::update_document_tab_title(size_t index)
+{
+    if (!_hwnd_doc_tabs || index >= _documents.size())
+        return;
+
+    const auto& doc = _documents[index];
+    std::string title = doc.title.empty()
+        ? make_document_title(doc.path, "Untitled")
+        : doc.title;
+    if (doc.dirty)
+        title += " *";
+
+    TCITEMA item = { 0 };
+    item.mask = TCIF_TEXT;
+    item.pszText = const_cast<char*>(title.c_str());
+    TabCtrl_SetItem(_hwnd_doc_tabs, static_cast<int>(index), &item);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::create_document_tabs(HWND hWnd)
+{
+    _hwnd_doc_tabs = ::CreateWindowExA(0, WC_TABCONTROLA, "",
+        WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | TCS_FOCUSNEVER, 0, 0, 100, 24,
+        hWnd, reinterpret_cast<HMENU>(IDC_DOCUMENT_TABS), get_instance_handle(),
+        0);
+
+    create_new_document_tab();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::create_new_document_tab(const std::string& path)
+{
+    document_state_t doc;
+    doc.path = normalize_editor_path(path);
+    doc.title = make_document_title(
+        doc.path, "Untitled " + std::to_string(_untitled_document_counter++));
+
+    if (_documents.empty()) {
+        doc.scintilla_doc
+            = static_cast<sptr_t>(send_command(SCI_GETDOCPOINTER));
+        // SCI_GETDOCPOINTER does not AddRef; we must do it explicitly so that
+        // switching away (SCI_SETDOCPOINTER on another doc) does not free it.
+        send_command(SCI_ADDREFDOCUMENT, 0, doc.scintilla_doc);
+    } else {
+        doc.scintilla_doc = static_cast<sptr_t>(
+            send_command(SCI_CREATEDOCUMENT, 0, SC_DOCUMENTOPTION_DEFAULT));
+    }
+
+    _documents.push_back(doc);
+
+    TCITEMA item = { 0 };
+    item.mask = TCIF_TEXT;
+    item.pszText = const_cast<char*>(doc.title.c_str());
+    TabCtrl_InsertItem(
+        _hwnd_doc_tabs, static_cast<int>(_documents.size() - 1), &item);
+
+    activate_document(_documents.size() - 1);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::activate_document(size_t index)
+{
+    if (index >= _documents.size()
+        || static_cast<int>(index) == _active_document)
+        return;
+
+    sync_active_document_state();
+    remove_prog_cnt_marker();
+
+    _active_document = static_cast<int>(index);
+    send_command(SCI_SETDOCPOINTER, 0, _documents[index].scintilla_doc);
+    init_editor(_logfont.lfFaceName, abs(_logfont.lfHeight));
+    send_command(SCI_GOTOPOS, _documents[index].caret_pos);
+    send_command(SCI_SETFIRSTVISIBLELINE, _documents[index].first_visible_line);
+    TabCtrl_SetCurSel(_hwnd_doc_tabs, static_cast<int>(index));
+
+    update_active_document_from_state();
+    ::SetFocus(_hwnd_editor);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::switch_to_selected_document()
+{
+    if (!_hwnd_doc_tabs)
+        return;
+
+    const int sel = TabCtrl_GetCurSel(_hwnd_doc_tabs);
+    if (sel >= 0)
+        activate_document(static_cast<size_t>(sel));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+int nu::editor_t::find_document_by_path(const std::string& path) const
+{
+    const auto normalized = normalize_editor_path(path);
+    if (normalized.empty())
+        return -1;
+
+    for (size_t i = 0; i < _documents.size(); ++i) {
+        if (!_documents[i].path.empty()
+            && _stricmp(_documents[i].path.c_str(), normalized.c_str()) == 0)
+            return static_cast<int>(i);
+    }
+
+    return -1;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool nu::editor_t::activate_document_by_path(const std::string& path)
+{
+    const int index = find_document_by_path(path);
+    if (index < 0)
+        return false;
+
+    activate_document(static_cast<size_t>(index));
+    return true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+std::string nu::editor_t::active_source_name() const
+{
+    return _full_path_str.empty() ? std::string("<memory>") : _full_path_str;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::open_included_source_files()
+{
+    // Merge interpreter's source registry into _project_sources so the tree
+    // reflects the authoritative post-build list (handles sources discovered
+    // only during full compilation that the lightweight scanner might miss).
+    std::set<std::string> known(
+        _project_sources.begin(), _project_sources.end());
+    for (source_id_t id = 1;; ++id) {
+        const auto& name = interpreter().lookup_source_name(id);
+        if (name.empty())
+            break;
+        if (name.front() == '<')
+            continue;
+        if (known.insert(name).second)
+            _project_sources.push_back(name);
+        if (find_document_by_path(name) >= 0)
+            continue;
+        open_document_file(name.c_str());
+    }
+    // Restore focus to the entry-point source after opening all includes.
+    const auto& entry = interpreter().lookup_source_name(1);
+    if (!entry.empty() && entry.front() != '<')
+        activate_document_by_path(entry);
+
+    update_file_tree();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::close_all_documents()
+{
+    // Activate doc 0 first; releasing other docs while they are not active is
+    // safe.
+    if (_documents.size() > 1)
+        activate_document(0);
+
+    // Release Scintilla documents and tabs for all but index 0.
+    for (size_t i = _documents.size() - 1; i >= 1; --i) {
+        send_command(SCI_RELEASEDOCUMENT, 0, _documents[i].scintilla_doc);
+        TabCtrl_DeleteItem(_hwnd_doc_tabs, static_cast<int>(i));
+        _documents.pop_back();
+    }
+
+    remove_prog_cnt_marker();
+    interpreter().clear_all();
+    send_command(SCI_CLEARALL);
+    send_command(EM_EMPTYUNDOBUFFER);
+
+    _full_path_str.clear();
+    _is_dirty = false;
+    _need_build = true;
+    _project_file.clear();
+    _project_name.clear();
+    _project_entry.clear();
+    _project_sources.clear();
+
+    if (!_documents.empty()) {
+        auto& doc = _documents[0];
+        doc.path.clear();
+        doc.dirty = false;
+        doc.need_build = true;
+        doc.title = "Untitled 1";
+        _untitled_document_counter = 2;
+        TCITEMA item = { 0 };
+        item.mask = TCIF_TEXT;
+        item.pszText = const_cast<char*>(doc.title.c_str());
+        TabCtrl_SetItem(_hwnd_doc_tabs, 0, &item);
+    }
+
+    send_command(SCI_SETSAVEPOINT);
+    remove_all_bookmarks();
+    remove_all_breakpoints();
+    sync_active_document_state();
+    set_title();
+    update_file_tree();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::close_project()
+{
+    if (_project_name.empty())
+        return;
+
+    if (_is_dirty) {
+        const int answer = MessageBoxA(_hwnd_main,
+            "The project has unsaved changes. Close anyway?",
+            "Close Project", MB_YESNO | MB_ICONQUESTION);
+        if (answer != IDYES)
+            return;
+    }
+
+    close_all_documents();
+    resize_info();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+// Lightweight recursive scanner: follows Include directives without compiling.
+// Collects absolute canonical paths of all reachable source files in order.
+static void scan_include_chain(const std::string& file_path,
+    const std::string& base_dir, std::set<std::string>& visited,
+    std::vector<std::string>& ordered)
+{
+    namespace fs = std::filesystem;
+
+    std::error_code ec;
+    const auto norm = fs::weakly_canonical(file_path, ec).string();
+    if (!visited.insert(norm).second)
+        return;
+    ordered.push_back(norm);
+
+    FILE* f = fopen(file_path.c_str(), "r");
+    if (!f)
+        return;
+
+    char buf[4096];
+    while (fgets(buf, sizeof(buf), f)) {
+        std::string line = buf;
+        while (!line.empty() && (line.back() == '\n' || line.back() == '\r'))
+            line.pop_back();
+
+        // Strip leading whitespace
+        size_t start = line.find_first_not_of(" \t");
+        if (start == std::string::npos)
+            continue;
+        std::string s = line.substr(start);
+
+        // Strip optional '#'
+        if (!s.empty() && s[0] == '#')
+            s = s.substr(1);
+
+        // Check for "include" keyword (case-insensitive)
+        if (s.size() < 7)
+            continue;
+        std::string kw = s.substr(0, 7);
+        for (char& c : kw)
+            c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+        if (kw != "include")
+            continue;
+
+        // Extract quoted path
+        s = s.substr(7);
+        size_t q1 = s.find_first_not_of(" \t");
+        if (q1 == std::string::npos || s[q1] != '"')
+            continue;
+        s = s.substr(q1 + 1);
+        size_t q2 = s.find('"');
+        if (q2 == std::string::npos)
+            continue;
+        std::string inc_rel = s.substr(0, q2);
+        if (inc_rel.empty())
+            continue;
+
+        // Resolve relative path
+        std::string inc_path = inc_rel;
+        if (!base_dir.empty() && !fs::path(inc_path).is_absolute())
+            inc_path = (fs::path(base_dir) / inc_path).string();
+
+        std::string inc_base = fs::path(inc_path).parent_path().string();
+        scan_include_chain(inc_path, inc_base, visited, ordered);
+    }
+    fclose(f);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+static bool parse_nbp_file(const std::string& path, std::string& out_name,
+    std::string& out_syntax, std::string& out_entry)
+{
+    FILE* fp = fopen(path.c_str(), "r");
+    if (!fp)
+        return false;
+
+    bool in_project = false;
+    char buf[512];
+    while (fgets(buf, sizeof(buf), fp)) {
+        std::string line = buf;
+        while (!line.empty()
+            && (line.back() == '\n' || line.back() == '\r'
+                || line.back() == ' '))
+            line.pop_back();
+        if (line.empty() || line[0] == ';' || line[0] == '#')
+            continue;
+        if (line == "[project]") {
+            in_project = true;
+            continue;
+        }
+        if (line[0] == '[') {
+            in_project = false;
+            continue;
+        }
+        if (!in_project)
+            continue;
+        const auto eq = line.find('=');
+        if (eq == std::string::npos)
+            continue;
+        std::string key = line.substr(0, eq);
+        std::string val = line.substr(eq + 1);
+        while (!key.empty() && key.back() == ' ')
+            key.pop_back();
+        while (!val.empty() && val[0] == ' ')
+            val.erase(val.begin());
+        if (key == "name")
+            out_name = val;
+        else if (key == "syntax")
+            out_syntax = val;
+        else if (key == "entry")
+            out_entry = val;
+    }
+    fclose(fp);
+    return !out_entry.empty();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool nu::editor_t::load_project(const std::string& nbp_path)
+{
+    std::string name, syntax, entry;
+    if (!parse_nbp_file(nbp_path, name, syntax, entry)) {
+        MessageBoxA(_hwnd_main,
+            "Cannot open project file or missing 'entry' field.", "nuBASIC",
+            MB_ICONERROR | MB_OK);
+        return false;
+    }
+
+    std::string syn_lower = syntax;
+    for (char& c : syn_lower)
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+
+    if (syn_lower != "modern") {
+        MessageBoxA(_hwnd_main,
+            "Multi-source projects require 'syntax=modern' in the project "
+            "file.",
+            "nuBASIC", MB_ICONERROR | MB_OK);
+        return false;
+    }
+
+    // Resolve entry path relative to the directory containing the .nbp file.
+    const std::string nbp_norm = normalize_editor_path(nbp_path);
+    std::string dir = nbp_norm;
+    const auto last_sep = dir.find_last_of("/\\");
+    if (last_sep != std::string::npos)
+        dir = dir.substr(0, last_sep + 1);
+    else
+        dir.clear();
+
+    const std::string abs_entry = normalize_editor_path(dir + entry);
+
+    close_all_documents();
+
+    _project_file = nbp_norm;
+    _project_name = name.empty() ? "Unnamed Project" : name;
+    _project_entry = abs_entry;
+
+    // ---- Phase 1: lightweight source scan ----
+    // Follow Include directives without compiling so the tree and tabs are
+    // available immediately, even if the subsequent build fails.
+    {
+        std::set<std::string> visited;
+        const std::string entry_base
+            = std::filesystem::path(abs_entry).parent_path().string();
+        scan_include_chain(abs_entry, entry_base, visited, _project_sources);
+    }
+
+    // Open a tab for every discovered source (entry file first).
+    for (const auto& src : _project_sources) {
+        if (find_document_by_path(src) < 0)
+            open_document_file(src.c_str());
+    }
+    // Return focus to entry file.
+    activate_document_by_path(abs_entry);
+    update_file_tree();
+    set_title();
+
+    // ---- Phase 2: full declarative + program compilation ----
+    // interpreter().load() compiles all declarations (Class/Sub/Function) and
+    // the main body without executing anything.  The function menu and symbol
+    // table are populated; execution only happens when the user presses Run.
+    rebuild_code(false);
+
+    add_info("Project loaded: " + _project_name + "\n", CFM_ITALIC);
+    return true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::open_project_file()
+{
+    char open_file_name[MAX_PATH] = "\0";
+
+    OPENFILENAMEA ofn = { sizeof(OPENFILENAMEA) };
+    ofn.hwndOwner = _hwnd_main;
+    ofn.hInstance = _hInstance;
+    ofn.lpstrFilter
+        = "nuBASIC Project (*.nbp)\0*.nbp\0All Files (*.*)\0*.*\0\0";
+    ofn.lpstrFile = open_file_name;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.lpstrTitle = "Open Project";
+    ofn.Flags = OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
+
+    if (::GetOpenFileNameA(&ofn))
+        load_project(open_file_name);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::new_project_dialog()
+{
+    char save_file[MAX_PATH] = "\0";
+
+    OPENFILENAMEA ofn = { sizeof(OPENFILENAMEA) };
+    ofn.hwndOwner = _hwnd_main;
+    ofn.hInstance = _hInstance;
+    ofn.lpstrFilter = "nuBASIC Project (*.nbp)\0*.nbp\0\0";
+    ofn.lpstrFile = save_file;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.lpstrTitle = "New Project";
+    ofn.lpstrDefExt = "nbp";
+    ofn.Flags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+
+    if (!::GetSaveFileNameA(&ofn))
+        return;
+
+    // Derive the project name from the file stem.
+    std::string nbp_path = save_file;
+    std::string proj_name = nbp_path;
+    const auto last_sep = proj_name.find_last_of("/\\");
+    if (last_sep != std::string::npos)
+        proj_name = proj_name.substr(last_sep + 1);
+    const auto dot = proj_name.rfind('.');
+    if (dot != std::string::npos)
+        proj_name = proj_name.substr(0, dot);
+
+    // Write the .nbp project file.
+    FILE* fp = fopen(nbp_path.c_str(), "w");
+    if (!fp) {
+        MessageBoxA(_hwnd_main, "Cannot create project file.", "nuBASIC",
+            MB_ICONERROR | MB_OK);
+        return;
+    }
+    fprintf(fp, "[project]\n");
+    fprintf(fp, "name=%s\n", proj_name.c_str());
+    fprintf(fp, "syntax=modern\n");
+    fprintf(fp, "entry=main.bas\n");
+    fclose(fp);
+
+    // Determine project directory.
+    std::string dir = nbp_path;
+    const auto sep = dir.find_last_of("/\\");
+    if (sep != std::string::npos)
+        dir = dir.substr(0, sep + 1);
+    else
+        dir.clear();
+
+    // Create main.bas stub only if it does not already exist.
+    const std::string main_path = dir + "main.bas";
+    FILE* main_fp = fopen(main_path.c_str(), "r");
+    if (!main_fp) {
+        main_fp = fopen(main_path.c_str(), "w");
+        if (main_fp) {
+            fprintf(main_fp, "Syntax Modern\n\n");
+            fprintf(main_fp, "' %s - entry point\n", proj_name.c_str());
+            fprintf(main_fp, "Print \"Hello from %s\"\n", proj_name.c_str());
+            fclose(main_fp);
+        }
+    } else {
+        fclose(main_fp);
+    }
+
+    load_project(nbp_path);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::create_file_tree(HWND hWnd)
+{
+    _hwnd_file_tree = CreateWindowExA(0, WC_TREEVIEWA, "",
+        WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | TVS_HASLINES | TVS_HASBUTTONS
+            | TVS_LINESATROOT | TVS_SHOWSELALWAYS,
+        0, 0, _tree_panel_width, 100, hWnd, nullptr, get_instance_handle(),
+        nullptr);
+    ::ShowWindow(_hwnd_file_tree, SW_HIDE);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::update_file_tree()
+{
+    if (!_hwnd_file_tree)
+        return;
+
+    TreeView_DeleteAllItems(_hwnd_file_tree);
+    _tree_item_paths.clear();
+
+    if (_project_name.empty()) {
+        ::ShowWindow(_hwnd_file_tree, SW_HIDE);
+        resize_info();
+        return;
+    }
+
+    const auto project_dir
+        = std::filesystem::path(_project_entry).parent_path();
+
+    // Build the list to display: prefer the interpreter's source registry
+    // (authoritative after a successful build); fall back to the lightweight
+    // scanner result (_project_sources) if the registry is still empty.
+    std::vector<std::string> sources;
+    for (source_id_t id = 1;; ++id) {
+        const auto& s = interpreter().lookup_source_name(id);
+        if (s.empty())
+            break;
+        if (s.front() != '<')
+            sources.push_back(s);
+    }
+    if (sources.empty())
+        sources = _project_sources;
+
+    // Root node: project name
+    TVINSERTSTRUCTA tvis = {};
+    tvis.hParent = TVI_ROOT;
+    tvis.hInsertAfter = TVI_LAST;
+    tvis.item.mask = TVIF_TEXT | TVIF_STATE;
+    tvis.item.state = TVIS_EXPANDED;
+    tvis.item.stateMask = TVIS_EXPANDED;
+    std::string root_label = _project_name;
+    tvis.item.pszText = const_cast<char*>(root_label.c_str());
+    TreeView_InsertItem(_hwnd_file_tree, &tvis);
+
+    for (const auto& src : sources) {
+        std::string display;
+        std::error_code ec;
+        auto rel = std::filesystem::relative(src, project_dir, ec);
+        display = (!ec && !rel.empty())
+            ? rel.string()
+            : std::filesystem::path(src).filename().string();
+
+        TVINSERTSTRUCTA tvic = {};
+        tvic.hParent = TreeView_GetRoot(_hwnd_file_tree);
+        tvic.hInsertAfter = TVI_LAST;
+        tvic.item.mask = TVIF_TEXT;
+        tvic.item.pszText = const_cast<char*>(display.c_str());
+        HTREEITEM item = TreeView_InsertItem(_hwnd_file_tree, &tvic);
+        if (item)
+            _tree_item_paths[item] = src;
+    }
+
+    TreeView_Expand(
+        _hwnd_file_tree, TreeView_GetRoot(_hwnd_file_tree), TVE_EXPAND);
+
+    resize_info();
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::on_tree_notify(LPNMHDR pnmhdr)
+{
+    if (pnmhdr->code != TVN_SELCHANGED)
+        return;
+
+    auto* pnmtv = reinterpret_cast<LPNMTREEVIEWA>(pnmhdr);
+    HTREEITEM sel = pnmtv->itemNew.hItem;
+    if (!sel)
+        return;
+
+    auto it = _tree_item_paths.find(sel);
+    if (it == _tree_item_paths.end())
+        return;
+
+    const auto& path = it->second;
+    if (!activate_document_by_path(path))
+        open_document_file(path.c_str());
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::navigate_to_source(const std::string& path, int line)
+{
+    if (!activate_document_by_path(path))
+        open_document_file(path.c_str());
+    if (line > 0)
+        go_to_line(line);
 }
 
 
@@ -3589,6 +4675,8 @@ void nu::editor_t::get_text_range(int start, int end, char* text) const
 void nu::editor_t::set_title()
 {
     std::string s_title = "nuBASIC";
+    if (!_project_name.empty())
+        s_title += " [" + _project_name + "]";
     s_title += " - File name: '";
     s_title += _full_path_str + "'";
     s_title += "   Ln:" + std::to_string(get_current_line());
@@ -3604,6 +4692,11 @@ void nu::editor_t::set_title()
 
 void nu::editor_t::set_new_document(bool clear_title)
 {
+    const bool creating_document = clear_title && !_documents.empty();
+    if (clear_title && !_documents.empty()) {
+        create_new_document_tab();
+    }
+
     remove_prog_cnt_marker();
     interpreter().clear_all();
 
@@ -3612,6 +4705,13 @@ void nu::editor_t::set_new_document(bool clear_title)
 
     if (clear_title) {
         _full_path_str.clear();
+        if (!creating_document && _active_document >= 0
+            && _active_document < static_cast<int>(_documents.size())) {
+            auto& doc = _documents[static_cast<size_t>(_active_document)];
+            doc.path.clear();
+            doc.title
+                = "Untitled " + std::to_string(_untitled_document_counter++);
+        }
         set_title();
 
         add_info("New Program\n", CFM_ITALIC);
@@ -3620,6 +4720,7 @@ void nu::editor_t::set_new_document(bool clear_title)
     _is_dirty = false;
     _need_build = true;
     send_command(SCI_SETSAVEPOINT);
+    sync_active_document_state();
 
     remove_all_bookmarks();
     remove_all_breakpoints();
@@ -3639,26 +4740,29 @@ void nu::editor_t::open_document_file(const char* fileName)
         return;
     }
 
-    const std::string old_file_name = _full_path_str;
+    const std::string normalized_file_name = normalize_editor_path(fileName);
 
-    _full_path_str = fileName;
+    if (activate_document_by_path(normalized_file_name))
+        return;
 
-    // Remove double quote characters from begin and end of the path string
-    if (_full_path_str.size() >= 2) {
-        if (_full_path_str.c_str()[0] == '\"') {
-            _full_path_str
-                = _full_path_str.substr(1, _full_path_str.size() - 1);
-
-            if (_full_path_str.c_str()[_full_path_str.size() - 1] == '\"') {
-                _full_path_str
-                    = _full_path_str.substr(0, _full_path_str.size() - 1);
-            }
-        }
-    }
-
-    FILE* fp = fopen(_full_path_str.c_str(), "rb");
+    FILE* fp = fopen(normalized_file_name.c_str(), "rb");
 
     if (fp) {
+        const bool can_reuse_active_document = _documents.size() == 1
+            && _full_path_str.empty() && !_is_dirty
+            && send_command(SCI_GETLENGTH) == 0;
+
+        if (!can_reuse_active_document)
+            create_new_document_tab(normalized_file_name);
+
+        _full_path_str = normalized_file_name;
+        if (_active_document >= 0
+            && _active_document < static_cast<int>(_documents.size())) {
+            auto& doc = _documents[static_cast<size_t>(_active_document)];
+            doc.path = _full_path_str;
+            doc.title = make_document_title(_full_path_str, "Untitled");
+        }
+
         set_new_document(false);
 
         send_command(SCI_CANCEL);
@@ -3689,13 +4793,11 @@ void nu::editor_t::open_document_file(const char* fileName)
     } else {
         std::string msg = "Could not open file \"";
 
-        msg += _full_path_str + "\".";
+        msg += normalized_file_name + "\".";
 
         add_info(msg, CFM_BOLD | CFM_ITALIC);
 
         MessageBox(_hwnd_main, msg.c_str(), editor::application_name, MB_OK);
-
-        _full_path_str = old_file_name;
         set_title();
     }
 
@@ -3706,6 +4808,7 @@ void nu::editor_t::open_document_file(const char* fileName)
     send_command(EM_EMPTYUNDOBUFFER);
     send_command(SCI_SETSAVEPOINT);
     send_command(SCI_GOTOPOS, 0);
+    sync_active_document_state();
 
     remove_funcs_menu();
 }
@@ -3795,6 +4898,17 @@ void nu::editor_t::save_file(const std::string& filename)
         fclose(fp);
 
         send_command(SCI_SETSAVEPOINT);
+        _is_dirty = false;
+        if (_active_document >= 0
+            && _active_document < static_cast<int>(_documents.size())) {
+            auto& doc = _documents[static_cast<size_t>(_active_document)];
+            doc.path = normalize_editor_path(filename);
+            doc.title = make_document_title(doc.path, "Untitled");
+            doc.dirty = false;
+            doc.need_build = _need_build;
+        }
+        _full_path_str = normalize_editor_path(filename);
+        sync_active_document_state();
 
         std::string msg = "Save '" + filename + "'\n";
         add_info(msg, CFM_ITALIC);
@@ -3810,28 +4924,41 @@ void nu::editor_t::save_file(const std::string& filename)
 
 int nu::editor_t::save_if_unsure()
 {
-    if (_is_dirty) {
-        bool save_as_dialog = false;
+    sync_active_document_state();
 
-        if (_full_path_str.empty()) {
-            _full_path_str = EDITOR_NONAME_FILE;
-            save_as_dialog = true;
-        }
+    const int original_document = _active_document;
 
-        std::string msg = "Save changes to \"" + _full_path_str + "\"?";
+    for (size_t i = 0; i < _documents.size(); ++i) {
+        if (!_documents[i].dirty)
+            continue;
+
+        activate_document(i);
+
+        const bool save_as_dialog = _full_path_str.empty();
+        const std::string display_name
+            = save_as_dialog ? EDITOR_NONAME_FILE : _full_path_str;
+
+        std::string msg = "Save changes to \"" + display_name + "\"?";
 
         const int decision = MessageBox(
             _hwnd_main, msg.c_str(), editor::application_name, MB_YESNOCANCEL);
 
         if (decision == IDYES) {
             if (save_as_dialog) {
+                _full_path_str = EDITOR_NONAME_FILE;
                 save_document_as();
             } else {
                 save_document();
             }
         }
 
-        return decision;
+        if (decision == IDCANCEL)
+            return decision;
+    }
+
+    if (original_document >= 0
+        && original_document < static_cast<int>(_documents.size())) {
+        activate_document(static_cast<size_t>(original_document));
     }
 
     return IDYES;
@@ -4132,15 +5259,11 @@ void nu::editor_t::exec_command(int id)
 {
     switch (id) {
     case IDM_FILE_NEW:
-        if (save_if_unsure() != IDCANCEL) {
-            set_new_document();
-        }
+        set_new_document();
         break;
 
     case IDM_FILE_OPEN:
-        if (save_if_unsure() != IDCANCEL) {
-            open_document();
-        }
+        open_document();
         break;
 
     case IDM_FILE_SAVE:
@@ -4149,6 +5272,18 @@ void nu::editor_t::exec_command(int id)
 
     case IDM_FILE_SAVEAS:
         save_document_as();
+        break;
+
+    case IDM_FILE_OPEN_PROJECT:
+        open_project_file();
+        break;
+
+    case IDM_FILE_NEW_PROJECT:
+        new_project_dialog();
+        break;
+
+    case IDM_FILE_CLOSE_PROJECT:
+        g_editor.close_project();
         break;
 
     case IDM_FILE_EXIT:
@@ -4543,6 +5678,7 @@ void nu::editor_t::notify(SCNotification* notification)
     case SCN_SAVEPOINTREACHED:
         _is_dirty = false;
         _need_build = true;
+        sync_active_document_state();
         check_menus();
         break;
 
@@ -4631,6 +5767,9 @@ void nu::editor_t::set_item_style(const int style, const COLORREF fore,
 
 void nu::editor_t::init_editor(const std::string& fontname, const int height)
 {
+    strncpy(_logfont.lfFaceName, fontname.c_str(), LF_FACESIZE - 1);
+    _logfont.lfFaceName[LF_FACESIZE - 1] = '\0';
+    _logfont.lfHeight = height;
 
     // clear all text styles
     send_command(SCI_CLEARDOCUMENTSTYLE, 0, 0);
@@ -4825,6 +5964,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
             100, hWnd, 0, g_editor.get_instance_handle(), 0));
 
         g_editor.init_editor(EDITOR_DEF_FONT, EDITOR_DEF_SIZE);
+        g_editor.create_document_tabs(hWnd);
+        g_editor.create_file_tree(hWnd);
 
         ::ShowWindow(g_editor.get_editor_hwnd(), SW_SHOW);
         ::SetFocus(g_editor.get_editor_hwnd());
@@ -4833,8 +5974,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
         const auto& cmdLine = g_editor.get_command_line();
 
-        if (!cmdLine.empty())
-            g_editor.open_document_file(cmdLine.c_str());
+        if (!cmdLine.empty()) {
+            const auto ext_pos = cmdLine.rfind('.');
+            const bool is_project = ext_pos != std::string::npos
+                && _stricmp(cmdLine.c_str() + ext_pos, ".nbp") == 0;
+            if (is_project)
+                g_editor.load_project(cmdLine);
+            else
+                g_editor.open_document_file(cmdLine.c_str());
+        }
 
         g_toolbar = new toolbar_t(hWnd, g_editor.get_instance_handle(),
             IDI_NUBASIC_TOOLBAR, IDI_NUBASIC_TOOLBAR,
@@ -4855,6 +6003,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         }
 
         g_editor.create_splitter(hWnd);
+        g_editor.create_vsplitter(hWnd);
         g_editor.create_search_replace_cntrls(hWnd);
 
         // Restore window placement and splitter position from registry
@@ -4888,6 +6037,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         }
 
         return 0;
+
+    case WM_INITMENUPOPUP: {
+        HMENU hMenu = (HMENU)wParam;
+        const bool has_project = !g_editor.get_project_name().empty();
+        EnableMenuItem(hMenu, IDM_FILE_CLOSE_PROJECT,
+            MF_BYCOMMAND | (has_project ? MF_ENABLED : MF_GRAYED));
+        break;
+    }
 
     case WM_SIZE:
         if (wParam != 1) {
@@ -4938,11 +6095,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
                 return ret_val;
             }
         } else {
+            LPNMHDR pnmhdr = (LPNMHDR)lParam;
+            if (g_editor.get_document_tabs_hwnd()
+                && pnmhdr->hwndFrom == g_editor.get_document_tabs_hwnd()) {
+                if (pnmhdr->code == TCN_SELCHANGE)
+                    g_editor.switch_to_selected_document();
+                return 0;
+            }
+
+            // File tree panel selection
+            if (g_editor.get_file_tree_hwnd()
+                && pnmhdr->hwndFrom == g_editor.get_file_tree_hwnd()) {
+                g_editor.on_tree_notify(pnmhdr);
+                return 0;
+            }
+
             // Handle tab container notifications
             if (g_tab_container) {
-                LPNMHDR pnmhdr = (LPNMHDR)lParam;
                 if (pnmhdr->hwndFrom == g_tab_container->get_tab_hwnd()) {
                     g_tab_container->on_notify(pnmhdr);
+                    return 0;
+                }
+                // Call Stack ListView click → navigate to source
+                if (pnmhdr->hwndFrom == g_tab_container->get_callstack_hwnd()
+                    && pnmhdr->code == NM_CLICK) {
+                    std::string path;
+                    int line = 0;
+                    if (g_tab_container->get_callstack_selected_location(
+                            path, line))
+                        g_editor.navigate_to_source(path, line);
                     return 0;
                 }
             }
@@ -5172,6 +6353,65 @@ LRESULT CALLBACK HSplitterWndProc(
     }
 }
 
+/* -------------------------------------------------------------------------- */
+
+LRESULT CALLBACK VSplitterWndProc(
+    HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+    static RECT old_tree_rect;
+    static RECT old_vsplitter_rect;
+    static POINT old_pt;
+    static int dx = 0;
+
+    switch (Message) {
+    case WM_LBUTTONDOWN:
+        GetClientWindowRect(g_editor.get_file_tree_hwnd(), old_tree_rect);
+        GetClientWindowRect(g_editor.get_vsplitter_handle(), old_vsplitter_rect);
+        dx = 0;
+        SetCapture(hWnd);
+        GetCursorPos(&old_pt);
+        return 0;
+
+    case WM_MOUSEMOVE:
+        if (wParam & MK_LBUTTON) {
+            POINT pt;
+            GetCursorPos(&pt);
+            dx = pt.x - old_pt.x;
+
+            LONG new_x = old_vsplitter_rect.left + dx;
+            if (new_x > 0) {
+                MoveWindow(hWnd, new_x, old_vsplitter_rect.top,
+                    old_vsplitter_rect.right - old_vsplitter_rect.left,
+                    old_vsplitter_rect.bottom - old_vsplitter_rect.top, TRUE);
+            }
+        }
+        return 0;
+
+    case WM_LBUTTONUP: {
+        int new_tree_w = (old_tree_rect.right - old_tree_rect.left) + dx;
+        if (new_tree_w > 0)
+            g_editor.set_tree_panel_width(new_tree_w);
+        g_editor.resize_info();
+        ReleaseCapture();
+        return 0;
+    }
+
+    case WM_PAINT: {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWnd, &ps);
+        RECT rect;
+        FillRect(hdc, &ps.rcPaint, GetSysColorBrush(COLOR_3DFACE));
+        GetClientRect(hWnd, &rect);
+        FrameRect(hdc, &rect, GetSysColorBrush(COLOR_3DSHADOW));
+        EndPaint(hWnd, &ps);
+        return 0;
+    }
+
+    default:
+        return DefWindowProc(hWnd, Message, wParam, lParam);
+    }
+}
+
 } // namespace nu
 
 /* -------------------------------------------------------------------------- */
@@ -5204,6 +6444,11 @@ static void save_settings(HWND hWnd)
     if (splitH > 0)
         RegSetValueExA(hk, "SplitHeight", 0, REG_DWORD,
             reinterpret_cast<const BYTE*>(&splitH), sizeof(splitH));
+
+    // Tree panel width
+    DWORD treeW = static_cast<DWORD>(g_editor.get_tree_panel_width());
+    RegSetValueExA(hk, "TreePanelWidth", 0, REG_DWORD,
+        reinterpret_cast<const BYTE*>(&treeW), sizeof(treeW));
 
     // Console detach state
     DWORD detached
@@ -5266,6 +6511,16 @@ static void load_settings(HWND hWnd)
             == ERROR_SUCCESS
         && splitH > 50) {
         g_editor.set_split_height(static_cast<int>(splitH));
+    }
+
+    // Tree panel width
+    DWORD treeW = 0;
+    sz = sizeof(treeW);
+    if (RegQueryValueExA(hk, "TreePanelWidth", nullptr, nullptr,
+            reinterpret_cast<BYTE*>(&treeW), &sz)
+            == ERROR_SUCCESS
+        && treeW >= 60) {
+        g_editor.set_tree_panel_width(static_cast<int>(treeW));
     }
 
     // Console detach state: post a WM_COMMAND so the full IDM_CONSOLE_DETACH

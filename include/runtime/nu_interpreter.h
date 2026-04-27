@@ -16,8 +16,10 @@
 #include "nu_statement_parser.h"
 #include "nu_tokenizer.h"
 
+#include <cstdint>
 #include <cstdio>
 #include <map>
+#include <set>
 #include <sstream>
 #include <string.h>
 #include <string>
@@ -38,6 +40,36 @@ class source_line_t : public std::map<runnable_t::line_num_t, std::string> {};
 
 class renum_tbl_t
     : public std::map<runnable_t::line_num_t, runnable_t::line_num_t> {};
+
+
+/* -------------------------------------------------------------------------- */
+
+using source_id_t = std::uint32_t;
+
+
+/* -------------------------------------------------------------------------- */
+
+struct source_location_t {
+    source_id_t source_id = 0;
+    runnable_t::line_num_t source_line = 0;
+
+    bool is_valid() const noexcept { return source_id != 0 && source_line > 0; }
+};
+
+
+/* -------------------------------------------------------------------------- */
+
+class source_registry_t {
+public:
+    source_id_t intern(const std::string& source_name);
+    source_id_t find(const std::string& source_name) const noexcept;
+    const std::string& lookup(source_id_t source_id) const noexcept;
+    void clear();
+
+private:
+    std::map<std::string, source_id_t> _ids_by_name;
+    std::vector<std::string> _names_by_id;
+};
 
 
 /* -------------------------------------------------------------------------- */
@@ -192,7 +224,8 @@ public:
 
     bool load(FILE* f);
     bool load(const std::string& filepath);
-    bool load(std::stringstream& source, const std::string& base_dir = "");
+    bool load(std::stringstream& source, const std::string& base_dir = "",
+        const std::string& source_name = "<memory>");
     bool append(std::stringstream& is, int& n_of_lines);
 
     bool save(const std::string& filepath);
@@ -206,6 +239,13 @@ public:
 
     FILE* get_stdout_ptr() const noexcept { return _stdout_ptr; }
     FILE* get_stdin_ptr() const noexcept { return _stdin_ptr; }
+    bool try_get_source_location(runnable_t::line_num_t program_line,
+        source_location_t& location) const noexcept;
+    bool try_get_program_line(const std::string& source_name,
+        runnable_t::line_num_t source_line,
+        runnable_t::line_num_t& program_line) const noexcept;
+    source_location_t get_cur_source_location() const noexcept;
+    const std::string& lookup_source_name(source_id_t source_id) const noexcept;
 
     // Store CLI arguments passed to the program's main() entry point.
     // argv[0] is conventionally the script filename; argv[1..] are script args.
@@ -232,10 +272,11 @@ protected:
     // base_dir: directory of the including file (used for relative paths).
     // ln: sequential line counter, shared across recursive calls.
     // depth: recursion guard (max 64 levels).
-    bool load_with_includes(
-        FILE* f, int& ln, const std::string& base_dir, int depth = 0);
+    bool load_with_includes(FILE* f, int& ln, const std::string& base_dir,
+        const std::string& source_name, int depth = 0);
     bool load_with_includes(std::stringstream& source, int& ln,
-        const std::string& base_dir, int depth = 0);
+        const std::string& base_dir, const std::string& source_name,
+        int depth = 0);
 
     program_t::yield_cbk_t _yield_cbk = nullptr;
     void* _yield_data = nullptr;
@@ -245,13 +286,23 @@ private:
 
     prog_line_t _prog_line;
     source_line_t _source_line;
+    std::map<runnable_t::line_num_t, source_location_t> _source_locations;
+    source_registry_t _source_registry;
     rt_prog_ctx_t _prog_ctx;
     nu::statement_parser_t _parser;
     FILE* _stdout_ptr;
     FILE* _stdin_ptr;
 
+    source_id_t intern_source_name(const std::string& source_name);
+    void set_source_location(runnable_t::line_num_t program_line,
+        source_id_t source_id, runnable_t::line_num_t source_line) noexcept;
+
     // Arguments passed to the program's main() entry point.
     std::vector<std::string> _cli_args;
+
+    // Canonical paths of all source files processed in the current load.
+    // Used to skip files that are included more than once (include guard).
+    std::set<std::string> _included_files;
 };
 
 

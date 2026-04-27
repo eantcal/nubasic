@@ -30,6 +30,7 @@ End Sub
 Dim tmpfile$ As String
 Dim rtfile$ As String
 Dim appfile$ As String
+Dim clean% As Integer
 tmpfile$ = Pwd$() + "/nu_test_io.txt"
 rtfile$  = Pwd$() + "/nu_test_rt.txt"
 appfile$ = Pwd$() + "/nu_test_app.txt"
@@ -150,6 +151,13 @@ Close #9
 AssertEq "append >= 2 lines read", Str$(lcount% >= 2), "1"
 
 SkipAllIO:
+
+' -----------------------------------------------------------------------
+' Cleanup
+' -----------------------------------------------------------------------
+clean% = erase(tmpfile$)
+clean% = erase(rtfile$)
+clean% = erase(appfile$)
 
 ' -----------------------------------------------------------------------
 ' Summary

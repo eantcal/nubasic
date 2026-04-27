@@ -201,6 +201,9 @@ try {
     if ($entryStepOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="2"') {
         throw "Entry-step did not stop on line 2 before executing the first statement.`nOutput:`n$entryStepOutput"
     }
+    if ($entryStepOutput -notmatch '@@nubasic event="stopped"[^\r\n]*sourceLine="2"[^\r\n]*source="[^"]*test_debugger_step_entry\.bas"') {
+        throw "Entry-step stop did not include source location metadata.`nOutput:`n$entryStepOutput"
+    }
 
     $loadOutput = Send-Command -Command 'load "test_debugger_contract.bas"' `
         -CompletionPattern '@@nubasic event="ok"' `
@@ -223,11 +226,14 @@ try {
     if ($runOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="breakpoint"[^\r\n]*line="3"') {
         throw "RUN did not stop on breakpoint line 3.`nOutput:`n$runOutput"
     }
+    if ($runOutput -notmatch '@@nubasic event="stopped"[^\r\n]*sourceLine="3"[^\r\n]*source="[^"]*test_debugger_contract\.bas"') {
+        throw "RUN breakpoint stop did not include source location metadata.`nOutput:`n$runOutput"
+    }
 
     $varsOutput = Send-Command -Command 'vars' `
         -CompletionPattern '@@nubasic event="ok"' `
         -Description "VARS completion after breakpoint"
-    if ($varsOutput -notmatch 'Current line\s*:\s*3' -and $varsOutput -notmatch '^\s*3\s+Print "beta"' ) {
+    if ($varsOutput -notmatch 'Current line\s*:\s*3' -and $varsOutput -notmatch '(?m)^\s*3\s+Print "beta"' ) {
         throw "Debugger state did not identify line 3 after breakpoint.`nOutput:`n$varsOutput"
     }
 
@@ -240,6 +246,9 @@ try {
         -Description "single-step stop"
     if ($contOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="4"') {
         throw "Single-step did not stop on line 4.`nOutput:`n$contOutput"
+    }
+    if ($contOutput -notmatch '@@nubasic event="stopped"[^\r\n]*sourceLine="4"[^\r\n]*source="[^"]*test_debugger_contract\.bas"') {
+        throw "Single-step stop did not include source location metadata.`nOutput:`n$contOutput"
     }
 
     $null = Send-Command -Command 'stoff' `

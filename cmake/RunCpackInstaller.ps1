@@ -26,6 +26,10 @@ $patchedConfig = [regex]::Replace(
 $tempConfig = Join-Path $BinaryDir "CPackConfig.$topLevelTag.cmake"
 Set-Content -LiteralPath $tempConfig -Value $patchedConfig -Encoding UTF8
 
+if (Test-Path -LiteralPath $MsiOutput) {
+    Remove-Item -LiteralPath $MsiOutput -Force
+}
+
 try {
     & $CPackExe -G $Generator -C $Config --config $tempConfig
     if ($LASTEXITCODE -ne 0) {

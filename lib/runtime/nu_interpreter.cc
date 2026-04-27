@@ -90,7 +90,70 @@ namespace {
         return "";
     }
 
+    static std::string normalize_source_name(const std::string& source_name)
+    {
+        if (source_name.empty())
+            return "<anonymous>";
+
+        if (!source_name.empty() && source_name.front() == '<'
+            && source_name.back() == '>') {
+            return source_name;
+        }
+
+        std::error_code ec;
+        const auto canon = fs::weakly_canonical(fs::path(source_name), ec);
+        return ec ? source_name : canon.string();
+    }
+
 } // namespace
+
+
+/* -------------------------------------------------------------------------- */
+
+source_id_t source_registry_t::intern(const std::string& source_name)
+{
+    const auto it = _ids_by_name.find(source_name);
+    if (it != _ids_by_name.end())
+        return it->second;
+
+    const auto next_id = source_id_t(_names_by_id.size() + 1);
+    _ids_by_name.insert(std::make_pair(source_name, next_id));
+    _names_by_id.push_back(source_name);
+    return next_id;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+source_id_t source_registry_t::find(
+    const std::string& source_name) const noexcept
+{
+    const auto it = _ids_by_name.find(source_name);
+    return it == _ids_by_name.end() ? 0 : it->second;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+const std::string& source_registry_t::lookup(
+    source_id_t source_id) const noexcept
+{
+    static const std::string empty;
+
+    if (source_id == 0 || source_id > _names_by_id.size())
+        return empty;
+
+    return _names_by_id[source_id - 1];
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void source_registry_t::clear()
+{
+    _ids_by_name.clear();
+    _names_by_id.clear();
+}
 
 // fprintf wrapper: routes to GDI console when active, otherwise normal fprintf
 static void console_fprintf(FILE* fp, const char* fmt, ...)
@@ -211,6 +274,9 @@ void interpreter_t::clear_all()
 {
     _prog_line.clear();
     _source_line.clear();
+    _source_locations.clear();
+    _source_registry.clear();
+    _included_files.clear();
     get_rt_ctx().clear_rtdata();
     get_rt_ctx().clear_metadata();
     _breakpoints.clear();
@@ -242,6 +308,7 @@ void interpreter_t::erase_line(runnable_t::line_num_t num)
 {
     _prog_line.erase(num);
     _source_line.erase(num);
+    _source_locations.erase(num);
 }
 
 
@@ -357,10 +424,15 @@ void interpreter_t::renum_prog(runnable_t::line_num_t step)
     runnable_t::line_num_t ln = step;
 
     source_line_t renumered_source;
+    std::map<runnable_t::line_num_t, source_location_t> renumbered_locations;
     renum_tbl_t renum_tbl;
 
     for (auto line : _source_line) {
         renumered_source.insert(std::make_pair(ln, line.second));
+        auto loc = _source_locations.find(line.first);
+        if (loc != _source_locations.end()) {
+            renumbered_locations.insert(std::make_pair(ln, loc->second));
+        }
         renum_tbl.insert(std::make_pair(line.first, ln));
         ln += step;
     }
@@ -383,6 +455,7 @@ void interpreter_t::renum_prog(runnable_t::line_num_t step)
     _breakpoints = breakpoints;
 
     _source_line = std::move(renumered_source);
+    _source_locations = std::move(renumbered_locations);
 }
 
 
@@ -452,6 +525,86 @@ bool interpreter_t::update_program(const std::string& line, int ln)
     }
 
     return true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+source_id_t interpreter_t::intern_source_name(const std::string& source_name)
+{
+    return _source_registry.intern(normalize_source_name(source_name));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void interpreter_t::set_source_location(runnable_t::line_num_t program_line,
+    source_id_t source_id, runnable_t::line_num_t source_line) noexcept
+{
+    if (source_id == 0 || source_line <= 0) {
+        _source_locations.erase(program_line);
+        return;
+    }
+
+    _source_locations[program_line] = { source_id, source_line };
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool interpreter_t::try_get_source_location(runnable_t::line_num_t program_line,
+    source_location_t& location) const noexcept
+{
+    const auto it = _source_locations.find(program_line);
+    if (it == _source_locations.end())
+        return false;
+
+    location = it->second;
+    return true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool interpreter_t::try_get_program_line(const std::string& source_name,
+    runnable_t::line_num_t source_line,
+    runnable_t::line_num_t& program_line) const noexcept
+{
+    const auto source_id
+        = _source_registry.find(normalize_source_name(source_name));
+
+    if (source_id == 0 || source_line <= 0)
+        return false;
+
+    for (const auto& entry : _source_locations) {
+        if (entry.second.source_id == source_id
+            && entry.second.source_line == source_line) {
+            program_line = entry.first;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+source_location_t interpreter_t::get_cur_source_location() const noexcept
+{
+    source_location_t location;
+    const auto line = get_cur_line_n();
+    try_get_source_location(line, location);
+    return location;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+const std::string& interpreter_t::lookup_source_name(
+    source_id_t source_id) const noexcept
+{
+    return _source_registry.lookup(source_id);
 }
 
 
@@ -591,19 +744,25 @@ static std::string parse_include_directive(const std::string& line)
 
 /* -------------------------------------------------------------------------- */
 
-bool interpreter_t::load_with_includes(
-    FILE* f, int& ln, const std::string& base_dir, int depth)
+bool interpreter_t::load_with_includes(FILE* f, int& ln,
+    const std::string& base_dir, const std::string& source_name, int depth)
 {
     if (depth > 64)
         return false; // guard against infinite include recursion
+
+    const auto source_id = intern_source_name(source_name);
+    int source_line = 0;
 
     bool old_format = false;
 
     // Detect format from the first non-shebang line
     {
         std::string first = read_line(f);
-        if (!first.empty() && first.size() >= 2 && first.substr(0, 2) == "#!")
+        ++source_line;
+        if (!first.empty() && first.size() >= 2 && first.substr(0, 2) == "#!") {
             first = read_line(f);
+            ++source_line;
+        }
 
         if (!first.empty()) {
             tokenizer_t ltknzr(first);
@@ -617,14 +776,17 @@ bool interpreter_t::load_with_includes(
     }
 
     fseek(f, 0, SEEK_SET);
+    source_line = 0;
 
     while (!feof(f) && ferror(f) == 0) {
         std::string line = read_line(f);
+        ++source_line;
 
         if (!line.empty() && ln == 0) {
             // skip shebang on very first line of the top-level file
             if (line.size() > 1 && line.substr(0, 2) == "#!") {
                 line = read_line(f);
+                ++source_line;
             }
         }
 
@@ -643,6 +805,8 @@ bool interpreter_t::load_with_includes(
                         return false;
 
                     _source_line[ln] = line;
+                    set_source_location(get_rt_ctx().compiletime_pc.get_line(),
+                        source_id, source_line);
                     continue;
                 }
 
@@ -650,6 +814,11 @@ bool interpreter_t::load_with_includes(
                 if (!base_dir.empty() && !fs::path(inc_path).is_absolute()) {
                     inc_path = (fs::path(base_dir) / inc_path).string();
                 }
+
+                // Skip files that have already been included (include guard).
+                if (!_included_files.insert(normalize_source_name(inc_path))
+                        .second)
+                    continue;
 
                 FILE* inc_f = fopen(inc_path.c_str(), "r");
                 if (!inc_f)
@@ -659,7 +828,8 @@ bool interpreter_t::load_with_includes(
                     = fs::path(inc_path).parent_path().string();
                 const bool saved_in_include = _prog_ctx.in_include_file;
                 _prog_ctx.in_include_file = true;
-                bool ok = load_with_includes(inc_f, ln, inc_base, depth + 1);
+                bool ok = load_with_includes(
+                    inc_f, ln, inc_base, inc_path, depth + 1);
                 _prog_ctx.in_include_file = saved_in_include;
                 fclose(inc_f);
                 if (!ok)
@@ -672,6 +842,11 @@ bool interpreter_t::load_with_includes(
         if ((!old_format || !line.empty())
             && !update_program(line, old_format ? 0 : ++ln))
             return false;
+
+        if (!old_format || !line.empty()) {
+            set_source_location(
+                get_rt_ctx().compiletime_pc.get_line(), source_id, source_line);
+        }
     }
 
     return true;
@@ -680,19 +855,25 @@ bool interpreter_t::load_with_includes(
 
 /* -------------------------------------------------------------------------- */
 
-bool interpreter_t::load_with_includes(
-    std::stringstream& source, int& ln, const std::string& base_dir, int depth)
+bool interpreter_t::load_with_includes(std::stringstream& source, int& ln,
+    const std::string& base_dir, const std::string& source_name, int depth)
 {
     if (depth > 64)
         return false; // guard against infinite include recursion
+
+    const auto source_id = intern_source_name(source_name);
+    int source_line = 0;
 
     bool old_format = false;
 
     // Detect format from the first non-shebang line
     {
         std::string first = read_line(source);
-        if (!first.empty() && first.size() >= 2 && first.substr(0, 2) == "#!")
+        ++source_line;
+        if (!first.empty() && first.size() >= 2 && first.substr(0, 2) == "#!") {
             first = read_line(source);
+            ++source_line;
+        }
 
         if (!first.empty()) {
             tokenizer_t ltknzr(first);
@@ -707,14 +888,17 @@ bool interpreter_t::load_with_includes(
 
     source.clear();
     source.seekg(0, std::ios::beg);
+    source_line = 0;
 
     while (!source.eof() && !source.bad()) {
         std::string line = read_line(source);
+        ++source_line;
 
         if (!line.empty() && ln == 0) {
             // skip shebang on very first line of the top-level source
             if (line.size() > 1 && line.substr(0, 2) == "#!") {
                 line = read_line(source);
+                ++source_line;
             }
         }
 
@@ -733,6 +917,8 @@ bool interpreter_t::load_with_includes(
                         return false;
 
                     _source_line[ln] = line;
+                    set_source_location(get_rt_ctx().compiletime_pc.get_line(),
+                        source_id, source_line);
                     continue;
                 }
 
@@ -740,6 +926,11 @@ bool interpreter_t::load_with_includes(
                 if (!base_dir.empty() && !fs::path(inc_path).is_absolute()) {
                     inc_path = (fs::path(base_dir) / inc_path).string();
                 }
+
+                // Skip files that have already been included (include guard).
+                if (!_included_files.insert(normalize_source_name(inc_path))
+                        .second)
+                    continue;
 
                 FILE* inc_f = fopen(inc_path.c_str(), "r");
                 if (!inc_f)
@@ -749,7 +940,8 @@ bool interpreter_t::load_with_includes(
                     = fs::path(inc_path).parent_path().string();
                 const bool saved_in_include = _prog_ctx.in_include_file;
                 _prog_ctx.in_include_file = true;
-                bool ok = load_with_includes(inc_f, ln, inc_base, depth + 1);
+                bool ok = load_with_includes(
+                    inc_f, ln, inc_base, inc_path, depth + 1);
                 _prog_ctx.in_include_file = saved_in_include;
                 fclose(inc_f);
                 if (!ok)
@@ -762,6 +954,11 @@ bool interpreter_t::load_with_includes(
         if ((!old_format || !line.empty())
             && !update_program(line, old_format ? 0 : ++ln))
             return false;
+
+        if (!old_format || !line.empty()) {
+            set_source_location(
+                get_rt_ctx().compiletime_pc.get_line(), source_id, source_line);
+        }
     }
 
     return true;
@@ -776,9 +973,11 @@ bool interpreter_t::load(const std::string& filepath)
     if (!f)
         return false;
 
-    std::string base_dir = fs::path(filepath).parent_path().string();
+    _included_files.clear();
+    const auto normalized = normalize_source_name(filepath);
+    std::string base_dir = fs::path(normalized).parent_path().string();
     int ln = 0;
-    bool ok = load_with_includes(f, ln, base_dir);
+    bool ok = load_with_includes(f, ln, base_dir, normalized);
     fclose(f);
     return ok;
 }
@@ -786,10 +985,11 @@ bool interpreter_t::load(const std::string& filepath)
 
 /* -------------------------------------------------------------------------- */
 
-bool interpreter_t::load(std::stringstream& source, const std::string& base_dir)
+bool interpreter_t::load(std::stringstream& source, const std::string& base_dir,
+    const std::string& source_name)
 {
     int ln = 0;
-    return load_with_includes(source, ln, base_dir);
+    return load_with_includes(source, ln, base_dir, source_name);
 }
 
 
@@ -798,7 +998,7 @@ bool interpreter_t::load(std::stringstream& source, const std::string& base_dir)
 bool interpreter_t::load(FILE* f)
 {
     int ln = 0;
-    bool ok = load_with_includes(f, ln, "");
+    bool ok = load_with_includes(f, ln, "", "<stdin>");
     fclose(f);
     return ok;
 }

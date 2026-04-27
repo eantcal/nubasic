@@ -381,10 +381,6 @@ if(WIN32 AND MSVC)
     endif()
   endforeach()
 
-  if(TARGET VscodeExtensionBuild)
-    list(APPEND _installer_deps VscodeExtensionBuild)
-  endif()
-
   # Locate WiX Toolset v3 candle/light for the post-CPack patch step.
   # Typical install: "C:/Program Files (x86)/WiX Toolset v3.xx/bin/"
   find_program(WIX_CANDLE candle
@@ -578,6 +574,11 @@ else()
     VERBATIM
   )
   set_property(TARGET VscodeExtensionBuild PROPERTY FOLDER "VSCode")
+
+  # Wire the extension build into CreateInstaller now that both targets exist.
+  if(TARGET CreateInstaller)
+    add_dependencies(CreateInstaller VscodeExtensionBuild)
+  endif()
 
   # Locate the VS Code CLI to enable the install target
   if(WIN32)

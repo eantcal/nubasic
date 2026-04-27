@@ -23,12 +23,14 @@ $extensionDir = Join-Path $stage 'extension'
 New-Item -ItemType Directory -Path $extensionDir | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $extensionDir 'out') | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $extensionDir 'syntaxes') | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $extensionDir 'images') | Out-Null
 
 Copy-Item -LiteralPath (Join-Path $root 'language-configuration.json') -Destination $extensionDir
 Copy-Item -LiteralPath (Join-Path $root 'LICENSE') -Destination (Join-Path $extensionDir 'LICENSE.txt')
 Copy-Item -LiteralPath (Join-Path $root 'package.json') -Destination $extensionDir
 Copy-Item -LiteralPath (Join-Path $root 'out\extension.js') -Destination (Join-Path $extensionDir 'out')
 Copy-Item -LiteralPath (Join-Path $root 'syntaxes\nubasic.tmLanguage.json') -Destination (Join-Path $extensionDir 'syntaxes')
+Copy-Item -LiteralPath (Join-Path $root 'images\icon.png') -Destination (Join-Path $extensionDir 'images')
 
 $manifest = @"
 <?xml version="1.0" encoding="utf-8"?>
@@ -57,6 +59,7 @@ $manifest = @"
       <Property Id="Microsoft.VisualStudio.Services.Content.Pricing" Value="Free" />
     </Properties>
     <License>extension/LICENSE.txt</License>
+    <Icon>extension/images/icon.png</Icon>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Code" />
@@ -65,6 +68,7 @@ $manifest = @"
   <Assets>
     <Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true" />
     <Asset Type="Microsoft.VisualStudio.Services.Content.License" Path="extension/LICENSE.txt" Addressable="true" />
+    <Asset Type="Microsoft.VisualStudio.Services.Icons.Default" Path="extension/images/icon.png" Addressable="true" />
   </Assets>
 </PackageManifest>
 "@
@@ -75,6 +79,7 @@ $contentTypes = @"
   <Default Extension=".js" ContentType="application/javascript" />
   <Default Extension=".json" ContentType="application/json" />
   <Default Extension=".txt" ContentType="text/plain" />
+  <Default Extension=".png" ContentType="image/png" />
   <Default Extension=".vsixmanifest" ContentType="text/xml" />
 </Types>
 "@

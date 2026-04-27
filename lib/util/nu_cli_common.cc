@@ -59,6 +59,57 @@ static std::string escape_machine_value(const std::string& value)
     return escaped;
 }
 
+static std::vector<std::pair<std::string, std::string>> source_location_fields(
+    const nu::interpreter_t& basic, int program_line)
+{
+    std::vector<std::pair<std::string, std::string>> fields;
+
+    nu::source_location_t location;
+    if (!basic.try_get_source_location(program_line, location)
+        || !location.is_valid()) {
+        return fields;
+    }
+
+    fields.push_back({ "sourceId", std::to_string(location.source_id) });
+    fields.push_back({ "sourceLine", std::to_string(location.source_line) });
+
+    const auto& source_name = basic.lookup_source_name(location.source_id);
+    if (!source_name.empty()) {
+        fields.push_back({ "source", source_name });
+    }
+
+    return fields;
+}
+
+static std::vector<std::pair<std::string, std::string>> machine_stop_fields(
+    const nu::interpreter_t& basic, const std::string& reason, int program_line)
+{
+    std::vector<std::pair<std::string, std::string>> fields{
+        { "reason", reason },
+        { "line", std::to_string(program_line) },
+    };
+
+    auto source_fields = source_location_fields(basic, program_line);
+    fields.insert(fields.end(), source_fields.begin(), source_fields.end());
+
+    return fields;
+}
+
+static std::vector<std::pair<std::string, std::string>>
+machine_runtime_error_fields(const nu::interpreter_t& basic, int program_line,
+    const std::vector<std::pair<std::string, std::string>>& fields)
+{
+    std::vector<std::pair<std::string, std::string>> result{
+        { "line", std::to_string(program_line) },
+    };
+
+    auto source_fields = source_location_fields(basic, program_line);
+    result.insert(result.end(), source_fields.begin(), source_fields.end());
+    result.insert(result.end(), fields.begin(), fields.end());
+
+    return result;
+}
+
 std::string ascii_lower(std::string s)
 {
     std::transform(s.begin(), s.end(), s.begin(),
@@ -343,24 +394,22 @@ nu::interpreter_t::exec_res_t exec_command(nu::interpreter_t& basic,
         }
 
         if (res == nu::interpreter_t::exec_res_t::BREAKPOINT) {
+            const auto line = basic.get_cur_line_n();
             output("Execution stopped at breakpoint, line "
-                + std::to_string(basic.get_cur_line_n())
-                + ".\nType 'cont' to continue\n");
+                + std::to_string(line) + ".\nType 'cont' to continue\n");
             if (options.machine_interface) {
-                output(machine_event("stopped",
-                    { { "reason", "breakpoint" },
-                        { "line", std::to_string(basic.get_cur_line_n()) } }));
+                output(machine_event(
+                    "stopped", machine_stop_fields(basic, "breakpoint", line)));
             }
         } else if (res == nu::interpreter_t::exec_res_t::STOP_REQ) {
+            const auto line = basic.get_cur_line_n();
             output("Execution stopped at STOP instruction, line "
-                + std::to_string(basic.get_cur_line_n())
-                + ".\nType 'cont' to continue\n");
+                + std::to_string(line) + ".\nType 'cont' to continue\n");
             if (options.machine_interface) {
                 const auto stop_reason
                     = basic.get_rt_ctx().last_stop_was_step ? "step" : "stop";
-                output(machine_event("stopped",
-                    { { "reason", stop_reason },
-                        { "line", std::to_string(basic.get_cur_line_n()) } }));
+                output(machine_event(
+                    "stopped", machine_stop_fields(basic, stop_reason, line)));
             }
         }
         return res;
@@ -374,9 +423,9 @@ nu::interpreter_t::exec_res_t exec_command(nu::interpreter_t& basic,
             + std::to_string(line) + " " + e.what() + "\n");
         if (options.machine_interface) {
             output(machine_event("runtimeError",
-                { { "line", std::to_string(line) },
-                    { "code", std::to_string(e.get_error_code()) },
-                    { "message", e.what() } }));
+                machine_runtime_error_fields(basic, line,
+                    { { "code", std::to_string(e.get_error_code()) },
+                        { "message", e.what() } })));
         }
         return nu::interpreter_t::exec_res_t::RT_ERROR;
     }
@@ -389,10 +438,10 @@ nu::interpreter_t::exec_res_t exec_command(nu::interpreter_t& basic,
             output(std::string(e.what()) + "\n");
 
         if (options.machine_interface) {
+            const auto line = std::max(0, basic.get_cur_line_n());
             output(machine_event("runtimeError",
-                { { "line",
-                      std::to_string(std::max(0, basic.get_cur_line_n())) },
-                    { "message", e.what() } }));
+                machine_runtime_error_fields(
+                    basic, line, { { "message", e.what() } })));
         }
         return nu::interpreter_t::exec_res_t::RT_ERROR;
     }

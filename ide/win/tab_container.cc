@@ -25,7 +25,7 @@ tab_container_t::tab_container_t(HWND hwnd_parent, HINSTANCE hinstance)
 {
     INITCOMMONCONTROLSEX icc = {};
     icc.dwSize = sizeof(icc);
-    icc.dwICC = ICC_TAB_CLASSES;
+    icc.dwICC = ICC_TAB_CLASSES | ICC_LISTVIEW_CLASSES;
     InitCommonControlsEx(&icc);
 
     // ---- Tab control -------------------------------------------------------
@@ -39,16 +39,44 @@ tab_container_t::tab_container_t(HWND hwnd_parent, HINSTANCE hinstance)
     // ---- Output infobox (rich-edit) ----------------------------------------
     _infobox = new txtinfobox_t(_hwnd_parent, _hinstance);
 
-    // ---- Call Stack text view ----------------------------------------------
-    _hwnd_callstack = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"",
+    // ---- Call Stack ListView -----------------------------------------------
+    _hwnd_callstack = CreateWindowExA(WS_EX_CLIENTEDGE, WC_LISTVIEWA, "",
+        WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP | LVS_REPORT | LVS_SINGLESEL
+            | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER,
+        0, 0, 0, 0, _hwnd_parent, nullptr, _hinstance, nullptr);
+    if (_hwnd_callstack) {
+        ListView_SetExtendedListViewStyle(
+            _hwnd_callstack, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+
+        LVCOLUMNA col = {};
+        col.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
+
+        col.iSubItem = 0;
+        col.cx = 180;
+        col.pszText = const_cast<char*>("Function");
+        ListView_InsertColumn(_hwnd_callstack, 0, &col);
+
+        col.iSubItem = 1;
+        col.cx = 150;
+        col.pszText = const_cast<char*>("File");
+        ListView_InsertColumn(_hwnd_callstack, 1, &col);
+
+        col.iSubItem = 2;
+        col.cx = 60;
+        col.pszText = const_cast<char*>("Line");
+        ListView_InsertColumn(_hwnd_callstack, 2, &col);
+    }
+
+    // ---- Variables text view -----------------------------------------------
+    _hwnd_variables = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"",
         WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP | ES_MULTILINE | ES_READONLY
             | ES_AUTOVSCROLL | ES_AUTOHSCROLL | WS_VSCROLL | WS_HSCROLL,
         0, 0, 0, 0, _hwnd_parent, nullptr, _hinstance, nullptr);
-    if (_hwnd_callstack) {
+    if (_hwnd_variables) {
         HFONT fixed_font
             = reinterpret_cast<HFONT>(GetStockObject(ANSI_FIXED_FONT));
         if (fixed_font)
-            SendMessageW(_hwnd_callstack, WM_SETFONT,
+            SendMessageW(_hwnd_variables, WM_SETFONT,
                 reinterpret_cast<WPARAM>(fixed_font), TRUE);
     }
 
@@ -111,6 +139,7 @@ void tab_container_t::create_tab_items()
     insert_tab_item(0, L"Output", tab_id_t::OUTPUT);
     insert_tab_item(1, L"Console", tab_id_t::CONSOLE);
     insert_tab_item(2, L"Call Stack", tab_id_t::CALLSTACK);
+    insert_tab_item(3, L"Variables", tab_id_t::VARIABLES);
 }
 
 int tab_container_t::tab_index_of(tab_id_t tab) const
@@ -143,40 +172,75 @@ tab_container_t::tab_id_t tab_container_t::tab_id_at(int sel) const
 /* -------------------------------------------------------------------------- */
 
 void tab_container_t::update_call_stack(
-    const std::vector<std::pair<std::string, int>>& frames)
+    const std::vector<call_stack_frame_t>& frames)
 {
     if (!_hwnd_callstack)
         return;
 
-    std::wstring text;
-    if (frames.empty()) {
-        text = L"No active function calls\r\n";
-    } else {
-        text = L"Function                  Called from line\r\n";
-        text += L"-----------------------------------------\r\n";
+    ListView_DeleteAllItems(_hwnd_callstack);
+    _callstack_frames.clear();
 
-        for (auto it = frames.rbegin(); it != frames.rend(); ++it) {
-            std::wstring name(it->first.begin(), it->first.end());
-            if (name.size() < 26)
-                name.append(26 - name.size(), L' ');
-            else
-                name += L"  ";
+    // frames[0] is already the innermost (current) frame.
+    for (auto it = frames.begin(); it != frames.end(); ++it) {
+        const int row = static_cast<int>(_callstack_frames.size());
+        _callstack_frames.push_back(*it);
 
-            text += name;
-            text += std::to_wstring(it->second);
-            text += L"\r\n";
-        }
+        const std::string& sname = it->func_name;
+        const std::string& sfile = it->source_file;
+        const std::string sline
+            = it->source_line > 0 ? std::to_string(it->source_line) : "";
+
+        LVITEMA lvi = {};
+        lvi.mask = LVIF_TEXT;
+        lvi.iItem = row;
+        lvi.iSubItem = 0;
+        lvi.pszText = sname.empty() ? const_cast<char*>("<global>")
+                                    : const_cast<char*>(sname.c_str());
+        ListView_InsertItem(_hwnd_callstack, &lvi);
+
+        ListView_SetItemText(
+            _hwnd_callstack, row, 1, const_cast<char*>(sfile.c_str()));
+        ListView_SetItemText(
+            _hwnd_callstack, row, 2, const_cast<char*>(sline.c_str()));
     }
-
-    SetWindowTextW(_hwnd_callstack, text.c_str());
-    InvalidateRect(_hwnd_callstack, nullptr, TRUE);
-    UpdateWindow(_hwnd_callstack);
 }
 
 void tab_container_t::clear_call_stack()
 {
     if (_hwnd_callstack)
-        SetWindowTextW(_hwnd_callstack, L"");
+        ListView_DeleteAllItems(_hwnd_callstack);
+    _callstack_frames.clear();
+}
+
+bool tab_container_t::get_callstack_selected_location(
+    std::string& path, int& line) const
+{
+    if (!_hwnd_callstack)
+        return false;
+    const int sel = ListView_GetNextItem(_hwnd_callstack, -1, LVNI_SELECTED);
+    if (sel < 0 || sel >= static_cast<int>(_callstack_frames.size()))
+        return false;
+    const auto& frame = _callstack_frames[sel];
+    if (frame.source_path.empty())
+        return false;
+    path = frame.source_path;
+    line = frame.source_line;
+    return line > 0;
+}
+
+void tab_container_t::update_variables(const std::wstring& text)
+{
+    if (!_hwnd_variables)
+        return;
+    SetWindowTextW(_hwnd_variables, text.c_str());
+    InvalidateRect(_hwnd_variables, nullptr, TRUE);
+    UpdateWindow(_hwnd_variables);
+}
+
+void tab_container_t::clear_variables()
+{
+    if (_hwnd_variables)
+        SetWindowTextW(_hwnd_variables, L"");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -214,6 +278,9 @@ void tab_container_t::layout_content(const RECT& rc)
 
     if (_hwnd_callstack)
         MoveWindow(_hwnd_callstack, x, y, cx, cy, TRUE);
+
+    if (_hwnd_variables)
+        MoveWindow(_hwnd_variables, x, y, cx, cy, TRUE);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -222,6 +289,7 @@ void tab_container_t::update_visibility()
 {
     bool show_output = (_current_tab == tab_id_t::OUTPUT);
     bool show_callstack = (_current_tab == tab_id_t::CALLSTACK);
+    bool show_variables = (_current_tab == tab_id_t::VARIABLES);
 
     if (_infobox)
         ShowWindow(_infobox->get_hwnd(), show_output ? SW_SHOW : SW_HIDE);
@@ -233,6 +301,16 @@ void tab_container_t::update_visibility()
             InvalidateRect(_hwnd_callstack, nullptr, TRUE);
         } else {
             ShowWindow(_hwnd_callstack, SW_HIDE);
+        }
+    }
+
+    if (_hwnd_variables) {
+        if (show_variables) {
+            SetWindowPos(_hwnd_variables, HWND_TOP, 0, 0, 0, 0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+            InvalidateRect(_hwnd_variables, nullptr, TRUE);
+        } else {
+            ShowWindow(_hwnd_variables, SW_HIDE);
         }
     }
 
@@ -271,6 +349,9 @@ void tab_container_t::arrange(WORD x_pos, WORD y_pos, WORD dx, WORD dy)
 
     if (_current_tab == tab_id_t::CALLSTACK && _hwnd_callstack)
         InvalidateRect(_hwnd_callstack, nullptr, TRUE);
+
+    if (_current_tab == tab_id_t::VARIABLES && _hwnd_variables)
+        InvalidateRect(_hwnd_variables, nullptr, TRUE);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -289,6 +370,10 @@ void tab_container_t::switch_to_tab(tab_id_t tab)
     if (tab == tab_id_t::CALLSTACK && _hwnd_callstack) {
         InvalidateRect(_hwnd_callstack, nullptr, TRUE);
         UpdateWindow(_hwnd_callstack);
+    }
+    if (tab == tab_id_t::VARIABLES && _hwnd_variables) {
+        InvalidateRect(_hwnd_variables, nullptr, TRUE);
+        UpdateWindow(_hwnd_variables);
     }
 }
 

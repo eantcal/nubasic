@@ -11,3 +11,7 @@ End Function
 Function SourceTag$()
     SourceTag$ = "multi-source"
 End Function
+
+Function ScaleValue%(n As Integer)
+    ScaleValue% = n * Multiplier%()
+End Function

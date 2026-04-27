@@ -141,6 +141,19 @@ contains_ci() {
 }
 
 # ── collect test files (bash 3 compatible) ───────────────────────────────────
+cleanup_temp_files() {
+    rm -f \
+        "$REPO_ROOT/nu_test_io.txt" \
+        "$REPO_ROOT/nu_test_rt.txt" \
+        "$REPO_ROOT/nu_test_app.txt" \
+        "$TEST_DIR/nu_test_io.txt" \
+        "$TEST_DIR/nu_test_rt.txt" \
+        "$TEST_DIR/nu_test_app.txt"
+}
+
+cleanup_temp_files
+trap cleanup_temp_files EXIT
+
 TEST_FILES=()
 while IFS= read -r f; do
     TEST_FILES+=("$f")

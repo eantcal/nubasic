@@ -108,6 +108,10 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Save\tCtrl+S",               IDM_FILE_SAVE
         MENUITEM "Save &As...",                 IDM_FILE_SAVEAS
+        MENUITEM SEPARATOR
+        MENUITEM "Open &Project...\tCtrl+Shift+O", IDM_FILE_OPEN_PROJECT
+        MENUITEM "New Project...",              IDM_FILE_NEW_PROJECT
+        MENUITEM "Close Project",               IDM_FILE_CLOSE_PROJECT
         MENUITEM "E&xit",                       IDM_FILE_EXIT
     END
     

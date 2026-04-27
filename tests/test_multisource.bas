@@ -41,6 +41,22 @@ alias = counter
 alias.Add(1)
 AssertEq "alias mutates included class instance", counter.Report$(), "core=14"
 
+Print "--- 3. Extra domain methods (GetValue, GetSteps, Reset) ---"
+
+AssertEq "GetValue after mutations", Str$(counter.GetValue%()), "14"
+AssertEq "GetSteps counts each Add call", Str$(counter.GetSteps%()), "4"
+
+counter.Reset()
+AssertEq "Reset clears value", counter.Report$(), "core=0"
+AssertEq "Reset clears steps", Str$(counter.GetSteps%()), "0"
+
+Print "--- 4. StatusLine from services layer ---"
+
+Dim c2 As MultiCounter
+c2 = New MultiCounter("db", 10)
+c2.Add(5)
+AssertEq "StatusLine combines tag and state", StatusLine$(c2), "[multi-source] db=15 steps=1"
+
 Print ""
 Print "Results: " + Str$(pass%) + " passed,  " + Str$(fail%) + " failed"
 If fail% = 0 Then

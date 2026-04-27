@@ -18,16 +18,30 @@ class txtinfobox_t;
 
 /* -------------------------------------------------------------------------- */
 
-//! Bottom panel with "Output", "Console" and "Call Stack" tabs.
+//! Bottom panel with "Output", "Console", "Call Stack" and "Variables" tabs.
 //
 // Output tab     — txtinfobox_t (rich-edit) showing interpreter messages.
 // Console tab    — nuBASIC GDI console.
-// Call Stack tab — read-only text showing the debug call stack (debug_mode
-// only).
+// Call Stack tab — ListView showing the debug call stack; click a row to
+//                  navigate to the corresponding source location.
+// Variables tab  — read-only text showing the current scope variables.
 
 class tab_container_t {
 public:
-    enum class tab_id_t { OUTPUT = 0, CONSOLE = 1, CALLSTACK = 2 };
+    enum class tab_id_t {
+        OUTPUT = 0,
+        CONSOLE = 1,
+        CALLSTACK = 2,
+        VARIABLES = 3
+    };
+
+    // One entry in the call stack ListView.
+    struct call_stack_frame_t {
+        std::string func_name; // function / sub name
+        std::string source_file; // basename for display
+        std::string source_path; // full path for navigation
+        int source_line = 0; // source file line for navigation
+    };
 
     tab_container_t(HWND hwnd_parent, HINSTANCE hinstance);
     ~tab_container_t();
@@ -47,10 +61,16 @@ public:
     /* Access child controls */
     txtinfobox_t* get_infobox() { return _infobox; }
 
-    /* Call Stack tab — frames as (func_name, call_site_line) pairs */
-    void update_call_stack(
-        const std::vector<std::pair<std::string, int>>& frames);
+    /* Call Stack tab */
+    void update_call_stack(const std::vector<call_stack_frame_t>& frames);
     void clear_call_stack();
+    HWND get_callstack_hwnd() const { return _hwnd_callstack; }
+    // Returns true and fills path/line if a row is currently selected.
+    bool get_callstack_selected_location(std::string& path, int& line) const;
+
+    /* Variables tab */
+    void update_variables(const std::wstring& text);
+    void clear_variables();
 
     /* WM_NOTIFY forwarding */
     void on_notify(LPNMHDR pnmhdr);
@@ -79,8 +99,12 @@ private:
     txtinfobox_t* _infobox;
 
     HWND _hwnd_console; // owned by nu_winconsole_api
-    HWND _hwnd_callstack = nullptr; // Read-only text control for Call Stack tab
+    HWND _hwnd_callstack = nullptr; // ListView for Call Stack tab
+    HWND _hwnd_variables = nullptr; // Read-only EDIT for Variables tab
     bool _console_detached = false;
+
+    // Parallel array to the ListView rows; row i maps to _callstack_frames[i].
+    std::vector<call_stack_frame_t> _callstack_frames;
 
     tab_id_t _current_tab;
 };

@@ -36,9 +36,21 @@ type SourceLineMaps = {
     basicToEditor: Map<number, number>;
 };
 
+type StoppedLocation = {
+    basicLine: number;
+    sourcePath?: string;
+    sourceLine?: number;
+};
+
 type BreakpointInfo = {
     id: number;
     line: number;
+};
+
+type NbpProject = {
+    name: string;
+    entry: string;
+    syntax: string;
 };
 
 export function activate(context: vscode.ExtensionContext) {
@@ -84,7 +96,24 @@ async function resolveExecutable(override?: string): Promise<string> {
 async function resolveDebugExecutable(override?: string): Promise<string> {
     const exe = await resolveExecutable(override);
     const debugExe = preferDebugExecutable(exe);
-    return debugExe ?? exe;
+    if (!debugExe) {
+        return exe;
+    }
+
+    // For bare names (no path), verify the debug variant exists in PATH before using it.
+    if (!debugExe.includes('\\') && !debugExe.includes('/')) {
+        const found = await existsInPath(debugExe);
+        return found ? debugExe : exe;
+    }
+
+    return debugExe;
+}
+
+function existsInPath(name: string): Promise<boolean> {
+    return new Promise(resolve => {
+        const cmd = process.platform === 'win32' ? `where "${name}"` : `which "${name}"`;
+        cp.exec(cmd, err => resolve(!err));
+    });
 }
 
 function preferDebugExecutable(executablePath: string): string | undefined {
@@ -158,51 +187,95 @@ function readRegistryInstallDir(): Promise<string | undefined> {
 
 async function debugFile() {
     const editor = vscode.window.activeTextEditor;
-    if (!await ensureNuBasicDocument(editor, 'debug')) {
+    if (!editor) {
+        vscode.window.showErrorMessage('No active file to debug.');
         return;
     }
 
-    if (editor!.document.isDirty) {
-        await editor!.document.save();
+    if (editor.document.isDirty) {
+        await editor.document.save();
     }
 
-    if (documentUsesGraphics(editor!.document)) {
-        vscode.window.showWarningMessage(
-            'Graphics programs are not debuggable in VS Code yet. Use Run for now.'
-        );
+    let program: string;
+    let cwd: string | undefined;
+
+    if (editor.document.languageId === 'nubasicproject') {
+        const entryPath = resolveProjectEntry(editor.document.fileName);
+        if (!entryPath) {
+            vscode.window.showErrorMessage('Could not resolve project entry from .nbp file.');
+            return;
+        }
+        program = entryPath;
+        cwd = path.dirname(editor.document.fileName);
+    } else if (editor.document.languageId === 'nubasic') {
+        if (documentUsesGraphics(editor.document)) {
+            vscode.window.showWarningMessage(
+                'Graphics programs are not debuggable in VS Code yet. Use Run for now.'
+            );
+            return;
+        }
+        program = editor.document.fileName;
+    } else {
+        vscode.window.showErrorMessage('Active file is not a nuBASIC file.');
         return;
     }
 
-    const folder = vscode.workspace.getWorkspaceFolder(editor!.document.uri);
+    const folder = vscode.workspace.getWorkspaceFolder(editor.document.uri);
     const config: vscode.DebugConfiguration = {
         type: 'nubasic',
         request: 'launch',
-        name: 'Debug nuBASIC File',
-        program: editor!.document.fileName,
+        name: 'Debug nuBASIC',
+        program,
         stopOnEntry: true,
     };
+    if (cwd) {
+        config.cwd = cwd;
+    }
 
     await vscode.debug.startDebugging(folder, config);
 }
 
 async function runFile() {
     const editor = vscode.window.activeTextEditor;
-    if (!await ensureNuBasicDocument(editor, 'run')) {
+    if (!editor) {
+        vscode.window.showErrorMessage('No active file to run.');
         return;
     }
 
-    if (editor!.document.isDirty) {
-        await editor!.document.save();
+    if (editor.document.isDirty) {
+        await editor.document.save();
+    }
+
+    let filePath: string;
+    let projectDir: string | undefined;
+
+    if (editor.document.languageId === 'nubasicproject') {
+        const entryPath = resolveProjectEntry(editor.document.fileName);
+        if (!entryPath) {
+            vscode.window.showErrorMessage('Could not resolve project entry from .nbp file.');
+            return;
+        }
+        filePath = entryPath;
+        projectDir = path.dirname(editor.document.fileName);
+    } else if (editor.document.languageId === 'nubasic') {
+        filePath = editor.document.fileName;
+    } else {
+        vscode.window.showErrorMessage('Active file is not a nuBASIC file.');
+        return;
     }
 
     const exe = await resolveExecutable();
-    const filePath = editor!.document.fileName.replace(/\\/g, '/');
+    const filePathFwd = filePath.replace(/\\/g, '/');
 
-    getOrCreateTerminal();
+    if (projectDir && (!terminal || terminal.exitStatus !== undefined)) {
+        terminal = vscode.window.createTerminal({ name: 'nuBASIC', cwd: projectDir });
+    } else {
+        getOrCreateTerminal();
+    }
     terminal!.show(true);
     const cmd = process.platform === 'win32'
-        ? `& "${exe}" -e "${filePath}"`
-        : `"${exe}" -e "${filePath}"`;
+        ? `& "${exe}" -e "${filePathFwd}"`
+        : `"${exe}" -e "${filePathFwd}"`;
     terminal!.sendText(cmd);
 }
 
@@ -300,6 +373,46 @@ function stripBasicComment(line: string): string {
     return line;
 }
 
+function parseNbpFile(nbpPath: string): NbpProject | undefined {
+    try {
+        const text = fs.readFileSync(nbpPath, 'utf8');
+        const lines = text.split(/\r?\n/);
+        let inProject = false;
+        let name = '';
+        let entry = '';
+        let syntax = '';
+
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('[')) {
+                inProject = trimmed.toLowerCase() === '[project]';
+                continue;
+            }
+            if (!inProject || !trimmed || trimmed.startsWith(';') || trimmed.startsWith('#')) {
+                continue;
+            }
+            const eq = trimmed.indexOf('=');
+            if (eq < 0) { continue; }
+            const key = trimmed.slice(0, eq).trim().toLowerCase();
+            const value = trimmed.slice(eq + 1).trim();
+            if (key === 'name') { name = value; }
+            else if (key === 'entry') { entry = value; }
+            else if (key === 'syntax') { syntax = value; }
+        }
+
+        if (!entry) { return undefined; }
+        return { name, entry, syntax };
+    } catch {
+        return undefined;
+    }
+}
+
+function resolveProjectEntry(nbpPath: string): string | undefined {
+    const project = parseNbpFile(nbpPath);
+    if (!project) { return undefined; }
+    return path.resolve(path.dirname(nbpPath), project.entry);
+}
+
 function buildSourceLineMaps(programPath: string): SourceLineMaps {
     const editorToBasic = new Map<number, number>();
     const basicToEditor = new Map<number, number>();
@@ -341,6 +454,23 @@ class NuBasicDebugConfigurationProvider implements vscode.DebugConfigurationProv
             const editor = vscode.window.activeTextEditor;
             if (editor?.document.languageId === 'nubasic') {
                 config.program = editor.document.fileName;
+            } else if (editor?.document.languageId === 'nubasicproject') {
+                const entry = resolveProjectEntry(editor.document.fileName);
+                if (entry) {
+                    if (!config.cwd) { config.cwd = path.dirname(editor.document.fileName); }
+                    config.program = entry;
+                }
+            }
+        }
+
+        // Resolve .nbp project file to its entry .bas
+        if (typeof config.program === 'string' &&
+            !config.program.includes('${') &&
+            config.program.toLowerCase().endsWith('.nbp')) {
+            const entry = resolveProjectEntry(config.program);
+            if (entry) {
+                if (!config.cwd) { config.cwd = path.dirname(config.program); }
+                config.program = entry;
             }
         }
 
@@ -376,6 +506,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
     private breakpointInfos = new Map<string, BreakpointInfo[]>();
     private launchArgs: LaunchArguments | undefined;
     private currentLine = 0;
+    private currentSourcePath = '';
     private programPath = '';
     private sourceLineMaps: SourceLineMaps = {
         editorToBasic: new Map<number, number>(),
@@ -411,6 +542,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             case 'launch':
                 this.launchArgs = request.arguments as LaunchArguments;
                 this.programPath = this.launchArgs.program;
+                this.currentSourcePath = this.programPath;
                 this.sourceLineMaps = buildSourceLineMaps(this.programPath);
                 this.respond(request);
                 break;
@@ -555,12 +687,13 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
                 this.shutdown();
                 return;
             }
-            const stoppedLine = this.parseStoppedLine(output)
+            const stoppedLocation = this.parseStoppedLocation(output);
+            const stoppedLine = stoppedLocation.basicLine
                 || (this.launchArgs.stopOnEntry
                     ? await this.refreshCurrentLine(true)
                     : await this.refreshCurrentLine(true, true));
             if (stoppedLine > 0) {
-                this.currentLine = this.basicLineToEditorLine(stoppedLine);
+                this.applyStoppedLocation(stoppedLine, stoppedLocation);
                 const stopReason = this.parseStoppedReason(output)
                     || (this.launchArgs.stopOnEntry ? 'entry' : 'breakpoint');
                 this.isStopped = true;
@@ -621,12 +754,13 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
                 return;
             }
 
-            const stoppedLine = this.parseStoppedLine(output)
+            const stoppedLocation = this.parseStoppedLocation(output);
+            const stoppedLine = stoppedLocation.basicLine
                 || (step
                     ? await this.refreshCurrentLine(true)
                     : await this.refreshCurrentLine(true, true));
             if (stoppedLine > 0) {
-                this.currentLine = this.basicLineToEditorLine(stoppedLine);
+                this.applyStoppedLocation(stoppedLine, stoppedLocation);
                 const stopReason = this.parseStoppedReason(output)
                     || (step ? 'step' : 'breakpoint');
                 this.isStopped = true;
@@ -815,6 +949,54 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         return 0;
     }
 
+    private applyStoppedLocation(basicLine: number, location: StoppedLocation) {
+        if (location.sourcePath) {
+            this.currentSourcePath = location.sourcePath;
+            this.currentLine = location.sourceLine && location.sourceLine > 0
+                ? location.sourceLine
+                : basicLine;
+            return;
+        }
+
+        this.currentSourcePath = this.programPath;
+        this.currentLine = this.basicLineToEditorLine(basicLine);
+    }
+
+    private parseMachineField(output: string, field: string): string | undefined {
+        const escaped = field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const match = output.match(new RegExp(`\\s${escaped}="((?:\\\\.|[^"])*)"`, 'i'));
+        return match ? this.unescapeMachineValue(match[1]) : undefined;
+    }
+
+    private unescapeMachineValue(value: string): string {
+        return value.replace(/\\([\\"rn])/g, (_match, ch: string) => {
+            switch (ch) {
+                case '\\':
+                    return '\\';
+                case '"':
+                    return '"';
+                case 'r':
+                    return '\r';
+                case 'n':
+                    return '\n';
+                default:
+                    return ch;
+            }
+        });
+    }
+
+    private parseStoppedLocation(output: string): StoppedLocation {
+        const basicLine = this.parseStoppedLine(output);
+        const source = this.parseMachineField(output, 'source');
+        const sourceLine = Number(this.parseMachineField(output, 'sourceLine') ?? '0');
+
+        return {
+            basicLine,
+            sourcePath: source,
+            sourceLine: Number.isFinite(sourceLine) ? sourceLine : undefined,
+        };
+    }
+
     private parseStoppedLine(output: string): number {
         const machineMatch = output.match(/@@nubasic event="stopped"(?:[^\n\r]*\sline="(\d+)")/i);
         if (machineMatch) {
@@ -879,13 +1061,14 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
 
     private stackTraceBody() {
         const line = this.currentLine > 0 ? this.currentLine : 1;
+        const sourcePath = this.currentSourcePath || this.programPath;
         return {
             stackFrames: [{
                 id: 1,
                 name: 'nuBASIC program',
                 source: {
-                    name: path.basename(this.programPath),
-                    path: this.programPath,
+                    name: path.basename(sourcePath),
+                    path: sourcePath,
                 },
                 line,
                 column: 1,

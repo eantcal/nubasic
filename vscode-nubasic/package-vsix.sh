@@ -18,13 +18,14 @@ STAGE="$(mktemp -d "${TMPDIR:-/tmp}/.vsix-stage-XXXXXX")"
 trap 'rm -rf "$STAGE"' EXIT
 
 EXT_DIR="${STAGE}/extension"
-mkdir -p "${EXT_DIR}/out" "${EXT_DIR}/syntaxes"
+mkdir -p "${EXT_DIR}/out" "${EXT_DIR}/syntaxes" "${EXT_DIR}/images"
 
 cp "${ROOT}/language-configuration.json"          "${EXT_DIR}/"
 cp "${ROOT}/LICENSE"                               "${EXT_DIR}/LICENSE.txt"
 cp "${ROOT}/package.json"                          "${EXT_DIR}/"
 cp "${ROOT}/out/extension.js"                      "${EXT_DIR}/out/"
 cp "${ROOT}/syntaxes/nubasic.tmLanguage.json"      "${EXT_DIR}/syntaxes/"
+cp "${ROOT}/images/icon.png"                       "${EXT_DIR}/images/"
 
 cat > "${STAGE}/extension.vsixmanifest" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
@@ -53,6 +54,7 @@ cat > "${STAGE}/extension.vsixmanifest" <<EOF
       <Property Id="Microsoft.VisualStudio.Services.Content.Pricing" Value="Free" />
     </Properties>
     <License>extension/LICENSE.txt</License>
+    <Icon>extension/images/icon.png</Icon>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Code" />
@@ -61,6 +63,7 @@ cat > "${STAGE}/extension.vsixmanifest" <<EOF
   <Assets>
     <Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true" />
     <Asset Type="Microsoft.VisualStudio.Services.Content.License" Path="extension/LICENSE.txt" Addressable="true" />
+    <Asset Type="Microsoft.VisualStudio.Services.Icons.Default" Path="extension/images/icon.png" Addressable="true" />
   </Assets>
 </PackageManifest>
 EOF
@@ -71,6 +74,7 @@ cat > "${STAGE}/[Content_Types].xml" <<EOF
   <Default Extension=".js" ContentType="application/javascript" />
   <Default Extension=".json" ContentType="application/json" />
   <Default Extension=".txt" ContentType="text/plain" />
+  <Default Extension=".png" ContentType="image/png" />
   <Default Extension=".vsixmanifest" ContentType="text/xml" />
 </Types>
 EOF
