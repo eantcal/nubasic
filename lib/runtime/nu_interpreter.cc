@@ -50,6 +50,13 @@ namespace {
         return s;
     }
 
+    static std::string trim_trailing_path_separators(std::string s)
+    {
+        while (s.size() > 1 && (s.back() == '/' || s.back() == '\\'))
+            s.pop_back();
+        return s;
+    }
+
     static bool can_open_program_file(const fs::path& path)
     {
         FILE* f = fopen(path.string().c_str(), "r");
@@ -1018,7 +1025,10 @@ interpreter_t::exec_res_t interpreter_t::break_if(
 
 interpreter_t::exec_res_t interpreter_t::set_step_mode(bool on)
 {
-    get_rt_ctx().step_mode_active = on;
+    auto& ctx = get_rt_ctx();
+    ctx.step_mode_active = on;
+    const bool resumable_pause = ctx.last_break_line > 0 || is_stop_stmt_line();
+    ctx.step_break_on_entry_pending = on && !resumable_pause;
     return exec_res_t::CMD_EXEC;
 }
 
@@ -1034,6 +1044,8 @@ void interpreter_t::set_debug_mode(bool on) noexcept
         ctx.debug_function_checkpoints.clear();
         ctx.debug_pending_returns.clear();
         ctx.last_break_line = 0;
+        ctx.step_break_on_entry_pending = false;
+        ctx.last_stop_was_step = false;
     }
 }
 
@@ -1147,12 +1159,16 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                 arg += token.identifier();
             }
 
-            // "cd examples" -> install root (parent of the examples folder) so
-            //   load examples\foo.bas / load examples/foo.bas works as
-            //   documented.
-            if (to_lower_ascii(arg) == "examples") {
-                const std::string root = examples_install_root();
-                if (!root.empty() && _os_change_dir(root))
+            const auto normalized_arg
+                = to_lower_ascii(trim_trailing_path_separators(arg));
+
+            // Treat "cd examples" like a normal shell command and enter the
+            // examples directory itself. The historical install-root special
+            // case was surprising because "dir" right after "cd examples"
+            // still listed the parent directory.
+            if (normalized_arg == "examples") {
+                const std::string examples_dir = examples_directory();
+                if (!examples_dir.empty() && _os_change_dir(examples_dir))
                     return exec_res_t::CMD_EXEC;
             }
 
@@ -1377,31 +1393,79 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         auto check_break_and_stop = [&]() {
             if (get_rt_ctx().flag[rt_prog_ctx_t::FLG_STOP_REQUEST]) {
                 get_rt_ctx().flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, false);
+                get_rt_ctx().last_stop_was_step = false;
                 return exec_res_t::STOP_REQ;
             }
 
-            if (is_stop_stmt_line())
+            if (is_stop_stmt_line()) {
+                get_rt_ctx().last_stop_was_step = false;
                 return exec_res_t::STOP_REQ;
+            }
 
-            if (is_breakpoint_active())
+            if (is_breakpoint_active()) {
+                get_rt_ctx().last_stop_was_step = false;
                 return exec_res_t::BREAKPOINT;
+            }
 
-            if (get_rt_ctx().step_mode_active && get_cur_line_n() > 0)
+            if (get_rt_ctx().step_mode_active && get_cur_line_n() > 0) {
+                get_rt_ctx().last_stop_was_step = true;
                 return exec_res_t::STOP_REQ;
+            }
 
+            get_rt_ctx().last_stop_was_step = false;
             return exec_res_t::CMD_EXEC;
         };
 
-        if (cmd == "cont") {
-            auto continue_from_current_pc = [&]() {
-                const auto line = get_rt_ctx().runtime_pc.get_line();
-                const auto stmt_id = get_rt_ctx().runtime_pc.get_stmt_pos();
+        auto continue_from_current_pc = [&]() {
+            const auto line = get_rt_ctx().runtime_pc.get_line();
+            const auto stmt_id = get_rt_ctx().runtime_pc.get_stmt_pos();
 
-                if (line == 0 || continue_afterbrk(line)) {
-                    if (!cont(line, stmt_id))
-                        rebuild();
+            if (line == 0 || continue_afterbrk(line)) {
+                if (!cont(line, stmt_id))
+                    rebuild();
+            }
+        };
+
+        if (cmd == "step") {
+            const auto prev_step_mode = get_rt_ctx().step_mode_active;
+            const auto prev_entry_step
+                = get_rt_ctx().step_break_on_entry_pending;
+
+            set_step_mode(true);
+
+            struct step_state_guard_t {
+                rt_prog_ctx_t& ctx;
+                bool prev_step_mode = false;
+                bool prev_entry_step = false;
+
+                ~step_state_guard_t()
+                {
+                    ctx.step_mode_active = prev_step_mode;
+                    ctx.step_break_on_entry_pending = prev_entry_step;
                 }
-            };
+            } guard{ get_rt_ctx(), prev_step_mode, prev_entry_step };
+
+            const bool resumable_pause
+                = get_rt_ctx().last_break_line > 0 || is_stop_stmt_line();
+
+            if (!resumable_pause) {
+                rebuild();
+                get_rt_ctx().step_break_on_entry_pending = true;
+                run(0);
+            } else {
+                continue_from_current_pc();
+
+                while (!get_rt_ctx().flag[rt_prog_ctx_t::FLG_END_REQUEST]
+                    && !get_rt_ctx().debug_pending_returns.empty()
+                    && !is_breakpoint_active() && !is_stop_stmt_line()) {
+                    continue_from_current_pc();
+                }
+            }
+
+            return check_break_and_stop();
+        }
+
+        if (cmd == "cont") {
 
             continue_from_current_pc();
 
@@ -1817,11 +1881,27 @@ bool interpreter_t::set_global_var(
 
 prog_pointer_t::line_number_t interpreter_t::get_cur_line_n() const noexcept
 {
+    auto next_runnable_line_or_self = [&](prog_pointer_t::line_number_t line) {
+        if (line < 1)
+            return line;
+
+        if (has_runnable_stmt(line))
+            return line;
+
+        for (auto it = _prog_line.upper_bound(line); it != _prog_line.end();
+            ++it) {
+            if (it->second.first->get_cl() != stmt_t::stmt_cl_t::EMPTY)
+                return it->first;
+        }
+
+        return line;
+    };
+
     // When a breakpoint fired inside an expression-called function the
     // checkpoint mechanism restores runtime_pc to the call site; use the
     // recorded break line instead so the IDE highlights the right source line.
     if (_prog_ctx.last_break_line > 0)
-        return _prog_ctx.last_break_line;
+        return next_runnable_line_or_self(_prog_ctx.last_break_line);
 
     auto line = _prog_ctx.runtime_pc.get_line();
 
@@ -1829,7 +1909,7 @@ prog_pointer_t::line_number_t interpreter_t::get_cur_line_n() const noexcept
         line = _prog_ctx.compiletime_pc.get_line();
     }
 
-    return line;
+    return next_runnable_line_or_self(line);
 }
 
 

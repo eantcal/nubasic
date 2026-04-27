@@ -184,26 +184,51 @@ try {
         throw "LOAD did not complete successfully."
     }
 
+    $stepLoadOutput = Send-Command -Command 'load "test_debugger_step_entry.bas"' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "LOAD completion for entry-step contract"
+    if ($stepLoadOutput -notmatch '@@nubasic event="ok"') {
+        throw "Entry-step LOAD did not complete successfully."
+    }
+
+    $null = Send-Command -Command 'clrbrk' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "ClrBrk completion before entry-step contract"
+
+    $entryStepOutput = Send-Command -Command 'step' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "entry-step stop on first executable line"
+    if ($entryStepOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="2"') {
+        throw "Entry-step did not stop on line 2 before executing the first statement.`nOutput:`n$entryStepOutput"
+    }
+
+    $loadOutput = Send-Command -Command 'load "test_debugger_contract.bas"' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "LOAD completion after entry-step contract"
+    if ($loadOutput -notmatch '@@nubasic event="ok"') {
+        throw "LOAD did not complete successfully after entry-step contract."
+    }
+
     $null = Send-Command -Command 'clrbrk' `
         -CompletionPattern '@@nubasic event="ok"' `
         -Description "ClrBrk completion"
 
-    $null = Send-Command -Command 'break 20' `
+    $null = Send-Command -Command 'break 3' `
         -CompletionPattern '@@nubasic event="ok"' `
         -Description "breakpoint creation"
 
     $runOutput = Send-Command -Command 'run' `
         -CompletionPattern '@@nubasic event="stopped"' `
         -Description "RUN breakpoint stop"
-    if ($runOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="breakpoint"[^\r\n]*line="20"') {
-        throw "RUN did not stop on breakpoint line 20.`nOutput:`n$runOutput"
+    if ($runOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="breakpoint"[^\r\n]*line="3"') {
+        throw "RUN did not stop on breakpoint line 3.`nOutput:`n$runOutput"
     }
 
     $varsOutput = Send-Command -Command 'vars' `
         -CompletionPattern '@@nubasic event="ok"' `
         -Description "VARS completion after breakpoint"
-    if ($varsOutput -notmatch 'Current line\s*:\s*20' -and $varsOutput -notmatch '^\s*20\s+Print "beta"' ) {
-        throw "Debugger state did not identify line 20 after breakpoint.`nOutput:`n$varsOutput"
+    if ($varsOutput -notmatch 'Current line\s*:\s*3' -and $varsOutput -notmatch '^\s*3\s+Print "beta"' ) {
+        throw "Debugger state did not identify line 3 after breakpoint.`nOutput:`n$varsOutput"
     }
 
     $null = Send-Command -Command 'ston' `
@@ -213,8 +238,8 @@ try {
     $contOutput = Send-Command -Command 'cont' `
         -CompletionPattern '@@nubasic event="stopped"' `
         -Description "single-step stop"
-    if ($contOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="30"') {
-        throw "Single-step did not stop on line 30.`nOutput:`n$contOutput"
+    if ($contOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="4"') {
+        throw "Single-step did not stop on line 4.`nOutput:`n$contOutput"
     }
 
     $null = Send-Command -Command 'stoff' `

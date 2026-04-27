@@ -246,7 +246,7 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
         const auto stmt_class = prog_ptr->second.first->get_cl();
         auto& dbg = prog_ptr->second.second;
         const bool debug_checks_active = _ctx.debug_mode
-            || _ctx.step_mode_active
+            || _ctx.step_mode_active || _ctx.step_break_on_entry_pending
             || _ctx.flag[rt_prog_ctx_t::FLG_STOP_REQUEST] || dbg.break_point
             || dbg.single_step_break_point || dbg.continue_after_break;
 
@@ -264,6 +264,15 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
             }
 
             const bool breakpoints_active = !_function_call || _ctx.debug_mode;
+
+            if (_ctx.step_break_on_entry_pending && breakpoints_active
+                && !global_proc_boundary
+                && stmt_class != stmt_t::stmt_cl_t::EMPTY) {
+                _ctx.step_break_on_entry_pending = false;
+                _ctx.last_break_line = prog_ptr->first;
+                _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
+                break;
+            }
 
             if (dbg.single_step_break_point && breakpoints_active) {
                 dbg.single_step_break_point = false;

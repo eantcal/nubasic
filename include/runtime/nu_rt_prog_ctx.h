@@ -51,6 +51,8 @@ public:
 
     flag_map_t flag;
     bool step_mode_active = false;
+    bool step_break_on_entry_pending = false;
+    bool last_stop_was_step = false;
 
     // Hash API
     using map_t = std::unordered_map<std::string, nu::variant_t>;

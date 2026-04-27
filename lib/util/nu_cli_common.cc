@@ -357,7 +357,7 @@ nu::interpreter_t::exec_res_t exec_command(nu::interpreter_t& basic,
                 + ".\nType 'cont' to continue\n");
             if (options.machine_interface) {
                 const auto stop_reason
-                    = basic.get_rt_ctx().step_mode_active ? "step" : "stop";
+                    = basic.get_rt_ctx().last_stop_was_step ? "step" : "stop";
                 output(machine_event("stopped",
                     { { "reason", stop_reason },
                         { "line", std::to_string(basic.get_cur_line_n()) } }));

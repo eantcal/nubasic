@@ -1962,9 +1962,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
         case dbg_flg_t::SINGLE_STEP_EXECUTION:
             exec_interpreter_cmd("sleep 1");
             exec_interpreter_cmd("settopmost");
-            exec_interpreter_cmd("ston");
-            exec_interpreter_cmd("cont");
-            exec_interpreter_cmd("stoff");
+            exec_interpreter_cmd("step");
             break;
         }
 

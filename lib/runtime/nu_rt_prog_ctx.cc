@@ -35,6 +35,8 @@ rt_prog_ctx_t::rt_prog_ctx_t(
     flag.define(FLG_SKIP_TILL_NEXT);
     flag.define(FLG_STOP_REQUEST);
     step_mode_active = false;
+    step_break_on_entry_pending = false;
+    last_stop_was_step = false;
 }
 
 
@@ -100,6 +102,8 @@ void rt_prog_ctx_t::clear_rtdata()
     debug_function_checkpoints.clear();
     debug_pending_returns.clear();
     last_break_line = 0;
+    step_break_on_entry_pending = false;
+    last_stop_was_step = false;
 
     // Reset program counter
     runtime_pc.reset();
@@ -183,14 +187,37 @@ bool rt_prog_ctx_t::consume_debug_pending_return(
 void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
 {
     const prog_pointer_t::line_number_t gotoline = goingto_pc.get_line();
+    auto display_line = runtime_pc.get_line();
 
-    const auto li = _source_line.find(runtime_pc.get_line());
+    const auto is_blank_source_line = [](const std::string& text) {
+        for (const auto ch : text) {
+            if (!std::isspace(static_cast<unsigned char>(ch))) {
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    auto li = _source_line.find(display_line);
+    if (li != _source_line.end() && is_blank_source_line(li->second)) {
+        auto next = std::next(li);
+        while (
+            next != _source_line.end() && is_blank_source_line(next->second)) {
+            ++next;
+        }
+
+        if (next != _source_line.end()) {
+            display_line = next->first;
+            li = next;
+        }
+    }
 
     if (li != _source_line.end()) {
-        ss << std::setw(5) << runtime_pc.get_line() << " ";
+        ss << std::setw(5) << display_line << " ";
         ss << " " << li->second << std::endl;
     } else {
-        ss << "Current line : " << runtime_pc.get_line() << std::endl;
+        ss << "Current line : " << display_line << std::endl;
     }
 
     ss << "Go-To line : "

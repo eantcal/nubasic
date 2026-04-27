@@ -460,7 +460,7 @@ namespace {
 
     static bool is_debug_execution_command(const std::string& cmd) noexcept
     {
-        return cmd == "run" || cmd == "cont" || cmd == "resume"
+        return cmd == "run" || cmd == "cont" || cmd == "resume" || cmd == "step"
             || cmd.rfind("run ", 0) == 0;
     }
 
@@ -2741,9 +2741,7 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
         exec_interpreter_cmd("cont", true);
         break;
     case dbg_flg_t::SINGLE_STEP_EXECUTION:
-        exec_interpreter_cmd("ston", false);
-        exec_interpreter_cmd("cont", false);
-        exec_interpreter_cmd("stoff", false);
+        exec_interpreter_cmd("step", true);
         if (_last_debug_stop == debug_stop_t::COMPLETED
             && interpreter().get_cur_line_n() != line_before) {
             _last_debug_stop = debug_stop_t::PAUSED;
@@ -4270,8 +4268,8 @@ void nu::editor_t::exec_command(int id)
             if (!nubasic_exe.empty()) {
                 const std::filesystem::path src(_full_path_str);
                 const std::string work_dir = src.parent_path().string();
-                if (exec_process(
-                        nubasic_exe, { "-t", "-e", _full_path_str }, work_dir)) {
+                if (exec_process(nubasic_exe, { "-t", "-e", _full_path_str },
+                        work_dir)) {
                     break;
                 }
 

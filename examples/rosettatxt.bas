@@ -26,9 +26,9 @@ For x0 = -2 TO 2 Step 0.013
 
       If iteration <> maxIteration Then c = iteration Else c = 0
       wx% = 30
-wy% = 15
-dx% = 80
-dy% = 25
+      wy% = 15
+      dx% = 80
+      dy% = 25
 
       Locate int(y0 * wy% + dy%), int(x0 * wx% + dx%)
       Write chr(c+33)

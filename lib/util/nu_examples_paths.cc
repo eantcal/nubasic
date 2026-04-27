@@ -280,11 +280,9 @@ std::string examples_help_text()
     std::ostringstream os;
     os << "nuBASIC example programs\n"
           "------------------------\n"
-          "Working directory: use  cd examples  to set the current directory "
-          "to the "
-          "installation root (parent of the examples folder), so you can run:\n"
-          "  load examples\\<file.bas>   (Windows)   or   load "
-          "examples/<file.bas>\n"
+          "Working directory: use  cd examples  to enter the examples "
+          "folder, then run:\n"
+          "  load <file.bas>\n"
           "  run\n"
           "You can also  load <name.bas>  or  load <name>  if the file is in "
           "the examples folder.\n\n";
