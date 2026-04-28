@@ -30,7 +30,8 @@ namespace nu {
 static int _fprintf_console(FILE* stream, const char* format, ...)
 {
 #ifdef _WIN32
-    if (stream == stdout && nu_winconsole_is_active()) {
+    if (stream == stdout && nu_winconsole_is_active()
+        && !nu::_os_get_hybrid_stdio()) {
         char buffer[4096];
         va_list args;
         va_start(args, format);
@@ -57,7 +58,8 @@ static int _fprintf_console(FILE* stream, const char* format, ...)
 static void _fflush_console(FILE* stream)
 {
 #ifdef _WIN32
-    if (stream == stdout && nu_winconsole_is_active()) {
+    if (stream == stdout && nu_winconsole_is_active()
+        && !nu::_os_get_hybrid_stdio()) {
         nu_winconsole_refresh();
         return;
     }

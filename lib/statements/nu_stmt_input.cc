@@ -30,7 +30,8 @@ void stmt_input_t::run(rt_prog_ctx_t& ctx)
     FILE* sout = ctx.get_stdout_ptr();
 
 #ifdef _WIN32
-    if (sout == stdout && nu_winconsole_is_active()) {
+    if (sout == stdout && nu_winconsole_is_active()
+        && !nu::_os_get_hybrid_stdio()) {
         nu_winconsole_write(_input_str.c_str());
     } else
 #endif

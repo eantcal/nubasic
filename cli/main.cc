@@ -18,8 +18,11 @@
 
 #include <stdlib.h>
 #include <string>
+#include <vector>
 
 #ifdef _WIN32
+#include "nu_os_gdi.h"
+#include "nu_winconsole_api.h"
 #include <windows.h>
 #endif
 
@@ -66,6 +69,28 @@ static bool has_text_mode_arg(int argc, char* argv[])
     }
 
     return false;
+}
+
+static bool has_graphics_window_arg(int argc, char* argv[])
+{
+    for (int i = 1; i < argc; ++i) {
+        if (std::string(argv[i]) == "--graphics-window")
+            return true;
+    }
+
+    return false;
+}
+
+static bool init_hybrid_graphics_window()
+{
+    if (!nu_winconsole_init(GetModuleHandleA(nullptr), SW_SHOW))
+        return false;
+
+    nu::_os_set_hybrid_stdio(1);
+    nu::_os_set_screen_mode(1);
+    nu::set_gdi_target_window((HWND)nu_winconsole_get_hwnd());
+    nu_winconsole_set_exit_on_close(0);
+    return true;
 }
 
 static bool launch_gdi_cli(int argc, char* argv[])
@@ -135,6 +160,15 @@ static int nuBASIC_console(int argc, char* argv[])
     }
 
     nu::interpreter_t nuBASIC;
+    nuBASIC.set_yield_cbk([](void*) {
+#ifdef _WIN32
+        if (nu_winconsole_is_active()) {
+            nu_winconsole_process_messages();
+            return;
+        }
+#endif
+    });
+
     const auto bootstrap = nu::cli::build_session_bootstrap(argc, argv);
     bool first_command = false;
 
@@ -246,19 +280,32 @@ int main(int argc, char* argv[])
 #ifdef _WIN32
     const std::string exec_file = nu::cli::find_exec_file_arg(argc, argv);
     const bool force_text_mode = has_text_mode_arg(argc, argv);
+    const bool graphics_window = has_graphics_window_arg(argc, argv);
     // Keep CLI/test/CI behavior deterministic: when -t is present we must stay
     // on the text executable and never auto-route into the GDI frontend.
-    if (!force_text_mode && !exec_file.empty()
+    if (!force_text_mode && !graphics_window && !exec_file.empty()
         && nu::cli::source_file_uses_graphics(exec_file)
         && launch_gdi_cli(argc, argv)) {
         return 0;
     }
 
-    nu::_os_set_screen_mode(0);
+    if (graphics_window) {
+        if (!init_hybrid_graphics_window()) {
+            fprintf(stderr, "Failed to initialize GDI graphics window\n");
+            return 1;
+        }
+    } else {
+        nu::_os_set_screen_mode(0);
+    }
     setvbuf(stdout, nullptr, _IONBF, 0);
     setvbuf(stderr, nullptr, _IONBF, 0);
 #endif
     nu::reserved_keywords_t::list();
     nu::create_terminal_frame(argc, argv);
-    return nuBASIC_console(argc, argv);
+    const int errLevel = nuBASIC_console(argc, argv);
+#ifdef _WIN32
+    if (nu_winconsole_is_active())
+        nu_winconsole_shutdown();
+#endif
+    return errLevel;
 }

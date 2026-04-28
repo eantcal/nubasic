@@ -2,7 +2,7 @@
   "name": "nubasic",
   "displayName": "nuBASIC",
   "description": "nuBASIC language support for Visual Studio Code",
-  "version": "0.1.7",
+  "version": "0.1.13",
   "publisher": "eantcal",
   "license": "MIT",
   "icon": "images/icon.png",
@@ -158,6 +158,11 @@
                 "type": "boolean",
                 "description": "Stop on the first executable statement.",
                 "default": true
+              },
+              "graphicsWindow": {
+                "type": "boolean",
+                "description": "Open a separate GDI window for graphics output while debugger text stays in VS Code.",
+                "default": false
               }
             }
           }

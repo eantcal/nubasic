@@ -31,6 +31,11 @@ static bool is_machine_interface_arg(const std::string& arg)
     return arg == "--machine-interface" || arg == "--ide-machine-interface";
 }
 
+static bool is_graphics_window_arg(const std::string& arg)
+{
+    return arg == "--graphics-window";
+}
+
 static std::string escape_machine_value(const std::string& value)
 {
     std::string escaped;
@@ -233,7 +238,8 @@ runtime_options_t parse_runtime_options(int argc, char* argv[])
     for (int i = 1; i < argc; ++i) {
         if (is_machine_interface_arg(argv[i])) {
             result.machine_interface = true;
-            break;
+        } else if (is_graphics_window_arg(argv[i])) {
+            result.graphics_window = true;
         }
     }
 
@@ -254,6 +260,7 @@ std::string build_usage_text(const char* progname)
         "  -l <file>          Load a nuBASIC source file into the REPL\n"
         "  -t, --text-mode    Run in text/batch mode (no terminal window)\n"
         "  --machine-interface Emit machine-friendly debugger events\n"
+        "  --graphics-window  Open a separate GDI window for graphics output\n"
         "  -nx                Skip spawning a new terminal window\n"
         "  -h [topic]         Show built-in language help (topic is optional)\n"
         "  -?, --help [topic] Same as -h\n"
@@ -332,7 +339,8 @@ session_bootstrap_t build_session_bootstrap(int argc, char* argv[],
 
             if (param != NU_BASIC_XTERM_FRAME_SWITCH
                 && param != NU_BASIC_XTERM_NOFRAME_SWITCH && param != "-t"
-                && param != "--text-mode" && !is_machine_interface_arg(param)) {
+                && param != "--text-mode" && !is_machine_interface_arg(param)
+                && !is_graphics_window_arg(param)) {
                 bool handled = false;
                 if (extra_option_handler) {
                     handled = extra_option_handler(param, i, argc);

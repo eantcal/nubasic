@@ -17,6 +17,12 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
 add_library(nuBasicInterpreter STATIC ${SOURCES})
 target_compile_features(nuBasicInterpreter PRIVATE cxx_std_20)
 
+if(MSVC)
+  set_target_properties(nuBasicInterpreter PROPERTIES
+    VS_GLOBAL_IntDir "$(SolutionDir)$(ProjectName).dir\\$(Platform)\\$(Configuration)\\"
+  )
+endif()
+
 # GDI console is always enabled on Windows full builds (not console-only)
 if (WIN32 AND NOT _nubasic_console)
   target_link_libraries(nuBasicInterpreter PUBLIC nuWinConsole)

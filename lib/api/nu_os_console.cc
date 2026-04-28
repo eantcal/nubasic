@@ -97,9 +97,14 @@ namespace {
 //   0 = text/hybrid — I/O via real Windows console (headless-safe, for tests)
 //   1 = GDI console  — I/O and graphics through the custom GDI window (default)
 static int g_screen_mode = 1;
+static int g_hybrid_stdio = 0;
 
 void _os_set_screen_mode(int mode) { g_screen_mode = mode; }
 int _os_get_screen_mode() { return g_screen_mode; }
+void _os_set_hybrid_stdio(int enabled) { g_hybrid_stdio = enabled ? 1 : 0; }
+int _os_get_hybrid_stdio() { return g_hybrid_stdio; }
+
+static bool use_stdio() { return g_hybrid_stdio || g_screen_mode == 0; }
 
 
 /* -------------------------------------------------------------------------- */
@@ -116,7 +121,7 @@ void _os_init()
 
 void _os_u16write(const std::u16string& output)
 {
-    if (g_screen_mode == 0) {
+    if (use_stdio()) {
         // Text mode: use standard printf so output works on any handle type
         // (real console, ConPTY pipe, redirect to file, etc.).
         const std::string utf8 = nu::u16_to_utf8(output);
@@ -139,7 +144,9 @@ void _os_config_term(bool echo_mode)
 
 void _os_cls()
 {
-    if (g_screen_mode == 0) {
+    if (g_hybrid_stdio && g_screen_mode != 0 && nu_winconsole_is_active()) {
+        nu_winconsole_cls();
+    } else if (use_stdio()) {
         HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
         CONSOLE_SCREEN_BUFFER_INFO csbi;
         if (GetConsoleScreenBufferInfo(hOut, &csbi)) {
@@ -161,7 +168,7 @@ void _os_cls()
 
 void _os_locate(int y, int x)
 {
-    if (g_screen_mode == 0) {
+    if (use_stdio()) {
         COORD pos = { static_cast<SHORT>(x - 1), static_cast<SHORT>(y - 1) };
         SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
     } else {
@@ -179,7 +186,7 @@ std::string _os_input_str(int n) { return _os_input_str_interruptible(n).text; }
 
 os_input_result_t _os_input_str_interruptible(int n)
 {
-    if (g_screen_mode == 0) {
+    if (use_stdio()) {
         input_break_listener_t break_listener;
         os_input_result_t result;
         result.text.reserve(n);
@@ -286,7 +293,7 @@ os_input_result_t _os_input_interruptible(FILE* finput_ptr)
 
     input_break_listener_t break_listener;
 
-    if (g_screen_mode == 0) {
+    if (use_stdio()) {
         const HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
         const DWORD file_type = hIn && hIn != INVALID_HANDLE_VALUE
             ? GetFileType(hIn)
@@ -385,22 +392,35 @@ os_input_result_t _os_input_interruptible(FILE* finput_ptr)
         }
     } else {
         os_input_result_t result;
+        const bool overlay_text
+            = nu_winconsole_is_active() && nu_winconsole_is_graphics_mode();
+
+        if (overlay_text)
+            nu_winconsole_set_input_text_overlay(1);
 
         while (!break_listener.interrupted()) {
             while (!nu_winconsole_key_available()) {
-                if (break_listener.interrupted())
+                if (break_listener.interrupted()) {
+                    if (overlay_text)
+                        nu_winconsole_set_input_text_overlay(0);
                     return { result.text, true };
+                }
 
                 nu_winconsole_process_messages();
                 Sleep(10);
             }
 
             const int key = nu_winconsole_get_key();
-            if (key == 0x03)
+            if (key == 0x03) {
+                if (overlay_text)
+                    nu_winconsole_set_input_text_overlay(0);
                 return { result.text, true };
+            }
 
             if (key == '\r' || key == '\n') {
                 nu_winconsole_write("\n");
+                if (overlay_text)
+                    nu_winconsole_set_input_text_overlay(0);
                 return result;
             }
 
@@ -419,6 +439,8 @@ os_input_result_t _os_input_interruptible(FILE* finput_ptr)
             }
         }
 
+        if (overlay_text)
+            nu_winconsole_set_input_text_overlay(0);
         return { result.text, true };
     }
 
@@ -430,7 +452,9 @@ os_input_result_t _os_input_interruptible(FILE* finput_ptr)
 
 int _os_kbhit()
 {
-    if (g_screen_mode == 0)
+    if (g_hybrid_stdio && g_screen_mode != 0 && nu_winconsole_is_active())
+        return nu_winconsole_key_available() ? nu_winconsole_get_key() : 0;
+    if (use_stdio())
         return _kbhit() ? _getch() : 0;
     return nu_winconsole_key_available() ? nu_winconsole_get_key() : 0;
 }
@@ -440,7 +464,7 @@ int _os_kbhit()
 
 void _os_cursor_visible(bool on)
 {
-    if (g_screen_mode == 0) {
+    if (use_stdio()) {
         HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
         CONSOLE_CURSOR_INFO ci = { 25, on ? TRUE : FALSE };
         SetConsoleCursorInfo(hOut, &ci);
@@ -484,7 +508,7 @@ void _os_refresh()
 
 /* -------------------------------------------------------------------------- */
 
-#else /*--------------- LINUX / MAC \                                                                             \
+#else /*--------------- LINUX / MAC \                                          \
          ------------------------------------------*/
 /* -------------------------------------------------------------------------- */
 
@@ -780,8 +804,11 @@ void _os_refresh() {}
 
 // Screen mode is a Windows-only concept; on Linux/macOS always text mode.
 static int g_screen_mode = 0;
+static int g_hybrid_stdio = 0;
 void _os_set_screen_mode(int mode) { g_screen_mode = mode; }
 int _os_get_screen_mode() { return g_screen_mode; }
+void _os_set_hybrid_stdio(int enabled) { g_hybrid_stdio = enabled ? 1 : 0; }
+int _os_get_hybrid_stdio() { return g_hybrid_stdio; }
 
 /* -------------------------------------------------------------------------- */
 

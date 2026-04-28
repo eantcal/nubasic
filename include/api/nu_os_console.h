@@ -43,10 +43,15 @@ void _os_screenunlock();
 void _os_refresh();
 
 // Screen mode:
-//   0 = text/hybrid: I/O via real console, GDI ops are no-ops (headless-safe)
+//   0 = text mode:    I/O via real console, GDI ops are no-ops (headless-safe)
 //   1 = GDI console:  I/O and graphics through the custom GDI window (default)
 void _os_set_screen_mode(int mode);
 int _os_get_screen_mode();
+
+// Hybrid stdio keeps text I/O on stdin/stdout while allowing GDI primitives
+// to draw to a custom graphics window. This is used by editor debuggers.
+void _os_set_hybrid_stdio(int enabled);
+int _os_get_hybrid_stdio();
 
 /* -------------------------------------------------------------------------- */
 } // namespace nu

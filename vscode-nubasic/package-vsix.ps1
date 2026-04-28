@@ -1,8 +1,15 @@
-#Requires -Version 5.0
+param(
+    [string]$BumpPatch = ""
+)
 
 $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+if (($BumpPatch -eq "1") -or ($BumpPatch -eq "true") -or ($BumpPatch -eq "yes") -or ($env:NUBASIC_VSCODE_BUMP_PATCH -eq "1")) {
+    & (Join-Path $root 'bump-version.ps1')
+}
+
 $pkg = Get-Content (Join-Path $root 'package.json') -Raw | ConvertFrom-Json
 $version = $pkg.version
 
@@ -11,6 +18,7 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $stage = Join-Path $root ('.vsix-stage-' + [guid]::NewGuid().ToString('N'))
 $vsixOut = Join-Path $root "nubasic-$version.vsix"
 $zipOut = Join-Path $root "nubasic-$version.zip"
+$latestVsixOut = Join-Path $root "nubasic-latest.vsix"
 
 if (Test-Path $vsixOut) {
     Remove-Item -LiteralPath $vsixOut -Force
@@ -97,7 +105,9 @@ Move-Item -LiteralPath $zipOut -Destination $vsixOut -Force
 if (-not (Test-Path $vsixOut)) {
     throw "VSIX packaging failed: '$vsixOut' was not created."
 }
+Copy-Item -LiteralPath $vsixOut -Destination $latestVsixOut -Force
 Write-Host "Created VSIX: $vsixOut"
+Write-Host "Updated VSIX alias: $latestVsixOut"
 try {
     Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction Stop
 }

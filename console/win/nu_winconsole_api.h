@@ -98,6 +98,10 @@ void nu_winconsole_cancel_input();
 // been drawn and the text overlay is suppressed).
 int nu_winconsole_is_graphics_mode();
 
+// Temporarily show text over graphics. Used by INPUT so prompts remain visible
+// while a graphics frame is on screen.
+void nu_winconsole_set_input_text_overlay(int enabled);
+
 // CLI-only helper: overlays "Press any key to continue..." at the bottom of
 // the current graphics frame so the user can see it and dismiss it.
 // No-op if the console is not in graphics mode or not yet initialised.

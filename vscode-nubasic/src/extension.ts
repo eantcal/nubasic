@@ -5,6 +5,7 @@ import * as fs from 'fs';
 
 let terminal: vscode.Terminal | undefined;
 let debugLog: vscode.OutputChannel | undefined;
+let programOutput: vscode.OutputChannel | undefined;
 const machineInterfaceArg = '--machine-interface';
 
 type DebugProtocolMessage = {
@@ -23,12 +24,14 @@ type LaunchArguments = {
     executablePath?: string;
     cwd?: string;
     stopOnEntry?: boolean;
+    graphicsWindow?: boolean;
 };
 
 type PendingCommand = {
     resolve: (output: string) => void;
     reject: (err: Error) => void;
     output: string;
+    command?: string;
 };
 
 type SourceLineMaps = {
@@ -56,6 +59,7 @@ type NbpProject = {
 export function activate(context: vscode.ExtensionContext) {
     const debugProvider = new NuBasicDebugConfigurationProvider();
     debugLog = vscode.window.createOutputChannel('nuBASIC Debug');
+    programOutput = vscode.window.createOutputChannel('nuBASIC Program');
 
     context.subscriptions.push(
         vscode.commands.registerCommand('nubasic.debug', debugFile),
@@ -67,6 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
             new NuBasicDebugAdapterFactory()
         ),
         debugLog,
+        programOutput,
         vscode.window.onDidCloseTerminal(t => {
             if (t === terminal) terminal = undefined;
         })
@@ -85,12 +90,34 @@ async function resolveExecutable(override?: string): Promise<string> {
         return configured;
     }
 
+    const fromWorkspace = findWorkspaceBuildExecutable();
+    if (fromWorkspace) {
+        return fromWorkspace;
+    }
+
     const fromReg = await readRegistryInstallDir();
     if (fromReg) {
         return path.join(fromReg, 'bin', 'nubasic.exe');
     }
 
     return 'nubasic';
+}
+
+function findWorkspaceBuildExecutable(): string | undefined {
+    if (process.platform !== 'win32') {
+        return undefined;
+    }
+
+    const folders = vscode.workspace.workspaceFolders ?? [];
+    const candidates = folders.flatMap(folder => [
+        path.join(folder.uri.fsPath, 'build', 'cli', 'win', 'nubasic.exe'),
+        path.join(folder.uri.fsPath, 'build', 'release', 'cli', 'win', 'Release', 'nubasic.exe'),
+        path.join(folder.uri.fsPath, 'build', 'release', 'cli', 'win', 'Debug', 'nubasic.exe'),
+        path.join(folder.uri.fsPath, 'build', 'debug', 'cli', 'win', 'Debug', 'nubasic.exe'),
+        path.join(folder.uri.fsPath, 'build', 'debug', 'cli', 'win', 'Release', 'nubasic.exe'),
+    ]);
+
+    return candidates.find(candidate => fileExists(candidate));
 }
 
 async function resolveDebugExecutable(override?: string): Promise<string> {
@@ -208,12 +235,6 @@ async function debugFile() {
         program = entryPath;
         cwd = path.dirname(editor.document.fileName);
     } else if (editor.document.languageId === 'nubasic') {
-        if (documentUsesGraphics(editor.document)) {
-            vscode.window.showWarningMessage(
-                'Graphics programs are not debuggable in VS Code yet. Use Run for now.'
-            );
-            return;
-        }
         program = editor.document.fileName;
     } else {
         vscode.window.showErrorMessage('Active file is not a nuBASIC file.');
@@ -227,6 +248,7 @@ async function debugFile() {
         name: 'Debug nuBASIC',
         program,
         stopOnEntry: true,
+        graphicsWindow: sourceFileUsesGraphics(program),
     };
     if (cwd) {
         config.cwd = cwd;
@@ -318,7 +340,25 @@ function workspaceRoot(): string {
 }
 
 function documentUsesGraphics(document: vscode.TextDocument): boolean {
-    const graphicsKeywords = [
+    return document
+        .getText()
+        .split(/\r?\n/)
+        .some(line => sourceLineUsesAnyKeyword(line, graphicsKeywords()));
+}
+
+function sourceFileUsesGraphics(filePath: string): boolean {
+    try {
+        const text = fs.readFileSync(filePath, 'utf8');
+        return text
+            .split(/\r?\n/)
+            .some(line => sourceLineUsesAnyKeyword(line, graphicsKeywords()));
+    } catch {
+        return false;
+    }
+}
+
+function graphicsKeywords(): string[] {
+    return [
         'ellipse',
         'fillellipse',
         'fillrect',
@@ -334,11 +374,6 @@ function documentUsesGraphics(document: vscode.TextDocument): boolean {
         'setpixel',
         'textout',
     ];
-
-    return document
-        .getText()
-        .split(/\r?\n/)
-        .some(line => sourceLineUsesAnyKeyword(line, graphicsKeywords));
 }
 
 function sourceLineUsesAnyKeyword(line: string, keywords: string[]): boolean {
@@ -478,6 +513,12 @@ class NuBasicDebugConfigurationProvider implements vscode.DebugConfigurationProv
             config.stopOnEntry = true;
         }
 
+        if (typeof config.graphicsWindow !== 'boolean'
+            && typeof config.program === 'string'
+            && !config.program.includes('${')) {
+            config.graphicsWindow = sourceFileUsesGraphics(config.program);
+        }
+
         if (!config.cwd
             && typeof config.program === 'string'
             && !config.program.includes('${')) {
@@ -516,13 +557,12 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
     private lastVariables = '';
     private stepModeEnabled = false;
     private pendingTimer: NodeJS.Timeout | undefined;
+    private inputPromptTimer: NodeJS.Timeout | undefined;
+    private inputInFlight = false;
+    private pendingUserOutputTail = '';
     private breakpointsDirty = false;
     private breakpointSyncInFlight = false;
     private isStopped = false;
-    private readonly launchExtraArgs = process.platform === 'win32'
-        ? [machineInterfaceArg]
-        : [machineInterfaceArg, '-nx'];
-
     handleMessage(message: DebugProtocolMessage): void {
         const request = message as DebugRequest;
 
@@ -645,8 +685,14 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         try {
             const exe = await resolveDebugExecutable(this.launchArgs.executablePath);
             const cwd = this.launchArgs.cwd || path.dirname(this.launchArgs.program);
-            this.log(`launch exe="${exe}" cwd="${cwd}" program="${this.launchArgs.program}"`);
-            this.process = cp.spawn(exe, this.launchExtraArgs, { cwd, windowsHide: true });
+            const launchExtraArgs = this.buildLaunchExtraArgs();
+            this.log(`launch exe="${exe}" cwd="${cwd}" program="${this.launchArgs.program}" args="${launchExtraArgs.join(' ')}" graphics=${this.programUsesGraphics()}`);
+            programOutput?.clear();
+            programOutput?.show(true);
+            this.process = cp.spawn(exe, launchExtraArgs, {
+                cwd,
+                windowsHide: !launchExtraArgs.includes('--graphics-window'),
+            });
             this.process.stdout.on('data', (chunk: Buffer) => this.onOutput(chunk.toString()));
             this.process.stderr.on('data', (chunk: Buffer) => this.output(chunk.toString(), 'stderr'));
             this.process.on('exit', (code: number | null, signal: NodeJS.Signals | null) => {
@@ -719,6 +765,27 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             this.event('terminated');
             this.shutdown();
         }
+    }
+
+    private buildLaunchExtraArgs(): string[] {
+        const args = process.platform === 'win32'
+            ? [machineInterfaceArg]
+            : [machineInterfaceArg, '-nx'];
+
+        if (process.platform === 'win32' && this.launchArgs?.graphicsWindow) {
+            args.push('--graphics-window');
+        }
+        if (process.platform === 'win32'
+            && !args.includes('--graphics-window')
+            && this.programUsesGraphics()) {
+            args.push('--graphics-window');
+        }
+
+        return args;
+    }
+
+    private programUsesGraphics(): boolean {
+        return !!this.launchArgs?.program && sourceFileUsesGraphics(this.launchArgs.program);
     }
 
     private async continueExecution(step: boolean) {
@@ -817,7 +884,8 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         }
 
         return new Promise((resolve, reject) => {
-            this.pending = { resolve, reject, output: '' };
+            this.pending = { resolve, reject, output: '', command };
+            this.pendingUserOutputTail = '';
             this.log(`>>> ${command}`);
             this.process!.stdin.write(`${command}\n`);
         });
@@ -847,7 +915,10 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
 
     private onOutput(text: string) {
         this.log(text.replace(/\r/g, '\\r').replace(/\n/g, '\\n\n'));
-        this.output(text, 'stdout');
+        let userText = '';
+        if (this.shouldMirrorOutput()) {
+            userText = this.outputProgramText(text);
+        }
 
         if (!this.pending) {
             return;
@@ -861,6 +932,93 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             if (this.breakpointsDirty) {
                 void this.syncBreakpoints();
             }
+        } else if (userText) {
+            this.maybePromptForProgramInput(userText);
+        }
+    }
+
+    private outputProgramText(text: string): string {
+        const userText = this.stripMachineEvents(text);
+        if (!userText) {
+            return '';
+        }
+
+        programOutput?.append(userText);
+        this.output(userText, 'stdout');
+        return userText;
+    }
+
+    private shouldMirrorOutput(): boolean {
+        if (!this.pending) {
+            return true;
+        }
+
+        return /^(run|cont|step)\b/i.test(this.pending.command ?? '');
+    }
+
+    private stripMachineEvents(text: string): string {
+        return text
+            .split(/(\r?\n)/)
+            .filter(part => !/^@@nubasic event="/.test(part))
+            .join('');
+    }
+
+    private maybePromptForProgramInput(userText: string) {
+        if (!this.pending || this.inputInFlight || !this.process?.stdin.writable) {
+            return;
+        }
+        if (!/^(run|cont|step)\b/i.test(this.pending.command ?? '')) {
+            return;
+        }
+
+        this.pendingUserOutputTail = (this.pendingUserOutputTail + userText).slice(-500);
+        const prompt = this.currentInputPrompt();
+        if (!prompt) {
+            return;
+        }
+
+        if (this.inputPromptTimer) {
+            clearTimeout(this.inputPromptTimer);
+        }
+        this.inputPromptTimer = setTimeout(() => {
+            this.inputPromptTimer = undefined;
+            void this.promptForProgramInput(prompt);
+        }, 150);
+    }
+
+    private currentInputPrompt(): string | undefined {
+        if (/\r?\n$/.test(this.pendingUserOutputTail)) {
+            return undefined;
+        }
+
+        const lines = this.pendingUserOutputTail.split(/\r?\n/);
+        const prompt = (lines[lines.length - 1] ?? '').trim();
+        if (!prompt || !/[?:>]$/.test(prompt)) {
+            return undefined;
+        }
+
+        return prompt;
+    }
+
+    private async promptForProgramInput(prompt: string) {
+        if (this.inputInFlight || !this.process?.stdin.writable) {
+            return;
+        }
+
+        this.inputInFlight = true;
+        try {
+            const value = await vscode.window.showInputBox({
+                prompt,
+                placeHolder: 'nuBASIC input',
+                ignoreFocusOut: true,
+            });
+            const text = value ?? '';
+            programOutput?.append(`${text}\n`);
+            this.process.stdin.write(`${text}\n`);
+            this.log(`<<< ${text}`);
+            this.pendingUserOutputTail = '';
+        } finally {
+            this.inputInFlight = false;
         }
     }
 
@@ -907,6 +1065,11 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             clearTimeout(this.pendingTimer);
             this.pendingTimer = undefined;
         }
+        if (this.inputPromptTimer) {
+            clearTimeout(this.inputPromptTimer);
+            this.inputPromptTimer = undefined;
+        }
+        this.pendingUserOutputTail = '';
         this.pending = undefined;
     }
 
@@ -1012,8 +1175,8 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         if (machineMatch) {
             return machineMatch[1] === 'breakpoint' ? 'breakpoint'
                 : machineMatch[1] === 'step' ? 'step'
-                : machineMatch[1] === 'stop' ? 'pause'
-                : machineMatch[1];
+                    : machineMatch[1] === 'stop' ? 'pause'
+                        : machineMatch[1];
         }
 
         if (/Execution stopped at breakpoint/i.test(output)) {
@@ -1163,6 +1326,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         this.breakpointsDirty = false;
         this.breakpointSyncInFlight = false;
         this.isStopped = false;
+        this.inputInFlight = false;
 
         if (this.process && !this.process.killed) {
             this.process.kill();

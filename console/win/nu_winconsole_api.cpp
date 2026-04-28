@@ -263,6 +263,14 @@ int nu_winconsole_is_graphics_mode()
 
 /* -------------------------------------------------------------------------- */
 
+void nu_winconsole_set_input_text_overlay(int enabled)
+{
+    if (g_console)
+        g_console->set_input_text_overlay(enabled != 0);
+}
+
+/* -------------------------------------------------------------------------- */
+
 void nu_winconsole_show_graphics_end_prompt()
 {
     if (g_console)

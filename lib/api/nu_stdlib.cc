@@ -10,6 +10,7 @@
 
 #include "nu_stdlib.h"
 #include "nu_error_codes.h"
+#include "nu_os_console.h"
 #include "nu_rt_prog_ctx.h"
 
 #include <stdlib.h>
@@ -30,7 +31,7 @@ namespace nu {
 int os_shell_t::exec(const std::string& cmd)
 {
 #ifdef _WIN32
-    if (nu_winconsole_is_active()) {
+    if (nu_winconsole_is_active() && !nu::_os_get_hybrid_stdio()) {
         // Capture child process output via _popen and write to GDI console
         FILE* pipe = _popen(cmd.c_str(), "r");
         if (!pipe)

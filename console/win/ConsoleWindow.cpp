@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <mutex>
 #include <string>
+#include <vector>
 
 /* -------------------------------------------------------------------------- */
 
@@ -462,6 +463,10 @@ void console_window_t::on_paint()
                     render_text(_mem_dc);
                     if (_cursor_force_visible && _cursor_blink_state)
                         render_cursor(_mem_dc);
+                } else if (_input_text_overlay.load()) {
+                    render_text_overlay(_mem_dc);
+                    if (_cursor_force_visible && _cursor_blink_state)
+                        render_cursor(_mem_dc);
                 }
                 BitBlt(hdc, 0, 0, w, h, _mem_dc, 0, 0, SRCCOPY);
             }
@@ -624,6 +629,57 @@ void console_window_t::render_text(HDC hdc)
 
 /* -------------------------------------------------------------------------- */
 
+void console_window_t::render_text_overlay(HDC hdc)
+{
+    HFONT hOldFont = (HFONT)SelectObject(hdc, _hfont);
+    SetBkMode(hdc, OPAQUE);
+
+    int screen_top = _buffer->get_screen_top();
+    int scroll_offset = _buffer->get_scroll_offset();
+    int first_row = std::max(0, screen_top - scroll_offset);
+
+    auto has_non_ascii = [](const std::wstring& s) {
+        for (wchar_t ch : s)
+            if (ch > 0x7F)
+                return true;
+        return false;
+    };
+
+    for (int y = 0; y < _config.rows; ++y) {
+        int buffer_y = first_row + y;
+        if (buffer_y >= _buffer->get_total_rows())
+            break;
+
+        std::wstring line = _buffer->get_line(buffer_y);
+        size_t first_ch = line.find_first_not_of(L' ');
+        if (first_ch == std::wstring::npos)
+            continue;
+
+        size_t last_ch = line.find_last_not_of(L' ');
+        std::wstring seg = line.substr(first_ch, last_ch - first_ch + 1);
+        int seg_len = (int)seg.size();
+        int x_pos = _config.margin_left + (int)first_ch * _config.char_width;
+        int y_pos = _config.margin_top + y * _config.char_height;
+        RECT seg_rc = { x_pos, y_pos, x_pos + seg_len * _config.char_width,
+            y_pos + _config.char_height };
+
+        SetTextColor(hdc, _config.text_color);
+        SetBkColor(hdc, RGB(0, 0, 0));
+        if (has_non_ascii(seg)) {
+            ExtTextOutW(hdc, x_pos, y_pos, ETO_OPAQUE, &seg_rc, seg.c_str(),
+                seg_len, nullptr);
+        } else {
+            std::vector<INT> dx(seg_len, _config.char_width);
+            ExtTextOutW(hdc, x_pos, y_pos, ETO_OPAQUE, &seg_rc, seg.c_str(),
+                seg_len, dx.data());
+        }
+    }
+
+    SelectObject(hdc, hOldFont);
+}
+
+/* -------------------------------------------------------------------------- */
+
 void console_window_t::render_cursor(HDC hdc)
 {
     int cursor_x, cursor_y;
@@ -645,6 +701,14 @@ void console_window_t::render_cursor(HDC hdc)
         FillRect(hdc, &cursor_rect, hBrush);
         DeleteObject(hBrush);
     }
+}
+
+/* -------------------------------------------------------------------------- */
+
+void console_window_t::set_input_text_overlay(bool enabled)
+{
+    _input_text_overlay.store(enabled);
+    refresh(true);
 }
 
 /* -------------------------------------------------------------------------- */

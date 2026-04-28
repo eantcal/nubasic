@@ -107,6 +107,7 @@ variant_t _os_get_datetime_struct()
 #include <time.h>
 #include <windows.h>
 
+#include "nu_os_console.h"
 #include "nu_winconsole_api.h"
 
 /* -------------------------------------------------------------------------- */
@@ -119,7 +120,7 @@ namespace nu {
 
 int _os_get_vkey()
 {
-    if (nu_winconsole_is_active()) {
+    if (nu_winconsole_is_active() && !nu::_os_get_hybrid_stdio()) {
         if (!nu_winconsole_vkey_available())
             return -1;
         return nu_winconsole_get_vkey();

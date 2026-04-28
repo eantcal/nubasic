@@ -81,6 +81,11 @@ public:
     /* Returns true if the console is currently in graphics mode. */
     bool is_graphics_mode() const noexcept { return _graphics_mode.load(); }
 
+    /* While graphics mode suppresses the normal text layer, line-oriented
+
+     * * INPUT still needs a visible prompt and typed text. */
+    void set_input_text_overlay(bool enabled);
+
     /* CLI-only: overlay "Press any key to continue..." on the graphics layer
      * at the bottom of the screen so the user knows how to dismiss it.
      * Draws directly onto _gfx_dc so the prompt appears on top of any GDI
@@ -155,6 +160,7 @@ private:
     void render_console(HDC hdc);
     void render_cursor(HDC hdc);
     void render_text(HDC hdc);
+    void render_text_overlay(HDC hdc);
 
     void start_cursor_blink();
     void stop_cursor_blink();
@@ -200,6 +206,7 @@ private:
     // graphics layer is fully visible.  Resets to false on clear_backbuffer()
     // (CLS), which signals a return to text mode.
     std::atomic<bool> _graphics_mode{ false };
+    std::atomic<bool> _input_text_overlay{ false };
 
     // Input handling
     // _input_queue is accessed from both threads → protected by _input_mutex.

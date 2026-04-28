@@ -161,7 +161,7 @@ static void console_fprintf(FILE* fp, const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
 #ifdef _WIN32
-    if (nu_winconsole_is_active()) {
+    if (nu_winconsole_is_active() && !nu::_os_get_hybrid_stdio()) {
         char buf[8192];
         vsnprintf(buf, sizeof(buf), fmt, args);
         va_end(args);

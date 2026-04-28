@@ -5,6 +5,10 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 
 read_pkg() { node -p "require('${ROOT}/package.json').$1"; }
 
+if [[ "${1:-}" == "--bump-patch" || "${NUBASIC_VSCODE_BUMP_PATCH:-}" == "1" ]]; then
+  node "${ROOT}/bump-version.js"
+fi
+
 VERSION="$(read_pkg version)"
 PKG_NAME="$(read_pkg name)"
 PUBLISHER="$(read_pkg publisher)"
@@ -14,6 +18,7 @@ ENGINE_VSCODE="$(read_pkg 'engines.vscode')"
 REPO_URL="$(read_pkg 'repository.url')"
 
 VSIX_OUT="${ROOT}/nubasic-${VERSION}.vsix"
+LATEST_VSIX_OUT="${ROOT}/nubasic-latest.vsix"
 STAGE="$(mktemp -d "${TMPDIR:-/tmp}/.vsix-stage-XXXXXX")"
 trap 'rm -rf "$STAGE"' EXIT
 
@@ -81,5 +86,7 @@ EOF
 
 rm -f "${VSIX_OUT}"
 (cd "${STAGE}" && zip -r "${VSIX_OUT}" . -x "*.DS_Store")
+cp "${VSIX_OUT}" "${LATEST_VSIX_OUT}"
 
 echo "Created: ${VSIX_OUT}"
+echo "Updated VSIX alias: ${LATEST_VSIX_OUT}"
