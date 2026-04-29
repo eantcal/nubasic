@@ -30,6 +30,42 @@ struct debug_suspend_t {};
 
 /* -------------------------------------------------------------------------- */
 
+enum class debug_exec_action_t {
+    Continue,
+    StepInto,
+    StepOver,
+    StepOut,
+    Pause,
+    RunToCursor
+};
+
+
+/* -------------------------------------------------------------------------- */
+
+enum class debug_stop_reason_t {
+    None,
+    Breakpoint,
+    Step,
+    Pause,
+    StopStatement,
+    ProgramEnd,
+    RuntimeError
+};
+
+
+/* -------------------------------------------------------------------------- */
+
+struct debug_exec_request_t {
+    debug_exec_action_t action = debug_exec_action_t::Continue;
+    prog_pointer_t start_pc;
+    prog_pointer_t target_pc;
+    size_t start_stack_depth = 0;
+    bool has_target_pc = false;
+};
+
+
+/* -------------------------------------------------------------------------- */
+
 class rt_prog_ctx_t : public prog_ctx_t {
 public:
     using return_point_t = std::pair<prog_pointer_t::line_number_t,
@@ -53,6 +89,8 @@ public:
     bool step_mode_active = false;
     bool step_break_on_entry_pending = false;
     bool last_stop_was_step = false;
+    debug_exec_request_t active_debug_exec;
+    debug_stop_reason_t last_debug_stop_reason = debug_stop_reason_t::None;
 
     // Hash API
     using map_t = std::unordered_map<std::string, nu::variant_t>;

@@ -205,6 +205,24 @@ try {
         throw "Entry-step stop did not include source location metadata.`nOutput:`n$entryStepOutput"
     }
 
+    $stepIntoLoadOutput = Send-Command -Command 'load "test_debugger_step_entry.bas"' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "LOAD completion for stepinto alias contract"
+    if ($stepIntoLoadOutput -notmatch '@@nubasic event="ok"') {
+        throw "StepInto LOAD did not complete successfully."
+    }
+
+    $null = Send-Command -Command 'clrbrk' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "ClrBrk completion before stepinto alias contract"
+
+    $stepIntoOutput = Send-Command -Command 'stepinto' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "stepinto alias stop on first executable line"
+    if ($stepIntoOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="2"') {
+        throw "StepInto alias did not stop on line 2 before executing the first statement.`nOutput:`n$stepIntoOutput"
+    }
+
     $loadOutput = Send-Command -Command 'load "test_debugger_contract.bas"' `
         -CompletionPattern '@@nubasic event="ok"' `
         -Description "LOAD completion after entry-step contract"

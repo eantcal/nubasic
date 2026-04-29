@@ -161,6 +161,10 @@ public:
 
 
     exec_res_t set_step_mode(bool on);
+    exec_res_t debug_exec(const debug_exec_request_t& request);
+    exec_res_t debug_continue();
+    exec_res_t debug_step_into();
+    debug_stop_reason_t get_last_debug_stop_reason() const noexcept;
     exec_res_t exec_command(const std::string& cmd);
     std::string version();
 

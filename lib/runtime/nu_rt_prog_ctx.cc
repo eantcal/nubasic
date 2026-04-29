@@ -37,6 +37,8 @@ rt_prog_ctx_t::rt_prog_ctx_t(
     step_mode_active = false;
     step_break_on_entry_pending = false;
     last_stop_was_step = false;
+    active_debug_exec = debug_exec_request_t{};
+    last_debug_stop_reason = debug_stop_reason_t::None;
 }
 
 
@@ -104,6 +106,8 @@ void rt_prog_ctx_t::clear_rtdata()
     last_break_line = 0;
     step_break_on_entry_pending = false;
     last_stop_was_step = false;
+    active_debug_exec = debug_exec_request_t{};
+    last_debug_stop_reason = debug_stop_reason_t::None;
 
     // Reset program counter
     runtime_pc.reset();

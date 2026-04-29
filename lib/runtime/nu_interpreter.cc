@@ -1235,6 +1235,151 @@ interpreter_t::exec_res_t interpreter_t::set_step_mode(bool on)
 
 /* -------------------------------------------------------------------------- */
 
+interpreter_t::exec_res_t interpreter_t::debug_exec(
+    const debug_exec_request_t& request)
+{
+    auto& ctx = get_rt_ctx();
+    ctx.active_debug_exec = request;
+    ctx.active_debug_exec.start_pc = ctx.runtime_pc;
+    ctx.active_debug_exec.start_stack_depth = ctx.call_stack.size();
+    ctx.last_debug_stop_reason = debug_stop_reason_t::None;
+
+    auto check_break_and_stop = [&]() {
+        if (ctx.flag[rt_prog_ctx_t::FLG_STOP_REQUEST]) {
+            ctx.flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, false);
+            ctx.last_stop_was_step = false;
+            ctx.last_debug_stop_reason = debug_stop_reason_t::Pause;
+            return exec_res_t::STOP_REQ;
+        }
+
+        if (is_stop_stmt_line()) {
+            ctx.last_stop_was_step = false;
+            ctx.last_debug_stop_reason = debug_stop_reason_t::StopStatement;
+            return exec_res_t::STOP_REQ;
+        }
+
+        if (is_breakpoint_active()) {
+            ctx.last_stop_was_step = false;
+            ctx.last_debug_stop_reason = debug_stop_reason_t::Breakpoint;
+            return exec_res_t::BREAKPOINT;
+        }
+
+        if (ctx.step_mode_active && get_cur_line_n() > 0) {
+            ctx.last_stop_was_step = true;
+            ctx.last_debug_stop_reason = debug_stop_reason_t::Step;
+            return exec_res_t::STOP_REQ;
+        }
+
+        ctx.last_stop_was_step = false;
+        if (ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST])
+            ctx.last_debug_stop_reason = debug_stop_reason_t::ProgramEnd;
+        return exec_res_t::CMD_EXEC;
+    };
+
+    auto continue_from_current_pc = [&]() {
+        const auto line = ctx.runtime_pc.get_line();
+        const auto stmt_id = ctx.runtime_pc.get_stmt_pos();
+
+        if (line == 0 || continue_afterbrk(line)) {
+            if (!cont(line, stmt_id))
+                rebuild();
+        }
+    };
+
+    switch (request.action) {
+    case debug_exec_action_t::Continue:
+        continue_from_current_pc();
+
+        while (!ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST]
+            && !ctx.debug_pending_returns.empty() && !is_breakpoint_active()
+            && !is_stop_stmt_line()) {
+            continue_from_current_pc();
+        }
+
+        return check_break_and_stop();
+
+    case debug_exec_action_t::StepInto: {
+        const auto prev_step_mode = ctx.step_mode_active;
+        const auto prev_entry_step = ctx.step_break_on_entry_pending;
+
+        set_step_mode(true);
+
+        struct step_state_guard_t {
+            rt_prog_ctx_t& ctx;
+            bool prev_step_mode = false;
+            bool prev_entry_step = false;
+
+            ~step_state_guard_t()
+            {
+                ctx.step_mode_active = prev_step_mode;
+                ctx.step_break_on_entry_pending = prev_entry_step;
+            }
+        } guard{ ctx, prev_step_mode, prev_entry_step };
+
+        const bool resumable_pause
+            = ctx.last_break_line > 0 || is_stop_stmt_line();
+
+        if (!resumable_pause) {
+            rebuild();
+            ctx.step_break_on_entry_pending = true;
+            run(0);
+        } else {
+            continue_from_current_pc();
+
+            while (!ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST]
+                && !ctx.debug_pending_returns.empty() && !is_breakpoint_active()
+                && !is_stop_stmt_line()) {
+                continue_from_current_pc();
+            }
+        }
+
+        return check_break_and_stop();
+    }
+
+    case debug_exec_action_t::StepOver:
+    case debug_exec_action_t::StepOut:
+    case debug_exec_action_t::RunToCursor:
+        // First pass: expose the typed model without changing semantics. These
+        // actions will get distinct stop predicates in the next pass.
+        return debug_exec(
+            debug_exec_request_t{ debug_exec_action_t::StepInto });
+
+    case debug_exec_action_t::Pause:
+        ctx.flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, true);
+        ctx.last_debug_stop_reason = debug_stop_reason_t::Pause;
+        return exec_res_t::CMD_EXEC;
+    }
+
+    return exec_res_t::RT_ERROR;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+interpreter_t::exec_res_t interpreter_t::debug_continue()
+{
+    return debug_exec(debug_exec_request_t{ debug_exec_action_t::Continue });
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+interpreter_t::exec_res_t interpreter_t::debug_step_into()
+{
+    return debug_exec(debug_exec_request_t{ debug_exec_action_t::StepInto });
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+debug_stop_reason_t interpreter_t::get_last_debug_stop_reason() const noexcept
+{
+    return _prog_ctx.last_debug_stop_reason;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 void interpreter_t::set_debug_mode(bool on) noexcept
 {
     auto& ctx = get_rt_ctx();
@@ -1246,6 +1391,8 @@ void interpreter_t::set_debug_mode(bool on) noexcept
         ctx.last_break_line = 0;
         ctx.step_break_on_entry_pending = false;
         ctx.last_stop_was_step = false;
+        ctx.active_debug_exec = debug_exec_request_t{};
+        ctx.last_debug_stop_reason = debug_stop_reason_t::None;
     }
 }
 
@@ -1616,66 +1763,12 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
             return exec_res_t::CMD_EXEC;
         };
 
-        auto continue_from_current_pc = [&]() {
-            const auto line = get_rt_ctx().runtime_pc.get_line();
-            const auto stmt_id = get_rt_ctx().runtime_pc.get_stmt_pos();
-
-            if (line == 0 || continue_afterbrk(line)) {
-                if (!cont(line, stmt_id))
-                    rebuild();
-            }
-        };
-
-        if (cmd == "step") {
-            const auto prev_step_mode = get_rt_ctx().step_mode_active;
-            const auto prev_entry_step
-                = get_rt_ctx().step_break_on_entry_pending;
-
-            set_step_mode(true);
-
-            struct step_state_guard_t {
-                rt_prog_ctx_t& ctx;
-                bool prev_step_mode = false;
-                bool prev_entry_step = false;
-
-                ~step_state_guard_t()
-                {
-                    ctx.step_mode_active = prev_step_mode;
-                    ctx.step_break_on_entry_pending = prev_entry_step;
-                }
-            } guard{ get_rt_ctx(), prev_step_mode, prev_entry_step };
-
-            const bool resumable_pause
-                = get_rt_ctx().last_break_line > 0 || is_stop_stmt_line();
-
-            if (!resumable_pause) {
-                rebuild();
-                get_rt_ctx().step_break_on_entry_pending = true;
-                run(0);
-            } else {
-                continue_from_current_pc();
-
-                while (!get_rt_ctx().flag[rt_prog_ctx_t::FLG_END_REQUEST]
-                    && !get_rt_ctx().debug_pending_returns.empty()
-                    && !is_breakpoint_active() && !is_stop_stmt_line()) {
-                    continue_from_current_pc();
-                }
-            }
-
-            return check_break_and_stop();
+        if (cmd == "step" || cmd == "stepinto") {
+            return debug_step_into();
         }
 
         if (cmd == "cont") {
-
-            continue_from_current_pc();
-
-            while (!get_rt_ctx().flag[rt_prog_ctx_t::FLG_END_REQUEST]
-                && !get_rt_ctx().debug_pending_returns.empty()
-                && !is_breakpoint_active() && !is_stop_stmt_line()) {
-                continue_from_current_pc();
-            }
-
-            return check_break_and_stop();
+            return debug_continue();
         }
 
         if (cmd == "run") {
