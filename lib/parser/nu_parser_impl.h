@@ -108,6 +108,8 @@ using stmt_flush_t = stmt_geninstr_t<os_fflush_t, variant_t, 1>;
 #ifndef TINY_NUBASIC_VER
 using stmt_textout_t = stmt_geninstr_t<os_textout_t, gdi_varg_t, 4>;
 using stmt_plotimage_t = stmt_geninstr_t<os_plotimage_t, gdi_varg_t, 3>;
+using stmt_bitmapdraw_t = stmt_geninstr_t<os_bitmapdraw_t, gdi_varg_t, 3>;
+using stmt_bitmapfree_t = stmt_geninstr_t<os_bitmapfree_t, gdi_varg_t, 1>;
 using stmt_line_t = stmt_geninstr_t<os_line_t, gdi_iarg_t, 5>;
 using stmt_set_pixel_t = stmt_geninstr_t<os_set_pixel_t, gdi_iarg_t, 3>;
 using stmt_rect_t = stmt_geninstr_t<os_rect_t, gdi_iarg_t, 5>;

@@ -64,7 +64,7 @@
     },
     "keywords-builtin": {
       "name": "support.function.nubasic",
-      "match": "(?i)\\b(print|input|open|close|read|write|data|restore|let|cls|line|rect|fillrect|ellipse|fillellipse|circle|textout|plotimage|setpixel|getpixel|rgb|locate|movewindow|screen|screenlock|screenunlock|refresh|shell|include|using|syntax|legacy|modern|erase|beep|sleep|delay|mdelay|msgbox|eval|help|apropos|ver|time|fopen|eof|ferror|ftell|fsize|mkdir|rmdir|chdir|pwd|getenv|setenv|unsetenv|getapppath|getplatid|getvkey|errno)\\b"
+      "match": "(?i)\\b(print|input|open|close|read|write|data|restore|let|cls|line|rect|fillrect|ellipse|fillellipse|circle|textout|plotimage|bitmapload|bitmapdraw|bitmapfree|setpixel|getpixel|rgb|locate|movewindow|screen|screenlock|screenunlock|refresh|shell|include|using|syntax|legacy|modern|erase|beep|sleep|delay|mdelay|msgbox|eval|help|apropos|ver|time|fopen|eof|ferror|ftell|fsize|mkdir|rmdir|chdir|pwd|getenv|setenv|unsetenv|getapppath|getplatid|getvkey|errno)\\b"
     },
     "keywords-operators": {
       "patterns": [

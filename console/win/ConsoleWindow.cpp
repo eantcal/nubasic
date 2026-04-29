@@ -470,11 +470,11 @@ void console_window_t::on_paint()
                 }
                 BitBlt(hdc, 0, 0, w, h, _mem_dc, 0, 0, SRCCOPY);
             }
-        } else {
-            HBRUSH bg = CreateSolidBrush(_config.background_color);
-            FillRect(hdc, &client_rc, bg);
-            DeleteObject(bg);
         }
+        // If try_lock failed (interpreter thread is drawing), leave the
+        // existing screen content — BeginPaint/EndPaint validates the update
+        // region. A new WM_PAINT will arrive when the interpreter's next
+        // release_offscreen_dc triggers InvalidateRect.
     }
 
     EndPaint(_hwnd, &ps);

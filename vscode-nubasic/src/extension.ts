@@ -359,6 +359,9 @@ function sourceFileUsesGraphics(filePath: string): boolean {
 
 function graphicsKeywords(): string[] {
     return [
+        'bitmapdraw',
+        'bitmapfree',
+        'bitmapload',
         'ellipse',
         'fillellipse',
         'fillrect',
@@ -563,6 +566,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
     private breakpointsDirty = false;
     private breakpointSyncInFlight = false;
     private isStopped = false;
+    private inputCancellation: vscode.CancellationTokenSource | undefined;
     handleMessage(message: DebugProtocolMessage): void {
         const request = message as DebugRequest;
 
@@ -733,15 +737,17 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
                 this.shutdown();
                 return;
             }
+            const interrupted = this.hasMachineEvent(output, 'interrupted');
             const stoppedLocation = this.parseStoppedLocation(output);
             const stoppedLine = stoppedLocation.basicLine
-                || (this.launchArgs.stopOnEntry
+                || (this.launchArgs.stopOnEntry || interrupted
                     ? await this.refreshCurrentLine(true)
                     : await this.refreshCurrentLine(true, true));
             if (stoppedLine > 0) {
                 this.applyStoppedLocation(stoppedLine, stoppedLocation);
                 const stopReason = this.parseStoppedReason(output)
-                    || (this.launchArgs.stopOnEntry ? 'entry' : 'breakpoint');
+                    || (interrupted ? 'pause'
+                        : this.launchArgs.stopOnEntry ? 'entry' : 'breakpoint');
                 this.isStopped = true;
                 this.event('stopped', {
                     reason: stopReason,
@@ -750,7 +756,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
                     hitBreakpointIds: this.hitBreakpointIdsForCurrentLine(stopReason),
                 });
             } else {
-                if (this.launchArgs.stopOnEntry) {
+                if (this.launchArgs.stopOnEntry && !interrupted) {
                     this.output(
                         'nuBASIC did not stop on entry. Verify that the installed nubasicdebug binary is up to date.\n',
                         'stderr'
@@ -821,15 +827,16 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
                 return;
             }
 
+            const interrupted = this.hasMachineEvent(output, 'interrupted');
             const stoppedLocation = this.parseStoppedLocation(output);
             const stoppedLine = stoppedLocation.basicLine
-                || (step
+                || (step || interrupted
                     ? await this.refreshCurrentLine(true)
                     : await this.refreshCurrentLine(true, true));
             if (stoppedLine > 0) {
                 this.applyStoppedLocation(stoppedLine, stoppedLocation);
                 const stopReason = this.parseStoppedReason(output)
-                    || (step ? 'step' : 'breakpoint');
+                    || (step ? 'step' : interrupted ? 'pause' : 'breakpoint');
                 this.isStopped = true;
                 this.event('stopped', {
                     reason: stopReason,
@@ -861,6 +868,8 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
     }
 
     private interruptExecution() {
+        this.inputCancellation?.cancel();
+
         if (!this.process || this.process.killed || !this.process.stdin.writable) {
             this.output('nuBASIC is not running.\n', 'stderr');
             return;
@@ -1005,19 +1014,29 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             return;
         }
 
+        const cts = new vscode.CancellationTokenSource();
+        this.inputCancellation = cts;
         this.inputInFlight = true;
         try {
             const value = await vscode.window.showInputBox({
                 prompt,
                 placeHolder: 'nuBASIC input',
                 ignoreFocusOut: true,
-            });
-            const text = value ?? '';
-            programOutput?.append(`${text}\n`);
-            this.process.stdin.write(`${text}\n`);
-            this.log(`<<< ${text}`);
+            }, cts.token);
+
+            if (value === undefined || !this.process?.stdin.writable) {
+                return;
+            }
+
+            programOutput?.append(`${value}\n`);
+            this.process.stdin.write(`${value}\n`);
+            this.log(`<<< ${value}`);
             this.pendingUserOutputTail = '';
         } finally {
+            if (this.inputCancellation === cts) {
+                this.inputCancellation = undefined;
+            }
+            cts.dispose();
             this.inputInFlight = false;
         }
     }
@@ -1317,6 +1336,12 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
     }
 
     private shutdown() {
+        if (this.inputCancellation) {
+            this.inputCancellation.cancel();
+            this.inputCancellation.dispose();
+            this.inputCancellation = undefined;
+        }
+
         if (this.pending) {
             const pending = this.pending;
             this.clearPendingState();

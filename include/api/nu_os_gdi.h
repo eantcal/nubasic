@@ -79,6 +79,20 @@ struct os_plotimage_t {
 
 /* -------------------------------------------------------------------------- */
 
+struct os_bitmapdraw_t {
+    int operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args);
+};
+
+
+/* -------------------------------------------------------------------------- */
+
+struct os_bitmapfree_t {
+    int operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args);
+};
+
+
+/* -------------------------------------------------------------------------- */
+
 struct os_set_pixel_t {
     int operator()(rt_prog_ctx_t& ctx, gdi_iargs_t args);
 };
@@ -141,6 +155,10 @@ int _os_get_window_dx() noexcept;
 int _os_get_window_dy() noexcept;
 
 int _os_set_topmost() noexcept;
+
+int _os_bitmap_load(const std::string& filename) noexcept;
+void _os_bitmap_free(int id) noexcept;
+void _os_bitmap_free_all() noexcept;
 
 
 /* -------------------------------------------------------------------------- */

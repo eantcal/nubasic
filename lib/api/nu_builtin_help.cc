@@ -1086,6 +1086,27 @@ static help_content_t _help_content[] = {
         "coords x,y\n",
         "PlotImage bitmap$, x, y" },
 
+    { lang_item_t::INSTRUCTION, "bitmapload",
+        "Loads a bitmap from file into the bitmap cache and returns an "
+        "integer\n"
+        "handle that can be passed to BitmapDraw or BitmapFree.\n"
+        "Returns 0 on failure.\n"
+        "\nSee also BitmapDraw, BitmapFree, PlotImage",
+        "id = BitmapLoad(bitmap$)" },
+
+    { lang_item_t::INSTRUCTION, "bitmapdraw",
+        "Draws a previously loaded bitmap (identified by its handle id)\n"
+        "on the screen starting at coords x,y.\n"
+        "The bitmap must have been loaded with BitmapLoad.\n"
+        "\nSee also BitmapLoad, BitmapFree",
+        "BitmapDraw id, x, y" },
+
+    { lang_item_t::INSTRUCTION, "bitmapfree",
+        "Releases a bitmap that was previously loaded with BitmapLoad,\n"
+        "freeing the associated memory.\n"
+        "\nSee also BitmapLoad, BitmapDraw",
+        "BitmapFree id" },
+
     { lang_item_t::INSTRUCTION, "screen",
         "Selects the console/graphics mode, like GW-BASIC SCREEN.\n"
         "\n"

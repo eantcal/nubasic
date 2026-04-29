@@ -28,10 +28,10 @@ namespace {
         const builtin_export_list_t& exports() const noexcept override
         {
 #ifndef TINY_NUBASIC_VER
-            static const builtin_export_list_t module_exports
-                = { "getswidth", "getsheight", "getwindowx", "getwindowy",
-                      "getwindowdx", "getwindowdy", "getmouse", "settopmost",
-                      "msgbox", "playsound", "movewindow", "getpixel", "rgb" };
+            static const builtin_export_list_t module_exports = { "getswidth",
+                "getsheight", "getwindowx", "getwindowy", "getwindowdx",
+                "getwindowdy", "getmouse", "settopmost", "msgbox", "playsound",
+                "movewindow", "getpixel", "rgb", "bitmapload" };
 #else
             static const builtin_export_list_t module_exports = { "rgb" };
 #endif
@@ -135,6 +135,14 @@ namespace {
                 }
             };
             fmap["getpixel"] = functor_int_int_int<_get_pixel>;
+
+            struct _bitmap_load {
+                int operator()(const std::string& filename) noexcept
+                {
+                    return _os_bitmap_load(filename);
+                }
+            };
+            fmap["bitmapload"] = functor_int_string<_bitmap_load>;
 #endif
 
             struct _rgb {

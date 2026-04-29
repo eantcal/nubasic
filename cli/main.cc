@@ -166,6 +166,30 @@ static int nuBASIC_console(int argc, char* argv[])
             nu_winconsole_process_messages();
             return;
         }
+        // When stdin is a pipe (e.g. VS Code debug adapter), poll for Ctrl+C
+        // (0x03) so the debugger pause button can interrupt running programs.
+        {
+            if (const HANDLE h = GetStdHandle(STD_INPUT_HANDLE); h
+                && h != INVALID_HANDLE_VALUE
+                && GetFileType(h) == FILE_TYPE_PIPE) {
+                DWORD avail = 0;
+                if (PeekNamedPipe(h, nullptr, 0, nullptr, &avail, nullptr)
+                    && avail > 0) {
+                    char peek_ch = '\0';
+                    DWORD peek_n = 0;
+                    if (PeekNamedPipe(h, &peek_ch, 1, &peek_n, nullptr, nullptr)
+                        && peek_n == 1 && peek_ch == '\x03') {
+                        // Consume the byte so _os_input_interruptible
+                        // does not emit a redundant 'interrupted' event.
+                        char discard = '\0';
+                        DWORD consumed = 0;
+                        ReadFile(h, &discard, 1, &consumed, nullptr);
+                        nu::_ev_dispatcher(
+                            nu::signal_handler_t::event_t::BREAK);
+                    }
+                }
+            }
+        }
 #endif
     });
 

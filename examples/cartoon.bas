@@ -13,13 +13,16 @@ MoveWindow GetWindowX(),GetWindowY(), 120, 200
 Cls
 FillRect 0,0,150,350,0
 
+Dim bmpWalk as Integer
+bmpWalk = BitmapLoad("walk.bmp")
+
 While 1
 
    For i% = 0 to 5
 
       ScreenLock
-      PlotImage "walk.bmp",  -80*i%, 0
-      FillRect 80, 0, 400, 300, 0
+      BitmapDraw bmpWalk, -80*i%, 0
+      FillRect 80, 0, 500, 300, 0
       ScreenUnlock
 
       MDelay 100
@@ -27,4 +30,6 @@ While 1
    Next i%
 
 Wend
+
+BitmapFree bmpWalk
 

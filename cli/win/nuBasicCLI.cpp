@@ -35,10 +35,47 @@
 #include "nu_terminal_frame.h"
 #include "nu_winconsole_api.h"
 
+#include "Resource.h"
 #include "nu_about.h"
 #include "nu_basic_defs.h"
 
 #include <cstdio>
+
+/* -------------------------------------------------------------------------- */
+
+static void show_splash(HINSTANCE hInstance)
+{
+    HBITMAP image = ::LoadBitmap(hInstance, MAKEINTRESOURCE(IDB_SPLASH));
+    if (!image)
+        return;
+
+    BITMAP bm = {};
+    ::GetObject(image, sizeof(bm), &bm);
+
+    const int wdx = bm.bmWidth > 0 ? bm.bmWidth : 800;
+    const int wdy = bm.bmHeight > 0 ? bm.bmHeight : 400;
+
+    RECT desktop = {};
+    GetClientRect(GetDesktopWindow(), &desktop);
+    const int wx = (desktop.right - desktop.left - wdx) / 2;
+    const int wy = (desktop.bottom - desktop.top - wdy) / 2;
+
+    HWND hwnd = ::CreateWindowA("STATIC", nu::about::progname,
+        WS_VISIBLE | WS_POPUP, wx, wy, wdx, wdy, NULL, NULL, NULL, NULL);
+
+    HDC hdc = GetDC(hwnd);
+    HDC hdcMem = ::CreateCompatibleDC(hdc);
+    auto hbmOld = ::SelectObject(hdcMem, (HGDIOBJ)image);
+    ::BitBlt(hdc, 0, 0, bm.bmWidth, bm.bmHeight, hdcMem, 0, 0, SRCCOPY);
+    ::SelectObject(hdcMem, hbmOld);
+    ::DeleteDC(hdcMem);
+    ::ReleaseDC(hwnd, hdc);
+
+    Sleep(2000);
+
+    ::DestroyWindow(hwnd);
+    ::DeleteObject(image);
+}
 
 /* -------------------------------------------------------------------------- */
 
@@ -86,7 +123,7 @@ static int nuBASIC_console(int argc, char* argv[])
     const auto runtime_options = nu::cli::parse_runtime_options(argc, argv);
     nu::interpreter_t nuBASIC;
     nuBASIC.set_yield_cbk([](void*) {
-        if (nu::_os_get_screen_mode() != 0) {
+        if (nu_winconsole_is_active()) {
             static DWORD last_pump = 0;
             static unsigned stmt_budget = 0;
             const DWORD now = GetTickCount();
@@ -161,7 +198,7 @@ static int nuBASIC_console(int argc, char* argv[])
     }
 
     while (1) {
-        if (nu::_os_get_screen_mode() != 0) {
+        if (nu_winconsole_is_active()) {
             if (!nu_winconsole_process_messages()) {
                 break;
             }
@@ -195,11 +232,14 @@ static int nuBASIC_console(int argc, char* argv[])
             [](const std::string& text) { cli_printf("%s", text.c_str()); },
             runtime_options);
 
-        if (nu::_os_get_screen_mode() == 0 && batch_mode) {
+        // Text-only mode (no GDI window): exit immediately in batch mode.
+        if (!nu_winconsole_is_active() && batch_mode) {
             break;
         }
 
-        if (nu::_os_get_screen_mode() != 0) {
+        // GDI window is open: handle end-of-script regardless of the current
+        // screen mode — SCREEN 0 in a BASIC program must not bypass this block.
+        if (nu_winconsole_is_active()) {
             const bool need_key_wait
                 = nu_winconsole_is_graphics_mode() || batch_mode;
 
@@ -331,9 +371,26 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
 
         nu::set_gdi_target_window((HWND)nu_winconsole_get_hwnd());
+        nu::_os_set_screen_mode(1);
         nu_winconsole_set_exit_on_close(1);
         nu_winconsole_set_ctrlc_callback(on_console_ctrlc);
         nu_winconsole_set_readline_cancel_hook(on_readline_cancel_reprompt);
+
+        const auto rt_opts = nu::cli::parse_runtime_options(argc, argv);
+        const std::string exec_file = nu::cli::find_exec_file_arg(argc, argv);
+
+        // Change working directory to the script's folder so that relative
+        // asset paths (e.g. "skyline.bmp" in plane.bas) resolve correctly.
+        if (!exec_file.empty()) {
+            const auto sep = exec_file.find_last_of("\\/");
+            if (sep != std::string::npos) {
+                const std::string dir = exec_file.substr(0, sep);
+                SetCurrentDirectoryA(dir.c_str());
+            }
+        }
+
+        if (!rt_opts.machine_interface && exec_file.empty())
+            show_splash(hInstance);
     }
 
     nu::reserved_keywords_t::list();

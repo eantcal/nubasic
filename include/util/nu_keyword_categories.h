@@ -61,6 +61,7 @@
     X("truncf") X("ucase") X("unsetenv") X("val") X("ver")
 
 #define NUBASIC_KEYWORDS_GRAPHICS(X)                                            \
+    X("bitmapdraw") X("bitmapfree") X("bitmapload")                            \
     X("ellipse") X("fillellipse") X("fillrect") X("getpixel") X("line")        \
     X("movewindow") X("plotimage") X("rect") X("refresh") X("screen")          \
     X("screenlock") X("screenunlock") X("setpixel") X("textout")

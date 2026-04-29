@@ -32,6 +32,7 @@ using namespace Gdiplus;
 /* -------------------------------------------------------------------------- */
 
 #include <stdio.h>
+#include <unordered_map>
 
 
 /* -------------------------------------------------------------------------- */
@@ -59,6 +60,43 @@ static struct gdi_plus_t {
 
 } _gdi_plus_instance;
 
+
+/* -------------------------------------------------------------------------- */
+/* Bitmap cache — loaded once, drawn many times                               */
+/* -------------------------------------------------------------------------- */
+
+static std::unordered_map<int, Image*> g_bitmap_cache;
+static int g_next_bitmap_id = 1;
+
+int _os_bitmap_load(const std::string& filename) noexcept
+{
+    WCHAR wsfname[2048] = { 0 };
+    mbstowcs(wsfname, filename.c_str(), sizeof(wsfname) / sizeof(WCHAR));
+    auto* img = new Image(wsfname);
+    if (!img || img->GetLastStatus() != Status::Ok) {
+        delete img;
+        return 0;
+    }
+    const int id = g_next_bitmap_id++;
+    g_bitmap_cache[id] = img;
+    return id;
+}
+
+void _os_bitmap_free(int id) noexcept
+{
+    auto it = g_bitmap_cache.find(id);
+    if (it != g_bitmap_cache.end()) {
+        delete it->second;
+        g_bitmap_cache.erase(it);
+    }
+}
+
+void _os_bitmap_free_all() noexcept
+{
+    for (auto& kv : g_bitmap_cache)
+        delete kv.second;
+    g_bitmap_cache.clear();
+}
 
 /* -------------------------------------------------------------------------- */
 
@@ -364,8 +402,46 @@ int os_plotimage_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
     WCHAR wsfname[2048] = { 0 };
     mbstowcs(wsfname, filename.c_str(), sizeof(wsfname) / sizeof(WCHAR));
     Image image(wsfname);
-    const auto status = graphics.DrawImage(&image, x, y);
-    return status != Status::Ok ? 0 : GetLastError();
+    if (image.GetLastStatus() != Status::Ok)
+        throw std::runtime_error("PlotImage: cannot load '" + filename + "'");
+    graphics.DrawImage(&image, x, y);
+    return 0;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+int os_bitmapdraw_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
+{
+    if (nu::_os_get_screen_mode() == 0)
+        return 0;
+    (void)ctx;
+    enum { ID, X, Y, NARGS };
+    if (args.size() != NARGS)
+        return EINVAL;
+    const int id = static_cast<int>(args[ID].to_int());
+    const int x = static_cast<int>(args[X].to_int());
+    const int y = static_cast<int>(args[Y].to_int());
+    auto it = g_bitmap_cache.find(id);
+    if (it == g_bitmap_cache.end())
+        throw std::runtime_error(
+            "BitmapDraw: invalid bitmap ID " + std::to_string(id));
+    gdi_ctx_t gdi_ctx(0, gdi_ctx_t::NO_BRUSH, 0, 1);
+    Graphics graphics(gdi_ctx.get_hdc());
+    graphics.DrawImage(it->second, x, y);
+    return 0;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+int os_bitmapfree_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
+{
+    (void)ctx;
+    if (args.size() != 1)
+        return EINVAL;
+    _os_bitmap_free(static_cast<int>(args[0].to_int()));
+    return 0;
 }
 
 
@@ -562,9 +638,12 @@ HWND nu::get_gdi_target_window() { return g_custom_console_hwnd; }
 #include "nu_stb_image.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <stdexcept>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <unistd.h>
+#include <unordered_map>
 
 
 /* -------------------------------------------------------------------------- */
@@ -867,6 +946,23 @@ public:
     }
 
 
+    // Draw pre-loaded (and R/B-swapped) pixel data without taking ownership.
+    void drawimage_cached(unsigned char* pixels, int w, int h, int x, int y)
+    {
+        if (!_display || !pixels)
+            return;
+        XImage* xi = XCreateImage(_display,
+            DefaultVisual(_display, DefaultScreen(_display)),
+            DefaultDepth(_display, DefaultScreen(_display)), ZPixmap, 0,
+            (char*)pixels, w, h, 32, 0);
+        if (xi) {
+            XPutImage(_display, _xterm_win, _gc, xi, 0, 0, x, y, w, h);
+            xi->data = nullptr; // prevent XDestroyImage from freeing our cache
+            XDestroyImage(xi);
+        }
+    }
+
+
     ~gdi_ctx_t()
     {
         if (_display) {
@@ -886,6 +982,54 @@ public:
         }
     }
 };
+
+
+/* -------------------------------------------------------------------------- */
+/* Bitmap cache — loaded once, drawn many times (Linux/X11)                  */
+/* -------------------------------------------------------------------------- */
+
+struct linux_cached_bitmap_t {
+    unsigned char* pixels = nullptr;
+    int w = 0;
+    int h = 0;
+};
+
+static std::unordered_map<int, linux_cached_bitmap_t> g_bitmap_cache;
+static int g_next_bitmap_id = 1;
+
+int _os_bitmap_load(const std::string& filename) noexcept
+{
+    int w = 0, h = 0;
+    unsigned char* pixels = nu::image_load(filename.c_str(), w, h);
+    if (!pixels)
+        return 0;
+    // Pre-swap R/B so drawimage_cached can use data directly.
+    const size_t sz = static_cast<size_t>(w * h);
+    for (size_t i = 0; i < sz; ++i) {
+        const auto tmp = pixels[i << 2];
+        pixels[i << 2] = pixels[(i << 2) + 2];
+        pixels[(i << 2) + 2] = tmp;
+    }
+    const int id = g_next_bitmap_id++;
+    g_bitmap_cache[id] = { pixels, w, h };
+    return id;
+}
+
+void _os_bitmap_free(int id) noexcept
+{
+    auto it = g_bitmap_cache.find(id);
+    if (it != g_bitmap_cache.end()) {
+        nu::image_free(it->second.pixels);
+        g_bitmap_cache.erase(it);
+    }
+}
+
+void _os_bitmap_free_all() noexcept
+{
+    for (auto& kv : g_bitmap_cache)
+        nu::image_free(kv.second.pixels);
+    g_bitmap_cache.clear();
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -1144,6 +1288,40 @@ int os_plotimage_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
     std::string filename = args[FNAME].to_str();
 
     return gdi_ctx.plotimage(filename, x, y);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+int os_bitmapdraw_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
+{
+    (void)ctx;
+    enum { ID, X, Y, NARGS };
+    if (args.size() != NARGS)
+        return EINVAL;
+    const int id = static_cast<int>(args[ID].to_int());
+    const int x = static_cast<int>(args[X].to_int());
+    const int y = static_cast<int>(args[Y].to_int());
+    auto it = g_bitmap_cache.find(id);
+    if (it == g_bitmap_cache.end())
+        throw std::runtime_error(
+            "BitmapDraw: invalid bitmap ID " + std::to_string(id));
+    gdi_ctx_t gdi_ctx(0, gdi_ctx_t::NO_BRUSH, 0, 1);
+    gdi_ctx.drawimage_cached(
+        it->second.pixels, it->second.w, it->second.h, x, y);
+    return 0;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+int os_bitmapfree_t::operator()(rt_prog_ctx_t& ctx, gdi_vargs_t args)
+{
+    (void)ctx;
+    if (args.size() != 1)
+        return EINVAL;
+    _os_bitmap_free(static_cast<int>(args[0].to_int()));
+    return 0;
 }
 
 

@@ -26,6 +26,13 @@ Const Plane$="plane.bmp"
 Const PlaneUp$="planeup.bmp"
 Const PlaneDown$="planedown.bmp"
 
+' Bitmap handles (loaded once, drawn many times)
+Dim bmpSkyLine as Integer
+Dim bmpSun as Integer
+Dim bmpPlane as Integer
+Dim bmpPlaneUp as Integer
+Dim bmpPlaneDown as Integer
+
 Const KeyRight$="m"
 Const KeyLeft$="n"
 Const KeyUp$="a"
@@ -50,87 +57,99 @@ End Sub
 
 ' ------------------------------------------------------------------------------
 
-Sub DrawScene(x as Integer, x_plane as Integer, y_plane as Integer, pt as String)  
-   If x mod 100 = 0 Then FillRect 0, 0, 800, 300, SkyColor%
+Sub DrawScene(x As Integer, x_plane As Integer, y_plane As Integer, bmpPlane_id As Integer)
+    If x Mod 100 = 0 Then FillRect 0, 0, 800, 300, SkyColor%
 
-   PlotImage SkyLineBmp$, -x,SkyLineHeight%
-   PlotImage SkyLineBmp$, -x+SkyLineWidth%,SkyLineHeight%
-   PlotImage pt, 80+x_plane,y_plane
-   PlotImage SunBmp$, SunXPos%, SunYPos%
+   BitmapDraw bmpSkyLine, -x, SkyLineHeight%
+   BitmapDraw bmpSkyLine, -x + SkyLineWidth%, SkyLineHeight%
+   BitmapDraw bmpPlane_id, 80 + x_plane, y_plane
+   BitmapDraw bmpSun, SunXPos%, SunYPos%
 
-   TextOut HelpTextXPos%, HelpTextYPos%, HelpText$, rgb(255,255,255)
-   
+   TextOut HelpTextXPos%, HelpTextYPos%, HelpText$, rgb(255, 255, 255)
+
 End Sub
 
 
 ' ------------------------------------------------------------------------------
 
 Sub Run()
-   DrawSky
-   Dim y as Integer  
-   Dim x as Integer
-   Dim xp as Integer
-   Dim auto_x as Integer
-   Dim auto_realign as Integer
-   Dim pt as String
-   pt = "plane.bmp"
+    ' Load all bitmaps into cache once
+    bmpSkyLine = BitmapLoad(SkyLineBmp$)
+    bmpSun = BitmapLoad(SunBmp$)
+    bmpPlane = BitmapLoad(Plane$)
+    bmpPlaneUp = BitmapLoad(PlaneUp$)
+    bmpPlaneDown = BitmapLoad(PlaneDown$)
 
-   While true
+    DrawSky()
+    Dim y As Integer
+    Dim x As Integer
+    Dim xp As Integer
+    Dim auto_x As Integer
+    Dim auto_realign As Integer
+    Dim cur_bmp As Integer
+    cur_bmp = bmpPlane
 
-      For x = 0 to 2940
+    While True
 
-         a$=InKey()
+        For x = 0 To 2940
 
-         if a$=QuitKey$ then Exit Sub
+            a$ = InKey()
 
-         If a$=KeyDown$ And y<yLQuote% Then y=y+1
-         If a$=KeyUp$ And y>yHQuote% Then y=y-1
-         If a$=KeyRight$ And xp<XRange% Then xp=xp+1
-         If a$=KeyLeft$ And xp>(-XRange%) Then xp=xp-1
+            If a$ = QuitKey$ Then Exit Sub
 
-         If Len(a$)=0 Then
-            auto_x=auto_x+1
-            If auto_x>2*XRange% And xp>0 Then 
-               xp=xp-1
+            If a$ = KeyDown$ And y < yLQuote% Then y = y + 1
+            If a$ = KeyUp$ And y > yHQuote% Then y = y - 1
+            If a$ = KeyRight$ And xp < XRange% Then xp = xp + 1
+            If a$ = KeyLeft$ And xp > (-XRange%) Then xp = xp - 1
+
+            If Len(a$) = 0 Then
+                auto_x = auto_x + 1
+                If auto_x > 2 * XRange% And xp > 0 Then
+                    xp = xp - 1
+                End If
+
+                If auto_x > 2 * XRange% And xp < 0 Then
+                    xp = xp + 1
+                End If
+
+                If xp = 0 Then
+                    auto_x = 0
+                End If
             End If
- 
-            If auto_x>2*XRange% And xp<0 Then
-               xp=xp+1
-            End If    
 
-            If xp=0 Then
-               auto_x = 0 
-            End If
-         End If
-         
-         If auto_realign>0 Then
+            If auto_realign > 0 Then
 
-            auto_realign=auto_realign-1
+                auto_realign = auto_realign - 1
 
-            If auto_realign=0 Then
-               pt=Plane$
+                If auto_realign = 0 Then
+                    cur_bmp = bmpPlane
+                End If
+
             End If
 
-         End If
-         
+            If a$ = KeyUp$ Then
+                cur_bmp = bmpPlaneUp
+                auto_realign = AutoRealign%
+            End If
 
-         If a$=KeyUp$ Then 
-            pt = PlaneUp$
-            auto_realign = AutoRealign%
-         End If
+            If a$ = KeyDown$ Then
+                cur_bmp = bmpPlaneDown
+                auto_realign = AutoRealign%
+            End If
 
-         If a$=KeyDown$ Then 
-            pt = PlaneDown$
-            auto_realign = AutoRealign%
-         End If
-         
-     
-         ScreenLock
-         DrawScene x, xp, y, pt
+            ScreenLock
+            DrawScene x, xp, y, cur_bmp
          ScreenUnlock
-      Next x
+        Next x
    Wend
-   
+
+   ' Release cached bitmaps
+   BitmapFree bmpSkyLine
+   BitmapFree bmpSun
+   BitmapFree bmpPlane
+   BitmapFree bmpPlaneUp
+   BitmapFree bmpPlaneDown
+
 End Sub
 
 

@@ -12,6 +12,7 @@
 ' -----------------------------------------------------------------------------
 
 Dim Board$(3)
+Dim bmpBg as Integer
 
 player_cnt% = 0
 computer_cnt% = 0
@@ -26,12 +27,13 @@ computerScore% = 0
 playerScore% = 0
 
 ' Call MainLoop
+bmpBg = BitmapLoad("bg.bmp")
 MainLoop
 
 ' -----------------------------------------------------------------------------
 
 Sub DrawBackgroundImage()
-   PlotImage "bg.bmp", 0,0
+   BitmapDraw bmpBg, 0, 0
 End Sub
 
 

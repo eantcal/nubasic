@@ -16,6 +16,7 @@ Dim bg_board$(30)
 Dim fg_board$(30)
 Dim preview_board$(4)
 Dim color%(16)
+Dim bmpBg as Integer
 
 board_offset_x% = 10
 board_offset_y% = 10
@@ -84,13 +85,15 @@ End Sub
 ' -----------------------------------------------------------------------------
 Sub DrawBackground()
 ' -----------------------------------------------------------------------------
-   PlotImage "nutetrisbg.bmp", 0,0
+   BitmapDraw bmpBg, 0, 0
 End Sub
 
 
 ' -----------------------------------------------------------------------------
 Sub SetupGame()
 ' -----------------------------------------------------------------------------
+   bmpBg = BitmapLoad("nutetrisbg.bmp")
+
    Cls
 
    SetupColors

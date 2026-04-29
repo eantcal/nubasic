@@ -377,6 +377,31 @@ stmt_t::handle_t statement_parser_t::parse_let(
             identifier, ctx);
     }
 
+    // SubName() or SubName(arg, ...) without assignment: Sub call with parens.
+    // Distinguishes from Array(i) = val which has a top-level '='.
+    if (token.type() == tkncl_t::SUBEXP_BEGIN && !has_top_level_assign(tl)) {
+        --tl; // consume '('
+        remove_blank(tl);
+
+        if (!tl.empty() && tl.begin()->type() == tkncl_t::SUBEXP_END) {
+            --tl; // Sub() — no args
+            return stmt_t::handle_t(
+                std::make_shared<stmt_call_t>(identifier, ctx));
+        }
+
+        if (!tl.empty() && tl.rbegin()->type() == tkncl_t::SUBEXP_END) {
+            tl--; // strip trailing ')'
+        }
+
+        token = *tl.begin();
+        return parse_arg_list<stmt_call_t, 0>(
+            ctx, token, tl,
+            [](const token_t& t) {
+                return t.type() == tkncl_t::OPERATOR && t.identifier() == ",";
+            },
+            identifier, ctx);
+    }
+
     token_list_t vect_etl;
     expr_any_t::handle_t variable_vector_index
         = parse_sub_expr(ctx, token, tl, vect_etl);
@@ -883,8 +908,8 @@ stmt_t::handle_t statement_parser_t::parse_procedure(
             // Sub vs Function
             const bool ov_is_func = ctx.function_tbl.count(id) > 0;
             const bool bs_is_func = ctx.function_tbl.count(found_key) > 0;
-            syntax_error_if(ov_is_func != bs_is_func,
-                token.expression(), token.position(),
+            syntax_error_if(ov_is_func != bs_is_func, token.expression(),
+                token.position(),
                 "'" + id + "': cannot override "
                     + (bs_is_func ? "Function" : "Sub") + " with "
                     + (ov_is_func ? "Function" : "Sub"));
@@ -898,14 +923,13 @@ stmt_t::handle_t statement_parser_t::parse_procedure(
                 const func_prototype_t& bp = bs_it->second.second;
 
                 // Return type
-                syntax_error_if(op.ret_type != bp.ret_type,
-                    token.expression(), token.position(),
+                syntax_error_if(op.ret_type != bp.ret_type, token.expression(),
+                    token.position(),
                     "'" + id + "': return type '" + op.ret_type
                         + "' does not match base '" + bp.ret_type + "'");
 
                 // Parameter count
-                syntax_error_if(
-                    op.parameters.size() != bp.parameters.size(),
+                syntax_error_if(op.parameters.size() != bp.parameters.size(),
                     token.expression(), token.position(),
                     "'" + id + "': parameter count "
                         + std::to_string(op.parameters.size())
@@ -921,13 +945,11 @@ stmt_t::handle_t statement_parser_t::parse_procedure(
                         token.expression(), token.position(),
                         "'" + id + "': parameter " + std::to_string(pidx)
                             + " type '" + oit->type_name
-                            + "' does not match base '" + bit->type_name
-                            + "'");
+                            + "' does not match base '" + bit->type_name + "'");
                     syntax_error_if(oit->by_ref != bit->by_ref,
                         token.expression(), token.position(),
                         "'" + id + "': parameter " + std::to_string(pidx)
-                            + " is "
-                            + (oit->by_ref ? "ByRef" : "ByVal")
+                            + " is " + (oit->by_ref ? "ByRef" : "ByVal")
                             + " but base declares it "
                             + (bit->by_ref ? "ByRef" : "ByVal"));
                 }
@@ -1000,6 +1022,16 @@ stmt_t::handle_t statement_parser_t::parse_stmt(
 
     if (identifier == "plotimage") {
         return parse_generic_instruction<stmt_plotimage_t>(ctx, token, tl, ctx);
+    }
+
+    if (identifier == "bitmapdraw") {
+        return parse_generic_instruction<stmt_bitmapdraw_t>(
+            ctx, token, tl, ctx);
+    }
+
+    if (identifier == "bitmapfree") {
+        return parse_generic_instruction<stmt_bitmapfree_t>(
+            ctx, token, tl, ctx);
     }
 
     if (identifier == "line") {

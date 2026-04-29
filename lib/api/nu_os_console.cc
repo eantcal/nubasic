@@ -94,8 +94,9 @@ namespace {
 /* -------------------------------------------------------------------------- */
 
 // Screen mode:
-//   0 = text/hybrid — I/O via real Windows console (headless-safe, for tests)
-//   1 = GDI console  — I/O and graphics through the custom GDI window (default)
+//   0 = graphics disabled — GDI draw calls are no-ops; I/O routing depends on
+//       whether the GDI window is active (see use_stdio())
+//   1 = graphics enabled  — I/O and graphics through the custom GDI window
 static int g_screen_mode = 1;
 static int g_hybrid_stdio = 0;
 
@@ -104,7 +105,18 @@ int _os_get_screen_mode() { return g_screen_mode; }
 void _os_set_hybrid_stdio(int enabled) { g_hybrid_stdio = enabled ? 1 : 0; }
 int _os_get_hybrid_stdio() { return g_hybrid_stdio; }
 
-static bool use_stdio() { return g_hybrid_stdio || g_screen_mode == 0; }
+static bool use_stdio()
+{
+    // Hybrid mode: always use real stdio (piped stdin/stdout from the host).
+    if (g_hybrid_stdio)
+        return true;
+    // GDI-only mode: even if SCREEN 0 was called (g_screen_mode == 0), keep
+    // I/O through the GDI window — there is no real console stdin available.
+    if (nu_winconsole_is_active())
+        return false;
+    // Text-only mode (no GDI window): use real stdio.
+    return g_screen_mode == 0;
+}
 
 
 /* -------------------------------------------------------------------------- */

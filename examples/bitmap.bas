@@ -19,4 +19,11 @@ End If
 
 Close #1
 
-PlotImage file$, 0, 0
+Dim bmp as Integer
+bmp = BitmapLoad(file$)
+If bmp = 0 Then
+   MsgBox "Error", "Cannot load " + file$
+   End
+End If
+BitmapDraw bmp, 0, 0
+BitmapFree bmp

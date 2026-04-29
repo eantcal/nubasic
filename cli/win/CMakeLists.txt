@@ -30,6 +30,9 @@ add_executable(nuBasicGDI WIN32
 
 set_target_properties(nuBasicGDI PROPERTIES OUTPUT_NAME "nubasicgdi")
 
+set_source_files_properties(nuBasicCLI.rc PROPERTIES
+    COMPILE_FLAGS "/I \"${CMAKE_SOURCE_DIR}/ide/win\"")
+
 target_compile_features(nuBasicGDI PRIVATE cxx_std_20)
 
 target_include_directories(nuBasicGDI PRIVATE
