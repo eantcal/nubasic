@@ -273,6 +273,64 @@ try {
         -CompletionPattern '@@nubasic event="ok"' `
         -Description "step mode disable"
 
+    $stepModesLoadOutput = Send-Command -Command 'load "test_debugger_step_modes.bas"' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "LOAD completion for step mode contracts"
+    if ($stepModesLoadOutput -notmatch '@@nubasic event="ok"') {
+        throw "Step mode LOAD did not complete successfully."
+    }
+
+    $null = Send-Command -Command 'clrbrk' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "ClrBrk completion before stepover contract"
+
+    $null = Send-Command -Command 'break 3' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "stepover breakpoint creation"
+
+    $stepOverRunOutput = Send-Command -Command 'run' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "stepover RUN breakpoint stop"
+    if ($stepOverRunOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="breakpoint"[^\r\n]*line="3"') {
+        throw "StepOver setup did not stop on line 3.`nOutput:`n$stepOverRunOutput"
+    }
+
+    $stepOverOutput = Send-Command -Command 'stepover' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "stepover stop after procedure call"
+    if ($stepOverOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="4"') {
+        throw "StepOver did not stop on line 4 after the procedure call.`nOutput:`n$stepOverOutput"
+    }
+
+    $stepOutLoadOutput = Send-Command -Command 'load "test_debugger_step_modes.bas"' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "LOAD completion for stepout contract"
+    if ($stepOutLoadOutput -notmatch '@@nubasic event="ok"') {
+        throw "StepOut LOAD did not complete successfully."
+    }
+
+    $null = Send-Command -Command 'clrbrk' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "ClrBrk completion before stepout contract"
+
+    $null = Send-Command -Command 'break 8' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "stepout breakpoint creation"
+
+    $stepOutRunOutput = Send-Command -Command 'run' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "stepout RUN breakpoint stop"
+    if ($stepOutRunOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="breakpoint"[^\r\n]*line="8"') {
+        throw "StepOut setup did not stop inside Foo on line 8.`nOutput:`n$stepOutRunOutput"
+    }
+
+    $stepOutOutput = Send-Command -Command 'stepout' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "stepout stop in caller"
+    if ($stepOutOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="4"') {
+        throw "StepOut did not stop on line 4 in the caller.`nOutput:`n$stepOutOutput"
+    }
+
     Write-Host ""
     Write-Host "PASS debugger backend contract"
     exit 0

@@ -1242,6 +1242,12 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
     ctx.active_debug_exec = request;
     ctx.active_debug_exec.start_pc = ctx.runtime_pc;
     ctx.active_debug_exec.start_stack_depth = ctx.call_stack.size();
+    if (request.action == debug_exec_action_t::StepOut
+        && !ctx.call_stack.empty()) {
+        ctx.active_debug_exec.target_pc.set(
+            ctx.call_stack.back().call_site_line, 0);
+        ctx.active_debug_exec.has_target_pc = true;
+    }
     ctx.last_debug_stop_reason = debug_stop_reason_t::None;
 
     auto check_break_and_stop = [&]() {
@@ -1286,19 +1292,7 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
         }
     };
 
-    switch (request.action) {
-    case debug_exec_action_t::Continue:
-        continue_from_current_pc();
-
-        while (!ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST]
-            && !ctx.debug_pending_returns.empty() && !is_breakpoint_active()
-            && !is_stop_stmt_line()) {
-            continue_from_current_pc();
-        }
-
-        return check_break_and_stop();
-
-    case debug_exec_action_t::StepInto: {
+    auto execute_step_into_once = [&]() {
         const auto prev_step_mode = ctx.step_mode_active;
         const auto prev_entry_step = ctx.step_break_on_entry_pending;
 
@@ -1334,15 +1328,78 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
         }
 
         return check_break_and_stop();
+    };
+
+    auto should_keep_stepping_over = [&]() {
+        return get_last_debug_stop_reason() == debug_stop_reason_t::Step
+            && ctx.call_stack.size() > ctx.active_debug_exec.start_stack_depth;
+    };
+
+    auto should_keep_stepping_out = [&]() {
+        if (ctx.active_debug_exec.start_stack_depth == 0)
+            return false;
+
+        return get_last_debug_stop_reason() == debug_stop_reason_t::Step
+            && ctx.call_stack.size() >= ctx.active_debug_exec.start_stack_depth;
+    };
+
+    auto stopped_again_on_start_breakpoint = [&](exec_res_t res) {
+        return res == exec_res_t::BREAKPOINT
+            && ctx.runtime_pc.get_line()
+            == ctx.active_debug_exec.start_pc.get_line();
+    };
+
+    auto stopped_on_stepout_call_site = [&](exec_res_t res) {
+        return res == exec_res_t::STOP_REQ
+            && get_last_debug_stop_reason() == debug_stop_reason_t::Step
+            && ctx.active_debug_exec.has_target_pc
+            && ctx.runtime_pc.get_line()
+            == ctx.active_debug_exec.target_pc.get_line();
+    };
+
+    switch (request.action) {
+    case debug_exec_action_t::Continue:
+        continue_from_current_pc();
+
+        while (!ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST]
+            && !ctx.debug_pending_returns.empty() && !is_breakpoint_active()
+            && !is_stop_stmt_line()) {
+            continue_from_current_pc();
+        }
+
+        return check_break_and_stop();
+
+    case debug_exec_action_t::StepInto:
+        return execute_step_into_once();
+
+    case debug_exec_action_t::StepOver: {
+        auto res = execute_step_into_once();
+
+        while ((res == exec_res_t::STOP_REQ && should_keep_stepping_over())
+            || stopped_again_on_start_breakpoint(res)) {
+            res = execute_step_into_once();
+        }
+
+        return res;
     }
 
-    case debug_exec_action_t::StepOver:
-    case debug_exec_action_t::StepOut:
+    case debug_exec_action_t::StepOut: {
+        if (ctx.active_debug_exec.start_stack_depth == 0)
+            return debug_continue();
+
+        auto res = execute_step_into_once();
+
+        while ((res == exec_res_t::STOP_REQ && should_keep_stepping_out())
+            || stopped_again_on_start_breakpoint(res)
+            || stopped_on_stepout_call_site(res)) {
+            res = execute_step_into_once();
+        }
+
+        return res;
+    }
+
     case debug_exec_action_t::RunToCursor:
-        // First pass: expose the typed model without changing semantics. These
-        // actions will get distinct stop predicates in the next pass.
-        return debug_exec(
-            debug_exec_request_t{ debug_exec_action_t::StepInto });
+        return exec_res_t::SYNTAX_ERROR;
 
     case debug_exec_action_t::Pause:
         ctx.flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, true);
@@ -1367,6 +1424,22 @@ interpreter_t::exec_res_t interpreter_t::debug_continue()
 interpreter_t::exec_res_t interpreter_t::debug_step_into()
 {
     return debug_exec(debug_exec_request_t{ debug_exec_action_t::StepInto });
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+interpreter_t::exec_res_t interpreter_t::debug_step_over()
+{
+    return debug_exec(debug_exec_request_t{ debug_exec_action_t::StepOver });
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+interpreter_t::exec_res_t interpreter_t::debug_step_out()
+{
+    return debug_exec(debug_exec_request_t{ debug_exec_action_t::StepOut });
 }
 
 
@@ -1765,6 +1838,14 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
         if (cmd == "step" || cmd == "stepinto") {
             return debug_step_into();
+        }
+
+        if (cmd == "stepover" || cmd == "next") {
+            return debug_step_over();
+        }
+
+        if (cmd == "stepout") {
+            return debug_step_out();
         }
 
         if (cmd == "cont") {

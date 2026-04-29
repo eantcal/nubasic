@@ -375,7 +375,7 @@ INCLUDE(CPack)
 if(WIN32 AND MSVC)
   # Collect the targets that must be built before packaging.
   set(_installer_deps "")
-  foreach(_t nuBasicIDE nuBasicCLI nuBasicGDI SciLexer)
+  foreach(_t nuBasicIDE nuBasicCLI nuBasicDebugCLI nuBasicGDI SciLexer)
     if(TARGET ${_t})
       list(APPEND _installer_deps ${_t})
     endif()
@@ -547,6 +547,13 @@ else()
     set(_vsix_verify bash -c "test -f '${_vsix}'")
   endif()
 
+  set(_vscode_extension_deps "")
+  foreach(_t nuBasicCLI nuBasicDebugCLI nubasic nubasicdebug)
+    if(TARGET ${_t})
+      list(APPEND _vscode_extension_deps ${_t})
+    endif()
+  endforeach()
+
   # Bundle the pre-built VSIX and its platform-specific install helper.
   install(FILES "${_vsix}"
           DESTINATION bin OPTIONAL COMPONENT VSCodeExtension)
@@ -570,6 +577,7 @@ else()
     COMMAND ${_vsix_packager}
     COMMAND ${_vsix_verify}
     WORKING_DIRECTORY "${_ext_dir}"
+    DEPENDS ${_vscode_extension_deps}
     COMMENT "Building VS Code extension (vscode-nubasic)..."
     VERBATIM
   )

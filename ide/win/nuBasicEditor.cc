@@ -52,7 +52,7 @@ static void save_settings(HWND hWnd);
 namespace nu {
 LRESULT CALLBACK HSplitterWndProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK VSplitterWndProc(HWND, UINT, WPARAM, LPARAM);
-}
+} // namespace nu
 
 
 /* -------------------------------------------------------------------------- */
@@ -102,8 +102,8 @@ namespace editor {
                   NULL, (INT_PTR) "Run" },
               { 4, IDM_DEBUG_STOP, 0 /*initially disabled*/, toolbar_btn_style,
                   { 0 }, NULL, (INT_PTR) "Stop" },
-              { 5, IDM_DEBUG_STEP, toolbar_btn_state, toolbar_btn_style, { 0 },
-                  NULL, (INT_PTR) "Step" },
+              { 5, IDM_DEBUG_STEP_INTO, toolbar_btn_state, toolbar_btn_style,
+                  { 0 }, NULL, (INT_PTR) "Step Into" },
               { 6, IDM_DEBUG_CONT, toolbar_btn_state, toolbar_btn_style, { 0 },
                   NULL, (INT_PTR) "Continue" },
               { 7, IDM_DEBUG_TOGGLEBRK, toolbar_btn_state, toolbar_btn_style,
@@ -1522,7 +1522,9 @@ public:
     enum class dbg_flg_t {
         NORMAL_EXECUTION,
         CONTINUE_EXECUTION = 1,
-        SINGLE_STEP_EXECUTION = 2
+        STEP_INTO_EXECUTION = 2,
+        STEP_OVER_EXECUTION = 3,
+        STEP_OUT_EXECUTION = 4
     };
 
     /**
@@ -1540,16 +1542,31 @@ public:
      */
     void continue_debugging()
     {
-        start_debugging(dbg_flg_t::CONTINUE_EXECUTION);
+        start_debugging(_last_debug_stop == debug_stop_t::PAUSED
+                ? dbg_flg_t::CONTINUE_EXECUTION
+                : dbg_flg_t::NORMAL_EXECUTION);
     }
 
     /**
-     * Continue one statement
+     * Continue into the next statement, entering calls.
      */
-    void singlestep_debugging()
+    void stepinto_debugging()
     {
-        start_debugging(dbg_flg_t::SINGLE_STEP_EXECUTION);
+        start_debugging(dbg_flg_t::STEP_INTO_EXECUTION);
     }
+
+    /**
+     * Continue over the current statement, skipping calls.
+     */
+    void stepover_debugging()
+    {
+        start_debugging(dbg_flg_t::STEP_OVER_EXECUTION);
+    }
+
+    /**
+     * Continue until the current procedure returns.
+     */
+    void stepout_debugging() { start_debugging(dbg_flg_t::STEP_OUT_EXECUTION); }
 
     /**
      * Evaluate selection
@@ -1610,7 +1627,10 @@ public:
     HWND get_splitter_handle() const noexcept { return _h_splitter; }
     HWND get_vsplitter_handle() const noexcept { return _hwnd_vsplitter; }
 
-    const std::string& get_project_name() const noexcept { return _project_name; }
+    const std::string& get_project_name() const noexcept
+    {
+        return _project_name;
+    }
 
     int get_split_height() const noexcept { return _editor_split_height; }
     void set_split_height(int h) noexcept { _editor_split_height = h; }
@@ -1901,9 +1921,8 @@ void nu::editor_t::create_vsplitter(HWND hWnd)
 
     RegisterClassEx(&wcex);
 
-    _hwnd_vsplitter = CreateWindow(TEXT("VSPLITTER_WND_CLASS"), NULL,
-        WS_CHILD, 0, 0, CW_USEDEFAULT, CW_USEDEFAULT, hWnd,
-        (HMENU)IDD_VSPLITTER,
+    _hwnd_vsplitter = CreateWindow(TEXT("VSPLITTER_WND_CLASS"), NULL, WS_CHILD,
+        0, 0, CW_USEDEFAULT, CW_USEDEFAULT, hWnd, (HMENU)IDD_VSPLITTER,
         get_instance_handle(), NULL);
 }
 
@@ -2024,8 +2043,10 @@ void nu::editor_t::resize_info(int editor_tenth)
         = _hwnd_file_tree != nullptr && !_project_name.empty();
     const int min_tree_w = 60;
     const int max_tree_w = (rc.right - rc.left) / 2;
-    if (_tree_panel_width < min_tree_w) _tree_panel_width = min_tree_w;
-    if (_tree_panel_width > max_tree_w && max_tree_w > min_tree_w) _tree_panel_width = max_tree_w;
+    if (_tree_panel_width < min_tree_w)
+        _tree_panel_width = min_tree_w;
+    if (_tree_panel_width > max_tree_w && max_tree_w > min_tree_w)
+        _tree_panel_width = max_tree_w;
     const int vsplit_w = SPLIT_BAR_WIDTH;
     const int tree_w = tree_visible ? _tree_panel_width : 0;
     const int vsplit_total = tree_visible ? tree_w + vsplit_w : 0;
@@ -2041,9 +2062,8 @@ void nu::editor_t::resize_info(int editor_tenth)
 
     if (_hwnd_vsplitter) {
         if (tree_visible) {
-            ::SetWindowPos(_hwnd_vsplitter, HWND_TOP,
-                rc.left + tree_w, rc.top + dy,
-                vsplit_w, rc.bottom - rc.top - dy, SWP_SHOWWINDOW);
+            ::SetWindowPos(_hwnd_vsplitter, HWND_TOP, rc.left + tree_w,
+                rc.top + dy, vsplit_w, rc.bottom - rc.top - dy, SWP_SHOWWINDOW);
         } else {
             ::ShowWindow(_hwnd_vsplitter, SW_HIDE);
         }
@@ -2973,8 +2993,22 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
     case dbg_flg_t::CONTINUE_EXECUTION:
         exec_interpreter_cmd("cont", true);
         break;
-    case dbg_flg_t::SINGLE_STEP_EXECUTION:
-        exec_interpreter_cmd("step", true);
+    case dbg_flg_t::STEP_INTO_EXECUTION:
+        exec_interpreter_cmd("stepinto", true);
+        if (_last_debug_stop == debug_stop_t::COMPLETED
+            && interpreter().get_cur_line_n() != line_before) {
+            _last_debug_stop = debug_stop_t::PAUSED;
+        }
+        break;
+    case dbg_flg_t::STEP_OVER_EXECUTION:
+        exec_interpreter_cmd("stepover", true);
+        if (_last_debug_stop == debug_stop_t::COMPLETED
+            && interpreter().get_cur_line_n() != line_before) {
+            _last_debug_stop = debug_stop_t::PAUSED;
+        }
+        break;
+    case dbg_flg_t::STEP_OUT_EXECUTION:
+        exec_interpreter_cmd("stepout", true);
         if (_last_debug_stop == debug_stop_t::COMPLETED
             && interpreter().get_cur_line_n() != line_before) {
             _last_debug_stop = debug_stop_t::PAUSED;
@@ -3002,23 +3036,25 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
                 const auto& frames = interpreter().get_call_stack();
                 std::vector<tab_container_t::call_stack_frame_t> frame_list;
 
-                auto make_frame = [&](const std::string& fname,
-                    nu::prog_pointer_t::line_number_t prog_line) {
-                    tab_container_t::call_stack_frame_t csf;
-                    csf.func_name = fname;
-                    nu::source_location_t loc;
-                    if (interpreter().try_get_source_location(
-                            prog_line, loc) && loc.is_valid()) {
-                        csf.source_path = interpreter().lookup_source_name(
-                            loc.source_id);
-                        csf.source_file
-                            = std::filesystem::path(csf.source_path)
-                                  .filename().string();
-                        csf.source_line
-                            = static_cast<int>(loc.source_line);
-                    }
-                    return csf;
-                };
+                auto make_frame =
+                    [&](const std::string& fname,
+                        nu::prog_pointer_t::line_number_t prog_line) {
+                        tab_container_t::call_stack_frame_t csf;
+                        csf.func_name = fname;
+                        nu::source_location_t loc;
+                        if (interpreter().try_get_source_location(
+                                prog_line, loc)
+                            && loc.is_valid()) {
+                            csf.source_path = interpreter().lookup_source_name(
+                                loc.source_id);
+                            csf.source_file
+                                = std::filesystem::path(csf.source_path)
+                                      .filename()
+                                      .string();
+                            csf.source_line = static_cast<int>(loc.source_line);
+                        }
+                        return csf;
+                    };
 
                 const auto cur = interpreter().get_cur_line_n();
                 if (!frames.empty()) {
@@ -3026,11 +3062,10 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
                     frame_list.push_back(
                         make_frame(frames.back().func_name, cur));
                     // outer callers
-                    for (int i = static_cast<int>(frames.size()) - 1;
-                         i > 0; --i) {
+                    for (int i = static_cast<int>(frames.size()) - 1; i > 0;
+                        --i) {
                         frame_list.push_back(make_frame(
-                            frames[i - 1].func_name,
-                            frames[i].call_site_line));
+                            frames[i - 1].func_name, frames[i].call_site_line));
                     }
                     // outermost: <main> at line where frames[0] was called
                     frame_list.push_back(
@@ -3128,8 +3163,9 @@ bool nu::editor_t::show_execution_point(int line, COLORREF line_back) noexcept
         line = 1;
     }
 
+    const int program_line = line;
     nu::source_location_t source_location;
-    if (interpreter().try_get_source_location(line, source_location)
+    if (interpreter().try_get_source_location(program_line, source_location)
         && source_location.is_valid()) {
         const auto& source_name
             = interpreter().lookup_source_name(source_location.source_id);
@@ -3143,12 +3179,9 @@ bool nu::editor_t::show_execution_point(int line, COLORREF line_back) noexcept
         line = source_location.source_line;
     }
 
-    const auto endpos
-        = send_command(SCI_GETLINEENDPOSITION, (WPARAM)line - 1, 0) + 1;
-
-    while (!interpreter().has_runnable_stmt(line) && line < endpos) {
-        ++line;
-    }
+    const auto line_count = int(send_command(SCI_GETLINECOUNT, 0, 0));
+    if (line > line_count)
+        line = line_count > 0 ? line_count : 1;
 
     if (send_command(SCI_POSITIONFROMLINE, line - 1, 0) >= 0) {
         const auto l = int(marker_t::LINESELECTION);
@@ -3433,6 +3466,9 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
             g_toolbar->disable(IDM_DEBUG_START);
             g_toolbar->disable(IDM_DEBUG_CONT);
             g_toolbar->disable(IDM_DEBUG_STEP);
+            g_toolbar->disable(IDM_DEBUG_STEP_OVER);
+            g_toolbar->disable(IDM_DEBUG_STEP_INTO);
+            g_toolbar->disable(IDM_DEBUG_STEP_OUT);
             g_toolbar->enable(IDM_DEBUG_STOP);
         }
 
@@ -3549,6 +3585,9 @@ bool nu::editor_t::exec_interpreter_cmd(const std::string& cmd, bool bg_mode)
             g_toolbar->enable(IDM_DEBUG_START);
             g_toolbar->enable(IDM_DEBUG_CONT);
             g_toolbar->enable(IDM_DEBUG_STEP);
+            g_toolbar->enable(IDM_DEBUG_STEP_OVER);
+            g_toolbar->enable(IDM_DEBUG_STEP_INTO);
+            g_toolbar->enable(IDM_DEBUG_STEP_OUT);
             g_toolbar->disable(IDM_DEBUG_STOP);
         }
 
@@ -4247,8 +4286,8 @@ void nu::editor_t::close_project()
 
     if (_is_dirty) {
         const int answer = MessageBoxA(_hwnd_main,
-            "The project has unsaved changes. Close anyway?",
-            "Close Project", MB_YESNO | MB_ICONQUESTION);
+            "The project has unsaved changes. Close anyway?", "Close Project",
+            MB_YESNO | MB_ICONQUESTION);
         if (answer != IDYES)
             return;
     }
@@ -5356,7 +5395,16 @@ void nu::editor_t::exec_command(int id)
         break;
 
     case IDM_DEBUG_STEP:
-        singlestep_debugging();
+    case IDM_DEBUG_STEP_INTO:
+        stepinto_debugging();
+        break;
+
+    case IDM_DEBUG_STEP_OVER:
+        stepover_debugging();
+        break;
+
+    case IDM_DEBUG_STEP_OUT:
+        stepout_debugging();
         break;
 
     case IDM_DEBUG_EVALSEL:
@@ -6366,7 +6414,8 @@ LRESULT CALLBACK VSplitterWndProc(
     switch (Message) {
     case WM_LBUTTONDOWN:
         GetClientWindowRect(g_editor.get_file_tree_hwnd(), old_tree_rect);
-        GetClientWindowRect(g_editor.get_vsplitter_handle(), old_vsplitter_rect);
+        GetClientWindowRect(
+            g_editor.get_vsplitter_handle(), old_vsplitter_rect);
         dx = 0;
         SetCapture(hWnd);
         GetCursorPos(&old_pt);

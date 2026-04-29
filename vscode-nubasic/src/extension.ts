@@ -34,6 +34,8 @@ type PendingCommand = {
     command?: string;
 };
 
+type DebugExecutionCommand = 'cont' | 'stepinto' | 'stepover' | 'stepout';
+
 type SourceLineMaps = {
     editorToBasic: Map<number, number>;
     basicToEditor: Map<number, number>;
@@ -624,14 +626,22 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
 
             case 'continue':
                 this.respond(request, { allThreadsContinued: true });
-                this.continueExecution(false);
+                this.continueExecution('cont');
                 break;
 
             case 'next':
+                this.respond(request);
+                this.continueExecution('stepover');
+                break;
+
             case 'stepIn':
+                this.respond(request);
+                this.continueExecution('stepinto');
+                break;
+
             case 'stepOut':
                 this.respond(request);
-                this.continueExecution(true);
+                this.continueExecution('stepout');
                 break;
 
             case 'pause':
@@ -794,7 +804,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         return !!this.launchArgs?.program && sourceFileUsesGraphics(this.launchArgs.program);
     }
 
-    private async continueExecution(step: boolean) {
+    private async continueExecution(command: DebugExecutionCommand) {
         try {
             if (!this.isStopped) {
                 this.output(
@@ -804,22 +814,14 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
                 return;
             }
 
-            if (!step && this.stepModeEnabled) {
+            if (this.stepModeEnabled) {
                 await this.sendCommand('stoff');
                 this.stepModeEnabled = false;
             }
 
-            if (step) {
-                await this.sendCommand('ston');
-                this.stepModeEnabled = true;
-            }
-
-            const output = await this.sendCommand('cont');
+            const isStep = command !== 'cont';
+            const output = await this.sendCommand(command);
             this.isStopped = false;
-            if (step) {
-                await this.sendCommand('stoff');
-                this.stepModeEnabled = false;
-            }
 
             if (this.hasMachineEvent(output, 'terminated')) {
                 this.event('terminated');
@@ -830,13 +832,13 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             const interrupted = this.hasMachineEvent(output, 'interrupted');
             const stoppedLocation = this.parseStoppedLocation(output);
             const stoppedLine = stoppedLocation.basicLine
-                || (step || interrupted
+                || (isStep || interrupted
                     ? await this.refreshCurrentLine(true)
                     : await this.refreshCurrentLine(true, true));
             if (stoppedLine > 0) {
                 this.applyStoppedLocation(stoppedLine, stoppedLocation);
                 const stopReason = this.parseStoppedReason(output)
-                    || (step ? 'step' : interrupted ? 'pause' : 'breakpoint');
+                    || (isStep ? 'step' : interrupted ? 'pause' : 'breakpoint');
                 this.isStopped = true;
                 this.event('stopped', {
                     reason: stopReason,
@@ -962,7 +964,11 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             return true;
         }
 
-        return /^(run|cont|step)\b/i.test(this.pending.command ?? '');
+        return this.isProgramExecutionCommand(this.pending.command);
+    }
+
+    private isProgramExecutionCommand(command?: string): boolean {
+        return /^(run|cont|step|stepinto|stepover|stepout|next)(?:\s|$)/i.test(command ?? '');
     }
 
     private stripMachineEvents(text: string): string {
@@ -976,7 +982,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         if (!this.pending || this.inputInFlight || !this.process?.stdin.writable) {
             return;
         }
-        if (!/^(run|cont|step)\b/i.test(this.pending.command ?? '')) {
+        if (!this.isProgramExecutionCommand(this.pending.command)) {
             return;
         }
 
