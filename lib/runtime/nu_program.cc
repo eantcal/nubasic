@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cctype>
 #include <iostream>
 #include <memory>
 #include <string.h>
@@ -41,6 +42,49 @@ static std::string procedure_name_from_scope(const std::string& scope_id)
     const auto bracket = scope_id.find('[');
     return bracket == std::string::npos ? scope_id
                                         : scope_id.substr(0, bracket);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+static bool source_line_has_blocking_input(std::string line)
+{
+    bool in_string = false;
+    std::string code;
+    code.reserve(line.size());
+
+    for (const auto ch : line) {
+        if (ch == '"') {
+            in_string = !in_string;
+        } else if (ch == '\'' && !in_string) {
+            break;
+        }
+
+        code += static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+    }
+
+    const auto skip_spaces = [&](size_t pos) {
+        while (pos < code.size()
+            && std::isspace(static_cast<unsigned char>(code[pos]))) {
+            ++pos;
+        }
+        return pos;
+    };
+
+    size_t pos = skip_spaces(0);
+    while (pos < code.size()
+        && std::isdigit(static_cast<unsigned char>(code[pos])))
+        ++pos;
+    pos = skip_spaces(pos);
+
+    if (code.compare(pos, 5, "input") == 0) {
+        const auto next = pos + 5;
+        return next >= code.size()
+            || std::isspace(static_cast<unsigned char>(code[next]))
+            || code[next] == '$';
+    }
+
+    return code.find("input$") != std::string::npos;
 }
 
 
@@ -190,6 +234,7 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
         function_name
             = procedure_name_from_scope(_ctx.proc_scope.get_scope_id());
     }
+    line_num_t debug_function_call_site_line = 0;
 
     if (_function_call) {
         if (using_debug_function_checkpoint) {
@@ -234,7 +279,12 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
     auto check_break_event = [&]() {
         if (break_event()) {
             reset_break_event();
-            _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
+            if (_ctx.debug_mode || _ctx.step_mode_active
+                || _ctx.step_break_on_entry_pending) {
+                _ctx.flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, true);
+            } else {
+                _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
+            }
         }
     };
 
@@ -244,6 +294,11 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
         _ctx.runtime_pc.set(prog_ptr->first, return_stmt_id);
 
         const auto stmt_class = prog_ptr->second.first->get_cl();
+        if (debug_function_call && !_ctx.call_stack.empty()) {
+            debug_function_call_site_line
+                = _ctx.call_stack.back().call_site_line;
+        }
+
         auto& dbg = prog_ptr->second.second;
         const bool debug_checks_active = _ctx.debug_mode
             || _ctx.step_mode_active || _ctx.step_break_on_entry_pending
@@ -300,6 +355,14 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
                 // Reset breakpoint for next stmt execution
                 dbg.break_point = true;
                 dbg.continue_after_break = false;
+            }
+
+            if (!_ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST]
+                && _ctx.should_debug_stop_before_blocking_input()
+                && source_line_has_blocking_input(
+                    _ctx.get_source_line(prog_ptr->first))) {
+                _ctx.debug_stop_before_blocking_input();
+                break;
             }
         }
 
@@ -416,6 +479,10 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
                 checkpoint.function_name = function_name;
                 checkpoint.caller_flag = cp_data.flag;
                 checkpoint.caller_runtime_pc = cp_data.runtime_pc;
+                if (debug_function_call_site_line > 0) {
+                    checkpoint.caller_runtime_pc.set(
+                        debug_function_call_site_line, 0);
+                }
                 checkpoint.caller_goingto_pc = cp_data.goingto_pc;
                 checkpoint.caller_return_stack = cp_data.return_stack;
                 _ctx.debug_function_checkpoints.push_back(checkpoint);

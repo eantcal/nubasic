@@ -99,7 +99,7 @@ try {
         throw "The INPUT$ prelude line was not emitted."
     }
 
-    if ($output -notmatch '@@nubasic event="stopped" reason="stop" line="20"') {
+    if ($output -notmatch '@@nubasic event="stopped" reason="stop" line="3"') {
         throw "The INPUT$ instruction was not reported as a stoppable debug stop."
     }
 

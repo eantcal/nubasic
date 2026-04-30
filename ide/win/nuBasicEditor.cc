@@ -463,7 +463,8 @@ namespace {
     static bool is_debug_execution_command(const std::string& cmd) noexcept
     {
         return cmd == "run" || cmd == "cont" || cmd == "resume" || cmd == "step"
-            || cmd.rfind("run ", 0) == 0;
+            || cmd == "stepinto" || cmd == "stepover" || cmd == "stepout"
+            || cmd == "next" || cmd.rfind("run ", 0) == 0;
     }
 
     static std::string join_lines(
@@ -2970,7 +2971,9 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
         return;
     }
 
-    reset_all_breakpoints();
+    if (!resuming_paused_program) {
+        reset_all_breakpoints();
+    }
     interpreter().set_debug_mode(true);
     remove_prog_cnt_marker();
     _last_debug_stop = debug_stop_t::COMPLETED;

@@ -392,6 +392,17 @@ nu::interpreter_t::exec_res_t exec_command(nu::interpreter_t& basic,
         const auto res = basic.exec_command(command);
         const bool interrupted = basic.get_and_reset_break_event();
 
+        if (interrupted && options.machine_interface
+            && basic.get_debug_mode()) {
+            const auto line = std::max(1, basic.get_cur_line_n());
+            output("Code execution has been interrupted by CTRL+C\n");
+            output("Execution paused, line " + std::to_string(line)
+                + ".\nType 'cont' to continue\n");
+            output(machine_event(
+                "stopped", machine_stop_fields(basic, "pause", line)));
+            return nu::interpreter_t::exec_res_t::STOP_REQ;
+        }
+
         if (interrupted) {
             output("Code execution has been interrupted by CTRL+C\n");
             if (options.machine_interface
@@ -414,8 +425,19 @@ nu::interpreter_t::exec_res_t exec_command(nu::interpreter_t& basic,
             output("Execution stopped at STOP instruction, line "
                 + std::to_string(line) + ".\nType 'cont' to continue\n");
             if (options.machine_interface) {
-                const auto stop_reason
-                    = basic.get_rt_ctx().last_stop_was_step ? "step" : "stop";
+                const auto stop_reason = [&]() {
+                    switch (basic.get_last_debug_stop_reason()) {
+                    case nu::debug_stop_reason_t::Step:
+                        return "step";
+                    case nu::debug_stop_reason_t::Pause:
+                        return "pause";
+                    case nu::debug_stop_reason_t::StopStatement:
+                        return "stop";
+                    default:
+                        return basic.get_rt_ctx().last_stop_was_step ? "step"
+                                                                     : "stop";
+                    }
+                }();
                 output(machine_event(
                     "stopped", machine_stop_fields(basic, stop_reason, line)));
             }

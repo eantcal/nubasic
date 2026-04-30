@@ -198,6 +198,11 @@ public:
     bool consume_debug_pending_return(const std::string& function_name,
         prog_pointer_t::line_number_t call_site_line, variant_t& value);
 
+    bool should_debug_stop_before_blocking_input() const noexcept;
+    void debug_stop_before_blocking_input();
+    std::string get_source_line(
+        prog_pointer_t::line_number_t line) const noexcept;
+
     // Line number where the last breakpoint actually fired while a debug run
     // is suspended.  Cleared at the start of each fresh (non-function-call)
     // _run().

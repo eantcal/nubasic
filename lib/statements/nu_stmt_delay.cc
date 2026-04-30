@@ -43,6 +43,11 @@ static void __stmt_delay_t_run(rt_prog_ctx_t& ctx, arg_list_t& args,
         delay_f(left_intv);
     }
 
+    if (break_event && ctx.debug_mode) {
+        ctx.flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, true);
+        throw debug_suspend_t();
+    }
+
     ctx.go_to_next();
 }
 

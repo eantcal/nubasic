@@ -460,14 +460,17 @@ function buildSourceLineMaps(programPath: string): SourceLineMaps {
     try {
         const text = fs.readFileSync(programPath, 'utf8');
         const lines = text.split(/\r?\n/);
+        const shebangOffset = lines.length > 0 && lines[0].startsWith('#!') ? 1 : 0;
 
         for (let i = 0; i < lines.length; ++i) {
             const editorLine = i + 1;
             const match = lines[i].match(/^\s*(\d+)(?:\s|$)/);
-            const basicLine = match ? Number(match[1]) : editorLine;
+            const basicLine = match
+                ? Number(match[1])
+                : Math.max(1, editorLine - shebangOffset);
 
             editorToBasic.set(editorLine, basicLine);
-            if (!basicToEditor.has(basicLine)) {
+            if (editorLine > shebangOffset && !basicToEditor.has(basicLine)) {
                 basicToEditor.set(basicLine, editorLine);
             }
         }
@@ -740,8 +743,8 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
                 this.stepModeEnabled = true;
             }
 
-            const output = await this.sendCommand('run');
             this.isStopped = false;
+            const output = await this.sendCommand('run');
             if (this.hasMachineEvent(output, 'terminated')) {
                 this.event('terminated');
                 this.shutdown();
@@ -820,8 +823,8 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             }
 
             const isStep = command !== 'cont';
-            const output = await this.sendCommand(command);
             this.isStopped = false;
+            const output = await this.sendCommand(command);
 
             if (this.hasMachineEvent(output, 'terminated')) {
                 this.event('terminated');
@@ -874,6 +877,10 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
 
         if (!this.process || this.process.killed || !this.process.stdin.writable) {
             this.output('nuBASIC is not running.\n', 'stderr');
+            return;
+        }
+
+        if (this.isStopped && !this.pending) {
             return;
         }
 

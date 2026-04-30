@@ -188,6 +188,49 @@ bool rt_prog_ctx_t::consume_debug_pending_return(
 
 /* -------------------------------------------------------------------------- */
 
+bool rt_prog_ctx_t::should_debug_stop_before_blocking_input() const noexcept
+{
+    if (!debug_mode)
+        return false;
+
+    if (!step_mode_active
+        && active_debug_exec.action != debug_exec_action_t::StepInto
+        && active_debug_exec.action != debug_exec_action_t::StepOver
+        && active_debug_exec.action != debug_exec_action_t::StepOut) {
+        return false;
+    }
+
+    const auto line = runtime_pc.get_line();
+    if (line < 1)
+        return false;
+
+    return last_break_line != line;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void rt_prog_ctx_t::debug_stop_before_blocking_input()
+{
+    last_break_line = runtime_pc.get_line();
+    last_stop_was_step = true;
+    last_debug_stop_reason = debug_stop_reason_t::Step;
+    flag.set(FLG_END_REQUEST, true);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+std::string rt_prog_ctx_t::get_source_line(
+    prog_pointer_t::line_number_t line) const noexcept
+{
+    const auto it = _source_line.find(line);
+    return it == _source_line.end() ? std::string() : it->second;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 void rt_prog_ctx_t::trace_rtdata(std::stringstream& ss)
 {
     const prog_pointer_t::line_number_t gotoline = goingto_pc.get_line();

@@ -27,6 +27,11 @@ namespace nu {
 
 void stmt_input_t::run(rt_prog_ctx_t& ctx)
 {
+    if (ctx.should_debug_stop_before_blocking_input()) {
+        ctx.debug_stop_before_blocking_input();
+        throw debug_suspend_t();
+    }
+
     FILE* sout = ctx.get_stdout_ptr();
 
 #ifdef _WIN32

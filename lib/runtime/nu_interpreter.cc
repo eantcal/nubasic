@@ -90,6 +90,48 @@ namespace {
         return "";
     }
 
+    static bool source_line_has_blocking_input(std::string line)
+    {
+        bool in_string = false;
+        std::string code;
+        code.reserve(line.size());
+
+        for (const auto ch : line) {
+            if (ch == '"') {
+                in_string = !in_string;
+            } else if (ch == '\'' && !in_string) {
+                break;
+            }
+
+            code += static_cast<char>(
+                std::tolower(static_cast<unsigned char>(ch)));
+        }
+
+        const auto skip_spaces = [&](size_t pos) {
+            while (pos < code.size()
+                && std::isspace(static_cast<unsigned char>(code[pos]))) {
+                ++pos;
+            }
+            return pos;
+        };
+
+        size_t pos = skip_spaces(0);
+        while (pos < code.size()
+            && std::isdigit(static_cast<unsigned char>(code[pos]))) {
+            ++pos;
+        }
+        pos = skip_spaces(pos);
+
+        if (code.compare(pos, 5, "input") == 0) {
+            const auto next = pos + 5;
+            return next >= code.size()
+                || std::isspace(static_cast<unsigned char>(code[next]))
+                || code[next] == '$';
+        }
+
+        return code.find("input$") != std::string::npos;
+    }
+
     static std::string normalize_source_name(const std::string& source_name)
     {
         if (source_name.empty())
@@ -1238,9 +1280,14 @@ interpreter_t::exec_res_t interpreter_t::set_step_mode(bool on)
 interpreter_t::exec_res_t interpreter_t::debug_exec(
     const debug_exec_request_t& request)
 {
+    set_debug_mode(true);
+
     auto& ctx = get_rt_ctx();
     ctx.active_debug_exec = request;
     ctx.active_debug_exec.start_pc = ctx.runtime_pc;
+    if (ctx.last_break_line > 0) {
+        ctx.active_debug_exec.start_pc.set(ctx.last_break_line, 0);
+    }
     ctx.active_debug_exec.start_stack_depth = ctx.call_stack.size();
     if (request.action == debug_exec_action_t::StepOut
         && !ctx.call_stack.empty()) {
@@ -1249,6 +1296,12 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
         ctx.active_debug_exec.has_target_pc = true;
     }
     ctx.last_debug_stop_reason = debug_stop_reason_t::None;
+
+    const auto debug_start_line = ctx.active_debug_exec.start_pc.get_line();
+    const auto debug_start_stack_depth
+        = ctx.active_debug_exec.start_stack_depth;
+    const bool debug_has_target_pc = ctx.active_debug_exec.has_target_pc;
+    const auto debug_target_line = ctx.active_debug_exec.target_pc.get_line();
 
     auto check_break_and_stop = [&]() {
         if (ctx.flag[rt_prog_ctx_t::FLG_STOP_REQUEST]) {
@@ -1332,30 +1385,80 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
 
     auto should_keep_stepping_over = [&]() {
         return get_last_debug_stop_reason() == debug_stop_reason_t::Step
-            && ctx.call_stack.size() > ctx.active_debug_exec.start_stack_depth;
+            && ctx.call_stack.size() > debug_start_stack_depth;
+    };
+
+    auto should_resume_expression_function = [&]() {
+        return get_last_debug_stop_reason() == debug_stop_reason_t::Step
+            && !ctx.debug_function_checkpoints.empty();
     };
 
     auto should_keep_stepping_out = [&]() {
-        if (ctx.active_debug_exec.start_stack_depth == 0)
+        if (debug_start_stack_depth == 0)
             return false;
 
         return get_last_debug_stop_reason() == debug_stop_reason_t::Step
-            && ctx.call_stack.size() >= ctx.active_debug_exec.start_stack_depth;
+            && ctx.call_stack.size() >= debug_start_stack_depth;
     };
 
     auto stopped_again_on_start_breakpoint = [&](exec_res_t res) {
         return res == exec_res_t::BREAKPOINT
-            && ctx.runtime_pc.get_line()
-            == ctx.active_debug_exec.start_pc.get_line();
+            && ctx.runtime_pc.get_line() == debug_start_line;
+    };
+
+    auto stopped_on_procedure_boundary = [&](exec_res_t res) {
+        if (res != exec_res_t::STOP_REQ
+            || get_last_debug_stop_reason() != debug_stop_reason_t::Step) {
+            return false;
+        }
+
+        const auto line = ctx.last_break_line > 0 ? ctx.last_break_line
+                                                  : ctx.runtime_pc.get_line();
+        const auto it = _prog_line.find(line);
+        return it != _prog_line.end()
+            && it->second.first->get_cl() == stmt_t::stmt_cl_t::SUB_END;
     };
 
     auto stopped_on_stepout_call_site = [&](exec_res_t res) {
         return res == exec_res_t::STOP_REQ
             && get_last_debug_stop_reason() == debug_stop_reason_t::Step
-            && ctx.active_debug_exec.has_target_pc
-            && ctx.runtime_pc.get_line()
-            == ctx.active_debug_exec.target_pc.get_line();
+            && debug_has_target_pc
+            && ctx.runtime_pc.get_line() == debug_target_line;
     };
+
+    auto stopped_on_blocking_input_line = [&](exec_res_t res) {
+        if (res != exec_res_t::STOP_REQ
+            || get_last_debug_stop_reason() != debug_stop_reason_t::Step) {
+            return false;
+        }
+
+        const auto line = get_cur_line_n();
+        const auto it = _source_line.find(line);
+        return it != _source_line.end()
+            && source_line_has_blocking_input(it->second);
+    };
+
+    auto normalize_expression_function_step_stop
+        = [&](exec_res_t res, prog_pointer_t::line_number_t call_site_line) {
+              if (res != exec_res_t::STOP_REQ
+                  || get_last_debug_stop_reason() != debug_stop_reason_t::Step
+                  || call_site_line < 1 || ctx.runtime_pc.get_line() > 0
+                  || ctx.last_break_line > 0
+                  || !ctx.debug_function_checkpoints.empty()
+                  || !ctx.debug_pending_returns.empty()) {
+                  return;
+              }
+
+              for (auto it = _prog_line.upper_bound(call_site_line);
+                  it != _prog_line.end(); ++it) {
+                  if (it->second.first->get_cl() != stmt_t::stmt_cl_t::EMPTY) {
+                      ctx.runtime_pc.set(it->first, 0);
+                      ctx.last_break_line = it->first;
+                      ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, false);
+                      return;
+                  }
+              }
+          };
 
     switch (request.action) {
     case debug_exec_action_t::Continue:
@@ -1375,25 +1478,38 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
     case debug_exec_action_t::StepOver: {
         auto res = execute_step_into_once();
 
-        while ((res == exec_res_t::STOP_REQ && should_keep_stepping_over())
+        while (
+            (res == exec_res_t::STOP_REQ && !stopped_on_blocking_input_line(res)
+                && (should_keep_stepping_over()
+                    || should_resume_expression_function()))
+            || stopped_on_procedure_boundary(res)
             || stopped_again_on_start_breakpoint(res)) {
             res = execute_step_into_once();
         }
+
+        normalize_expression_function_step_stop(res, debug_start_line);
 
         return res;
     }
 
     case debug_exec_action_t::StepOut: {
-        if (ctx.active_debug_exec.start_stack_depth == 0)
+        if (debug_start_stack_depth == 0)
             return debug_continue();
 
         auto res = execute_step_into_once();
 
-        while ((res == exec_res_t::STOP_REQ && should_keep_stepping_out())
+        while (
+            (res == exec_res_t::STOP_REQ && !stopped_on_blocking_input_line(res)
+                && (should_keep_stepping_out()
+                    || should_resume_expression_function()))
             || stopped_again_on_start_breakpoint(res)
+            || stopped_on_procedure_boundary(res)
             || stopped_on_stepout_call_site(res)) {
             res = execute_step_into_once();
         }
+
+        normalize_expression_function_step_stop(
+            res, debug_has_target_pc ? debug_target_line : debug_start_line);
 
         return res;
     }

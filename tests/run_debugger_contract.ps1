@@ -166,6 +166,37 @@ function Send-Command {
     return $snapshot.stdout.Substring($before)
 }
 
+function Send-Command-And-Interrupt {
+    param(
+        [string]$Command,
+        [int]$InterruptAfterMs = 250,
+        [int]$TimeoutMs = 5000
+    )
+
+    $before = (Get-OutputSnapshot).stdout.Length
+    Write-Host ">>> $Command"
+    $proc.StandardInput.WriteLine($Command)
+    $proc.StandardInput.Flush()
+
+    Start-Sleep -Milliseconds $InterruptAfterMs
+
+    Write-Host ">>> <ETX>"
+    $proc.StandardInput.Write([char]3)
+    $proc.StandardInput.Flush()
+
+    Wait-Until -Description "debug pause stop" -TimeoutMs $TimeoutMs -Condition {
+        $snapshot = Get-OutputSnapshot
+        if ($snapshot.stdout.Length -lt $before) {
+            return $false
+        }
+        $chunk = $snapshot.stdout.Substring($before)
+        return $chunk -match '@@nubasic event="(?:stopped|interrupted|terminated)"'
+    }
+
+    $snapshot = Get-OutputSnapshot
+    return $snapshot.stdout.Substring($before)
+}
+
 try {
     if (-not $proc.Start()) {
         throw "Failed to start debugger process."
@@ -329,6 +360,125 @@ try {
         -Description "stepout stop in caller"
     if ($stepOutOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="4"') {
         throw "StepOut did not stop on line 4 in the caller.`nOutput:`n$stepOutOutput"
+    }
+
+    $stepExprLoadOutput = Send-Command -Command 'load "test_debugger_step_expr.bas"' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "LOAD completion for expression step contracts"
+    if ($stepExprLoadOutput -notmatch '@@nubasic event="ok"') {
+        throw "Expression step LOAD did not complete successfully."
+    }
+
+    $null = Send-Command -Command 'clrbrk' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "ClrBrk completion before expression stepover contract"
+
+    $null = Send-Command -Command 'break 3' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "expression stepover breakpoint creation"
+
+    $stepExprRunOutput = Send-Command -Command 'run' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "expression stepover RUN breakpoint stop"
+    if ($stepExprRunOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="breakpoint"[^\r\n]*line="3"') {
+        throw "Expression StepOver setup did not stop on line 3.`nOutput:`n$stepExprRunOutput"
+    }
+
+    $stepExprOverOutput = Send-Command -Command 'stepover' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "expression stepover stop after function call"
+    if ($stepExprOverOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="4"') {
+        throw "Expression StepOver did not stop on line 4 after the function call.`nOutput:`n$stepExprOverOutput"
+    }
+    if ($stepExprOverOutput -match '@@nubasic event="stopped"[^\r\n]*line="8"') {
+        throw "Expression StepOver entered the function body like StepInto.`nOutput:`n$stepExprOverOutput"
+    }
+
+    $stepExprOutLoadOutput = Send-Command -Command 'load "test_debugger_step_expr.bas"' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "LOAD completion for expression stepout contract"
+    if ($stepExprOutLoadOutput -notmatch '@@nubasic event="ok"') {
+        throw "Expression stepout LOAD did not complete successfully."
+    }
+
+    $null = Send-Command -Command 'clrbrk' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "ClrBrk completion before expression stepout contract"
+
+    $null = Send-Command -Command 'break 8' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "expression stepout breakpoint creation"
+
+    $stepExprOutRunOutput = Send-Command -Command 'run' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "expression stepout RUN breakpoint stop"
+    if ($stepExprOutRunOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="breakpoint"[^\r\n]*line="8"') {
+        throw "Expression StepOut setup did not stop inside the function at line 8.`nOutput:`n$stepExprOutRunOutput"
+    }
+
+    $stepExprOutOutput = Send-Command -Command 'stepout' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "expression stepout stop after returning to caller"
+    if ($stepExprOutOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="4"') {
+        throw "Expression StepOut did not stop on line 4 after returning to the caller.`nOutput:`n$stepExprOutOutput"
+    }
+    if ($stepExprOutOutput -match '@@nubasic event="stopped"[^\r\n]*line="10"') {
+        throw "Expression StepOut stopped on the function boundary instead of the caller.`nOutput:`n$stepExprOutOutput"
+    }
+
+    $stepOutInputLoadOutput = Send-Command -Command 'load "test_debugger_stepout_input.bas"' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "LOAD completion for stepout input contract"
+    if ($stepOutInputLoadOutput -notmatch '@@nubasic event="ok"') {
+        throw "StepOut input LOAD did not complete successfully."
+    }
+
+    $null = Send-Command -Command 'clrbrk' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "ClrBrk completion before stepout input contract"
+
+    $null = Send-Command -Command 'break 7' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "stepout input breakpoint creation"
+
+    $stepOutInputRunOutput = Send-Command -Command 'run' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "stepout input RUN breakpoint stop"
+    if ($stepOutInputRunOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="breakpoint"[^\r\n]*line="7"') {
+        throw "StepOut input setup did not stop before the input line.`nOutput:`n$stepOutInputRunOutput"
+    }
+
+    $stepOutInputOutput = Send-Command -Command 'stepout' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "stepout stops before blocking input"
+    if ($stepOutInputOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="(?:8|9)"') {
+        throw "StepOut did not stop at or immediately after the blocking Input$ line.`nOutput:`n$stepOutInputOutput"
+    }
+
+    $pauseLoadOutput = Send-Command -Command 'load "test_debugger_pause.bas"' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "LOAD completion for pause contract"
+    if ($pauseLoadOutput -notmatch '@@nubasic event="ok"') {
+        throw "Pause LOAD did not complete successfully."
+    }
+
+    $null = Send-Command -Command 'clrbrk' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "ClrBrk completion before pause contract"
+
+    $pauseEntryOutput = Send-Command -Command 'stepinto' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "pause contract stop on entry"
+    if ($pauseEntryOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="1"') {
+        throw "Pause setup did not stop on entry line 1.`nOutput:`n$pauseEntryOutput"
+    }
+
+    $pauseOutput = Send-Command-And-Interrupt -Command 'cont'
+    if ($pauseOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="pause"[^\r\n]*line="\d+"') {
+        throw "Debug pause did not report a stopped pause event.`nOutput:`n$pauseOutput"
+    }
+    if ($pauseOutput -match '@@nubasic event="terminated"') {
+        throw "Debug pause terminated the program instead of suspending it.`nOutput:`n$pauseOutput"
     }
 
     Write-Host ""

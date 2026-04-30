@@ -55,6 +55,11 @@ namespace {
                     "'" + name
                         + "': expects to be passed argument 1 as Integer");
 
+                if (ctx.should_debug_stop_before_blocking_input()) {
+                    ctx.debug_stop_before_blocking_input();
+                    throw debug_suspend_t();
+                }
+
                 auto input_result = _os_input_str_interruptible(
                     static_cast<int>(value.to_int()));
                 if (input_result.interrupted) {
