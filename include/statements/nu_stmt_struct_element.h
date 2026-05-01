@@ -40,6 +40,7 @@ public:
     stmt_struct_element_t& operator=(const stmt_struct_element_t&) = delete;
 
     void run(rt_prog_ctx_t& ctx) override;
+    bool is_debug_steppable() const noexcept override { return false; }
 };
 
 

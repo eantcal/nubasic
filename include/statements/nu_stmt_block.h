@@ -53,6 +53,17 @@ public:
                                   : stmt_t::stmt_cl_t::BLOCK_OF_CODE;
     }
 
+    bool is_debug_steppable() const noexcept override
+    {
+        for (const auto& stmt : _stmts) {
+            if (stmt && stmt->is_debug_steppable()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     bool run_pos(rt_prog_ctx_t& ctx, int pos);
 
     void run(rt_prog_ctx_t& ctx) override { run_pos(ctx, 0); }

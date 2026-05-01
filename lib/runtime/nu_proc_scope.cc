@@ -78,6 +78,46 @@ var_scope_t::handle_t proc_scope_t::get(type_t type) const noexcept
 
 /* -------------------------------------------------------------------------- */
 
+bool proc_scope_t::object_reference_exists_outside_current_scope(
+    const variant_t& value) const noexcept
+{
+    if (!value.is_object_reference() || value.is_nothing()) {
+        return false;
+    }
+
+    const auto& current_scope_name = get_scope_id();
+
+    const auto found_in_scope = [&](const var_scope_t::handle_t& scope) {
+        if (!scope) {
+            return false;
+        }
+
+        const auto& readonly_scope = *scope;
+        for (const auto& entry : readonly_scope.map()) {
+            if (entry.second.first.same_object_reference(value)) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    if (found_in_scope(_global_vars)) {
+        return true;
+    }
+
+    for (const auto& scope : _vars) {
+        if (scope.first != current_scope_name && found_in_scope(scope.second)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 void proc_scope_t::enter_scope(
     const std::string& sub_name, bool fncall) noexcept
 {

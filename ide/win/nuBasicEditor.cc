@@ -2973,6 +2973,7 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
 
     if (!resuming_paused_program) {
         reset_all_breakpoints();
+        interpreter().clear_rtdata();
     }
     interpreter().set_debug_mode(true);
     remove_prog_cnt_marker();
@@ -2998,21 +2999,30 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
         break;
     case dbg_flg_t::STEP_INTO_EXECUTION:
         exec_interpreter_cmd("stepinto", true);
-        if (_last_debug_stop == debug_stop_t::COMPLETED
+        if (interpreter().get_last_debug_stop_reason()
+            == debug_stop_reason_t::ProgramEnd) {
+            _last_debug_stop = debug_stop_t::COMPLETED;
+        } else if (_last_debug_stop == debug_stop_t::COMPLETED
             && interpreter().get_cur_line_n() != line_before) {
             _last_debug_stop = debug_stop_t::PAUSED;
         }
         break;
     case dbg_flg_t::STEP_OVER_EXECUTION:
         exec_interpreter_cmd("stepover", true);
-        if (_last_debug_stop == debug_stop_t::COMPLETED
+        if (interpreter().get_last_debug_stop_reason()
+            == debug_stop_reason_t::ProgramEnd) {
+            _last_debug_stop = debug_stop_t::COMPLETED;
+        } else if (_last_debug_stop == debug_stop_t::COMPLETED
             && interpreter().get_cur_line_n() != line_before) {
             _last_debug_stop = debug_stop_t::PAUSED;
         }
         break;
     case dbg_flg_t::STEP_OUT_EXECUTION:
         exec_interpreter_cmd("stepout", true);
-        if (_last_debug_stop == debug_stop_t::COMPLETED
+        if (interpreter().get_last_debug_stop_reason()
+            == debug_stop_reason_t::ProgramEnd) {
+            _last_debug_stop = debug_stop_t::COMPLETED;
+        } else if (_last_debug_stop == debug_stop_t::COMPLETED
             && interpreter().get_cur_line_n() != line_before) {
             _last_debug_stop = debug_stop_t::PAUSED;
         }

@@ -763,11 +763,14 @@ stmt_t::handle_t statement_parser_t::parse_procedure(
     std::string id = token.identifier();
 
     // "New" is reserved globally but is a valid constructor name inside a
-    // class.
+    // class.  "Delete" is the class destructor counterpart.
     const bool is_class_new
         = (id == "new" && !ctx.compiling_class_name.empty());
+    const bool is_class_delete
+        = (id == "delete" && !ctx.compiling_class_name.empty());
 
-    syntax_error_if(!is_class_new && !variable_t::is_valid_name(id, false),
+    syntax_error_if(!is_class_new && !is_class_delete
+            && !variable_t::is_valid_name(id, false),
         id + " is an invalid identifier");
 
     // When inside a class body, mangle the name as "ClassName.MethodName"
@@ -851,6 +854,24 @@ stmt_t::handle_t statement_parser_t::parse_procedure(
 
     // Register visibility and static flag when inside a class body
     if (!ctx.compiling_class_name.empty()) {
+        const auto proto_it = ctx.proc_prototypes.data.find(id);
+        const bool is_destructor = id == ctx.compiling_class_name + ".delete";
+
+        syntax_error_if(is_destructor
+                && dynamic_cast<stmt_function_t*>(stmt_handle.get()) != nullptr,
+            token.expression(), token.position(),
+            "'Sub Delete()' destructor cannot be a Function");
+
+        syntax_error_if(is_destructor
+                && proto_it != ctx.proc_prototypes.data.end()
+                && !proto_it->second.second.parameters.empty(),
+            token.expression(), token.position(),
+            "'Sub Delete()' destructor cannot have parameters");
+
+        syntax_error_if(is_destructor && ctx.compiling_class_member_is_static,
+            token.expression(), token.position(),
+            "'Sub Delete()' destructor cannot be Static");
+
         ctx.class_member_visibility[id] = ctx.compiling_class_member_access;
         ctx.class_member_owner[id] = ctx.compiling_class_name;
 

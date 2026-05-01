@@ -46,6 +46,7 @@ public:
     stmt_dim_t& operator=(const stmt_dim_t&) = delete;
 
     void run(rt_prog_ctx_t& ctx) override;
+    bool is_debug_steppable() const noexcept override { return false; }
 
     void define(const std::string& var, const std::string& vtype,
         vec_size_t vect_size, prog_ctx_t& ctx)

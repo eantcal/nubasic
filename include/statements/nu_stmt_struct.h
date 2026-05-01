@@ -36,6 +36,7 @@ public:
 
     virtual stmt_cl_t get_cl() const noexcept override;
     virtual void run(rt_prog_ctx_t& ctx) override;
+    bool is_debug_steppable() const noexcept override { return false; }
 
 protected:
     std::string _id;

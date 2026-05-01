@@ -133,6 +133,7 @@ void rt_prog_ctx_t::clear_rtdata()
 
     // Clear any pending ByRef writeback frames
     byref_writeback_stack.clear();
+    scope_destructor_stack.clear();
 
     // Clear hash tables
     hash_tbls.clear();
@@ -179,6 +180,27 @@ bool rt_prog_ctx_t::consume_debug_pending_return(
 
     if (ret->second.empty()) {
         function_retval_tbl.erase(ret);
+    }
+
+    debug_pending_returns.erase(pending);
+    return true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool rt_prog_ctx_t::consume_debug_pending_completion(
+    const std::string& function_name,
+    prog_pointer_t::line_number_t call_site_line)
+{
+    auto pending = std::find_if(debug_pending_returns.begin(),
+        debug_pending_returns.end(), [&](const auto& item) {
+            return item.function_name == function_name
+                && item.call_site_line == call_site_line;
+        });
+
+    if (pending == debug_pending_returns.end()) {
+        return false;
     }
 
     debug_pending_returns.erase(pending);

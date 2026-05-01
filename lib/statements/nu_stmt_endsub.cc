@@ -13,6 +13,8 @@
 #include "nu_prog_ctx.h"
 #include "nu_rt_prog_ctx.h"
 
+#include <algorithm>
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -55,6 +57,131 @@ static void apply_byref_writebacks(rt_prog_ctx_t& ctx,
 
 /* -------------------------------------------------------------------------- */
 
+static std::vector<std::string> destructor_chain(
+    rt_prog_ctx_t& ctx, const std::string& class_name)
+{
+    std::vector<std::string> chain;
+
+    std::string cls = class_name;
+    while (!cls.empty()) {
+        const std::string destructor = cls + ".delete";
+        if (ctx.proc_prototypes.data.find(destructor)
+            != ctx.proc_prototypes.data.end()) {
+            chain.push_back(destructor);
+        }
+
+        const auto base = ctx.class_bases.find(cls);
+        if (base == ctx.class_bases.end()) {
+            break;
+        }
+
+        cls = base->second;
+    }
+
+    return chain;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+static bool already_scheduled(
+    const std::vector<variant_t>& values, const variant_t& value)
+{
+    return std::any_of(values.begin(), values.end(),
+        [&](const auto& item) { return item.same_object_reference(value); });
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool stmt_endsub_t::run_pending_scope_destructor(
+    rt_prog_ctx_t& ctx, const std::vector<std::string>& excluded_names)
+{
+    const auto scope_name = ctx.proc_scope.get_scope_id();
+    if (scope_name.empty()) {
+        return false;
+    }
+
+    auto frame_it = std::find_if(ctx.scope_destructor_stack.begin(),
+        ctx.scope_destructor_stack.end(),
+        [&](const auto& frame) { return frame.scope_name == scope_name; });
+
+    if (frame_it == ctx.scope_destructor_stack.end()) {
+        rt_prog_ctx_t::scope_destructor_frame_t frame;
+        frame.scope_name = scope_name;
+
+        std::vector<variant_t> scheduled_objects;
+
+        if (auto scope = ctx.proc_scope.get(); scope) {
+            for (const auto& name :
+                scope->names_in_reverse_definition_order()) {
+                if (name == "me" || !scope->is_defined(name)
+                    || std::find(
+                           excluded_names.begin(), excluded_names.end(), name)
+                        != excluded_names.end()) {
+                    continue;
+                }
+
+                const auto& value = (*scope)[name].first;
+                if (!value.is_class_type() || !value.is_object_reference()
+                    || value.is_nothing() || value.is_vector()
+                    || ctx.proc_scope
+                        .object_reference_exists_outside_current_scope(value)
+                    || already_scheduled(scheduled_objects, value)) {
+                    continue;
+                }
+
+                scheduled_objects.push_back(value);
+                for (const auto& destructor :
+                    destructor_chain(ctx, value.struct_type_name())) {
+                    frame.pending_calls.push_back(
+                        rt_prog_ctx_t::object_destructor_call_t{
+                            destructor, value });
+                }
+            }
+        }
+
+        if (frame.pending_calls.empty()) {
+            return false;
+        }
+
+        ctx.scope_destructor_stack.push_back(std::move(frame));
+        frame_it = std::prev(ctx.scope_destructor_stack.end());
+    }
+
+    if (frame_it->pending_calls.empty()) {
+        ctx.scope_destructor_stack.erase(frame_it);
+        return false;
+    }
+
+    const auto call = frame_it->pending_calls.front();
+    frame_it->pending_calls.pop_front();
+
+    const auto proto = ctx.proc_prototypes.data.find(call.method_name);
+    if (proto == ctx.proc_prototypes.data.end()) {
+        return !frame_it->pending_calls.empty();
+    }
+
+    ctx.set_return_line(std::make_pair(ctx.runtime_pc.get_line(), 0));
+    ctx.go_to(proto->second.first);
+    ctx.proc_scope.enter_scope(call.method_name, false);
+
+    if (ctx.debug_mode) {
+        ctx.call_stack.push_back(
+            { call.method_name, ctx.runtime_pc.get_line() });
+    }
+
+    auto callee_scope = ctx.proc_scope.get();
+    if (callee_scope) {
+        callee_scope->define("me", var_value_t(call.me_value, VAR_ACCESS_RW));
+    }
+
+    return true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 stmt_endsub_t::stmt_endsub_t(prog_ctx_t& ctx)
     : stmt_t(ctx)
 {
@@ -86,6 +213,10 @@ void stmt_endsub_t::run(rt_prog_ctx_t& ctx)
     }
 
     if (!handle->flag[instrblock_t::EXIT]) {
+        if (run_pending_scope_destructor(ctx)) {
+            return;
+        }
+
         ctx.flag.set(rt_prog_ctx_t::FLG_RETURN_REQUEST, true);
 
         // Collect ByRef values from callee scope BEFORE exiting it

@@ -35,6 +35,18 @@ void stmt_dim_t::run(rt_prog_ctx_t& ctx)
         const std::string& name = v.first;
 
         auto scope_type = ctx.proc_scope.get_type(name);
+        auto vtype = v.second.first;
+        auto vtype_code = variable_t::type_by_typename(vtype);
+        auto ctor_it = _ctor_args.find(name);
+        const bool has_ctor_args = ctor_it != _ctor_args.end();
+        const std::string ctor_key = vtype + ".new";
+
+        if (ctx.debug_mode && has_ctor_args
+            && scope_type != proc_scope_t::type_t::UNDEF
+            && ctx.consume_debug_pending_completion(
+                ctor_key, ctx.runtime_pc.get_line())) {
+            continue;
+        }
 
         switch (scope_type) {
         case proc_scope_t::type_t::GLOBAL:
@@ -57,9 +69,6 @@ void stmt_dim_t::run(rt_prog_ctx_t& ctx)
 
         var_scope_t::handle_t scope
             = ctx.proc_scope.get(ctx.proc_scope.get_type(name));
-
-        auto vtype = v.second.first;
-        auto vtype_code = variable_t::type_by_typename(vtype);
 
         std::string init_val;
 
@@ -87,7 +96,6 @@ void stmt_dim_t::run(rt_prog_ctx_t& ctx)
         case variable_t::type_t::UNDEFINED: {
             auto& sprototypes = ctx.struct_prototypes.data;
             auto it = sprototypes.find(vtype);
-            auto ctor_it = _ctor_args.find(name);
             const bool is_class_type = ctx.is_class_type(vtype);
 
             rt_error_if(it == sprototypes.end(),
@@ -109,8 +117,7 @@ void stmt_dim_t::run(rt_prog_ctx_t& ctx)
 
             scope->define(name, var_value_t(value, VAR_ACCESS_RW));
 
-            if (ctor_it != _ctor_args.end()) {
-                const std::string ctor_key = vtype + ".new";
+            if (has_ctor_args) {
                 auto proto_it = ctx.proc_prototypes.data.find(ctor_key);
                 if (proto_it != ctx.proc_prototypes.data.end()) {
                     rt_error_if(!ctx.is_class_member_access_allowed(ctor_key),

@@ -41,8 +41,6 @@ void stmt_endfunction_t::run(rt_prog_ctx_t& ctx)
     }
 
     if (!handle->flag[instrblock_t::EXIT]) {
-        ctx.flag.set(rt_prog_ctx_t::FLG_RETURN_REQUEST, true);
-
         // Retrieve name of this function
         const std::string& identifier = handle->identifier;
 
@@ -72,6 +70,12 @@ void stmt_endfunction_t::run(rt_prog_ctx_t& ctx)
                 ctx.runtime_pc.get_line(),
                 rt_error_code_t::value_t::E_NO_RET_VAL,
                 " '" + identifier + "' not defined. ");
+
+        if (run_pending_scope_destructor(ctx, { retval_var })) {
+            return;
+        }
+
+        ctx.flag.set(rt_prog_ctx_t::FLG_RETURN_REQUEST, true);
 
         const bool expected_retval = ctx.proc_scope.is_func_call(identifier);
 

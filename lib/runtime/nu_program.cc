@@ -293,7 +293,9 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
     while (prog_ptr != _prog_line.end()) {
         _ctx.runtime_pc.set(prog_ptr->first, return_stmt_id);
 
-        const auto stmt_class = prog_ptr->second.first->get_cl();
+        const auto stmt = prog_ptr->second.first;
+        const auto stmt_class = stmt->get_cl();
+        const bool debug_steppable = stmt->is_debug_steppable();
         if (debug_function_call && !_ctx.call_stack.empty()) {
             debug_function_call_site_line
                 = _ctx.call_stack.back().call_site_line;
@@ -322,8 +324,9 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
 
             if (_ctx.step_break_on_entry_pending && breakpoints_active
                 && !global_proc_boundary
-                && stmt_class != stmt_t::stmt_cl_t::EMPTY) {
+                && stmt_class != stmt_t::stmt_cl_t::EMPTY && debug_steppable) {
                 _ctx.step_break_on_entry_pending = false;
+                dbg.single_step_break_point = false;
                 _ctx.last_break_line = prog_ptr->first;
                 _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
                 break;
@@ -332,15 +335,15 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
             if (dbg.single_step_break_point && breakpoints_active) {
                 dbg.single_step_break_point = false;
 
-                if (!global_proc_boundary) {
+                if (!global_proc_boundary && debug_steppable) {
                     _ctx.last_break_line = prog_ptr->first;
                     _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
                     break;
                 }
             }
 
-            if (dbg.break_point && breakpoints_active
-                && !global_proc_boundary) {
+            if (dbg.break_point && breakpoints_active && !global_proc_boundary
+                && debug_steppable) {
                 if (dbg.condition_stmt != nullptr) {
                     dbg.condition_stmt->run(_ctx);
                 } else {
@@ -370,12 +373,16 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
         // Skip execute empty stmt
         if (stmt_class == stmt_t::stmt_cl_t::EMPTY) {
             ++prog_ptr;
+            if (prog_ptr != _prog_line.end() && _ctx.step_mode_active) {
+                auto& breakp = prog_ptr->second.second;
+                breakp.single_step_break_point = true;
+            }
             continue;
         }
 
         // Run statement and update prog_ptr
         try {
-            if (run_statement(prog_ptr->second.first, return_stmt_id,
+            if (run_statement(stmt, return_stmt_id,
                     static_cast<prog_line_iterator_t&>(prog_ptr))) {
                 return_stmt_id = 0;
             }

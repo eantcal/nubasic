@@ -46,6 +46,7 @@ public:
     stmt_const_t& operator=(const stmt_const_t&) = delete;
 
     void run(rt_prog_ctx_t& ctx) override;
+    bool is_debug_steppable() const noexcept override { return false; }
 
 protected:
     std::string _var;

@@ -159,6 +159,18 @@ public:
     using byref_entry_t = std::pair<std::string, std::string>;
     std::deque<std::vector<byref_entry_t>> byref_writeback_stack;
 
+    struct object_destructor_call_t {
+        std::string method_name;
+        variant_t me_value;
+    };
+
+    struct scope_destructor_frame_t {
+        std::string scope_name;
+        std::deque<object_destructor_call_t> pending_calls;
+    };
+
+    std::deque<scope_destructor_frame_t> scope_destructor_stack;
+
     // Debug mode: when true, breakpoints fire even inside function calls
     // triggered from expressions (i.e. when _function_call==true in program_t).
     bool debug_mode = false;
@@ -197,6 +209,9 @@ public:
 
     bool consume_debug_pending_return(const std::string& function_name,
         prog_pointer_t::line_number_t call_site_line, variant_t& value);
+
+    bool consume_debug_pending_completion(const std::string& function_name,
+        prog_pointer_t::line_number_t call_site_line);
 
     bool should_debug_stop_before_blocking_input() const noexcept;
     void debug_stop_before_blocking_input();

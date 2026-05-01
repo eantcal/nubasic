@@ -469,8 +469,8 @@ try {
     $pauseEntryOutput = Send-Command -Command 'stepinto' `
         -CompletionPattern '@@nubasic event="stopped"' `
         -Description "pause contract stop on entry"
-    if ($pauseEntryOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="1"') {
-        throw "Pause setup did not stop on entry line 1.`nOutput:`n$pauseEntryOutput"
+    if ($pauseEntryOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="2"') {
+        throw "Pause setup did not stop on entry line 2.`nOutput:`n$pauseEntryOutput"
     }
 
     $pauseOutput = Send-Command-And-Interrupt -Command 'cont'

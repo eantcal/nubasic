@@ -15,6 +15,8 @@
 #include "nu_symbol_map.h"
 #include "nu_variant.h"
 
+#include <vector>
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -41,12 +43,19 @@ public:
     var_scope_t& operator=(const var_scope_t&) = delete;
 
     bool define(const std::string& name, const var_value_t& value) override;
+    void erase(const std::string& name) override;
+    void clear() override;
+
+    std::vector<std::string> names_in_reverse_definition_order() const;
 
     friend std::stringstream& operator<<(
         std::stringstream& ss, var_scope_t& obj);
 
 protected:
     void get_err_msg(const std::string& key, std::string& err) const override;
+
+private:
+    std::vector<std::string> _definition_order;
 };
 
 

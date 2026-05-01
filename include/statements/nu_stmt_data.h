@@ -42,6 +42,7 @@ public:
     }
 
     void run(rt_prog_ctx_t& ctx) override;
+    bool is_debug_steppable() const noexcept override { return false; }
 
 protected:
     arg_list_t _args;

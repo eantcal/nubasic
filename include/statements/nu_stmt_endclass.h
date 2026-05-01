@@ -35,6 +35,7 @@ public:
 
     virtual void run(rt_prog_ctx_t& ctx) override;
     virtual stmt_cl_t get_cl() const noexcept override;
+    bool is_debug_steppable() const noexcept override { return false; }
 };
 
 

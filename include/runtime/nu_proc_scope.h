@@ -59,6 +59,9 @@ public:
     //! Get current LOCAL or GLOBAL scope
     var_scope_t::handle_t get(type_t type = type_t::LOCAL) const noexcept;
 
+    bool object_reference_exists_outside_current_scope(
+        const variant_t& value) const noexcept;
+
     //! Get global scope
     var_scope_t::handle_t get_global() const noexcept
     {

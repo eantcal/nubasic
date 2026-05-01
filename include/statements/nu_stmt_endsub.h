@@ -16,6 +16,7 @@
 #include "nu_token_list.h"
 
 #include <string>
+#include <vector>
 
 
 /* -------------------------------------------------------------------------- */
@@ -35,6 +36,11 @@ public:
 
     void run(rt_prog_ctx_t& ctx) override;
     stmt_cl_t get_cl() const noexcept override;
+    bool is_debug_steppable() const noexcept override { return false; }
+
+protected:
+    bool run_pending_scope_destructor(rt_prog_ctx_t& ctx,
+        const std::vector<std::string>& excluded_names = {});
 };
 
 

@@ -80,6 +80,12 @@ public:
     //! Identify the class of statement
     virtual stmt_cl_t get_cl() const noexcept;
 
+    //! True when debugger stepping/breakpoints should stop on this statement.
+    //! Declarations and metadata-only statements are compiled when the source
+    //! is loaded and may still perform small runtime bookkeeping, but they are
+    //! not user-code execution points.
+    virtual bool is_debug_steppable() const noexcept { return true; }
+
     //! Called by the parser when constructor args are found after "As New
     //! ClassName(...)". Default no-op; overridden by stmt_dim_t to store the
     //! arg list.

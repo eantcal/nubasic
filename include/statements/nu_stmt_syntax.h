@@ -18,6 +18,7 @@ struct stmt_syntax_t : public stmt_t {
 
     void run(rt_prog_ctx_t& ctx) override;
     stmt_cl_t get_cl() const noexcept override { return stmt_cl_t::NA; }
+    bool is_debug_steppable() const noexcept override { return false; }
 
 private:
     prog_ctx_t::syntax_mode_t _mode;

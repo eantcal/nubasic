@@ -1304,6 +1304,22 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
     const auto debug_target_line = ctx.active_debug_exec.target_pc.get_line();
 
     auto check_break_and_stop = [&]() {
+        auto runtime_pc_is_debug_steppable = [&]() {
+            const auto line = ctx.runtime_pc.get_line();
+            const auto it = _prog_line.find(line);
+            return it != _prog_line.end()
+                && it->second.first->is_debug_steppable();
+        };
+
+        auto pending_expression_step_is_debug_steppable = [&]() {
+            if (ctx.runtime_pc.get_line() > 0) {
+                return false;
+            }
+
+            const auto line = get_cur_line_n();
+            return line > 0 && has_runnable_stmt(line);
+        };
+
         if (ctx.flag[rt_prog_ctx_t::FLG_STOP_REQUEST]) {
             ctx.flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, false);
             ctx.last_stop_was_step = false;
@@ -1323,13 +1339,17 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
             return exec_res_t::BREAKPOINT;
         }
 
-        if (ctx.step_mode_active && get_cur_line_n() > 0) {
+        if (ctx.step_mode_active
+            && (ctx.last_break_line > 0 || runtime_pc_is_debug_steppable()
+                || pending_expression_step_is_debug_steppable())) {
             ctx.last_stop_was_step = true;
             ctx.last_debug_stop_reason = debug_stop_reason_t::Step;
             return exec_res_t::STOP_REQ;
         }
 
         ctx.last_stop_was_step = false;
+        ctx.last_break_line = 0;
+        ctx.call_stack.clear();
         if (ctx.flag[rt_prog_ctx_t::FLG_END_REQUEST])
             ctx.last_debug_stop_reason = debug_stop_reason_t::ProgramEnd;
         return exec_res_t::CMD_EXEC;
@@ -1364,7 +1384,8 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
         } guard{ ctx, prev_step_mode, prev_entry_step };
 
         const bool resumable_pause
-            = ctx.last_break_line > 0 || is_stop_stmt_line();
+            = ctx.last_debug_stop_reason != debug_stop_reason_t::ProgramEnd
+            && (ctx.last_break_line > 0 || is_stop_stmt_line());
 
         if (!resumable_pause) {
             rebuild();
@@ -1451,7 +1472,7 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
 
               for (auto it = _prog_line.upper_bound(call_site_line);
                   it != _prog_line.end(); ++it) {
-                  if (it->second.first->get_cl() != stmt_t::stmt_cl_t::EMPTY) {
+                  if (it->second.first->is_debug_steppable()) {
                       ctx.runtime_pc.set(it->first, 0);
                       ctx.last_break_line = it->first;
                       ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, false);
@@ -1927,6 +1948,22 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
         }
 
         auto check_break_and_stop = [&]() {
+            auto runtime_pc_is_debug_steppable = [&]() {
+                const auto line = get_rt_ctx().runtime_pc.get_line();
+                const auto it = _prog_line.find(line);
+                return it != _prog_line.end()
+                    && it->second.first->is_debug_steppable();
+            };
+
+            auto pending_expression_step_is_debug_steppable = [&]() {
+                if (get_rt_ctx().runtime_pc.get_line() > 0) {
+                    return false;
+                }
+
+                const auto line = get_cur_line_n();
+                return line > 0 && has_runnable_stmt(line);
+            };
+
             if (get_rt_ctx().flag[rt_prog_ctx_t::FLG_STOP_REQUEST]) {
                 get_rt_ctx().flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, false);
                 get_rt_ctx().last_stop_was_step = false;
@@ -1943,7 +1980,10 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                 return exec_res_t::BREAKPOINT;
             }
 
-            if (get_rt_ctx().step_mode_active && get_cur_line_n() > 0) {
+            if (get_rt_ctx().step_mode_active
+                && (get_rt_ctx().last_break_line > 0
+                    || runtime_pc_is_debug_steppable()
+                    || pending_expression_step_is_debug_steppable())) {
                 get_rt_ctx().last_stop_was_step = true;
                 return exec_res_t::STOP_REQ;
             }
@@ -2211,6 +2251,25 @@ bool interpreter_t::run(runnable_t::line_num_t line)
         ~_guard_t() { _os_config_term(true); }
     } _guard;
 
+    if (line == 0) {
+        const bool restore_entry_step = _prog_ctx.debug_mode
+            && (_prog_ctx.step_mode_active
+                || _prog_ctx.step_break_on_entry_pending);
+        const auto saved_step_mode = _prog_ctx.step_mode_active;
+        const auto saved_entry_step = _prog_ctx.step_break_on_entry_pending;
+        const auto saved_debug_exec = _prog_ctx.active_debug_exec;
+        const auto saved_stop_reason = _prog_ctx.last_debug_stop_reason;
+
+        _prog_ctx.clear_rtdata();
+
+        if (restore_entry_step) {
+            _prog_ctx.step_mode_active = saved_step_mode;
+            _prog_ctx.step_break_on_entry_pending = saved_entry_step;
+            _prog_ctx.active_debug_exec = saved_debug_exec;
+            _prog_ctx.last_debug_stop_reason = saved_stop_reason;
+        }
+    }
+
     _prog_ctx.call_stack.clear();
     _prog_ctx.last_break_line = 0;
 
@@ -2256,6 +2315,8 @@ bool interpreter_t::run_main_or_default()
             _guard_t() { _os_config_term(false); }
             ~_guard_t() { _os_config_term(true); }
         } _guard;
+
+        _prog_ctx.clear_rtdata();
 
         // Use checkpoint mode (true) so that End Function / End Sub
         // can cleanly return to line 0 without triggering a runtime error.
@@ -2329,7 +2390,7 @@ bool interpreter_t::has_runnable_stmt(int line) const noexcept
         return false;
     }
 
-    return (it->second.first->get_cl() != stmt_t::stmt_cl_t::EMPTY);
+    return it->second.first->is_debug_steppable();
 }
 
 
@@ -2380,7 +2441,7 @@ prog_pointer_t::line_number_t interpreter_t::get_cur_line_n() const noexcept
 
         for (auto it = _prog_line.upper_bound(line); it != _prog_line.end();
             ++it) {
-            if (it->second.first->get_cl() != stmt_t::stmt_cl_t::EMPTY)
+            if (it->second.first->is_debug_steppable())
                 return it->first;
         }
 
