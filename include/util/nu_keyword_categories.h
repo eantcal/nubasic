@@ -18,15 +18,17 @@
 // clang-format off
 
 #define NUBASIC_KEYWORDS_CONTROL(X)                                             \
-    X("as") X("beep") X("call") X("case") X("chdir") X("close") X("cls")       \
-    X("const") X("data") X("delay") X("dim") X("do") X("elif") X("else")       \
-    X("elseif") X("end") X("erase") X("exit") X("for") X("fopen")              \
-    X("function") X("gosub") X("goto") X("if") X("include") X("input")         \
-    X("let") X("loop") X("mdelay") X("modern") X("next") X("on")               \
-    X("open") X("print") X("print#") X("quit") X("randomize") X("read")        \
-    X("redim") X("rem") X("restore") X("return") X("shell") X("sleep")         \
-    X("static") X("step") X("stop") X("sub") X("syntax") X("then")             \
-    X("using") X("while") X("wend") X("write") X("write#")
+    X("alias") X("as") X("beep") X("call") X("callconv") X("case")            \
+    X("chdir") X("close") X("cls") X("const") X("data") X("declare")          \
+    X("delay") X("dim") X("do") X("elif") X("else") X("elseif") X("end")     \
+    X("erase") X("exit") X("for") X("fopen") X("function") X("gosub")        \
+    X("goto") X("if") X("include") X("input") X("let") X("lib")              \
+    X("loop") X("mdelay") X("modern") X("next") X("on") X("open")            \
+    X("print") X("print#") X("quit") X("randomize") X("read") X("redim")     \
+    X("rem") X("restore") X("return") X("select") X("shell") X("sleep")      \
+    X("static") X("step") X("stop") X("sub") X("syntax") X("then")          \
+    X("to") X("using") X("legacy") X("while") X("wend") X("write")          \
+    X("write#")
 
 #define NUBASIC_KEYWORDS_OOP(X)                                                 \
     X("class") X("inherits") X("me") X("mybase") X("new") X("object")          \
@@ -34,30 +36,35 @@
     X("public") X("struct") X("type")
 
 #define NUBASIC_KEYWORDS_TYPES(X)                                               \
-    X("any") X("boolean") X("byref") X("byval") X("double") X("float")         \
-    X("integer") X("long64") X("string")
+    X("any") X("bool") X("boolean") X("byref") X("byval") X("double")         \
+    X("dword") X("float") X("integer") X("long64") X("pointer")               \
+    X("string") X("ulong64") X("void")
 
 #define NUBASIC_KEYWORDS_OPERATORS(X)                                           \
     X("and") X("band") X("bnot") X("bor") X("bshl") X("bshr") X("bxor")        \
     X("div") X("mod") X("not") X("or") X("xor")
 
-#define NUBASIC_KEYWORDS_CONSTANTS(X) X("false") X("true")
+#define NUBASIC_KEYWORDS_CONSTANTS(X) X("false") X("nothing") X("true")
 
 #define NUBASIC_KEYWORDS_BUILTIN_CORE(X)                                        \
-    X("abs") X("acos") X("asc") X("asin") X("atan") X("chr") X("conv")         \
-    X("cos") X("cosh") X("eof") X("errno") X("eval") X("exp") X("ferror")      \
-    X("ftell") X("fsize") X("getapppath") X("getenv") X("getmousebtn")         \
-    X("getmousex") X("getmousey") X("getplatid") X("getsheight")                \
-    X("getswidth") X("getvkey") X("getwindowdx") X("getwindowdy")               \
+    X("abs") X("acos") X("asc") X("asin") X("atan") X("chr") X("conv")       \
+    X("cos") X("cosh") X("eof") X("errno") X("eval") X("exp") X("ferror")    \
+    X("ftell") X("fsize") X("getapppath") X("getdatetime") X("getenv")       \
+    X("getmouse") X("getmousebtn") X("getmousex") X("getmousey")             \
+    X("getplatid") X("getsheight") X("getswidth") X("getvkey")               \
+    X("getwindowdx") X("getwindowdy")                                         \
     X("getwindowx") X("getwindowy") X("hchk") X("hcnt") X("hdel") X("hex")     \
     X("hget") X("hset") X("inkey") X("instr") X("instrcs") X("int")            \
     X("lcase") X("left") X("len") X("locate") X("log") X("log10")              \
     X("max") X("mid") X("min") X("mkdir") X("msgbox") X("pi") X("playsound")   \
-    X("pow") X("pstr") X("pwd") X("rgb") X("right") X("rmdir") X("rnd")        \
-    X("setenv") X("settopmost") X("sign") X("sin") X("sinh") X("sizeof")       \
-    X("space") X("spc") X("sqr") X("sqrt") X("str") X("substr") X("sysday")    \
-    X("syshour") X("sysmin") X("sysmonth") X("syssec") X("systime")             \
-    X("syswday") X("sysyday") X("sysyear") X("tan") X("tanh") X("time")        \
+    X("nativealloc") X("nativefill") X("nativefree") X("nativepeekstr")        \
+    X("nativepokeb") X("nativepokei16") X("nativepokei32")                     \
+    X("nativepokei64") X("nativepokeptr") X("nativepokestr") X("pow")         \
+    X("pstr") X("pwd") X("rgb") X("right") X("rmdir") X("rnd")               \
+    X("setenv") X("settopmost") X("sign") X("sin") X("sinh") X("sizeof")     \
+    X("space") X("spc") X("sqr") X("sqrt") X("str") X("substr") X("sysday")  \
+    X("syshour") X("sysmin") X("sysmonth") X("syssec") X("systime")           \
+    X("syswday") X("sysyday") X("sysyear") X("tan") X("tanh") X("time")      \
     X("truncf") X("ucase") X("unsetenv") X("val") X("ver")
 
 #define NUBASIC_KEYWORDS_GRAPHICS(X)                                            \

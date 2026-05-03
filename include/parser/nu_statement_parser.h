@@ -131,6 +131,10 @@ protected:
     stmt_t::handle_t parse_const(
         prog_ctx_t& ctx, token_t token, token_list_t& tl);
 
+    //! parse native DLL declaration
+    stmt_t::handle_t parse_declare(
+        prog_ctx_t& ctx, token_t token, token_list_t& tl);
+
     //! parse instruction parameter list
     template <class T, typename... E>
     stmt_t::handle_t parse_parameter_list(prog_ctx_t& ctx, token_t token,

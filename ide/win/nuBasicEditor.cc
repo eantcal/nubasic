@@ -1412,6 +1412,13 @@ public:
 
     void apply_formatter_options() noexcept;
 
+    bool native_calls_enabled() const noexcept { return _native_calls_enabled; }
+    void set_native_calls_enabled(bool enabled) noexcept
+    {
+        _native_calls_enabled = enabled;
+        interpreter().set_native_calls_enabled(enabled);
+    }
+
     /**
      * Replace a text in a selection or in the complete file multiple times
      * \return number of replacements
@@ -1685,6 +1692,7 @@ protected:
     std::string _project_name;
     std::string _project_entry;
     formatter_options_t _formatter_options;
+    bool _native_calls_enabled = true;
 
     HWND _hwnd_file_tree = nullptr;
     HWND _hwnd_vsplitter = nullptr;
@@ -2979,6 +2987,7 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
         reset_all_breakpoints();
         interpreter().clear_rtdata();
     }
+    interpreter().set_native_calls_enabled(native_calls_enabled());
     interpreter().set_debug_mode(true);
     remove_prog_cnt_marker();
     _last_debug_stop = debug_stop_t::COMPLETED;
@@ -3132,6 +3141,7 @@ void nu::editor_t::start_without_debugging()
     }
 
     interpreter().exec_command("clrbrk");
+    interpreter().set_native_calls_enabled(native_calls_enabled());
     interpreter().set_debug_mode(false);
     remove_prog_cnt_marker();
     _last_debug_stop = debug_stop_t::COMPLETED;
@@ -3995,6 +4005,7 @@ nu::editor_t::editor_t()
     , _is_dirty(false)
     , _need_build(true)
 {
+    set_native_calls_enabled(true);
     _full_path_str.clear();
     memset(_find_str, 0, sizeof(_find_str));
     memset(_replace_str, 0, sizeof(_replace_str));
@@ -5592,8 +5603,16 @@ void nu::editor_t::exec_command(int id)
         show_formatter_options_dialog();
         break;
 
+    case IDM_SETTINGS_DISABLE_NATIVE_CALLS:
+        g_editor.set_native_calls_enabled(!g_editor.native_calls_enabled());
+        g_editor.check_menus();
+        save_settings(g_editor.get_main_hwnd());
+        break;
+
     case IDM_SETTINGS_RESETDEFAULTS:
         g_editor.set_formatter_options(formatter_options_t());
+        g_editor.set_native_calls_enabled(true);
+        g_editor.check_menus();
         g_editor.init_editor(EDITOR_DEF_FONT, EDITOR_DEF_SIZE);
         break;
 
@@ -5703,6 +5722,8 @@ void nu::editor_t::check_menus()
     enable_menu_item(IDM_EDIT_PASTE, send_command(EM_CANPASTE) != FALSE);
     enable_menu_item(IDM_EDIT_FORMAT_SELECTION, !_program_running);
     enable_menu_item(IDM_EDIT_FORMAT_DOCUMENT, !_program_running);
+    CheckMenuItem(::GetMenu(get_main_hwnd()), IDM_SETTINGS_DISABLE_NATIVE_CALLS,
+        MF_BYCOMMAND | (native_calls_enabled() ? MF_UNCHECKED : MF_CHECKED));
 }
 
 
@@ -6108,6 +6129,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         const bool has_project = !g_editor.get_project_name().empty();
         EnableMenuItem(hMenu, IDM_FILE_CLOSE_PROJECT,
             MF_BYCOMMAND | (has_project ? MF_ENABLED : MF_GRAYED));
+        CheckMenuItem(hMenu, IDM_SETTINGS_DISABLE_NATIVE_CALLS,
+            MF_BYCOMMAND
+                | (g_editor.native_calls_enabled() ? MF_UNCHECKED
+                                                   : MF_CHECKED));
         break;
     }
 
@@ -6546,6 +6571,11 @@ static void save_settings(HWND hWnd)
         reinterpret_cast<const BYTE*>(&formatterAutoIndent),
         sizeof(formatterAutoIndent));
 
+    DWORD nativeCallsDisabled = g_editor.native_calls_enabled() ? 0 : 1;
+    RegSetValueExA(hk, "NativeCallsDisabled", 0, REG_DWORD,
+        reinterpret_cast<const BYTE*>(&nativeCallsDisabled),
+        sizeof(nativeCallsDisabled));
+
     RegCloseKey(hk);
 }
 
@@ -6638,6 +6668,16 @@ static void load_settings(HWND hWnd)
     }
 
     g_editor.set_formatter_options(formatter);
+
+    DWORD nativeCallsDisabled = 0;
+    sz = sizeof(nativeCallsDisabled);
+    if (RegQueryValueExA(hk, "NativeCallsDisabled", nullptr, nullptr,
+            reinterpret_cast<BYTE*>(&nativeCallsDisabled), &sz)
+        == ERROR_SUCCESS) {
+        g_editor.set_native_calls_enabled(nativeCallsDisabled == 0);
+    } else {
+        g_editor.set_native_calls_enabled(true);
+    }
 
     RegCloseKey(hk);
 }

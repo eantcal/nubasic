@@ -1,6 +1,6 @@
 # nuBASIC — User Guide
 
-> Version 1.62 · http://www.nubasic.eu/
+> Version 2.0 · http://www.nubasic.eu/
 > Author: Antonino Calderone — antonino.calderone@gmail.com
 
 ---
@@ -24,6 +24,8 @@
    - 4.11 [File I/O](#411-file-io)
    - 4.12 [DATA, READ, RESTORE](#412-data-read-restore)
    - 4.13 [String Handling](#413-string-handling)
+   - 4.14 [Native DLL Calls](#414-native-dll-calls)
+   - 4.15 [Line Continuation](#415-line-continuation)
 5. [Graphics and Multimedia](#5-graphics-and-multimedia)
    - 5.1 [Drawing Primitives](#51-drawing-primitives)
    - 5.2 [Flicker-free Rendering — ScreenLock / ScreenUnlock / Refresh](#52-flicker-free-rendering)
@@ -1008,6 +1010,39 @@ MathHelper.PrintProduct 4, 5       ' Product = 20
 Static and instance methods may coexist in the same class. Static methods are ideal for
 utility and factory functions that do not need instance state.
 
+#### Destructors
+
+A class may define `Sub Delete()` as a destructor. For owned local class
+instances, nuBASIC calls the destructor automatically when the procedure scope
+exits. Local objects are destroyed in reverse definition order, and a derived
+object runs its derived destructor before the base destructor.
+
+```basic
+Class Resource
+   Public name$ As String
+
+   Sub New(n$ As String)
+      Me.name$ = n$
+   End Sub
+
+   Sub Delete()
+      Print "closing "; Me.name$
+   End Sub
+End Class
+
+Sub Demo()
+   Dim first As New Resource("first")
+   Dim second As New Resource("second")
+End Sub
+
+Demo()
+' prints:
+' closing second
+' closing first
+```
+
+Objects passed as borrowed parameters are not destroyed by the callee.
+
 ---
 
 ### 4.6 main() Entry Point
@@ -1488,6 +1523,81 @@ Print Eval(expr$)       ' 36 — evaluated with x=5
 
 ---
 
+### 4.14 Native DLL Calls
+
+On Windows x64, nuBASIC can declare and call exported DLL functions:
+
+```basic
+Syntax Modern
+
+Declare Function GetCurrentProcessId Lib "kernel32.dll" () As DWORD
+Print GetCurrentProcessId()
+```
+
+The declaration form is:
+
+```basic
+Declare Function name Lib "dll" _
+    [Alias "export"] _
+    [CallConv "default" | "cdecl" | "stdcall"] _
+    (param As NativeType, ...) As NativeType
+```
+
+Supported native types are `Integer`, `DWORD`, `Long64`, `ULong64`,
+`Double`, `Bool`, `Pointer`, `String`, and `Void`. `String` maps to ANSI
+`const char*`; use `Pointer` for mutable buffers and manually laid-out
+structures.
+
+Native memory helpers are provided by the `runtime` module:
+
+```basic
+Syntax Modern
+Using runtime
+
+p = NativeAlloc(32)
+NativePokeStr p, 0, "hello", 32
+Print NativePeekStr$(p, 0, 32)
+NativeFree p
+```
+
+Use `NativePokeI32`, `NativePokeI64`, and `NativePokePtr` to write scalar
+fields into C/Win32 structures. These helpers are intentionally low level:
+offsets, field sizes, and structure layouts must match the target API exactly.
+Native calls are enabled by default in trusted local hosts and can be disabled
+with `--disable-native-calls`.
+
+See `docs/native-dll-calls.md` and `examples/native_open_file_dialog.bas` for
+a complete Win32 common file-open dialog example.
+
+---
+
+### 4.15 Line Continuation
+
+An underscore at the end of a physical source line joins the following physical
+line into the same logical BASIC statement:
+
+```basic
+Declare Function lstrlenA Lib "kernel32.dll" _
+    Alias "lstrlenA" _
+    (text As String) As Integer
+
+text$ = "hello " _
+    + "world"
+```
+
+The `_` marker must be the last non-blank code character on the line. A trailing
+apostrophe comment may follow it:
+
+```basic
+Print "hello " _ ' comment after continuation marker
+    + "world"
+```
+
+Debuggers treat the joined sequence as one BASIC statement and stop on the first
+physical line of the continuation.
+
+---
+
 ## 5. Graphics and Multimedia
 
 All graphics functions are available in the full build (Windows GDI or Linux/X11). They are
@@ -1870,6 +1980,8 @@ BASIC program.
 | `ReDim` | `ReDim var(n)` | Resize array (clears content) |
 | `Const` | `Const name [As Type] = value` | Declare a constant |
 | `Let` | `[Let] var = expr` | Assign a value (keyword optional) |
+| `Declare Function` | `Declare Function name Lib "dll" (...) As Type` | Declare an exported native DLL function |
+| `_` | `statement-part _` | Continue a physical source line on the next line |
 | `Sub` | `Sub name(params)` … `End Sub` | Define a subroutine |
 | `Function` | `Function name(params) [As Type]` … `End Function` | Define a function |
 | `Struct` | `Struct name` … `End Struct` | Define a composite type |
@@ -2050,6 +2162,24 @@ BASIC program.
 | `GetPlatId()` | Integer | 1 = Windows, 2 = Linux/other |
 | `GetAppPath$()` | String | Full path of the nuBASIC executable |
 | `Ver$()` | String | nuBASIC version string |
+
+#### Native memory helpers
+
+These functions are in the `runtime` module and are intended for use with
+`Declare Function` native DLL calls.
+
+| Function | Returns | Description |
+|----------|---------|-------------|
+| `NativeAlloc(size)` | Pointer | Allocate a zero-filled native memory block |
+| `NativeFree(pointer)` | Integer | Free memory allocated with `NativeAlloc` |
+| `NativeFill(pointer, offset, size, byte)` | Integer | Fill native memory with a byte value |
+| `NativePokeB(pointer, offset, value)` | Integer | Write one byte |
+| `NativePokeI16(pointer, offset, value)` | Integer | Write a 16-bit integer |
+| `NativePokeI32(pointer, offset, value)` | Integer | Write a 32-bit integer |
+| `NativePokeI64(pointer, offset, value)` | Integer | Write a 64-bit integer |
+| `NativePokePtr(pointer, offset, pointerValue)` | Integer | Write an integer-sized native pointer |
+| `NativePokeStr(pointer, offset, text$, capacity)` | Integer | Copy an ANSI NUL-terminated string into native memory |
+| `NativePeekStr$(pointer, offset, capacity)` | String | Read an ANSI NUL-terminated string from native memory |
 
 #### Graphics / Window (full build only)
 

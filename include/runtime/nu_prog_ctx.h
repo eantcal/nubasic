@@ -16,6 +16,8 @@
 #include "nu_for_loop_rtdata.h"
 #include "nu_instrblock_metadata.h"
 #include "nu_label_tbl.h"
+#include "nu_native_decl.h"
+#include "nu_native_runtime.h"
 #include "nu_proc_prototype_tbl.h"
 #include "nu_proc_scope.h"
 #include "nu_prog_pointer.h"
@@ -62,6 +64,11 @@ public:
     // Procedure prototypes
     proc_prototype_tbl_t proc_prototypes;
     std::set<std::string> function_tbl;
+
+    // Native DLL function declarations
+    native_function_registry_t native_functions;
+    native_runtime_t native_runtime;
+    bool native_calls_enabled = true;
 
     // Structure prototypes
     struct_prototype_tbl_t struct_prototypes;

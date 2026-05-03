@@ -147,6 +147,61 @@ namespace {
         return ec ? source_name : canon.string();
     }
 
+    static std::string trim_left_ascii(std::string s)
+    {
+        const auto pos = s.find_first_not_of(" \t");
+        return pos == std::string::npos ? std::string() : s.substr(pos);
+    }
+
+    static void trim_right_ascii(std::string& s)
+    {
+        while (!s.empty() && (s.back() == ' ' || s.back() == '\t')) {
+            s.pop_back();
+        }
+    }
+
+    static bool strip_line_continuation(
+        const std::string& line, std::string& stripped)
+    {
+        bool in_string = false;
+        size_t code_end = line.size();
+
+        for (size_t idx = 0; idx < line.size(); ++idx) {
+            if (line[idx] == '"') {
+                in_string = !in_string;
+            } else if (line[idx] == '\'' && !in_string) {
+                code_end = idx;
+                break;
+            }
+        }
+
+        size_t end = code_end;
+        while (end > 0 && (line[end - 1] == ' ' || line[end - 1] == '\t')) {
+            --end;
+        }
+
+        if (end == 0 || line[end - 1] != '_') {
+            stripped = line;
+            return false;
+        }
+
+        stripped = line.substr(0, end - 1);
+        trim_right_ascii(stripped);
+        return true;
+    }
+
+    static void append_logical_source_part(
+        std::string& logical_line, const std::string& part)
+    {
+        if (logical_line.empty()) {
+            logical_line = part;
+            return;
+        }
+
+        logical_line += " ";
+        logical_line += trim_left_ascii(part);
+    }
+
 } // namespace
 
 
@@ -819,10 +874,13 @@ bool interpreter_t::load_with_includes(FILE* f, int& ln,
 
     fseek(f, 0, SEEK_SET);
     source_line = 0;
+    std::string pending_logical_line;
+    int pending_source_line = 0;
 
     while (!feof(f) && ferror(f) == 0) {
         std::string line = read_line(f);
         ++source_line;
+        int logical_source_line = source_line;
 
         if (!line.empty() && ln == 0) {
             // skip shebang on very first line of the top-level file
@@ -838,6 +896,26 @@ bool interpreter_t::load_with_includes(FILE* f, int& ln,
         if (line.empty() && ferror(f))
             return false;
 
+        std::string continued_part;
+        const bool continued
+            = !old_format && strip_line_continuation(line, continued_part);
+
+        if (continued || pending_source_line != 0) {
+            if (pending_source_line == 0)
+                pending_source_line = source_line;
+
+            append_logical_source_part(
+                pending_logical_line, continued ? continued_part : line);
+
+            if (continued)
+                continue;
+
+            line = pending_logical_line;
+            pending_logical_line.clear();
+            logical_source_line = pending_source_line;
+            pending_source_line = 0;
+        }
+
         // Only process Include directives in new-format files
         if (!old_format) {
             std::string inc_path = parse_include_directive(line);
@@ -848,7 +926,7 @@ bool interpreter_t::load_with_includes(FILE* f, int& ln,
 
                     _source_line[ln] = line;
                     set_source_location(get_rt_ctx().compiletime_pc.get_line(),
-                        source_id, source_line);
+                        source_id, logical_source_line);
                     continue;
                 }
 
@@ -886,9 +964,19 @@ bool interpreter_t::load_with_includes(FILE* f, int& ln,
             return false;
 
         if (!old_format || !line.empty()) {
-            set_source_location(
-                get_rt_ctx().compiletime_pc.get_line(), source_id, source_line);
+            set_source_location(get_rt_ctx().compiletime_pc.get_line(),
+                source_id, logical_source_line);
         }
+    }
+
+    if (pending_source_line != 0
+        && !update_program(pending_logical_line, ++ln)) {
+        return false;
+    }
+
+    if (pending_source_line != 0) {
+        set_source_location(get_rt_ctx().compiletime_pc.get_line(), source_id,
+            pending_source_line);
     }
 
     return true;
@@ -931,10 +1019,13 @@ bool interpreter_t::load_with_includes(std::stringstream& source, int& ln,
     source.clear();
     source.seekg(0, std::ios::beg);
     source_line = 0;
+    std::string pending_logical_line;
+    int pending_source_line = 0;
 
     while (!source.eof() && !source.bad()) {
         std::string line = read_line(source);
         ++source_line;
+        int logical_source_line = source_line;
 
         if (!line.empty() && ln == 0) {
             // skip shebang on very first line of the top-level source
@@ -950,6 +1041,26 @@ bool interpreter_t::load_with_includes(std::stringstream& source, int& ln,
         if (line.empty() && source.bad())
             return false;
 
+        std::string continued_part;
+        const bool continued
+            = !old_format && strip_line_continuation(line, continued_part);
+
+        if (continued || pending_source_line != 0) {
+            if (pending_source_line == 0)
+                pending_source_line = source_line;
+
+            append_logical_source_part(
+                pending_logical_line, continued ? continued_part : line);
+
+            if (continued)
+                continue;
+
+            line = pending_logical_line;
+            pending_logical_line.clear();
+            logical_source_line = pending_source_line;
+            pending_source_line = 0;
+        }
+
         // Only process Include directives in new-format sources
         if (!old_format) {
             std::string inc_path = parse_include_directive(line);
@@ -960,7 +1071,7 @@ bool interpreter_t::load_with_includes(std::stringstream& source, int& ln,
 
                     _source_line[ln] = line;
                     set_source_location(get_rt_ctx().compiletime_pc.get_line(),
-                        source_id, source_line);
+                        source_id, logical_source_line);
                     continue;
                 }
 
@@ -998,9 +1109,19 @@ bool interpreter_t::load_with_includes(std::stringstream& source, int& ln,
             return false;
 
         if (!old_format || !line.empty()) {
-            set_source_location(
-                get_rt_ctx().compiletime_pc.get_line(), source_id, source_line);
+            set_source_location(get_rt_ctx().compiletime_pc.get_line(),
+                source_id, logical_source_line);
         }
+    }
+
+    if (pending_source_line != 0
+        && !update_program(pending_logical_line, ++ln)) {
+        return false;
+    }
+
+    if (pending_source_line != 0) {
+        set_source_location(get_rt_ctx().compiletime_pc.get_line(), source_id,
+            pending_source_line);
     }
 
     return true;

@@ -144,6 +144,29 @@ set(_nubasic_tiny ${_nubasic_console})
 # nuWinConsole target exists when the interpreter links against it.
 if (WIN32)
   option(WITH_WIN_IDE "Windows IDE" ON)
+  option(NUBASIC_WITH_LIBFFI "Enable libffi-backed native DLL calls" ON)
+
+  if(NUBASIC_WITH_LIBFFI)
+    if(DEFINED ENV{VCPKG_ROOT} AND EXISTS "$ENV{VCPKG_ROOT}/installed/x64-windows")
+      list(APPEND CMAKE_PREFIX_PATH "$ENV{VCPKG_ROOT}/installed/x64-windows")
+    elseif(EXISTS "C:/vcpkg/installed/x64-windows")
+      list(APPEND CMAKE_PREFIX_PATH "C:/vcpkg/installed/x64-windows")
+    endif()
+
+    find_package(unofficial-libffi CONFIG QUIET)
+
+    if(TARGET unofficial::libffi::libffi)
+      message(STATUS "libffi: native DLL invocation enabled")
+      find_file(NUBASIC_LIBFFI_RUNTIME_DLL
+        NAMES ffi-8.dll ffi.dll
+        PATHS
+          "$ENV{VCPKG_ROOT}/installed/x64-windows/bin"
+          "C:/vcpkg/installed/x64-windows/bin"
+        NO_DEFAULT_PATH)
+    else()
+      message(WARNING "libffi not found; native DLL declarations are parsed, but invocation will be disabled")
+    endif()
+  endif()
 
   # Build the GDI console library (always enabled on Windows full builds)
   if (NOT _nubasic_console)
@@ -173,6 +196,16 @@ if (WIN32)
 endif()
 
 # GTK IDE for Unix/Linux (skip in console-only mode — GTK/X11 unavailable)
+install(FILES "${CMAKE_SOURCE_DIR}/THIRD_PARTY_NOTICES.md"
+  DESTINATION .
+  COMPONENT Core)
+
+if(NUBASIC_LIBFFI_RUNTIME_DLL)
+  install(FILES "${NUBASIC_LIBFFI_RUNTIME_DLL}"
+    DESTINATION bin
+    COMPONENT Core)
+endif()
+
 if (WITH_IDE AND NOT _nubasic_console AND NOT WIN32)
   include (${CMAKE_ROOT}/Modules/FindGTK2.cmake)
   if(NOT GTK2_FOUND)

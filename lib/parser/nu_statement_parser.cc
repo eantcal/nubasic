@@ -207,6 +207,169 @@ stmt_t::handle_t statement_parser_t::parse_include(
 
 /* -------------------------------------------------------------------------- */
 
+stmt_t::handle_t statement_parser_t::parse_declare(
+    prog_ctx_t& ctx, token_t token, nu::token_list_t& tl)
+{
+    --tl;
+    remove_blank(tl);
+
+    auto next_token = [&]() {
+        syntax_error_if(tl.empty(), token.expression(), token.position());
+        token = *tl.begin();
+        --tl;
+        remove_blank(tl);
+        return token;
+    };
+
+    auto expect_identifier = [&](const std::string& identifier) {
+        token = next_token();
+        syntax_error_if(token.type() != tkncl_t::IDENTIFIER
+                || token.identifier() != identifier,
+            token.expression(), token.position(),
+            "Expected '" + identifier + "'");
+    };
+
+    expect_identifier("function");
+
+    token = next_token();
+    syntax_error_if(token.type() != tkncl_t::IDENTIFIER, token.expression(),
+        token.position(), "Expected native function name");
+
+    native_function_decl_t declaration;
+    declaration.basic_name = token.identifier();
+    declaration.export_name = token.org_id();
+
+    syntax_error_if(!variable_t::is_valid_name(declaration.basic_name, false),
+        token.expression(), token.position(),
+        declaration.basic_name + " is an invalid native function name");
+
+    expect_identifier("lib");
+
+    token = next_token();
+    syntax_error_if(token.type() != tkncl_t::STRING_LITERAL, token.expression(),
+        token.position(), "Expected DLL name string");
+
+    declaration.library_name
+        = std::wstring(token.identifier().begin(), token.identifier().end());
+
+    while (!tl.empty() && tl.begin()->type() == tkncl_t::IDENTIFIER) {
+        const auto keyword = tl.begin()->identifier();
+
+        if (keyword == "alias") {
+            --tl;
+            remove_blank(tl);
+
+            token = next_token();
+            syntax_error_if(token.type() != tkncl_t::STRING_LITERAL,
+                token.expression(), token.position(),
+                "Expected exported function name string");
+
+            declaration.export_name = token.identifier();
+            continue;
+        }
+
+        if (keyword == "callconv") {
+            --tl;
+            remove_blank(tl);
+
+            token = next_token();
+            syntax_error_if(token.type() != tkncl_t::IDENTIFIER
+                    && token.type() != tkncl_t::STRING_LITERAL,
+                token.expression(), token.position(),
+                "Expected calling convention");
+
+            auto calling_convention
+                = native_calling_convention_from_name(token.identifier());
+
+            syntax_error_if(!calling_convention.has_value(), token.expression(),
+                token.position(),
+                "Unknown native calling convention '" + token.identifier()
+                    + "'");
+
+            declaration.calling_convention = *calling_convention;
+            continue;
+        }
+
+        break;
+    }
+
+    token = next_token();
+    syntax_error_if(token.type() != tkncl_t::SUBEXP_BEGIN, token.expression(),
+        token.position(), "Expected parameter list");
+
+    if (!tl.empty() && tl.begin()->type() == tkncl_t::SUBEXP_END) {
+        --tl;
+        remove_blank(tl);
+    } else {
+        while (true) {
+            token = next_token();
+            syntax_error_if(token.type() != tkncl_t::IDENTIFIER,
+                token.expression(), token.position(),
+                "Expected native parameter name");
+
+            native_parameter_t parameter;
+            parameter.name = token.identifier();
+
+            syntax_error_if(!variable_t::is_valid_name(parameter.name, false),
+                token.expression(), token.position(),
+                parameter.name + " is an invalid native parameter name");
+
+            expect_identifier("as");
+
+            token = next_token();
+            syntax_error_if(token.type() != tkncl_t::IDENTIFIER,
+                token.expression(), token.position(),
+                "Expected native parameter type");
+
+            auto parameter_type = native_type_from_name(token.identifier());
+
+            syntax_error_if(!parameter_type.has_value(), token.expression(),
+                token.position(),
+                "Unknown native parameter type '" + token.identifier() + "'");
+
+            syntax_error_if(*parameter_type == native_type_t::Void,
+                token.expression(), token.position(),
+                "Native parameters cannot be Void");
+
+            parameter.type = *parameter_type;
+            declaration.parameters.push_back(std::move(parameter));
+
+            token = next_token();
+
+            if (token.type() == tkncl_t::SUBEXP_END) {
+                break;
+            }
+
+            syntax_error_if(
+                token.type() != tkncl_t::OPERATOR || token.identifier() != ",",
+                token.expression(), token.position(),
+                "Expected ',' or ')' in native parameter list");
+        }
+    }
+
+    expect_identifier("as");
+
+    token = next_token();
+    syntax_error_if(token.type() != tkncl_t::IDENTIFIER, token.expression(),
+        token.position(), "Expected native return type");
+
+    auto return_type = native_type_from_name(token.identifier());
+
+    syntax_error_if(!return_type.has_value(), token.expression(),
+        token.position(),
+        "Unknown native return type '" + token.identifier() + "'");
+
+    declaration.return_type = *return_type;
+
+    syntax_error_if(!tl.empty(), token.expression(), token.position());
+
+    return stmt_t::handle_t(
+        std::make_shared<stmt_declare_native_t>(ctx, std::move(declaration)));
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 stmt_t::handle_t statement_parser_t::parse_syntax(
     prog_ctx_t& ctx, token_t token, nu::token_list_t& tl)
 {
@@ -1113,6 +1276,10 @@ stmt_t::handle_t statement_parser_t::parse_stmt(
 
     if (identifier == "syntax") {
         return parse_syntax(ctx, token, tl);
+    }
+
+    if (identifier == "declare") {
+        return parse_declare(ctx, token, tl);
     }
 
     if (identifier == "input") {

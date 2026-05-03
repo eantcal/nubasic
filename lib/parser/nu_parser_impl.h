@@ -30,6 +30,7 @@
 #include "nu_stmt_cls.h"
 #include "nu_stmt_const.h"
 #include "nu_stmt_data.h"
+#include "nu_stmt_declare_native.h"
 #include "nu_stmt_delay.h"
 #include "nu_stmt_dim.h"
 #include "nu_stmt_do.h"

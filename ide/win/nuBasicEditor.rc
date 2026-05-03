@@ -142,6 +142,8 @@ BEGIN
         MENUITEM "&Show and resize message window", IDM_RESIZE_INFOBOX
         MENUITEM "Detach Console &Window",  IDM_CONSOLE_DETACH
         MENUITEM SEPARATOR
+        MENUITEM "Disable native DLL calls", IDM_SETTINGS_DISABLE_NATIVE_CALLS
+        MENUITEM SEPARATOR
         MENUITEM "&Font...",                    IDM_SETTINGS_FONT
         MENUITEM "For&matter...",               IDM_SETTINGS_FORMATTER
         MENUITEM SEPARATOR

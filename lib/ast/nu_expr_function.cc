@@ -28,28 +28,32 @@ bool expr_function_t::empty() const noexcept { return false; }
 
 variant_t expr_function_t::eval(rt_prog_ctx_t& ctx) const
 {
-    if (!global_function_tbl_t::get_instance().is_defined(_name)) {
-
-        var_scope_t::handle_t scope;
-        variant_t* var = nullptr;
-
-        if (scope == nullptr) {
-            scope = ctx.proc_scope.get(ctx.proc_scope.get_type(_name));
-        }
-
-        if (!var && scope->is_defined(_name)) {
-            var = &(((*scope)[_name]).first);
-        }
-
-        if (!var) {
-            throw exception_t(
-                std::string("Error: \"" + _name + "\" undefined symbol"));
-        }
-
-        return (*var)[_var[0]->eval(ctx).to_int()];
+    if (global_function_tbl_t::get_instance().is_defined(_name)) {
+        return global_function_tbl_t::get_instance()[_name](ctx, _name, _var);
     }
 
-    return global_function_tbl_t::get_instance()[_name](ctx, _name, _var);
+    if (const auto* native_decl = ctx.native_functions.find(_name)) {
+        return ctx.native_runtime.invoke(ctx, *native_decl, _var);
+    }
+
+
+    var_scope_t::handle_t scope;
+    variant_t* var = nullptr;
+
+    if (scope == nullptr) {
+        scope = ctx.proc_scope.get(ctx.proc_scope.get_type(_name));
+    }
+
+    if (!var && scope->is_defined(_name)) {
+        var = &(((*scope)[_name]).first);
+    }
+
+    if (!var) {
+        throw exception_t(
+            std::string("Error: \"" + _name + "\" undefined symbol"));
+    }
+
+    return (*var)[_var[0]->eval(ctx).to_int()];
 }
 
 

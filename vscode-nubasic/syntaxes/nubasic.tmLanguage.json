@@ -52,7 +52,7 @@
     },
     "keywords-control": {
       "name": "keyword.control.nubasic",
-      "match": "(?i)\\b(if|then|else|elif|elseif|end|for|to|step|next|while|wend|do|loop|until|exit|return|goto|gosub|on|select|case|call|sub|function|stop|quit)\\b"
+      "match": "(?i)\\b(if|then|else|elif|elseif|end|for|to|step|next|while|wend|do|loop|until|exit|return|goto|gosub|on|select|case|call|declare|lib|alias|callconv|sub|function|stop|quit)\\b"
     },
     "keywords-oop": {
       "name": "keyword.other.oop.nubasic",
@@ -60,11 +60,11 @@
     },
     "keywords-types": {
       "name": "storage.type.nubasic",
-      "match": "(?i)\\b(dim|redim|const|as|integer|double|float|boolean|string|long64|byte|any|object)\\b"
+      "match": "(?i)\\b(dim|redim|const|as|integer|double|float|boolean|bool|string|long64|ulong64|dword|pointer|void|byte|any|object)\\b"
     },
     "keywords-builtin": {
       "name": "support.function.nubasic",
-      "match": "(?i)\\b(print|input|open|close|read|write|data|restore|let|cls|line|rect|fillrect|ellipse|fillellipse|circle|textout|plotimage|bitmapload|bitmapdraw|bitmapfree|setpixel|getpixel|rgb|locate|movewindow|screen|screenlock|screenunlock|refresh|shell|include|using|syntax|legacy|modern|erase|beep|sleep|delay|mdelay|msgbox|eval|help|apropos|ver|time|fopen|eof|ferror|ftell|fsize|mkdir|rmdir|chdir|pwd|getenv|setenv|unsetenv|getapppath|getplatid|getvkey|errno)\\b"
+      "match": "(?i)\\b(print|input|open|close|read|write|data|restore|let|cls|line|rect|fillrect|ellipse|fillellipse|circle|textout|plotimage|bitmapload|bitmapdraw|bitmapfree|setpixel|getpixel|rgb|locate|movewindow|screen|screenlock|screenunlock|refresh|shell|include|using|syntax|legacy|modern|erase|beep|sleep|delay|mdelay|msgbox|eval|help|apropos|ver|time|fopen|eof|ferror|ftell|fsize|mkdir|rmdir|chdir|pwd|getenv|setenv|unsetenv|getapppath|getdatetime|getmouse|getplatid|getvkey|errno|nativealloc|nativefree|nativefill|nativepokeb|nativepokei16|nativepokei32|nativepokei64|nativepokeptr|nativepokestr|nativepeekstr)\\b"
     },
     "keywords-operators": {
       "patterns": [
@@ -84,7 +84,7 @@
     },
     "constants": {
       "name": "constant.language.nubasic",
-      "match": "(?i)\\b(true|false)\\b"
+      "match": "(?i)\\b(true|false|nothing)\\b"
     },
     "functions": {
       "patterns": [

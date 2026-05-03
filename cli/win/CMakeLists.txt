@@ -71,6 +71,15 @@ target_link_libraries(nuBasicGDI PRIVATE
   nuWinConsole
 )
 
+if(NUBASIC_LIBFFI_RUNTIME_DLL)
+  add_custom_command(TARGET nuBasicGDI POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "${NUBASIC_LIBFFI_RUNTIME_DLL}"
+      $<TARGET_FILE_DIR:nuBasicGDI>
+    COMMENT "Copying libffi runtime DLL next to nubasicgdi.exe"
+  )
+endif()
+
 install(TARGETS nuBasicGDI DESTINATION bin COMPONENT Core)
 
 # Console-subsystem text-mode CLI (nubasic.exe).
@@ -117,6 +126,15 @@ target_link_libraries(nuBasicCLI PRIVATE
   nuBasicInterpreter
   nuWinConsole
 )
+
+if(NUBASIC_LIBFFI_RUNTIME_DLL)
+  add_custom_command(TARGET nuBasicCLI POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "${NUBASIC_LIBFFI_RUNTIME_DLL}"
+      $<TARGET_FILE_DIR:nuBasicCLI>
+    COMMENT "Copying libffi runtime DLL next to nubasic.exe"
+  )
+endif()
 
 install(TARGETS nuBasicCLI DESTINATION bin COMPONENT Core)
 
@@ -166,5 +184,14 @@ target_link_libraries(nuBasicDebugCLI PRIVATE
   nuBasicInterpreter
   nuWinConsole
 )
+
+if(NUBASIC_LIBFFI_RUNTIME_DLL)
+  add_custom_command(TARGET nuBasicDebugCLI POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "${NUBASIC_LIBFFI_RUNTIME_DLL}"
+      $<TARGET_FILE_DIR:nuBasicDebugCLI>
+    COMMENT "Copying libffi runtime DLL next to nubasicdebug.exe"
+  )
+endif()
 
 install(TARGETS nuBasicDebugCLI DESTINATION bin COMPONENT Core)

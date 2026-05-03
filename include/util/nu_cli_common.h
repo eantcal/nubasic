@@ -34,6 +34,7 @@ struct session_bootstrap_t {
 struct runtime_options_t {
     bool machine_interface = false;
     bool graphics_window = false;
+    bool disable_native_calls = false;
 };
 
 std::string ascii_lower(std::string s);

@@ -48,6 +48,11 @@ The Win32/64 build created with Visual Studio 2022 requires the
   in expressions via `New ClassName(...)`, including no-arg construction,
   constructor argument forwarding, inline temporary usage, field assignment,
   function return, parameter passing, and temporary member access.
+- Added class destructors for RAII-style cleanup: a `Sub Delete()` method is
+  invoked automatically for owned local class instances when their procedure
+  scope exits. Locals are destroyed in reverse definition order, derived-class
+  destructors run before base-class destructors, and borrowed parameters are not
+  destroyed by the callee.
 - Enforced stricter Overrides semantics: Overrides now requires a matching
   Overridable method in the base-class chain, with full compile-time signature
   validation (procedure kind, return type, parameter count/types, and ByRef/ByVal
@@ -70,6 +75,29 @@ The Win32/64 build created with Visual Studio 2022 requires the
   syntax highlighting for `.bas` files, Run/Stop commands, executable discovery
   via configuration, registry, or PATH, and optional CMake targets to package and
   install the extension when the required tools are available.
+- Added debugger stepping modes in the interpreter core and Windows IDE:
+  Continue, Step Into, Step Over, Step Out, Pause/Break, and Run to Cursor.
+  The model is shared with the debug CLI and the VS Code debug adapter. VS Code
+  support is functional but still has known edge cases under investigation.
+- Added graphics-aware VS Code debugging: graphical programs can run under the
+  debugger using a separate GDI window for graphics while debugger protocol and
+  textual diagnostics remain separate.
+- Added native DLL calls on Windows x64 with `Declare Function ... Lib ...`,
+  optional `Alias` and `CallConv`, libffi-based invocation, supported scalar
+  native types (`Integer`, `DWORD`, `Long64`, `ULong64`, `Double`, `Bool`,
+  `Pointer`, `String`, `Void`), and runtime native memory helpers
+  (`NativeAlloc`, `NativeFree`, `NativeFill`, `NativePoke*`, `NativePeekStr$`)
+  for pointer buffers and manually laid-out Win32 structures.
+- Added `--disable-native-calls` and the matching IDE setting. Native DLL calls
+  are enabled by default in trusted local hosts and can be disabled explicitly.
+- Added line continuation with `_`: a physical source line ending in `_` is
+  joined with the following line before parsing. Debuggers treat the joined
+  sequence as one BASIC statement and stop on the first physical line.
+- Added `examples/native_open_file_dialog.bas`, demonstrating a Win32
+  `GetOpenFileNameA` call using `Declare Function`, native buffers, and a
+  manually laid-out `OPENFILENAMEA` structure.
+- Added third-party notices for libffi and refreshed Scintilla/Lexilla license
+  coverage in the installer documentation.
 - Improved Windows IDE runtime diagnostics: runtime failures now follow the same
   reporting path as syntax errors, with structured Output-pane details, dialog
   reporting, and consistent execution-marker updates.

@@ -17,6 +17,11 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cc")
 add_library(nuBasicInterpreter STATIC ${SOURCES})
 target_compile_features(nuBasicInterpreter PRIVATE cxx_std_20)
 
+if(NUBASIC_WITH_LIBFFI AND TARGET unofficial::libffi::libffi)
+  target_link_libraries(nuBasicInterpreter PUBLIC unofficial::libffi::libffi)
+  target_compile_definitions(nuBasicInterpreter PUBLIC NUBASIC_HAS_LIBFFI=1)
+endif()
+
 if(MSVC)
   set_target_properties(nuBasicInterpreter PROPERTIES
     VS_GLOBAL_IntDir "$(SolutionDir)$(ProjectName).dir\\$(Platform)\\$(Configuration)\\"

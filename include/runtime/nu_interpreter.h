@@ -175,6 +175,14 @@ public:
     // expressions; the call_stack in rt_prog_ctx_t is maintained.
     void set_debug_mode(bool on) noexcept;
     bool get_debug_mode() const noexcept;
+    void set_native_calls_enabled(bool on) noexcept
+    {
+        _prog_ctx.native_calls_enabled = on;
+    }
+    bool native_calls_enabled() const noexcept
+    {
+        return _prog_ctx.native_calls_enabled;
+    }
 
     // Returns the current user-visible call stack (only populated in debug
     // mode).

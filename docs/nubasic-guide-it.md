@@ -1,6 +1,6 @@
 # nuBASIC — Guida Utente
 
-> Versione 1.61 · http://www.nubasic.eu/
+> Versione 2.0 · http://www.nubasic.eu/
 > Autore: Antonino Calderone — antonino.calderone@gmail.com
 
 ---
@@ -24,6 +24,8 @@
    - 4.11 [I/O su file](#411-io-su-file)
    - 4.12 [DATA, READ, RESTORE](#412-data-read-restore)
    - 4.13 [Gestione delle stringhe](#413-gestione-delle-stringhe)
+   - 4.14 [Chiamate DLL native](#414-chiamate-dll-native)
+   - 4.15 [Continuazione di riga](#415-continuazione-di-riga)
 5. [Grafica e multimedia](#5-grafica-e-multimedia)
    - 5.1 [Primitive di disegno](#51-primitive-di-disegno)
    - 5.2 [Rendering senza sfarfallio — ScreenLock / ScreenUnlock / Refresh](#52-rendering-senza-sfarfallio)
@@ -1478,6 +1480,69 @@ Print Eval(expr$)       ' 36 — valutato con x=5
 ```
 
 ---
+### 4.14 Chiamate DLL native
+
+Su Windows x64 nuBASIC puo dichiarare e chiamare funzioni esportate da DLL:
+
+```basic
+Syntax Modern
+
+Declare Function GetCurrentProcessId Lib "kernel32.dll" () As DWORD
+Print GetCurrentProcessId()
+```
+
+La forma generale e':
+
+```basic
+Declare Function nome Lib "dll" _
+    [Alias "export"] _
+    [CallConv "default" | "cdecl" | "stdcall"] _
+    (param As NativeType, ...) As NativeType
+```
+
+I tipi nativi supportati sono `Integer`, `DWORD`, `Long64`, `ULong64`,
+`Double`, `Bool`, `Pointer`, `String` e `Void`. `String` e una stringa ANSI
+`const char*`; per buffer modificabili e strutture C/Win32 costruite manualmente
+si usa `Pointer`.
+
+Gli helper di memoria nativa sono nel modulo `runtime`:
+
+```basic
+Syntax Modern
+Using runtime
+
+p = NativeAlloc(32)
+NativePokeStr p, 0, "hello", 32
+Print NativePeekStr$(p, 0, 32)
+NativeFree p
+```
+
+Le chiamate native sono abilitate per default negli host locali fidati e si
+possono disabilitare con `--disable-native-calls`. Vedi
+`docs/native-dll-calls.md` ed `examples/native_open_file_dialog.bas`.
+
+---
+
+### 4.15 Continuazione di riga
+
+Un underscore alla fine di una riga fisica unisce la riga successiva nello stesso
+statement BASIC logico:
+
+```basic
+Declare Function lstrlenA Lib "kernel32.dll" _
+    Alias "lstrlenA" _
+    (text As String) As Integer
+
+text$ = "hello " _
+    + "world"
+```
+
+Il marker `_` deve essere l'ultimo carattere di codice non blank; puo essere
+seguito da un commento con apostrofo. Il debugger considera la sequenza come un
+solo statement e si ferma sulla prima riga fisica.
+
+---
+
 ## 5. Grafica e Multimedia
 
 Tutte le funzioni grafiche sono disponibili nella versione completa (Windows GDI o Linux/X11). Sono

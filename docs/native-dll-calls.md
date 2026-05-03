@@ -1,0 +1,131 @@
+# Native DLL Calls
+
+nuBASIC can declare and call exported native DLL functions on Windows x64.
+This feature is unsafe and is enabled by default in trusted local hosts.
+
+Disable it explicitly from the CLI when running untrusted code:
+
+```text
+nubasic -t --disable-native-calls -e script.bas
+```
+
+With `--disable-native-calls`, any native declaration executed by the program
+fails with:
+
+```text
+Native DLL calls are disabled by --disable-native-calls.
+```
+
+## Syntax
+
+```basic
+Declare Function <basic-name> Lib "<dll-name>" _
+    [Alias "<export-name>"] _
+    [CallConv "default" | "cdecl" | "stdcall"] _
+    (<param-name> As <native-type>, ...) As <native-type>
+```
+
+The `_` marker is nuBASIC line continuation: it joins the following physical
+line into the same logical statement before parsing.
+
+If `Alias` is omitted, the BASIC function name is used as the exported symbol.
+On Windows x64 the calling convention is parsed and stored, but native calls use
+the platform default ABI.
+
+## Supported MVP Types
+
+```text
+Integer  -> signed 32-bit integer
+DWORD    -> unsigned 32-bit integer
+Long64   -> signed 64-bit integer
+ULong64  -> unsigned 64-bit integer
+Double   -> double
+Bool     -> 32-bit BOOL-compatible integer
+Pointer  -> integer-sized pointer value
+String   -> const char* narrow string
+Void     -> no return value
+```
+
+`String` maps to a narrow `const char*`, so use ANSI exports such as `lstrlenA`
+instead of wide-character APIs such as `lstrlenW`.
+
+`Pointer` is an integer-sized native address. nuBASIC also exposes a small set
+of native memory helpers so scripts can pass writable buffers or simple Win32
+structures to DLL calls:
+
+```text
+NativeAlloc(size) -> Pointer
+NativeFree(pointer)
+NativeFill(pointer, offset, size, byte)
+NativePokeB(pointer, offset, value)
+NativePokeI16(pointer, offset, value)
+NativePokeI32(pointer, offset, value)
+NativePokeI64(pointer, offset, value)
+NativePokePtr(pointer, offset, pointerValue)
+NativePokeStr(pointer, offset, text, capacity)
+NativePeekStr$(pointer, offset, capacity) -> String
+```
+
+These helpers are intentionally low level. They do not know the target ABI or
+structure layout; the BASIC program must use the correct offsets for the target
+platform.
+
+## Examples
+
+```basic
+Syntax Modern
+
+Declare Function GetCurrentProcessId Lib "kernel32.dll" () As DWORD
+
+Print GetCurrentProcessId()
+```
+
+```basic
+Syntax Modern
+Using runtime
+
+Declare Function lstrlenA Lib "kernel32.dll" _
+    Alias "lstrlenA" _
+    (text As String) As Integer
+
+Print lstrlenA("nuBASIC")
+```
+
+Expected output for the second example:
+
+```text
+7
+```
+
+Pointer argument and mutable buffer:
+
+```basic
+Syntax Modern
+Using runtime
+
+Declare Function lstrlenA Lib "kernel32.dll" _
+    Alias "lstrlenA" _
+    (text As Pointer) As Integer
+
+p = NativeAlloc(32)
+NativePokeStr p, 0, "nuBASIC", 32
+Print lstrlenA(p)
+Print NativePeekStr$(p, 0, 32)
+NativeFree p
+```
+
+For a complete Win32 common dialog example, see
+`examples/native_open_file_dialog.bas`.
+
+## Current Limitations
+
+The first implementation intentionally does not support:
+
+- ByRef or output buffers
+- wide strings / `LPCWSTR`
+- automatic struct marshalling, arrays, callbacks, COM, or variadic functions
+- automatic header parsing
+- sandboxing or DLL allowlists
+
+Native calls can crash the process or corrupt memory if the declaration does not
+exactly match the exported function signature.

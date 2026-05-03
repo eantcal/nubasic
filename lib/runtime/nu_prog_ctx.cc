@@ -45,6 +45,8 @@ void prog_ctx_t::clear_metadata()
     select_case_metadata.clear();
     procedure_metadata.clear();
     proc_prototypes.data.clear();
+    native_functions.clear();
+    native_runtime.clear();
     struct_prototypes.data.clear();
     struct_metadata.clear();
     class_metadata.clear();

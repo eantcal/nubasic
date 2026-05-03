@@ -160,6 +160,7 @@ static int nuBASIC_console(int argc, char* argv[])
     }
 
     nu::interpreter_t nuBASIC;
+    nuBASIC.set_native_calls_enabled(!runtime_options.disable_native_calls);
     nuBASIC.set_yield_cbk([](void*) {
 #ifdef _WIN32
         if (nu_winconsole_is_active()) {

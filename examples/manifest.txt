@@ -16,6 +16,7 @@ guess.bas|Guessing game
 line.bas|Line drawing
 math.bas|Math samples
 minesHunter.bas|Mines / Minesweeper-style game
+native_open_file_dialog.bas|Native Win32 file-open dialog
 nutetris.bas|Tetris-style game
 nutetris3d.bas|Tetris 3D variant
 parabola.bas|Parabola plot

@@ -36,6 +36,11 @@ static bool is_graphics_window_arg(const std::string& arg)
     return arg == "--graphics-window";
 }
 
+static bool is_disable_native_calls_arg(const std::string& arg)
+{
+    return arg == "--disable-native-calls";
+}
+
 static std::string escape_machine_value(const std::string& value)
 {
     std::string escaped;
@@ -240,6 +245,8 @@ runtime_options_t parse_runtime_options(int argc, char* argv[])
             result.machine_interface = true;
         } else if (is_graphics_window_arg(argv[i])) {
             result.graphics_window = true;
+        } else if (is_disable_native_calls_arg(argv[i])) {
+            result.disable_native_calls = true;
         }
     }
 
@@ -261,6 +268,8 @@ std::string build_usage_text(const char* progname)
         "  -t, --text-mode    Run in text/batch mode (no terminal window)\n"
         "  --machine-interface Emit machine-friendly debugger events\n"
         "  --graphics-window  Open a separate GDI window for graphics output\n"
+        "  --disable-native-calls Disable native DLL calls declared with "
+        "DECLARE FUNCTION\n"
         "  -nx                Skip spawning a new terminal window\n"
         "  -h [topic]         Show built-in language help (topic is optional)\n"
         "  -?, --help [topic] Same as -h\n"
@@ -340,7 +349,8 @@ session_bootstrap_t build_session_bootstrap(int argc, char* argv[],
             if (param != NU_BASIC_XTERM_FRAME_SWITCH
                 && param != NU_BASIC_XTERM_NOFRAME_SWITCH && param != "-t"
                 && param != "--text-mode" && !is_machine_interface_arg(param)
-                && !is_graphics_window_arg(param)) {
+                && !is_graphics_window_arg(param)
+                && !is_disable_native_calls_arg(param)) {
                 bool handled = false;
                 if (extra_option_handler) {
                     handled = extra_option_handler(param, i, argc);

@@ -424,6 +424,69 @@ static help_content_t _help_content[] = {
     { lang_item_t::FUNCTION, "sizeof@",
         "Returns the number of items of the array x", "SizeOf@(x)" },
 
+    { lang_item_t::FUNCTION, "nativealloc",
+        "Allocates a zero-filled native memory block and returns its address "
+        "as an integer-sized pointer. Native memory helpers are intended for "
+        "trusted local programs that call DLL APIs requiring pointers, "
+        "buffers, or manually laid-out structures. The memory must be released "
+        "with NativeFree.\n"
+        "Disabled when the interpreter is started with "
+        "--disable-native-calls.\n"
+        "See also: Declare, NativeFree, NativePokeStr, NativePeekStr$",
+        "NativeAlloc(size) As Pointer" },
+
+    { lang_item_t::FUNCTION, "nativefree",
+        "Releases memory previously allocated with NativeAlloc. Passing 0 is "
+        "ignored. Do not free the same pointer twice.\n"
+        "See also: NativeAlloc",
+        "NativeFree(pointer)" },
+
+    { lang_item_t::FUNCTION, "nativefill",
+        "Fills a native memory range with a byte value. Offsets and sizes are "
+        "expressed in bytes.\n"
+        "See also: NativeAlloc, NativePokeB",
+        "NativeFill(pointer, offset, size, byte)" },
+
+    { lang_item_t::FUNCTION, "nativepokeb",
+        "Writes an unsigned byte to native memory at pointer + offset.",
+        "NativePokeB(pointer, offset, value)" },
+
+    { lang_item_t::FUNCTION, "nativepokei16",
+        "Writes a signed 16-bit integer to native memory at pointer + offset.",
+        "NativePokeI16(pointer, offset, value)" },
+
+    { lang_item_t::FUNCTION, "nativepokei32",
+        "Writes a signed 32-bit integer to native memory at pointer + offset. "
+        "This is suitable for many Win32 DWORD/BOOL/int fields when the value "
+        "fits the target representation.",
+        "NativePokeI32(pointer, offset, value)" },
+
+    { lang_item_t::FUNCTION, "nativepokei64",
+        "Writes a signed 64-bit integer to native memory at pointer + offset.",
+        "NativePokeI64(pointer, offset, value)" },
+
+    { lang_item_t::FUNCTION, "nativepokeptr",
+        "Writes an integer-sized native pointer value to memory at "
+        "pointer + offset. Use this for pointer fields inside manually "
+        "laid-out C/Win32 structures.",
+        "NativePokePtr(pointer, offset, pointerValue)" },
+
+    { lang_item_t::FUNCTION, "nativepokestr",
+        "Copies an ANSI string into native memory and appends a NUL terminator "
+        "without exceeding capacity bytes. Returns the number of bytes "
+        "copied.\n"
+        "See also: NativePeekStr$",
+        "NativePokeStr(pointer, offset, text$, capacity)" },
+
+    { lang_item_t::FUNCTION, "nativepeekstr$",
+        "Reads a NUL-terminated ANSI string from native memory, scanning at "
+        "most capacity bytes.\n"
+        "See also: NativePokeStr",
+        "NativePeekStr$(pointer, offset, capacity) As String" },
+
+    { lang_item_t::FUNCTION, "nativepeekstr", "Alias of NativePeekStr$.",
+        "NativePeekStr(pointer, offset, capacity) As String" },
+
     { lang_item_t::FUNCTION, "getdatetime",
         "Returns a DateTime struct with all date/time fields populated in a "
         "single call.\n"
@@ -854,6 +917,31 @@ static help_content_t _help_content[] = {
         "See also: Load",
         "Include \"filename.bas\"\n"
         "#Include \"filename.bas\"\n" },
+
+    { lang_item_t::INSTRUCTION, "declare",
+        "Declares an exported native DLL function that can be called from "
+        "BASIC. Supported native types are Integer, DWORD, Long64, ULong64, "
+        "Double, Bool, Pointer, String, and Void. String maps to ANSI "
+        "const char*. Pointer accepts integer-sized native addresses, "
+        "including "
+        "values returned by NativeAlloc. CallConv is parsed for compatibility; "
+        "on Windows x64 calls use the platform ABI.\n"
+        "Native calls are enabled by default for trusted local hosts and can "
+        "be "
+        "disabled with --disable-native-calls.\n"
+        "See also: NativeAlloc, NativePokePtr, NativePeekStr$",
+        "Declare Function name Lib \"dll\" [Alias \"export\"] "
+        "[CallConv \"default|cdecl|stdcall\"] "
+        "(param As NativeType, ...) As NativeType" },
+
+    { lang_item_t::INSTRUCTION, "_",
+        "Line continuation marker. Place _ as the last non-blank code "
+        "character on a physical source line to join the following physical "
+        "line into the same logical BASIC statement. A trailing apostrophe "
+        "comment may follow the marker. Debuggers stop on the first physical "
+        "line of the joined statement.",
+        "statement-part _\n"
+        "    continued-part" },
 
     { lang_item_t::INSTRUCTION, "let",
         "Assigns the value of an expression to a variable.\n"

@@ -110,6 +110,15 @@ target_link_libraries(nuBasicIDE PRIVATE
 
 target_link_libraries(nuBasicIDE PRIVATE nuWinConsole)
 
+if(NUBASIC_LIBFFI_RUNTIME_DLL)
+  add_custom_command(TARGET nuBasicIDE POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "${NUBASIC_LIBFFI_RUNTIME_DLL}"
+      $<TARGET_FILE_DIR:nuBasicIDE>
+    COMMENT "Copying libffi runtime DLL next to NuBasicIDE.exe"
+  )
+endif()
+
 # Install target
 install(TARGETS nuBasicIDE DESTINATION bin COMPONENT IDE)
 
