@@ -163,7 +163,7 @@ nuBASIC is open source under the [MIT License](https://opensource.org/licenses/M
 
 Bug reports and feature requests: antonino.calderone@gmail.com
 
-<img width="1080" height="983" alt="nuBASIC IDE for Windows" src="https://github.com/user-attachments/assets/b2f1e0cf-8304-44e3-b6dc-e0f9b421a48f" />
+<img width="2878" height="1700" alt="image" src="https://github.com/user-attachments/assets/9a4c9c54-b3c9-492e-99ef-e03a7f2b6cab" />
 
 <html><br><br></html>
 
