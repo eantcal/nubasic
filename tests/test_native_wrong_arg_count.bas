@@ -1,4 +1,5 @@
 ' test_native_wrong_arg_count.bas - native invocation validates arity
+' PLATFORM: windows
 ' EXPECT_ERROR: Runtime Error
 
 Syntax Modern

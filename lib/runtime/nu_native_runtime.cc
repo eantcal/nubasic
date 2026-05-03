@@ -22,6 +22,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#elif defined(__unix__) || defined(__APPLE__)
+#include <dlfcn.h>
 #endif
 
 namespace nu {
@@ -221,10 +223,18 @@ native_library_t::native_library_t(std::wstring path)
         throw exception_t("Cannot load native library '" + narrow(_path)
             + "': " + last_windows_error());
     }
+#elif defined(__unix__) || defined(__APPLE__)
+    const std::string narrow_path = narrow(_path);
+    _module = dlopen(narrow_path.c_str(), RTLD_LAZY | RTLD_LOCAL);
+
+    if (!_module) {
+        const char* err = dlerror();
+        throw exception_t("Cannot load native library '" + narrow_path
+            + "': " + (err ? err : "unknown error"));
+    }
 #else
     (void)_path;
-    throw exception_t(
-        "Native DLL calls are currently supported only on Windows.");
+    throw exception_t("Native DLL calls are not supported on this platform.");
 #endif
 }
 
@@ -233,6 +243,10 @@ native_library_t::~native_library_t()
 #ifdef _WIN32
     if (_module) {
         FreeLibrary(static_cast<HMODULE>(_module));
+    }
+#elif defined(__unix__) || defined(__APPLE__)
+    if (_module) {
+        dlclose(_module);
     }
 #endif
 }
@@ -253,6 +267,10 @@ native_library_t& native_library_t::operator=(native_library_t&& other) noexcept
 #ifdef _WIN32
     if (_module) {
         FreeLibrary(static_cast<HMODULE>(_module));
+    }
+#elif defined(__unix__) || defined(__APPLE__)
+    if (_module) {
+        dlclose(_module);
     }
 #endif
 
@@ -276,10 +294,23 @@ void* native_library_t::resolve_symbol(std::string_view name) const
     }
 
     return proc;
+#elif defined(__unix__) || defined(__APPLE__)
+    const std::string symbol(name);
+    // Clear any pending error so we can distinguish "symbol resolved to NULL"
+    // from "symbol not found" by checking dlerror() right after dlsym().
+    dlerror();
+    void* proc = dlsym(_module, symbol.c_str());
+    const char* err = dlerror();
+
+    if (err) {
+        throw exception_t("Cannot resolve native symbol '" + symbol + "' from '"
+            + narrow(_path) + "': " + err);
+    }
+
+    return proc;
 #else
     (void)name;
-    throw exception_t(
-        "Native DLL calls are currently supported only on Windows.");
+    throw exception_t("Native DLL calls are not supported on this platform.");
 #endif
 }
 

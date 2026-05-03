@@ -13,6 +13,8 @@
 #   ' OUTFILE: name.txt -- read test output from this file instead of stdout.
 #   ' COMMANDS: name.txt -- feed commands to the interactive interpreter.
 #   ' SKIP              -- skip this test with a note.
+#   ' PLATFORM: token   -- skip unless current host matches token. Accepted
+#                          tokens: windows, linux, darwin, posix (= linux + darwin).
 #   ' EXPECT_ERROR: text  -- output must contain text.
 #   ' EXPECT_OUTPUT: a|b  -- output must contain all pipe-separated fragments.
 #   ' EXPECT_NOT_OUTPUT: a|b  -- output must not contain these fragments.
@@ -29,6 +31,20 @@ $LASTEXITCODE = 0   # initialise so StrictMode does not complain before the firs
 # ── locate repo root ─────────────────────────────────────────────────────────
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot  = Split-Path -Parent $ScriptDir
+
+# ── detect host platform for PLATFORM: skip metadata ─────────────────────────
+# PowerShell 5.1 (Windows-only) does not define $IsLinux/$IsMacOS, so guard
+# the lookup with a check on Windows PowerShell vs PowerShell Core.
+$HostPlatform = "windows"
+if ((Get-Variable -Name IsLinux -ErrorAction SilentlyContinue) -and $IsLinux)   { $HostPlatform = "linux" }
+if ((Get-Variable -Name IsMacOS -ErrorAction SilentlyContinue) -and $IsMacOS)   { $HostPlatform = "darwin" }
+
+function Test-PlatformMatches([string]$Token) {
+    $t = $Token.Trim().ToLowerInvariant()
+    if ($t -eq "")        { return $true }
+    if ($t -eq "posix")   { return $HostPlatform -eq "linux" -or $HostPlatform -eq "darwin" }
+    return $t -eq $HostPlatform
+}
 
 # ── locate interpreter ───────────────────────────────────────────────────────
 if ($Interpreter -eq "") {
@@ -102,6 +118,7 @@ foreach ($f in $TestFiles) {
     $ArgsLine = ""
     $OutFile = ""
     $Skip = ""
+    $Platform = ""
     $CommandsFile = ""
     $ExpectError = ""
     $ExpectOutput = ""
@@ -116,6 +133,8 @@ foreach ($f in $TestFiles) {
             $CommandsFile = $Matches[1].Trim()
         } elseif ($line -match "^\s*'\s*SKIP\s*:?\s*(.*)$") {
             $Skip = $Matches[1].Trim()
+        } elseif ($line -match "^\s*'\s*PLATFORM\s*:?\s*(.*)$") {
+            $Platform = $Matches[1].Trim()
         } elseif ($line -match "^\s*'\s*EXPECT_ERROR\s*:?\s*(.*)$") {
             $ExpectError = $Matches[1].Trim()
         } elseif ($line -match "^\s*'\s*EXPECT_OUTPUT\s*:?\s*(.*)$") {
@@ -132,6 +151,12 @@ foreach ($f in $TestFiles) {
 
     if ($Skip -ne "") {
         Write-Host "  [SKIPPED] $Skip"
+        $SuiteSkip++
+        continue
+    }
+
+    if ($Platform -ne "" -and -not (Test-PlatformMatches $Platform)) {
+        Write-Host "  [SKIPPED] platform=$Platform host=$HostPlatform"
         $SuiteSkip++
         continue
     }

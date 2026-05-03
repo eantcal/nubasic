@@ -1,7 +1,14 @@
-# Native DLL Calls
+# Native Library Calls
 
-nuBASIC can declare and call exported native DLL functions on Windows x64.
-This feature is unsafe and is enabled by default in trusted local hosts.
+nuBASIC can declare and call exported functions from native shared libraries:
+
+| Platform     | Loader                  | Library suffix  |
+|--------------|-------------------------|-----------------|
+| Windows x64  | `LoadLibraryW`          | `.dll`          |
+| Linux x86_64 | `dlopen` (`RTLD_LAZY`)  | `.so` / `.so.N` |
+| macOS        | `dlopen` (`RTLD_LAZY`)  | `.dylib`        |
+
+The feature is unsafe and is enabled by default on trusted local hosts.
 
 Disable it explicitly from the CLI when running untrusted code:
 
@@ -29,8 +36,12 @@ The `_` marker is nuBASIC line continuation: it joins the following physical
 line into the same logical statement before parsing.
 
 If `Alias` is omitted, the BASIC function name is used as the exported symbol.
-On Windows x64 the calling convention is parsed and stored, but native calls use
-the platform default ABI.
+The calling convention is parsed and stored, but on every supported platform
+native calls currently use the default ABI (x64 SysV / Windows x64).
+
+On POSIX, the `Lib` value is passed verbatim to `dlopen`. Use the platform's
+canonical sonames, e.g. `libc.so.6` on Linux (glibc), `libSystem.B.dylib` on
+macOS, or an absolute path.
 
 ## Supported MVP Types
 
@@ -72,6 +83,8 @@ platform.
 
 ## Examples
 
+### Windows
+
 ```basic
 Syntax Modern
 
@@ -91,11 +104,29 @@ Declare Function lstrlenA Lib "kernel32.dll" _
 Print lstrlenA("nuBASIC")
 ```
 
-Expected output for the second example:
+Expected output: `7`.
 
-```text
-7
+### Linux / macOS
+
+```basic
+Syntax Modern
+
+' Linux (glibc)
+Declare Function strlen Lib "libc.so.6" (text As String) As Integer
+
+Print strlen("hello")
 ```
+
+```basic
+Syntax Modern
+
+' macOS
+Declare Function strlen Lib "libSystem.B.dylib" (text As String) As Integer
+
+Print strlen("hello")
+```
+
+Expected output: `5`.
 
 Pointer argument and mutable buffer:
 
@@ -116,6 +147,20 @@ NativeFree p
 
 For a complete Win32 common dialog example, see
 `examples/native_open_file_dialog.bas`.
+
+## Build prerequisites
+
+Native DLL invocation requires libffi at build time.
+
+| Platform | Install |
+|----------|---------|
+| Windows  | `vcpkg install libffi:x64-windows` (CMake auto-detects vcpkg) |
+| Debian/Ubuntu | `apt install libffi-dev` |
+| Fedora/RHEL   | `dnf install libffi-devel` |
+| macOS    | `brew install libffi` |
+
+When libffi is not found, `Declare Function ... Lib "..."` is still parsed,
+but invocation fails with a clear runtime error.
 
 ## Current Limitations
 

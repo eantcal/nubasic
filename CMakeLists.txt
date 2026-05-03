@@ -140,13 +140,14 @@ endif()
 # CMake code that tests this variable.
 set(_nubasic_tiny ${_nubasic_console})
 
-# Windows: console/win must be added BEFORE add_subdirectory(lib) so the
-# nuWinConsole target exists when the interpreter links against it.
-if (WIN32)
-  option(WITH_WIN_IDE "Windows IDE" ON)
-  option(NUBASIC_WITH_LIBFFI "Enable libffi-backed native DLL calls" ON)
+# Native DLL calls via libffi — cross-platform.
+# On Windows the library comes from vcpkg's unofficial-libffi port.
+# On Linux/macOS it is located via pkg-config first, then bare
+# find_path/find_library as a fallback for distros without a .pc file.
+option(NUBASIC_WITH_LIBFFI "Enable libffi-backed native DLL calls" ON)
 
-  if(NUBASIC_WITH_LIBFFI)
+if(NUBASIC_WITH_LIBFFI)
+  if(WIN32)
     if(DEFINED ENV{VCPKG_ROOT} AND EXISTS "$ENV{VCPKG_ROOT}/installed/x64-windows")
       list(APPEND CMAKE_PREFIX_PATH "$ENV{VCPKG_ROOT}/installed/x64-windows")
     elseif(EXISTS "C:/vcpkg/installed/x64-windows")
@@ -156,7 +157,8 @@ if (WIN32)
     find_package(unofficial-libffi CONFIG QUIET)
 
     if(TARGET unofficial::libffi::libffi)
-      message(STATUS "libffi: native DLL invocation enabled")
+      set(NUBASIC_LIBFFI_FOUND TRUE)
+      message(STATUS "libffi: native DLL invocation enabled (Windows/vcpkg)")
       find_file(NUBASIC_LIBFFI_RUNTIME_DLL
         NAMES ffi-8.dll ffi.dll
         PATHS
@@ -166,7 +168,43 @@ if (WIN32)
     else()
       message(WARNING "libffi not found; native DLL declarations are parsed, but invocation will be disabled")
     endif()
+  else()
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+      pkg_check_modules(NUBASIC_LIBFFI_PC QUIET libffi)
+    endif()
+
+    if(NUBASIC_LIBFFI_PC_FOUND)
+      set(NUBASIC_LIBFFI_INCLUDE_DIRS ${NUBASIC_LIBFFI_PC_INCLUDE_DIRS})
+      set(NUBASIC_LIBFFI_LIBRARIES    ${NUBASIC_LIBFFI_PC_LIBRARIES})
+      set(NUBASIC_LIBFFI_LIBRARY_DIRS ${NUBASIC_LIBFFI_PC_LIBRARY_DIRS})
+      set(NUBASIC_LIBFFI_FOUND TRUE)
+    else()
+      find_path(NUBASIC_LIBFFI_INCLUDE_DIR ffi.h
+                PATH_SUFFIXES ffi)
+      find_library(NUBASIC_LIBFFI_LIBRARY NAMES ffi)
+      if(NUBASIC_LIBFFI_INCLUDE_DIR AND NUBASIC_LIBFFI_LIBRARY)
+        set(NUBASIC_LIBFFI_INCLUDE_DIRS ${NUBASIC_LIBFFI_INCLUDE_DIR})
+        set(NUBASIC_LIBFFI_LIBRARIES    ${NUBASIC_LIBFFI_LIBRARY})
+        set(NUBASIC_LIBFFI_FOUND TRUE)
+      endif()
+    endif()
+
+    if(NUBASIC_LIBFFI_FOUND)
+      message(STATUS "libffi: native DLL invocation enabled (POSIX)")
+    else()
+      message(WARNING
+        "libffi not found on POSIX; install libffi-dev (Debian/Ubuntu), "
+        "libffi-devel (Fedora) or libffi (Homebrew). "
+        "Native declarations will be parsed but invocation will be disabled.")
+    endif()
   endif()
+endif()
+
+# Windows: console/win must be added BEFORE add_subdirectory(lib) so the
+# nuWinConsole target exists when the interpreter links against it.
+if (WIN32)
+  option(WITH_WIN_IDE "Windows IDE" ON)
 
   # Build the GDI console library (always enabled on Windows full builds)
   if (NOT _nubasic_console)

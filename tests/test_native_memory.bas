@@ -1,4 +1,5 @@
 ' test_native_memory.bas - native memory helpers for pointer arguments
+' PLATFORM: windows
 ' EXPECT_OUTPUT: native memory ok|5|hello
 
 Syntax Modern

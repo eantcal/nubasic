@@ -8,6 +8,8 @@
 #   ' ARGS: arg1 arg2   — extra CLI args passed to the interpreter
 #   ' OUTFILE: name.txt — read test output from this file instead of stdout
 #   ' SKIP               — skip this test with a note
+#   ' PLATFORM: token   — skip unless host matches token. Tokens:
+#                          windows, linux, darwin, posix (= linux + darwin)
 #
 #   ' EXPECT_ERROR: text -- output must contain text
 #   ' EXPECT_OUTPUT: a|b -- output must contain all pipe-separated fragments
@@ -23,6 +25,24 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 INTERPRETER=""
 TEST_DIR="$SCRIPT_DIR"
+
+# ── detect host platform for PLATFORM: skip metadata ─────────────────────────
+case "$(uname -s 2>/dev/null)" in
+    Linux*)                     HOST_PLATFORM="linux"   ;;
+    Darwin*)                    HOST_PLATFORM="darwin"  ;;
+    MINGW*|MSYS*|CYGWIN*|Windows_NT) HOST_PLATFORM="windows" ;;
+    *)                          HOST_PLATFORM="unknown" ;;
+esac
+
+platform_matches() {
+    local token="${1,,}"
+    [[ -z "$token" ]] && return 0
+    if [[ "$token" == "posix" ]]; then
+        [[ "$HOST_PLATFORM" == "linux" || "$HOST_PLATFORM" == "darwin" ]]
+        return $?
+    fi
+    [[ "$token" == "$HOST_PLATFORM" ]]
+}
 
 # ── parse CLI args ────────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
@@ -192,6 +212,14 @@ for f in "${TEST_FILES[@]}"; do
     skip_val=$(read_meta "$f" "SKIP")
     if [[ -n "$skip_val" ]]; then
         printf '  [SKIPPED] %s\n' "${skip_val}"
+        suite_skip=$(( suite_skip + 1 ))
+        continue
+    fi
+
+    # ── meta: PLATFORM ────────────────────────────────────────────────────────
+    platform_val=$(read_meta "$f" "PLATFORM")
+    if [[ -n "$platform_val" ]] && ! platform_matches "$platform_val"; then
+        printf '  [SKIPPED] platform=%s host=%s\n' "$platform_val" "$HOST_PLATFORM"
         suite_skip=$(( suite_skip + 1 ))
         continue
     fi

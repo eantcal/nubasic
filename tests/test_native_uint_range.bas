@@ -1,4 +1,5 @@
 ' test_native_uint_range.bas - native unsigned argument range validation
+' PLATFORM: windows
 ' EXPECT_ERROR: value is out of range for DWORD
 
 Syntax Modern

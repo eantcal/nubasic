@@ -1,4 +1,5 @@
 ' test_native_declare.bas - native DLL declarations
+' PLATFORM: windows
 ' EXPECT_OUTPUT: native declarations parsed|5
 
 Syntax Modern
