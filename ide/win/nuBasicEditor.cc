@@ -81,49 +81,53 @@ namespace editor {
     /* --------------------------------------------------------------------------
      */
 
-    const int toolbar_n_of_bmps = 11;
+    const int toolbar_n_of_bmps = 15;
     const int toolbar_btn_state = TBSTATE_ENABLED;
-    const int toolbar_btn_style = BTNS_BUTTON | TBSTATE_ELLIPSES;
+    const int toolbar_btn_style = BTNS_BUTTON;
 
 
     TBBUTTON toolbar_buttons[]
-        = { { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+        = { { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, 0 },
 
               { 0, IDM_FILE_NEW, toolbar_btn_state, toolbar_btn_style, { 0 },
-                  NULL, (INT_PTR) "New" },
+                  NULL, 0 },
               { 1, IDM_FILE_OPEN, toolbar_btn_state, toolbar_btn_style, { 0 },
-                  NULL, (INT_PTR) "Open" },
+                  NULL, 0 },
               { 2, IDM_FILE_SAVE, toolbar_btn_state, toolbar_btn_style, { 0 },
-                  NULL, (INT_PTR) "Save" },
+                  NULL, 0 },
 
-              { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+              { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, 0 },
 
               { 3, IDM_DEBUG_START, toolbar_btn_state, toolbar_btn_style, { 0 },
-                  NULL, (INT_PTR) "Run" },
+                  NULL, 0 },
               { 4, IDM_DEBUG_STOP, 0 /*initially disabled*/, toolbar_btn_style,
-                  { 0 }, NULL, (INT_PTR) "Stop" },
+                  { 0 }, NULL, 0 },
               { 5, IDM_DEBUG_STEP_INTO, toolbar_btn_state, toolbar_btn_style,
-                  { 0 }, NULL, (INT_PTR) "Step Into" },
-              { 6, IDM_DEBUG_CONT, toolbar_btn_state, toolbar_btn_style, { 0 },
-                  NULL, (INT_PTR) "Continue" },
-              { 7, IDM_DEBUG_TOGGLEBRK, toolbar_btn_state, toolbar_btn_style,
-                  { 0 }, NULL, (INT_PTR) "Breakpoint" },
-              { 8, IDM_INTERPRETER_BUILD, toolbar_btn_state, toolbar_btn_style,
-                  { 0 }, NULL, (INT_PTR) "Build" },
-              { 9, IDM_DEBUG_EVALSEL, toolbar_btn_state, toolbar_btn_style,
-                  { 0 }, NULL, (INT_PTR) "Evaluate" },
+                  { 0 }, NULL, 0 },
+              { 6, IDM_DEBUG_STEP_OVER, 0 /*initially disabled*/,
+                  toolbar_btn_style, { 0 }, NULL, 0 },
+              { 7, IDM_DEBUG_STEP_OUT, 0 /*initially disabled*/,
+                  toolbar_btn_style, { 0 }, NULL, 0 },
+              { 8, IDM_DEBUG_CONT, toolbar_btn_state, toolbar_btn_style, { 0 },
+                  NULL, 0 },
+              { 9, IDM_DEBUG_TOGGLEBRK, toolbar_btn_state, toolbar_btn_style,
+                  { 0 }, NULL, 0 },
+              { 10, IDM_INTERPRETER_BUILD, toolbar_btn_state, toolbar_btn_style,
+                  { 0 }, NULL, 0 },
+              { 11, IDM_DEBUG_EVALSEL, toolbar_btn_state, toolbar_btn_style,
+                  { 0 }, NULL, 0 },
 
-              { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+              { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, 0 },
 
-              { 10, IDM_SEARCH_FIND, toolbar_btn_state, toolbar_btn_style,
-                  { 0 }, NULL, (INT_PTR) "Find" },
+              { 12, IDM_SEARCH_FIND, toolbar_btn_state, toolbar_btn_style,
+                  { 0 }, NULL, 0 },
 
-              { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, NULL },
+              { 0, 0, TBSTATE_ENABLED, BTNS_SEP, { 0 }, NULL, 0 },
 
-              { 11, IDM_DEBUG_TOPMOST, toolbar_btn_state, toolbar_btn_style,
-                  { 0 }, NULL, (INT_PTR) "Con Top" },
-              { 12, IDM_DEBUG_NOTOPMOST, toolbar_btn_state, toolbar_btn_style,
-                  { 0 }, NULL, (INT_PTR) "Ide Top" }
+              { 13, IDM_DEBUG_TOPMOST, toolbar_btn_state, toolbar_btn_style,
+                  { 0 }, NULL, 0 },
+              { 14, IDM_DEBUG_NOTOPMOST, toolbar_btn_state, toolbar_btn_style,
+                  { 0 }, NULL, 0 }
 
           };
 
@@ -6146,6 +6150,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
         return 0;
 
     case WM_NOTIFY:
+        // TTN_GETDISPINFO comes from the tooltip child window (different
+        // wParam)
+        if (((LPNMHDR)lParam)->code == TTN_GETDISPINFO && g_toolbar) {
+            g_toolbar->on_notify(hWnd, lParam);
+            return 0;
+        }
         if (wParam == IDI_NUBASIC_TOOLBAR) {
             BOOL ret_val = g_toolbar->on_notify(hWnd, lParam);
 

@@ -33,8 +33,8 @@ public:
     toolbar_t(const HWND hParentWnd, const HINSTANCE hInstance,
         const UINT idi_toolbar, const UINT_PTR res_id, const int n_of_bitmaps,
         const TBBUTTON buttons[], const int n_of_buttons,
-        const int bmwidth = 28, const int bmheight = 32, const int btwidth = 28,
-        const int btheight = 32);
+        const int bmwidth = 28, const int bmheight = 28, const int btwidth = 28,
+        const int btheight = 28);
 
     virtual void on_resize();
     virtual void on_customize();
@@ -47,10 +47,13 @@ public:
 
     HWND get_hwnd() const throw() { return _toolbar; }
 
+    ~toolbar_t();
+
 private:
     const HINSTANCE _hinstance;
     const HWND _hparent;
     HWND _toolbar;
+    HIMAGELIST _hImageList = nullptr;
 };
 
 

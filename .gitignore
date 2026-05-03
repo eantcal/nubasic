@@ -47,3 +47,4 @@ vscode-nubasic/*.vsix
 /vscode-nubasic/nubasic-*.check.zip
 /vscode-nubasic/nubasic-*.new.zip
 /vscode-nubasic/.vsix-stage-*
+/.vscode

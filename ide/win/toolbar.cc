@@ -24,22 +24,46 @@ toolbar_t::toolbar_t(const HWND hWnd, const HINSTANCE hInstance,
     : _hinstance(hInstance)
     , _hparent(hWnd)
 {
-    _toolbar = CreateToolbarEx(hWnd, // parent
+    // CreateToolbarEx only supports 8-bit bitmaps; skip its bitmap parameter
+    // and load a 24-bit image list manually via TB_SETIMAGELIST.
+    _toolbar = CreateToolbarEx(hWnd,
         WS_CHILD | WS_BORDER | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_ADJUSTABLE
             | TBSTYLE_FLAT,
-        idi_toolbar, // toolbar id
-        n_of_bitmaps, // number of bitmaps
-        hInstance, // mod instance
-        res_id, // resource ID for bitmap
-        0, 0, btwidth, btheight, // width & height of buttons
-        bmwidth, bmheight, // width & height of bitmaps
-        sizeof(TBBUTTON)); // structure size
+        idi_toolbar, 0, nullptr, 0, // no bitmap at create-time
+        nullptr, 0, // no buttons at create-time
+        btwidth, btheight, bmwidth, bmheight, sizeof(TBBUTTON));
 
     assert(_toolbar);
 
-    SendMessage(_toolbar, TB_ADDBUTTONS,
-        (WPARAM)n_of_buttons, // number of buttons
-        (LPARAM)buttons);
+    // Load the resource bitmap as a DIB section (preserves full colour depth)
+    HBITMAP hBmp = (HBITMAP)LoadImage(hInstance, MAKEINTRESOURCE(res_id),
+        IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
+
+    if (hBmp) {
+        _hImageList = ImageList_Create(
+            bmwidth, bmheight, ILC_COLOR24 | ILC_MASK, n_of_bitmaps, 0);
+
+        if (_hImageList) {
+            // Mask out the classic button-face grey so icons blend with any
+            // theme
+            ImageList_AddMasked(_hImageList, hBmp, RGB(192, 192, 192));
+            SendMessage(_toolbar, TB_SETIMAGELIST, 0, (LPARAM)_hImageList);
+        }
+
+        DeleteObject(hBmp);
+    }
+
+    SendMessage(_toolbar, TB_ADDBUTTONS, (WPARAM)n_of_buttons, (LPARAM)buttons);
+    SendMessage(_toolbar, TB_AUTOSIZE, 0, 0);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+toolbar_t::~toolbar_t()
+{
+    if (_hImageList)
+        ImageList_Destroy(_hImageList);
 }
 
 
@@ -69,18 +93,35 @@ BOOL toolbar_t::on_notify(HWND hWnd, LPARAM lParam)
 
     switch (((LPNMHDR)lParam)->code) {
     case TTN_GETDISPINFO:
-        // Display the ToolTip text.
         lpToolTipText = (LPTOOLTIPTEXT)lParam;
-
-#if 0
-        LoadString (globals::h_instance, 
-            lpToolTipText->hdr.idFrom,    // string ID == cmd ID
-            szBuf,
-            sizeof(szBuf));
-#endif
         {
-            TCHAR text[4] = { 0 }; // TODO
-            lpToolTipText->lpszText = /*szBuf*/ (LPSTR)text;
+            static const struct {
+                UINT id;
+                const char* tip;
+            } tips[] = {
+                { IDM_FILE_NEW, "New" },
+                { IDM_FILE_OPEN, "Open" },
+                { IDM_FILE_SAVE, "Save" },
+                { IDM_DEBUG_START, "Start Debugging" },
+                { IDM_DEBUG_STOP, "Stop Debugging (Shift+F5)" },
+                { IDM_DEBUG_STEP_INTO, "Step Into (F11)" },
+                { IDM_DEBUG_STEP_OVER, "Step Over (F10)" },
+                { IDM_DEBUG_STEP_OUT, "Step Out (Shift+F11)" },
+                { IDM_DEBUG_CONT, "Continue (F5)" },
+                { IDM_DEBUG_TOGGLEBRK, "Toggle Breakpoint" },
+                { IDM_INTERPRETER_BUILD, "Build (Ctrl+B)" },
+                { IDM_DEBUG_EVALSEL, "Evaluate Selection (Ctrl+F11)" },
+                { IDM_SEARCH_FIND, "Find" },
+                { IDM_DEBUG_TOPMOST, "Console Topmost" },
+                { IDM_DEBUG_NOTOPMOST, "IDE Topmost" },
+            };
+            lpToolTipText->lpszText = const_cast<LPSTR>("");
+            for (const auto& t : tips) {
+                if (t.id == (UINT)lpToolTipText->hdr.idFrom) {
+                    lpToolTipText->lpszText = const_cast<LPSTR>(t.tip);
+                    break;
+                }
+            }
         }
         break;
 
