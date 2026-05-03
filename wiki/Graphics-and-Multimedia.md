@@ -68,7 +68,36 @@ TextOut 200, 240, "GAME OVER", Rgb(255, 50, 50)
 
 ### Bitmap Images
 
-`PlotImage` loads a BMP file and draws it at a pixel coordinate (native size, no scaling):
+Two APIs are available. Use the cached one whenever the same image is
+drawn more than once (sprites, tiles, animation frames): the file is
+decoded only on the first call and subsequent draws hit a GDI/GPU handle.
+
+#### Cached bitmap API (preferred)
+
+| Function | Returns | Description |
+|----------|---------|-------------|
+| `BitmapLoad(path$)` | Integer | Load a BMP/PNG/JPEG and return an integer handle (0 on failure) |
+| `BitmapDraw(id, x, y)` | Integer | Draw a cached bitmap at the given top-left pixel |
+| `BitmapFree(id)` | Integer | Release the cached bitmap |
+
+```basic
+Dim sprite As Integer
+sprite = BitmapLoad("hero.bmp")
+For frame% = 1 To 240
+   Cls
+   BitmapDraw sprite, hero_x%, hero_y%
+   Refresh
+Next frame%
+BitmapFree sprite
+```
+
+Backed by GDI+ on Windows and stb_image on Linux (R/B channels are
+pre-swapped at load time so the per-frame cost matches Windows).
+
+#### Single-shot draw (`PlotImage`)
+
+`PlotImage` reloads the file from disk on every call. Fine for one-off
+splashes, wasteful inside animation loops.
 
 ```basic
 PlotImage "background.bmp", 0, 0

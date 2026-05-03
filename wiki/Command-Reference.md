@@ -67,7 +67,14 @@ BASIC program.
 | `ByRef` | `ByRef param As Type` | Pass parameter by reference (mutations propagate back) |
 | `ByVal` | `ByVal param As Type` | Pass parameter by value (default) |
 | `Struct` | `Struct name` … `End Struct` | Define a composite type |
+| `Class` | `Class name [Inherits Base]` … `End Class` | Define a class |
+| `Inherits` | `Inherits BaseClass` | Derive from a base class (single inheritance) |
+| `Public` / `Protected` / `Private` | `Public field As Type` | Member visibility (`Protected` is inherited) |
+| `Overridable` / `Overrides` | `Overridable Sub Foo()` / `Overrides Sub Foo()` | Mark / replace a virtual method (signature must match) |
+| `MyBase` | `MyBase.Method(args)` | Explicit dispatch to the immediate base class member from inside an override |
+| `Declare Function` | `Declare Function name Lib "library" [Alias "export"] [CallConv …] (params) As Type` | Declare an exported native library function (`.dll` / `.so` / `.dylib`) |
 | `Include` | `Include "file.bas"` | Load and execute another source file |
+| `_` | `statement-part _` | Continue a logical statement on the next physical line |
 | `End` | `End` | Stop program execution |
 | `Stop` | `Stop` | Break into REPL (resume with `Cont`) |
 

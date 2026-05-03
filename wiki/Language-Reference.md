@@ -19,6 +19,7 @@
 - [File I/O](#file-io)
 - [DATA, READ, RESTORE](#data-read-restore)
 - [String Handling](#string-handling)
+- [Native Library Calls](#native-library-calls)
 
 ---
 
@@ -470,6 +471,60 @@ MathHelper.PrintSum 2, 3          ' Sum = 5
 
 Static and instance methods may coexist in the same class.
 
+### Destructors
+
+A class may define `Sub Delete()` as a destructor. nuBASIC calls it
+automatically on owned local class instances when the procedure scope
+exits, in reverse declaration order; in a derived class the derived
+destructor runs before the base destructor.
+
+```basic
+Class Resource
+   Public name$ As String
+   Sub New(n$ As String)
+      Me.name$ = n$
+   End Sub
+   Sub Delete()
+      Print "closing "; Me.name$
+   End Sub
+End Class
+```
+
+### Access modifiers
+
+| Modifier | Where the member is reachable |
+|----------|-------------------------------|
+| `Public` | Everywhere (default) |
+| `Protected` | Inside the declaring class **and** any derived class |
+| `Private` | Only inside the declaring class |
+
+Visibility is enforced at compile time.
+
+### Inheritance, Overrides, and MyBase
+
+```basic
+Class Shape
+   Overridable Function Describe$() As String
+      Describe$ = "a shape"
+   End Function
+End Class
+
+Class Circle
+   Inherits Shape
+
+   Public radius As Double
+
+   Overrides Function Describe$() As String
+      Describe$ = MyBase.Describe$() + " (radius " + Str$(Me.radius) + ")"
+   End Function
+End Class
+```
+
+Rules: `Overrides` must match the base `Overridable` method's full
+signature (Sub vs Function, return type, parameter count, parameter
+types, `ByRef`/`ByVal`); `MyBase.Member(...)` is allowed only inside an
+instance method and dispatches explicitly to the *immediate* base class.
+
 ---
 
 ## main() Entry Point
@@ -884,6 +939,60 @@ x = 5
 expr$ = "x * x + 2 * x + 1"
 Print Eval(expr$)       ' 36
 ```
+
+---
+
+## Native Library Calls
+
+On Windows, Linux, and macOS nuBASIC can declare and call exported
+functions from native shared libraries. Loading uses `LoadLibraryW` on
+Windows and `dlopen(RTLD_LAZY|RTLD_LOCAL)` on Linux/macOS; invocation is
+backed by libffi on every platform.
+
+```basic
+Syntax Modern
+
+' Windows
+Declare Function GetCurrentProcessId Lib "kernel32.dll" () As DWORD
+Print GetCurrentProcessId()
+```
+
+```basic
+Syntax Modern
+
+' Linux (glibc)
+Declare Function strlen Lib "libc.so.6" (text As String) As Integer
+Print strlen("hello")    ' prints 5
+```
+
+```basic
+Syntax Modern
+
+' macOS
+Declare Function strlen Lib "libSystem.B.dylib" (text As String) As Integer
+Print strlen("hello")    ' prints 5
+```
+
+The declaration form is:
+
+```basic
+Declare Function name Lib "library" _
+    [Alias "export"] _
+    [CallConv "default" | "cdecl" | "stdcall"] _
+    (param As NativeType, ...) As NativeType
+```
+
+Supported native types: `Integer`, `DWORD`, `Long64`, `ULong64`, `Double`,
+`Bool`, `Pointer`, `String`, and `Void`. `String` maps to a narrow
+`const char*`; use `Pointer` for mutable buffers and manually laid-out
+structures, together with the `runtime` module helpers (`NativeAlloc`,
+`NativeFree`, `NativePoke*`, `NativePeekStr$`).
+
+Native calls are enabled by default on trusted local hosts and can be
+disabled with `--disable-native-calls`. See the full guide in
+[`docs/native-dll-calls.md`](https://github.com/eantcal/nubasic/blob/master/docs/native-dll-calls.md)
+and the worked example
+[`examples/native_open_file_dialog.bas`](https://github.com/eantcal/nubasic/blob/master/examples/native_open_file_dialog.bas).
 
 ---
 

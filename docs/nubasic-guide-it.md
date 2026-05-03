@@ -24,7 +24,7 @@
    - 4.11 [I/O su file](#411-io-su-file)
    - 4.12 [DATA, READ, RESTORE](#412-data-read-restore)
    - 4.13 [Gestione delle stringhe](#413-gestione-delle-stringhe)
-   - 4.14 [Chiamate DLL native](#414-chiamate-dll-native)
+   - 4.14 [Chiamate a librerie native](#414-chiamate-a-librerie-native)
    - 4.15 [Continuazione di riga](#415-continuazione-di-riga)
 5. [Grafica e multimedia](#5-grafica-e-multimedia)
    - 5.1 [Primitive di disegno](#51-primitive-di-disegno)
@@ -46,6 +46,8 @@
    - 7.7 [Barra degli strumenti](#77-barra-degli-strumenti)
    - 7.8 [Guida contestuale e guida in linea](#78-guida-contestuale-e-guida-in-linea)
    - 7.9 [Debugger integrato](#79-debugger-integrato)
+   - 7.10 [Estensione VS Code](#710-estensione-vs-code)
+   - 7.11 [Progetti multi-sorgente](#711-progetti-multi-sorgente)
 8. [Storia ed evoluzione di nuBASIC](#8-storia-ed-evoluzione-di-nubasic)
 9. [Come è fatto nuBASIC: Internals dell'interprete](#9-come-è-fatto-nubasic-internals-dellinterprete)
    - 9.1 [Componenti principali](#91-componenti-principali)
@@ -336,6 +338,74 @@ La versione strutturata è più facile da leggere e mantenere; la versione class
 e più vicina a come l'algoritmo potrebbe apparire in un libro di testo degli anni '80. nuBASIC
 esegue entrambe senza modifiche.
 
+#### Tre stili in un unico linguaggio
+
+nuBASIC supporta **tre paradigmi di programmazione nello stesso interprete**, piu' un modo
+per uscire dal linguaggio e raggiungere il codice nativo. Un singolo programma puo'
+mescolarli tutti.
+
+1. **BASIC classico** — righe numerate, REPL in modalita' immediata, `GoTo` / `GoSub` /
+   `On … GoTo`. E' il dialetto della versione "classica" del Mandelbrot qui sopra: era
+   pensato perche' un principiante potesse scrivere poche righe e vederle eseguite
+   subito, senza compilatore, senza progetto, senza boilerplate. nuBASIC mantiene questa
+   esperienza: digitare `Print "Ciao"` al prompt stampa `Ciao`, fine.
+
+2. **BASIC strutturato** — `Sub` e `Function` con parametri `ByRef` / `ByVal`, controllo
+   di flusso strutturato (`If/ElIf/Else`, `For`, `While`, `Do…Loop While`, `Select Case`,
+   `Exit For`/`While`/`Do`/`Sub`/`Function`), `Struct` per i tipi composti, `Const` per i
+   valori immutabili, `Include` / `#Include` per dividere il codice su piu' file, e un
+   punto d'ingresso `Function main(argc, argv())` che riceve gli argomenti da riga di
+   comando. E' lo stile di QuickBASIC e FreeBASIC: i programmi piu' grandi restano
+   manutenibili senza dover lasciare BASIC.
+
+3. **BASIC orientato agli oggetti** — classi complete con campi e metodi di istanza
+   (`Me`), metodi `Static` a livello di classe, ereditarieta' singola tramite `Inherits`,
+   dispatch virtuale (`Overridable` / `Overrides`), dispatch esplicito alla classe base
+   tramite `MyBase`, controllo d'accesso a tre livelli (`Public` / `Protected` /
+   `Private`), costruttori (`Sub New`) e distruttori RAII (`Sub Delete`) chiamati
+   automaticamente quando un oggetto posseduto esce dal proprio scope. Vedi la
+   [§4.5](#45-classi-e-oggetti) per la trattazione completa.
+
+   ```basic
+   Class Forma
+      Overridable Function Descrivi$() As String
+         Descrivi$ = "una forma"
+      End Function
+   End Class
+
+   Class Cerchio
+      Inherits Forma
+      Public raggio As Double
+      Overrides Function Descrivi$() As String
+         Descrivi$ = MyBase.Descrivi$() + " (raggio " + Str$(Me.raggio) + ")"
+      End Function
+   End Class
+
+   Dim c As New Cerchio
+   c.raggio = 2.5
+   Print c.Descrivi$()    ' una forma (raggio 2.5)
+   ```
+
+4. **Librerie native esterne** — quando la libreria standard non basta, uno script puo'
+   dichiarare e chiamare funzioni esportate da una qualsiasi libreria condivisa nativa.
+   nuBASIC carica la libreria con `LoadLibraryW` su Windows e `dlopen` su Linux/macOS,
+   marshalla gli argomenti e i valori di ritorno tramite libffi, e presenta il risultato
+   come una normale funzione BASIC. Win32, libc POSIX e qualunque `.so` o `.dylib`
+   costruito dall'utente diventano direttamente raggiungibili da un programma BASIC. Vedi
+   [§4.14](#414-chiamate-a-librerie-native).
+
+   ```basic
+   Declare Function GetCurrentProcessId Lib "kernel32.dll" () As DWORD
+   Print GetCurrentProcessId()
+   ```
+
+Il punto e' che questi stili non sono dialetti separati: condividono variabili, regole di
+scope, sistema dei tipi, interprete e debugger. Un docente puo' rimanere allo stile 1 con
+righe numerate e `GoTo` finche' la classe non e' a suo agio; un hobbista puo' adottare
+`Sub` e `Function` quando uno script supera le dieci righe; uno sviluppatore esperto puo'
+modellare un intero gioco o una simulazione con le classi e raggiungere il sistema
+operativo tramite chiamate native — il tutto senza mai uscire da nuBASIC.
+
 Internamente, nuBASIC è costruito da due componenti complementari che rispecchiano la struttura
 di qualsiasi linguaggio ben progettato:
 
@@ -376,6 +446,22 @@ nubasic -e myprogram.bas  # alternativa: esecuzione dalla riga di comando
 Il REPL interattivo (Read-Eval-Print Loop) accetta sia istruzioni singole sia programmi completi.
 Potete digitare un'istruzione e premere Invio per eseguirla immediatamente, oppure inserire righe
 numerate per costruire un programma in memoria e poi digitare `RUN`.
+
+### Flag della riga di comando
+
+| Flag | Effetto |
+|------|---------|
+| `-e <file>` | Esegue un file sorgente nuBASIC ed esce |
+| `-l <file>` | Carica un file sorgente nuBASIC nel REPL (senza eseguirlo) |
+| `-t`, `--text-mode` | Modalita' testo/batch (nessuna finestra terminale). Indicata per CI e usi headless |
+| `--graphics-window` | Apre l'output grafico in una finestra GDI separata, mantenendo I/O testuale e protocollo debugger su stdout. Usata dalla modalita' di debug ibrida di VS Code per programmi grafici |
+| `--machine-interface` | Emette eventi machine-friendly del debugger (una riga per evento, formato `key="value"`) su stdout. Usata dall'adapter VS Code; non destinata all'uso interattivo |
+| `--disable-native-calls` | Rifiuta a runtime ogni `Declare Function ... Lib ...` (vedi §4.14) |
+| `-nx` | Non apre una nuova finestra terminale (solo Windows; rilevante per il binario GDI) |
+| `-h [argomento]`, `-?`, `--help` | Mostra la guida integrata. Con `argomento` stampa l'help di quella parola chiave |
+| `-v`, `--version` | Stampa la versione ed esce |
+
+La stessa lista e' disponibile al prompt con `nubasic --help`.
 
 ### Il vostro primo programma
 
@@ -904,18 +990,38 @@ Call MostraIlDoppio(v%)
 Print v%            ' ancora 5 — la copia del chiamante non è modificata
 ```
 
-#### La parola chiave Call
+#### Parola chiave Call e chiamate Sub con parentesi
 
-`Call` è una parola chiave opzionale che può precedere qualsiasi invocazione di Sub o
-Function. Quando si usa `Call`, la lista degli argomenti deve essere racchiusa tra parentesi:
+Una Sub puo' essere invocata in tre forme equivalenti:
 
 ```basic
-Call ClearArea(0, 0, 640, 480)         ' equivale a: ClearArea 0, 0, 640, 480
-Call PrintCentered("Ciao", 12, &hfff)  ' equivale a: PrintCentered "Ciao", 12, &hfff
+ClearArea 0, 0, 640, 480            ' BASIC classico: chiamata bare, senza parentesi
+ClearArea(0, 0, 640, 480)           ' chiamata con parentesi
+Call ClearArea(0, 0, 640, 480)      ' parola chiave Call esplicita (parentesi obbligatorie)
 ```
 
-Entrambe le forme sono equivalenti. `Call` migliora la leggibilità ed è familiare ai
-programmatori provenienti da Visual Basic o altri dialetti BASIC.
+Le tre forme producono la stessa chiamata. La forma con parentesi
+(`NomeSub(argomenti)`) e' stata introdotta per allinearsi alle chiamate di
+Function e per accomodare lo stile dei dialetti BASIC moderni. Il parser
+distingue `array(i) = valore` (assegnazione di array) da una chiamata Sub
+controllando la presenza di un `=` al livello principale della riga.
+
+Per le Sub senza argomenti sono accettate sia `Saluta` sia `Saluta()`:
+
+```basic
+Sub Saluta()
+   Print "Ciao!"
+End Sub
+
+Saluta
+Saluta()
+Call Saluta()
+```
+
+`Call` e' una parola chiave opzionale. Quando viene usata, la lista degli
+argomenti **deve** essere racchiusa tra parentesi. La forma con `Call`
+e' familiare ai programmatori provenienti da Visual Basic o da altri
+dialetti BASIC.
 
 #### Direttiva Include
 
@@ -941,6 +1047,31 @@ End Sub
 Il percorso del file viene risolto rispetto alla directory contenente il file che emette la
 direttiva. `Include` viene elaborato al momento del caricamento, quindi tutte le definizioni
 nel file incluso sono disponibili al resto del file che lo include.
+
+#### Progetti multi-sorgente (`.nbp`)
+
+Un file di progetto nuBASIC (`.nbp`) consente all'IDE e al debugger di
+raggruppare uno script entry-point con i file che include. Il file di
+progetto e' un piccolo manifest testuale chiave=valore:
+
+```text
+name = MioProgramma
+syntax = modern
+entry = src/main.bas
+```
+
+| Chiave | Significato |
+|--------|-------------|
+| `name` | Nome visualizzato dall'IDE nella barra del titolo e nei progetti recenti |
+| `syntax` | `legacy` o `modern` — modalita' `Syntax` di default per il file entry |
+| `entry` | Percorso del file `.bas` di entry, risolto rispetto alla directory contenente il `.nbp` |
+
+Apri un `.nbp` dall'IDE Windows con **File → Apri progetto** o passa il
+suo percorso da riga di comando. I file inclusi vengono comunque risolti
+dalle direttive `Include` all'interno dell'entry-point — il `.nbp`
+registra solo *quale* file e' l'entry, la modalita' di sintassi e il
+nome del progetto. L'estensione VS Code legge lo stesso formato per
+avviare il debugger.
 
 #### Parametri array a dimensione aperta
 
@@ -970,6 +1101,37 @@ normale notazione a indice.
 ---
 
 ### 4.5 Classi e oggetti
+
+nuBASIC supporta la programmazione orientata agli oggetti come stile di prima classe
+accanto al BASIC classico e a quello strutturato. L'implementazione copre le funzionalita'
+attese da un sistema OOP piccolo ma completo:
+
+- **Incapsulamento** — campi e metodi hanno una visibilita' `Public` / `Protected` /
+  `Private`, verificata in fase di compilazione. `Public` e' il default; `Private` e'
+  raggiungibile solo all'interno della classe dichiarante; `Protected` estende la
+  visibilita' alle classi derivate (la catena di ereditarieta').
+- **Ereditarieta' singola** — `Inherits` dichiara la classe base. Campi e membri `Public`
+  / `Protected` sono raggiungibili dalla classe derivata.
+- **Polimorfismo** — i metodi marcati `Overridable` possono essere sostituiti da metodi
+  `Overrides` nelle classi derivate; l'override deve corrispondere esattamente alla
+  signature della base (Sub vs Function, tipo di ritorno, numero e tipi dei parametri,
+  `ByRef` / `ByVal`). Le chiamate attraverso un riferimento alla base vengono dispacciate
+  dinamicamente all'implementazione piu' derivata.
+- **Dispatch esplicito alla base** — dentro un override, `MyBase.Membro(...)` chiama la
+  versione del membro della classe base immediata, evitando il dispatch virtuale.
+- **Semantica di riferimento** — le variabili tipate per classe contengono riferimenti;
+  assegnare un oggetto a un altro li lega alla stessa istanza, in contrasto con la
+  semantica per copia di valore di `Struct`.
+- **Metodi statici** — `Static Function` / `Static Sub` sono procedure a livello di classe
+  invocabili come `NomeClasse.Metodo(...)`, senza un'istanza implicita.
+- **Costruzione e distruzione** — `Sub New(...)` e' il costruttore (richiamato da `Dim
+  x As New T(...)`); `Sub Delete()` e' il distruttore e viene chiamato automaticamente
+  quando un'istanza locale "posseduta" esce dallo scope (RAII), in ordine inverso di
+  dichiarazione, e nelle classi derivate il distruttore derivato precede quello base.
+
+Il resto di questa sezione esamina queste funzionalita' nell'ordine. La
+[panoramica dei paradigmi in §2](#2-introduzione-a-nubasic) spiega come l'OOP si inserisce
+accanto agli stili classico e strutturato nello stesso file sorgente.
 
 Le classi raggruppano dati correlati (campi) e comportamenti (metodi) sotto un unico tipo.
 Si dichiarano con `Class`/`End Class`; le istanze si creano con `Dim`.
@@ -1021,6 +1183,125 @@ Util.StampaProdotto 4, 5            ' Prodotto = 20
 
 Metodi statici e di istanza possono coesistere nella stessa classe. I metodi statici sono
 ideali per funzioni di utilità e factory che non necessitano di stato dell'istanza.
+
+#### Distruttori
+
+Una classe puo' definire `Sub Delete()` come distruttore. Per le istanze
+locali "possedute", nuBASIC chiama il distruttore automaticamente quando
+lo scope della procedura termina. Gli oggetti locali vengono distrutti in
+ordine inverso di definizione e una classe derivata esegue il proprio
+distruttore prima di quello della classe base.
+
+```basic
+Class Risorsa
+   Public nome$ As String
+
+   Sub New(n$ As String)
+      Me.nome$ = n$
+   End Sub
+
+   Sub Delete()
+      Print "chiusura "; Me.nome$
+   End Sub
+End Class
+
+Sub Demo()
+   Dim primo As New Risorsa("primo")
+   Dim secondo As New Risorsa("secondo")
+End Sub
+
+Demo()
+' stampa:
+' chiusura secondo
+' chiusura primo
+```
+
+Gli oggetti passati come parametri presi in prestito non vengono distrutti
+dal chiamato.
+
+#### Modificatori di accesso: Public, Protected, Private
+
+I membri possono essere etichettati con uno dei tre livelli di visibilita':
+
+| Modificatore | Dove il membro e' raggiungibile |
+|--------------|---------------------------------|
+| `Public` | Ovunque (default se omesso) |
+| `Protected` | Dentro la classe che lo dichiara **e dentro qualunque classe derivata** |
+| `Private` | Solo dentro la classe che lo dichiara |
+
+```basic
+Class Animale
+   Public  nome$    As String
+   Protected energia% As Integer    ' visibile alle sottoclassi
+   Private  segreto$  As String     ' nascosto alle sottoclassi
+
+   Sub New(n$ As String)
+      Me.nome$    = n$
+      Me.energia% = 100
+      Me.segreto$ = "interno ad Animale"
+   End Sub
+End Class
+
+Class Cane
+   Inherits Animale
+
+   Sub Abbaia()
+      ' OK: i campi Protected sono visibili lungo la catena di ereditarieta'.
+      Me.energia% = Me.energia% - 5
+      Print Me.nome$; " abbaia (energia="; Me.energia%; ")"
+      ' Errore di compilazione se decommentata — Private non si eredita:
+      ' Print Me.segreto$
+   End Sub
+End Class
+```
+
+`Public` e' il default se non si specifica nulla. La visibilita' viene
+verificata in fase di compilazione: un accesso non autorizzato genera una
+diagnostica precisa che identifica il membro coinvolto.
+
+#### Ereditarieta' e override: MyBase
+
+Si usa `Inherits NomeBase` per derivare da una classe, `Overridable` per
+marcare un metodo che le sottoclassi possono ridefinire e `Overrides`
+sulla ridefinizione. All'interno di un metodo che effettua override,
+`MyBase.Membro` invia la chiamata **esplicitamente** al membro
+corrispondente della classe base immediata, evitando il dispatch virtuale
+che altrimenti rientrerebbe nell'override stesso.
+
+```basic
+Class Forma
+   Overridable Function Descrivi$() As String
+      Descrivi$ = "una forma"
+   End Function
+End Class
+
+Class Cerchio
+   Inherits Forma
+
+   Public raggio As Double
+
+   Overrides Function Descrivi$() As String
+      ' Riusa l'implementazione base e la decora.
+      Descrivi$ = MyBase.Descrivi$() + " (un cerchio di raggio " + Str$(Me.raggio) + ")"
+   End Function
+End Class
+
+Dim c As New Cerchio
+c.raggio = 2.5
+Print c.Descrivi$()   ' una forma (un cerchio di raggio 2.5)
+```
+
+Regole verificate in fase di compilazione:
+
+- `Overrides` viene rifiutato se nella catena base non esiste un metodo
+  `Overridable` con la **stessa** signature (Sub vs Function, tipo di
+  ritorno, numero e tipi dei parametri, `ByRef` / `ByVal`).
+- `MyBase.Membro(...)` e' consentito solo all'interno di un metodo di
+  istanza e il membro deve esistere nella catena base ed essere visibile
+  al chiamante (`Public` o `Protected`).
+- Le catene a piu' livelli funzionano come ci si aspetta: `MyBase` punta
+  sempre alla base **immediata** della classe lessicale, anche se a
+  runtime l'oggetto e' di un tipo derivato piu' in basso nella gerarchia.
 
 ---
 
@@ -1480,32 +1761,59 @@ Print Eval(expr$)       ' 36 — valutato con x=5
 ```
 
 ---
-### 4.14 Chiamate DLL native
+### 4.14 Chiamate a librerie native
 
-Su Windows x64 nuBASIC puo dichiarare e chiamare funzioni esportate da DLL:
+Su Windows, Linux e macOS nuBASIC puo' dichiarare e chiamare funzioni
+esportate da librerie native condivise. Il caricamento usa `LoadLibraryW`
+su Windows e `dlopen(RTLD_LAZY|RTLD_LOCAL)` su Linux/macOS; l'invocazione
+e' supportata da libffi su tutte le piattaforme.
 
 ```basic
 Syntax Modern
 
+' Windows
 Declare Function GetCurrentProcessId Lib "kernel32.dll" () As DWORD
 Print GetCurrentProcessId()
+```
+
+```basic
+Syntax Modern
+
+' Linux (glibc)
+Declare Function strlen Lib "libc.so.6" (text As String) As Integer
+Print strlen("hello")    ' stampa 5
+```
+
+```basic
+Syntax Modern
+
+' macOS
+Declare Function strlen Lib "libSystem.B.dylib" (text As String) As Integer
+Print strlen("hello")    ' stampa 5
 ```
 
 La forma generale e':
 
 ```basic
-Declare Function nome Lib "dll" _
+Declare Function nome Lib "library" _
     [Alias "export"] _
     [CallConv "default" | "cdecl" | "stdcall"] _
     (param As NativeType, ...) As NativeType
 ```
 
-I tipi nativi supportati sono `Integer`, `DWORD`, `Long64`, `ULong64`,
-`Double`, `Bool`, `Pointer`, `String` e `Void`. `String` e una stringa ANSI
-`const char*`; per buffer modificabili e strutture C/Win32 costruite manualmente
-si usa `Pointer`.
+Il valore di `Lib` viene passato cosi' com'e' al loader della piattaforma:
+usare i soname canonici dell'host (`kernel32.dll`, `libc.so.6`,
+`libSystem.B.dylib`) oppure un percorso assoluto. La calling convention
+viene letta e memorizzata, ma su tutte le piattaforme supportate viene
+usata l'ABI di default (x64 SysV / Windows x64).
 
-Gli helper di memoria nativa sono nel modulo `runtime`:
+I tipi nativi supportati sono `Integer`, `DWORD`, `Long64`, `ULong64`,
+`Double`, `Bool`, `Pointer`, `String` e `Void`. `String` e' un puntatore
+narrow `const char*`; per buffer modificabili e strutture costruite
+manualmente si usa `Pointer`.
+
+Gli helper di memoria nativa sono nel modulo `runtime` e si comportano
+allo stesso modo su tutte le piattaforme:
 
 ```basic
 Syntax Modern
@@ -1517,9 +1825,12 @@ Print NativePeekStr$(p, 0, 32)
 NativeFree p
 ```
 
-Le chiamate native sono abilitate per default negli host locali fidati e si
-possono disabilitare con `--disable-native-calls`. Vedi
-`docs/native-dll-calls.md` ed `examples/native_open_file_dialog.bas`.
+Le chiamate native sono abilitate per default negli host locali fidati e
+si possono disabilitare con `--disable-native-calls`. Vedi
+`docs/native-dll-calls.md` ed `examples/native_open_file_dialog.bas` per
+un esempio Win32 completo; su POSIX lo stesso meccanismo raggiunge
+`libc`, `libm`, `libpthread` e qualsiasi `.so` o `.dylib` costruito
+dall'utente.
 
 ---
 
@@ -1621,12 +1932,43 @@ TextOut 200, 240, "GAME OVER", Rgb(255, 50, 50)
 
 #### Immagini bitmap
 
-`PlotImage` carica un file BMP dal disco e lo disegna a partire dalla coordinata pixel in alto a sinistra
-specificata. L'immagine viene disegnata nelle sue dimensioni native senza ridimensionamento.
+Ci sono due modi per disegnare una bitmap. Conviene usare la API in cache
+ogni volta che la stessa immagine viene disegnata piu' di una volta
+(sprite, tile, frame di animazione): il file viene decodificato solo alla
+prima chiamata e i disegni successivi usano un handle GDI/GPU.
+
+##### API bitmap in cache (preferita)
+
+| Funzione | Restituisce | Descrizione |
+|----------|-------------|-------------|
+| `BitmapLoad(percorso$)` | Integer | Carica un BMP/PNG/JPEG dal disco e restituisce un handle intero |
+| `BitmapDraw(id, x, y)` | Integer | Disegna una bitmap precedentemente caricata alle coordinate pixel in alto a sinistra |
+| `BitmapFree(id)` | Integer | Libera la bitmap dalla cache |
 
 ```basic
-PlotImage "background.bmp", 0, 0
-PlotImage "sprite.bmp", hero_x%, hero_y%
+Dim sprite As Integer
+sprite = BitmapLoad("hero.bmp")
+For frame% = 1 To 240
+   Cls
+   BitmapDraw sprite, hero_x%, hero_y%
+   Refresh
+Next frame%
+BitmapFree sprite
+```
+
+La cache usa GDI+ su Windows e stb_image su Linux (i canali R/B vengono
+pre-scambiati al caricamento perche' il costo per frame sia equivalente).
+`BitmapLoad` restituisce 0 in caso di errore.
+
+##### Disegno una tantum (`PlotImage`)
+
+`PlotImage` e' il punto d'ingresso storico: ricarica il file dal disco a
+ogni chiamata. E' utile per disegni occasionali, ma andrebbe evitato nei
+loop di animazione.
+
+```basic
+PlotImage "background.bmp", 0, 0           ' va bene per uno splash statico
+PlotImage "sprite.bmp", hero_x%, hero_y%   ' spreco dentro un loop
 ```
 
 #### Esempio di scena completa
@@ -1984,7 +2326,10 @@ programma BASIC in esecuzione.
 | `FillEllipse` | `FillEllipse x1,y1,x2,y2,color` | Disegna un'ellisse piena |
 | `SetPixel` | `SetPixel x,y,color` | Disegna un singolo pixel |
 | `TextOut` | `TextOut x,y,text$,color` | Disegna testo alle coordinate pixel |
-| `PlotImage` | `PlotImage bitmap$,x,y` | Disegna un'immagine BMP |
+| `PlotImage` | `PlotImage bitmap$,x,y` | Disegna un'immagine dal disco (legacy, ricarica ogni volta) |
+| `BitmapLoad` | `id = BitmapLoad(file$)` | Carica una bitmap nella cache e restituisce un handle |
+| `BitmapDraw` | `BitmapDraw id,x,y` | Disegna una bitmap dalla cache (preferita per animazioni) |
+| `BitmapFree` | `BitmapFree id` | Libera una bitmap dalla cache |
 | `ScreenLock` | `ScreenLock` | Sospende l'aggiornamento dello schermo (inizio composizione fotogramma) |
 | `ScreenUnlock` | `ScreenUnlock` | Presenta il back buffer sullo schermo (fine fotogramma) |
 | `Refresh` | `Refresh` | Forza un blit immediato (stato del lock invariato) |
@@ -2169,6 +2514,35 @@ L'IDE di nuBASIC racchiude in un'unica applicazione un editor avanzato con evide
 sintassi, un interprete e un debugger, disponibile per Windows e Linux (GTK+2). È lo strumento
 consigliato per scrivere programmi non banali — mentre l'editor a schermo del CLI è sufficiente per
 script brevi e sperimentazione, l'IDE offre l'esperienza di sviluppo completa.
+
+#### Novita' nell'IDE
+
+L'IDE Windows ha ricevuto tre cicli significativi di miglioramenti:
+
+- **Debugger piu' ricco.** Il debugger espone ora il set completo di
+  comandi di stepping tipici degli IDE piu' grandi — **Step Into**,
+  **Step Over**, **Step Out**, **Esegui fino al cursore**, **Pausa /
+  Break** — oltre al flusso storico Continua / Passo / Toggle
+  Breakpoint. I distruttori di classe, le chiamate `Sub`/`Function`
+  dentro le espressioni e i programmi multi-sorgente vengono debuggati
+  correttamente. Vedi [§7.9](#79-debugger-integrato).
+- **Progetti multi-sorgente.** Un piccolo formato di file di progetto
+  (`.nbp`) registra il punto d'ingresso, la modalita' di sintassi e il
+  nome del progetto; aprendo un `.nbp` nell'IDE viene caricato lo
+  script di entry e il debugger entra nei file `Include` come se fosse
+  un unico programma. Vedi [§7.11](#711-progetti-multi-sorgente).
+- **Supporto Visual Studio Code.** Un'estensione VS Code di prima
+  classe e' distribuita accanto all'IDE nativo: offre evidenziazione
+  della sintassi, Run/Debug, breakpoint, watch, call stack e gli
+  stessi comandi di stepping tramite la UI di debug standard di VS
+  Code. L'estensione usa `nubasicdebug` come backend
+  console-subsystem, integrandosi in modo pulito con l'editor. Vedi
+  [§7.10](#710-estensione-vs-code).
+
+Queste aggiunte si stratificano sopra l'editor esistente e non
+modificano il workflow storico: chi e' a proprio agio con i tasti
+originali `F5` / `F8` / `F9` / `F10` puo' continuare a usarli senza
+modifiche.
 
 ---
 
@@ -2367,8 +2741,12 @@ direttamente nel sorgente.
 | Avvia debug | `F5` | Avvia il programma con il debugger collegato. L'esecuzione continua fino a quando non viene raggiunto un breakpoint, viene premuto `Ctrl+C`, si verifica un errore o il programma termina normalmente. |
 | Arresta debug | `Esc` | Termina immediatamente il programma in esecuzione. |
 | Continua debug | `F8` | Riprende l'esecuzione dal breakpoint corrente fino al prossimo breakpoint o alla fine del programma. |
-| Passo | `F10` | Esegue la riga corrente e si ferma alla successiva. Quando la riga è una chiamata a `Sub` o `Function`, l'esecuzione entra nella routine chiamata e si ferma alla sua prima istruzione. |
-| Valuta selezione (Data-Tip) | `F11` | Valuta la variabile o l'espressione selezionata nel contesto del programma in pausa e visualizza il risultato come annotazione inline accanto alla selezione. Utile per ispezionare espressioni complesse senza aggiungere istruzioni `Print` aggiuntive. |
+| Step Into | `F11` | Esegue la riga corrente. Se la riga chiama un `Sub` o una `Function`, l'esecuzione scende dentro la routine chiamata e si ferma alla sua prima istruzione. |
+| Step Over | `F10` | Esegue la riga corrente come unita' singola. Eventuali chiamate dentro la riga vengono eseguite per intero; il debugger si ferma alla riga successiva del *chiamante*. |
+| Step Out | `Shift+F11` | Riprende l'esecuzione fino a quando la `Sub` o `Function` corrente non termina, e si ferma alla riga successiva del chiamante. |
+| Esegui fino al cursore | `Ctrl+F10` | Riprende l'esecuzione fino alla riga sotto il cursore, poi si ferma. Equivalente a un breakpoint temporaneo "una tantum". |
+| Pausa / Break | `Ctrl+Pause` | Interrompe un programma in esecuzione alla prossima istruzione su cui si puo' fermare ed entra nel debugger. Utile per i loop senza breakpoint o per i programmi avviati con Continua. |
+| Valuta selezione (Data-Tip) | — | Valuta la variabile o l'espressione selezionata nel contesto del programma in pausa e visualizza il risultato come annotazione inline accanto alla selezione. Utile per ispezionare espressioni complesse senza aggiungere istruzioni `Print` aggiuntive. |
 | Avvia senza debug | `Ctrl+F5` | Esegue il programma senza il debugger collegato. Premere `Ctrl+C` durante l'esecuzione per interrompere e tornare al prompt del CLI (vedi capitolo 3). |
 | Attiva/disattiva breakpoint | `F9` | Aggiunge o rimuove un breakpoint sulla riga corrente. I breakpoint attivi sono mostrati come un cerchio rosso nel margine. |
 | Elimina tutti i breakpoint | — | Rimuove ogni breakpoint nel documento corrente. |
@@ -2389,6 +2767,121 @@ Nella parte inferiore dell'IDE si trova un pannello a schede con due schede:
 
 Il pannello può essere ridimensionato, nascosto o staccato come finestra mobile tramite il menu
 **Impostazioni**.
+
+---
+
+### 7.10 Estensione VS Code
+
+nuBASIC fornisce un'estensione VS Code che offre evidenziazione della
+sintassi, un pulsante Run e un debug adapter compatibile con la UI di
+debug standard di VS Code (breakpoint, step in/over/out, watch, call
+stack, variabili).
+
+#### Installazione
+
+Il componente opzionale **VSCodeExtension** dell'MSI di Windows
+installa l'estensione automaticamente nell'istanza locale di VS Code.
+Per installarla manualmente:
+
+```
+code --install-extension <installazione-nubasic>/bin/nubasic-latest.vsix
+```
+
+Su Linux / macOS lo stesso `.vsix` e' distribuito sotto
+`<install-prefix>/bin/`; si installa con lo stesso comando.
+
+#### Esecuzione e debug
+
+Apri un file `.bas` (o un file di progetto `.nbp`) in VS Code, poi premi
+**F5**. L'estensione crea un `launch.json` di tipo `nubasic` di default
+al primo utilizzo. Configurazioni disponibili:
+
+| `request` | Effetto |
+|-----------|---------|
+| `launch` | Esegue il file corrente con il debugger collegato |
+| `launch` + `noDebug: true` | Esegue senza fermarsi sui breakpoint (equivale a **Run → Run Without Debugging**) |
+| `launch` + `mode: "graphics"` | Usa la modalita' ibrida `--graphics-window` per i programmi grafici: il debugger e stdout restano nella sessione VS Code mentre la grafica viene disegnata in una finestra GDI separata |
+
+L'estensione individua l'interprete in questo ordine:
+
+1. Il setting `nubasic.executablePath` (se impostato).
+2. La variabile d'ambiente `NUBASIC_HOME`, poi `%PATH%`.
+3. La chiave di registro `HKCU\Software\nuBASIC\InstallDir` (Windows).
+
+Per le sessioni di debug viene sempre lanciato `nubasicdebug` (o
+`nubasicdebug.exe` su Windows) e `nubasic` per le sessioni Run, in modo
+che VS Code mantenga il controllo di stdio mentre l'eventuale finestra
+GDI sia solo un target di rendering.
+
+---
+
+### 7.11 Progetti multi-sorgente
+
+I programmi piu' lunghi di un singolo file possono essere organizzati
+come *progetto*. Un progetto nuBASIC e' descritto da un piccolo
+manifest testuale con estensione `.nbp` che registra tre cose: lo
+script di entry, la modalita' di sintassi e un nome visualizzato. I
+file inclusi vengono comunque caricati dalle direttive `Include` /
+`#Include` all'interno dello script di entry — il `.nbp` indica solo
+all'IDE quale e' il file di entry.
+
+#### Formato del file di progetto
+
+```text
+name = MioProgramma
+syntax = modern
+entry = src/main.bas
+```
+
+| Chiave | Significato |
+|--------|-------------|
+| `name` | Nome visualizzato nella barra del titolo dell'IDE e nei progetti recenti |
+| `syntax` | `legacy` o `modern` — modalita' `Syntax` iniziale per il file di entry |
+| `entry` | Percorso del file `.bas` di entry, risolto rispetto alla directory contenente il `.nbp` |
+
+Le righe che iniziano con `'` o `#` vengono ignorate, quindi il file
+puo' contenere commenti. Le chiavi sconosciute sono tollerate ma
+ignorate — gli IDE piu' vecchi continueranno a funzionare anche se
+in futuro verranno aggiunti nuovi campi.
+
+#### Lavorare con i progetti dall'IDE
+
+L'IDE Windows ha comandi dedicati per l'editing project-aware:
+
+| Comando di menu | Descrizione |
+|-----------------|-------------|
+| **File → Apri progetto…** | Seleziona un file `.nbp`. L'IDE carica lo script di entry, imposta la modalita' di sintassi dichiarata e aggiorna la barra del titolo con il nome del progetto. |
+| **File → Chiudi progetto** | Stacca il progetto corrente; l'editor torna in modalita' single-file. |
+| **File → Progetti recenti** | Elenca i file `.nbp` aperti di recente per riaprirli rapidamente. |
+
+Una volta aperto un progetto:
+
+- **Build / Avvia debug** usa lo script di entry come punto d'ingresso
+  del programma. Il debugger attraversa i file `Include` in modo
+  trasparente; i breakpoint in ognuno di essi vengono rispettati.
+- **Step Into** attraversa il confine di un `Include` allo stesso
+  modo in cui attraversa un confine `Sub` / `Function`; il pannello
+  call stack mostra nome file e numero di riga per ogni frame.
+- **Trova / Sostituisci** opera ancora solo sul documento attivo —
+  *non* e' ancora una ricerca a livello di progetto — ma segnalibri e
+  recent-jump sono memorizzati per file attraverso le sessioni di
+  progetto.
+
+#### Lavorare con i progetti dalla CLI
+
+Si puo' passare il percorso del `.nbp` da riga di comando per
+eseguire l'intero progetto come unita':
+
+```
+nubasic -e MioProgramma.nbp
+nubasicdebug MioProgramma.nbp
+```
+
+L'interprete risolve lo script di entry, applica la modalita' di
+sintassi dichiarata ed esegue il programma esattamente come se il
+progetto fosse stato aperto dall'IDE.
+
+Il repository include un esempio in `tests/test_multisource.nbp`.
 
 ---
 
@@ -3219,13 +3712,23 @@ sorgenti produce tre artefatti distinti a seconda della piattaforma di destinazi
 
 | Artefatto | Piattaforma | Descrizione |
 |---|---|---|
-| `nubasic` / `nubasic.exe` | Tutte | Interprete a riga di comando (CLI) |
-| `nubasic` / `nubasic.exe` | Tutte | Interprete da riga di comando (CLI) |
+| `nubasic.exe` | Windows | CLI **console-subsystem** — eredita stdio, rispetta pipe e redirezioni. E' il binario di default per uso batch, scripting, CI e VS Code |
+| `nubasicgdi.exe` | Windows | CLI **GDI-subsystem** — apre una finestra GDI dedicata per grafica, audio e mouse. E' il binario storico, utile per programmi grafici lanciati da una scorciatoia |
+| `nubasicdebug.exe` | Windows | Backend di debug console-subsystem usato da VS Code (sia in modalita' testo che ibrida grafica). Espone il protocollo machine-interface su stdout |
 | `NuBasicIDE.exe` + `SciLexer.dll` | Windows | IDE grafico con debugger integrato |
+| `nubasic` | Linux/macOS | Interprete da riga di comando (CLI) |
+| `nubasicdebug` | Linux/macOS | Backend di debug usato da VS Code |
 | `nubasicide` | Linux | IDE grafico GTK+2 |
 
+Su Windows, lo split tra `nubasic.exe` (console) e `nubasicgdi.exe` (GDI)
+e' stato introdotto perche' il **binario console e' il default**: si
+integra correttamente con `cmd.exe`, PowerShell, shell MSYS, redirezioni
+e tooling che assume stdio standard. I programmi che vogliono ancora la
+finestra GDI tradizionale (o le istruzioni grafiche senza la modalita'
+ibrida `--graphics-window`) lanciano `nubasicgdi.exe`.
+
 Un build minimale — solo interprete, senza grafica né IDE — è disponibile anche per ambienti
-embedded e minimali.
+embedded e minimali su Linux/macOS.
 
 ---
 
@@ -3252,10 +3755,13 @@ Il grafo di build CMake include i seguenti target:
 |---|---|---|---|
 | `nuBasicInterpreter` | libreria statica | tutte | *(libreria radice)* |
 | `nuWinConsole` | libreria statica | Windows | GDI (Windows SDK) |
-| `nuBasicCLI` (`nubasic.exe`) | eseguibile | Windows | `nuBasicInterpreter`, `nuWinConsole` |
+| `nuBasicCLI` (`nubasic.exe`) | eseguibile | Windows | `nuBasicInterpreter` — console subsystem |
+| `nuBasicGDI` (`nubasicgdi.exe`) | eseguibile | Windows | `nuBasicInterpreter`, `nuWinConsole` — GDI subsystem |
+| `nuBasicDebugCLI` (`nubasicdebug.exe`) | eseguibile | Windows | `nuBasicInterpreter` — console subsystem, backend del debugger per VS Code |
 | `nuBasicIDE` (`NuBasicIDE.exe`) | eseguibile | Windows | `nuBasicInterpreter`, `nuWinConsole`, `SciLexer` |
 | `SciLexer` | libreria condivisa (`.dll`) | Windows | Scintilla 5.5.3 + Lexilla 5.4.3 |
 | `nubasic` | eseguibile | Linux/macOS | `nuBasicInterpreter`, X11 |
+| `nubasicdebug` | eseguibile | Linux/macOS | `nuBasicInterpreter` — backend del debugger per VS Code |
 | `nubasicide` | eseguibile | Linux | `nuBasicInterpreter`, GTK+2, Scintilla (statica) |
 | `scintilla` | libreria statica | Linux | GTK+2 |
 | `mipjson` / `miptknzr` | librerie statiche | Linux | *(configurazione JSON per l'IDE GTK)* |
@@ -3506,13 +4012,29 @@ cpack -G WIX -C Release
 
 Questo produce un file `.msi` nella directory di build. Il programma di installazione:
 
-- Copia `NuBasicIDE.exe`, `nubasic.exe` e `SciLexer.dll` in `bin\`.
+- Copia `NuBasicIDE.exe`, `nubasic.exe`, `nubasicgdi.exe`,
+  `nubasicdebug.exe` e `SciLexer.dll` in `bin\`.
 - Installa i file di esempio `.bas` in `examples\`.
 - Crea una cartella `nuBASIC` nel menu Start con collegamenti all'IDE, alla CLI e alla
   disinstallazione.
 - Scrive le chiavi di registro `HKCU\Software\nuBASIC\InstallDir` e `ExamplesDir` in modo che
   l'IDE possa individuare gli esempi all'avvio.
 - Registra l'estensione `.bas` e la associa a `NuBasicIDE.exe`.
+
+L'MSI usa il dialog WiX **WixUI_FeatureTree** in modo che l'utente possa
+scegliere le funzionalita' al momento dell'installazione:
+
+| Componente | Obbligatorio | Descrizione |
+|------------|--------------|-------------|
+| **Core** | si' | CLI (`nubasic.exe` console, `nubasicgdi.exe` GDI, `nubasicdebug.exe` debug backend) e DLL di runtime |
+| **IDE** | opzionale | IDE Windows (`NuBasicIDE.exe`) con le DLL Scintilla / Lexilla |
+| **VSCodeExtension** | opzionale | Estensione VS Code (`.vsix`) e helper di installazione che la registra nell'istanza locale di VS Code |
+| **Examples** | opzionale | Programmi `.bas` di esempio |
+
+Selezionando **VSCodeExtension** viene attivata una custom action
+deferred (`install-vscode-ext.ps1`) che esegue `code --install-extension`
+al termine della copia dei file dell'MSI, in modo che l'estensione venga
+configurata senza interventi manuali.
 
 In alternativa, dall'interno di Visual Studio, compila il target `CreateInstaller` (elencato
 nella cartella di soluzione *Installer*).

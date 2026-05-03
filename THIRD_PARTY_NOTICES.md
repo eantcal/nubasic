@@ -4,8 +4,11 @@ This project may build or redistribute the following third-party components.
 
 ## libffi
 
-Used for optional native DLL invocation support on Windows builds when
-`NUBASIC_WITH_LIBFFI` is enabled and libffi is available at configure time.
+Used for optional native library invocation support on Windows, Linux and
+macOS builds when `NUBASIC_WITH_LIBFFI` is enabled and libffi is available
+at configure time. On Windows libffi is sourced from vcpkg
+(`unofficial-libffi`); on Linux/macOS it is located via pkg-config with a
+`find_path`/`find_library` fallback.
 
 Source: https://github.com/libffi/libffi
 

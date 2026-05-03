@@ -82,12 +82,15 @@ The Win32/64 build created with Visual Studio 2022 requires the
 - Added graphics-aware VS Code debugging: graphical programs can run under the
   debugger using a separate GDI window for graphics while debugger protocol and
   textual diagnostics remain separate.
-- Added native DLL calls on Windows x64 with `Declare Function ... Lib ...`,
-  optional `Alias` and `CallConv`, libffi-based invocation, supported scalar
-  native types (`Integer`, `DWORD`, `Long64`, `ULong64`, `Double`, `Bool`,
-  `Pointer`, `String`, `Void`), and runtime native memory helpers
-  (`NativeAlloc`, `NativeFree`, `NativeFill`, `NativePoke*`, `NativePeekStr$`)
-  for pointer buffers and manually laid-out Win32 structures.
+- Added native library calls on Windows x64, Linux x86_64 and macOS with
+  `Declare Function ... Lib ...`, optional `Alias` and `CallConv`,
+  libffi-based invocation, supported scalar native types (`Integer`,
+  `DWORD`, `Long64`, `ULong64`, `Double`, `Bool`, `Pointer`, `String`,
+  `Void`), and runtime native memory helpers (`NativeAlloc`, `NativeFree`,
+  `NativeFill`, `NativePoke*`, `NativePeekStr$`) for pointer buffers and
+  manually laid-out platform structures. The Windows path uses
+  `LoadLibraryW`/`GetProcAddress`/`FreeLibrary`; Linux and macOS use
+  `dlopen(RTLD_LAZY|RTLD_LOCAL)`/`dlsym`/`dlclose`.
 - Added `--disable-native-calls` and the matching IDE setting. Native DLL calls
   are enabled by default in trusted local hosts and can be disabled explicitly.
 - Added line continuation with `_`: a physical source line ending in `_` is
@@ -96,6 +99,10 @@ The Win32/64 build created with Visual Studio 2022 requires the
 - Added `examples/native_open_file_dialog.bas`, demonstrating a Win32
   `GetOpenFileNameA` call using `Declare Function`, native buffers, and a
   manually laid-out `OPENFILENAMEA` structure.
+- Added a `' PLATFORM:` metadata token to the BASIC test runners
+  (`run_tests.sh`, `run_tests.ps1`) so platform-specific tests can be
+  filtered automatically. Accepted values: `windows`, `linux`, `darwin`,
+  `posix` (= linux + darwin).
 - Added third-party notices for libffi and refreshed Scintilla/Lexilla license
   coverage in the installer documentation.
 - Improved Windows IDE runtime diagnostics: runtime failures now follow the same

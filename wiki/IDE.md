@@ -8,6 +8,23 @@ The nuBASIC IDE bundles an advanced syntax highlighting editor, an interpreter, 
 into a single application available for Windows and Linux (GTK+2). It is the recommended tool
 for writing non-trivial programs.
 
+### What's new
+
+The Windows IDE has gained three significant capabilities on top of the
+historical editor + Build/Run/Step workflow:
+
+- **Richer debugger** — full Step Into / Step Over / Step Out / Run to
+  Cursor / Pause-Break commands; class destructors and calls inside
+  expressions are stepped correctly. See [Integrated Debugger](#integrated-debugger).
+- **Multi-source projects** — open a `.nbp` project file and the IDE
+  loads the entry script and lets the debugger step into every
+  `Include`-d file as a single program. See
+  [Multi-source projects](#multi-source-projects).
+- **VS Code extension** — first-class VS Code support with the same
+  step modes, watch, call stack and breakpoints, backed by the
+  `nubasicdebug` console-subsystem binary. See
+  [VS Code extension](#vs-code-extension).
+
 ---
 
 ## Syntax Highlighting Editor
@@ -23,7 +40,7 @@ The editor is built on the [Scintilla](https://www.scintilla.org/) library.
 - **Find and Replace** — full-text search with case sensitivity, whole-word matching, and regex replacement
 - **Context-sensitive help** — select a keyword and press `F1` to display the built-in help entry
 - **Online help** — `Ctrl+F1` opens the relevant online help topic in a browser
-- **Integrated debugger** — breakpoints, step-by-step execution, expression evaluation (data-tips)
+- **Integrated debugger** — breakpoints, Step Into / Over / Out, Run to Cursor, Pause/Break, expression evaluation (data-tips)
 - **Line and column indicator** — the toolbar permanently shows the cursor position
 - **Zoom** — `F3` zooms in; `Ctrl+F3` zooms out
 
@@ -129,8 +146,10 @@ Navigate with the arrow keys; press `Tab` to insert.
 | Stop | Debug → Stop Debugging | `Esc` |
 | Breakpoint | Debug → Toggle Breakpoint | `F9` |
 | Build | Debug → Build Program | `Ctrl+B` |
-| Evaluate | Debug → Evaluate Selection | `F11` |
-| Step | Debug → Step | `F10` |
+| Evaluate | Debug → Evaluate Selection | — |
+| Step Into | Debug → Step Into | `F11` |
+| Step Over | Debug → Step Over | `F10` |
+| Step Out | Debug → Step Out | `Shift+F11` |
 | Cont | Debug → Continue Debugging | `F8` |
 | Find | Search → Find… | `Ctrl+F` |
 | Con Top | Debug → Console Window Topmost | — |
@@ -162,8 +181,12 @@ next line to execute.
 | Start Debugging | `F5` | Launch program with debugger attached. |
 | Stop Debugging | `Esc` | Terminate the running program immediately. |
 | Continue Debugging | `F8` | Resume from the current breakpoint. |
-| Step | `F10` | Execute the current line and halt at the next. Enters called routines. |
-| Evaluate Selection (Data-Tips) | `F11` | Evaluate the selected expression and display the result as an inline annotation. |
+| Step Into | `F11` | Execute the current line. Descends into called `Sub` or `Function`. |
+| Step Over | `F10` | Execute the current line as a single unit. Calls run to completion; halts at the next line of the *caller*. |
+| Step Out | `Shift+F11` | Resume until the current `Sub`/`Function` returns. |
+| Run to Cursor | `Ctrl+F10` | Resume until the line under the cursor is reached, then halt. |
+| Pause / Break | `Ctrl+Pause` | Interrupt a running program at the next steppable statement. |
+| Evaluate Selection (Data-Tips) | — | Evaluate the selected expression and display the result as an inline annotation. |
 | Start Without Debugging | `Ctrl+F5` | Run without debugger. Press `Ctrl+C` to interrupt. |
 | Toggle Breakpoint | `F9` | Add or remove a breakpoint on the current line. |
 | Delete All Breakpoints | — | Remove every breakpoint in the current document. |
@@ -178,6 +201,74 @@ The bottom of the IDE contains a tabbed panel with two tabs:
 
 - **Output** — interpreter messages, build results, and Data-Tips evaluation results. Color-coded: white (normal), yellow (warnings), red (errors).
 - **Console** — the embedded nuBASIC graphical console. All `Print` output, graphics, and keyboard/mouse input appear here.
+
+---
+
+## Multi-source projects
+
+Programs longer than a single file can be organised as a project.
+A nuBASIC project is described by a small text manifest with the
+`.nbp` extension that records the entry-point script, the syntax
+mode, and a display name. The included files are still brought in
+by `Include` / `#Include` directives in the entry script — `.nbp`
+only tells the IDE which file is the entry point.
+
+```text
+name = MyProgram
+syntax = modern
+entry = src/main.bas
+```
+
+| Key | Meaning |
+|-----|---------|
+| `name` | Display name shown in the title bar and in the recent-projects list |
+| `syntax` | `legacy` or `modern` — initial `Syntax` mode for the entry file |
+| `entry` | Path to the entry-point `.bas` file, relative to the directory of the `.nbp` |
+
+| Menu command | Description |
+|--------------|-------------|
+| **File → Open Project…** | Pick a `.nbp` file. The IDE loads the entry script, sets the declared syntax mode, and updates the title bar. |
+| **File → Close Project** | Detach the current project; the editor reverts to single-file mode. |
+| **File → Recent Projects** | Lists recently opened `.nbp` files. |
+
+Once a project is open, **Build / Start Debugging** uses the entry
+script as the program entry point. The debugger walks transparently
+into `Include`-d files; breakpoints in any of them are honoured, and
+the call stack panel shows the file name and line number for every
+frame. From the CLI, the same `.nbp` can be passed to `nubasic -e`
+or `nubasicdebug` to run the project as a unit.
+
+---
+
+## VS Code Extension
+
+A VS Code extension ships alongside the native IDE and provides
+syntax highlighting, a Run button, and a debug adapter compatible
+with the standard VS Code debug UI (breakpoints, Step Into / Over /
+Out, watch, call stack, variables).
+
+**Installation.** The Windows MSI's optional `VSCodeExtension`
+component installs the extension automatically. Manual install:
+
+```
+code --install-extension <nubasic>/bin/nubasic-latest.vsix
+```
+
+**Running and debugging.** Open a `.bas` (or `.nbp`) file and press
+**F5**. The extension creates a default `launch.json` of type
+`nubasic`. Available modes:
+
+| `request` | Effect |
+|-----------|--------|
+| `launch` | Run with the debugger attached |
+| `launch` + `noDebug: true` | Run without breaking on breakpoints |
+| `launch` + `mode: "graphics"` | Hybrid `--graphics-window` mode: graphics in a separate GDI window, debugger and stdout in the VS Code session |
+
+The extension picks the interpreter from
+`nubasic.executablePath`, the `NUBASIC_HOME` environment variable,
+`%PATH%`, or the `HKCU\Software\nuBASIC\InstallDir` registry key.
+It launches `nubasicdebug` for debug sessions and `nubasic` for
+plain Run sessions.
 
 ---
 

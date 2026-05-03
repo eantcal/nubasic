@@ -26,7 +26,7 @@ Native DLL calls are disabled by --disable-native-calls.
 ## Syntax
 
 ```basic
-Declare Function <basic-name> Lib "<dll-name>" _
+Declare Function <basic-name> Lib "<library-name>" _
     [Alias "<export-name>"] _
     [CallConv "default" | "cdecl" | "stdcall"] _
     (<param-name> As <native-type>, ...) As <native-type>
@@ -43,7 +43,7 @@ On POSIX, the `Lib` value is passed verbatim to `dlopen`. Use the platform's
 canonical sonames, e.g. `libc.so.6` on Linux (glibc), `libSystem.B.dylib` on
 macOS, or an absolute path.
 
-## Supported MVP Types
+## Supported Types
 
 ```text
 Integer  -> signed 32-bit integer
@@ -61,8 +61,8 @@ Void     -> no return value
 instead of wide-character APIs such as `lstrlenW`.
 
 `Pointer` is an integer-sized native address. nuBASIC also exposes a small set
-of native memory helpers so scripts can pass writable buffers or simple Win32
-structures to DLL calls:
+of native memory helpers so scripts can pass writable buffers or simple
+manually laid-out structures to native calls:
 
 ```text
 NativeAlloc(size) -> Pointer
@@ -150,7 +150,7 @@ For a complete Win32 common dialog example, see
 
 ## Build prerequisites
 
-Native DLL invocation requires libffi at build time.
+Native library invocation requires libffi at build time.
 
 | Platform | Install |
 |----------|---------|
@@ -164,13 +164,17 @@ but invocation fails with a clear runtime error.
 
 ## Current Limitations
 
-The first implementation intentionally does not support:
+The current implementation does not yet support:
 
-- ByRef or output buffers
-- wide strings / `LPCWSTR`
-- automatic struct marshalling, arrays, callbacks, COM, or variadic functions
+- `ByRef` / output buffers (use `NativeAlloc` + `NativePoke*` + `NativePeekStr$`
+  in the meantime)
+- wide strings / `LPCWSTR` / `wchar_t*`
+- automatic struct marshalling, arrays, callbacks, COM, or variadic
+  functions
 - automatic header parsing
-- sandboxing or DLL allowlists
+- sandboxing or library allowlists
+
+These items are tracked in [`nubasic_native_calls_plan.md`](../nubasic_native_calls_plan.md).
 
 Native calls can crash the process or corrupt memory if the declaration does not
 exactly match the exported function signature.
