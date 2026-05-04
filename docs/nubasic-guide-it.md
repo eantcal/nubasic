@@ -64,10 +64,13 @@
     - 10.2 [Panoramica degli obiettivi di compilazione](#102-panoramica-degli-obiettivi-di-compilazione)
     - 10.3 [Compilazione su Windows](#103-compilazione-su-windows)
     - 10.4 [Compilazione su Linux](#104-compilazione-su-linux)
-    - 10.5 [Compilazione su macOS](#105-compilazione-su-macos)
+    - 10.5 [Compilazione su macOS](#105-build-su-macos)
     - 10.6 [Compilazione su iOS con iSH](#106-compilazione-su-ios-con-ish)
     - 10.7 [Riferimento alle opzioni CMake](#107-riferimento-alle-opzioni-cmake)
-    - 10.8 [Creazione di programmi di installazione e pacchetti](#108-creazione-di-programmi-di-installazione-e-pacchetti)
+    - 10.8 [Creazione di programmi di installazione e pacchetti](#108-creazione-di-installer-e-pacchetti)
+      - MSI Windows (target Visual Studio `CreateInstaller` o riga di comando)
+      - Ubuntu / Debian `.deb` (`create_ubuntu_package.sh` o cpack manuale)
+      - macOS installazione manuale
 
 ---
 
@@ -3920,26 +3923,29 @@ predefinito `OFF` su macOS.
 
 #### Prerequisiti
 
-Installa gli Xcode Command Line Tools e CMake:
+Installa Xcode Command Line Tools, CMake e libffi:
 
 ```sh
 xcode-select --install
-brew install cmake git
+brew install cmake git libffi
 ```
 
-#### Configurazione e build
+> `libffi` è necessario per le chiamate a librerie native (`Declare Function … Lib "…"`).
+
+#### Configura e compila
 
 ```sh
 cd nubasic
 mkdir build && cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j$(sysctl -n hw.logicalcpu)
+sudo make install   # installa nubasic e nubasicdebug in /usr/local/bin
 ```
 
-Questo produce l'interprete da console `nubasic`. Installalo manualmente oppure tramite:
+#### Disinstallazione su macOS
 
 ```sh
-sudo make install
+sudo xargs rm -f < build/install_manifest.txt
 ```
 
 ---
@@ -4004,58 +4010,135 @@ make -j$(nproc)
 
 #### MSI installer per Windows
 
-Richiede WiX Toolset 3.x installato e presente nel `PATH`. Dalla directory di build:
+##### Prerequisiti per l'installer Windows
+
+| Strumento | Dove scaricarlo |
+| --------- | --------------- |
+| Visual Studio 2022 (workload Desktop C++) | [visualstudio.microsoft.com](https://visualstudio.microsoft.com) |
+| WiX Toolset v3.x (`candle.exe` + `light.exe` nel PATH) | [wixtoolset.org/releases](https://wixtoolset.org/releases/) |
+| Node.js 18 LTS+ *(opzionale — solo per il componente VS Code extension)* | [nodejs.org](https://nodejs.org) |
+
+> **Alternativa NSIS** — passa `-DNUBASIC_INSTALLER=NSIS` a cmake e installa [NSIS](https://nsis.sourceforge.io/) al posto di WiX.
+
+##### Generare la soluzione Visual Studio
+
+```bat
+cd nubasic
+mkdir build-win && cd build-win
+cmake -G "Visual Studio 17 2022" -A x64 ..
+```
+
+##### Tramite Visual Studio (consigliato)
+
+Apri `nuBASIC.sln`, imposta la configurazione su **Release**, poi in Solution Explorer:
+
+1. Espandi la cartella **Installer**.
+2. Clic destro su **`CreateInstaller`** → **Build**.
+
+Il file MSI viene scritto nella directory di build come `nuBASIC_<versione>.msi`.
+Il target `PACKAGE` (anch'esso nella cartella Installer) esegue il pipeline CPack standard senza il passo di patch dei shortcut WiX.
+
+`CreateInstaller` chiama internamente `cmake/RunCpackInstaller.ps1`, che esegue CPack e poi
+`cmake/PatchWixMSI.ps1` per iniettare i collegamenti nel menu Start e sul Desktop nell'MSI.
+
+Il programma di installazione espone quattro componenti opzionali tramite il dialog **WixUI_FeatureTree**:
+
+| Componente | Obbligatorio | Descrizione |
+| ---------- | ------------ | ----------- |
+| **Core** | sì | `nubasic.exe` (console), `nubasicgdi.exe` (GDI), `nubasicdebug.exe` (debug backend) |
+| **IDE** | opzionale | `NuBasicIDE.exe` + DLL Scintilla/Lexilla |
+| **VS Code Extension** | opzionale | `nubasic-latest.vsix`; installata automaticamente in VS Code tramite `install-vscode-ext.ps1` |
+| **Examples** | opzionale | File sorgente `.bas` di esempio |
+
+##### Tramite riga di comando
 
 ```bat
 cmake --build . --config Release
-cpack -G WIX -C Release
+cmake --build . --target CreateInstaller --config Release
 ```
 
-Questo produce un file `.msi` nella directory di build. Il programma di installazione:
-
-- Copia `NuBasicIDE.exe`, `nubasic.exe`, `nubasicgdi.exe`,
-  `nubasicdebug.exe` e `SciLexer.dll` in `bin\`.
-- Installa i file di esempio `.bas` in `examples\`.
-- Crea una cartella `nuBASIC` nel menu Start con collegamenti all'IDE, alla CLI e alla
-  disinstallazione.
-- Scrive le chiavi di registro `HKCU\Software\nuBASIC\InstallDir` e `ExamplesDir` in modo che
-  l'IDE possa individuare gli esempi all'avvio.
-- Registra l'estensione `.bas` e la associa a `NuBasicIDE.exe`.
-
-L'MSI usa il dialog WiX **WixUI_FeatureTree** in modo che l'utente possa
-scegliere le funzionalita' al momento dell'installazione:
-
-| Componente | Obbligatorio | Descrizione |
-|------------|--------------|-------------|
-| **Core** | si' | CLI (`nubasic.exe` console, `nubasicgdi.exe` GDI, `nubasicdebug.exe` debug backend) e DLL di runtime |
-| **IDE** | opzionale | IDE Windows (`NuBasicIDE.exe`) con le DLL Scintilla / Lexilla |
-| **VSCodeExtension** | opzionale | Estensione VS Code (`.vsix`) e helper di installazione che la registra nell'istanza locale di VS Code |
-| **Examples** | opzionale | Programmi `.bas` di esempio |
-
-Selezionando **VSCodeExtension** viene attivata una custom action
-deferred (`install-vscode-ext.ps1`) che esegue `code --install-extension`
-al termine della copia dei file dell'MSI, in modo che l'estensione venga
-configurata senza interventi manuali.
-
-In alternativa, dall'interno di Visual Studio, compila il target `CreateInstaller` (elencato
-nella cartella di soluzione *Installer*).
-
-Per usare il legacy NSIS installer:
+**Variante NSIS (setup.exe invece di MSI):**
 
 ```bat
-cmake .. -DNUBASIC_INSTALLER=NSIS
-cpack -G NSIS -C Release
+cmake -G "Visual Studio 17 2022" -A x64 -DNUBASIC_INSTALLER=NSIS ..
+cmake --build . --config Release
+cmake --build . --target CreateInstaller --config Release
 ```
 
-#### Pacchetto DEB per Linux
+##### Installazione e disinstallazione su Windows
+
+```bat
+rem Installazione silenziosa
+msiexec /i nuBASIC_2.0.0.msi /quiet /norestart
+
+rem Disinstallazione silenziosa
+msiexec /x nuBASIC_2.0.0.msi /quiet
+```
+
+---
+
+#### Pacchetto DEB per Ubuntu / Debian
+
+##### Tramite lo script (consigliato)
+
+Lo script `create_ubuntu_package.sh` (nella radice del repository) installa le
+dipendenze di build, configura, compila e impacchetta nuBASIC in un unico passo:
 
 ```sh
-cd build
-cpack -G DEB
+# Build completo (interprete console + IDE GTK2):
+./create_ubuntu_package.sh
+
+# Solo console (senza IDE GTK2):
+./create_ubuntu_package.sh --console-only
+
+# Directory di build personalizzata, 8 job paralleli:
+./create_ubuntu_package.sh --build-dir /tmp/nubasic-deb --jobs 8
+
+# Salta apt-get (dipendenze già installate):
+./create_ubuntu_package.sh --no-install-deps
 ```
 
-Questo produce un pacchetto `.deb` installabile con `dpkg -i nubasic-*.deb`.
+Se i pacchetti GTK2 non sono disponibili, lo script torna automaticamente a un build console-only.
 
+##### Build manuale
+
+```sh
+cd nubasic
+mkdir build-deb && cd build-deb
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr ..
+make -j$(nproc)
+cpack -G DEB -D CPACK_PACKAGING_INSTALL_PREFIX=/usr
+```
+
+##### Installazione e disinstallazione su Ubuntu
+
+```sh
+# Ispezione del pacchetto:
+dpkg-deb -I nuBASIC_2.0.0.deb
+
+# Installazione:
+sudo dpkg -i nuBASIC_2.0.0.deb
+sudo apt-get install -f   # risolve eventuali dipendenze mancanti
+
+# Disinstallazione:
+sudo dpkg -r nubasic
+```
+
+Dopo l'installazione, `nubasic` e `nubasicdebug` si trovano in `/usr/bin`.
+Nel build completo viene installato anche `nubasicide` (l'IDE GTK2).
+
+---
+
+#### macOS — installazione manuale
+
+macOS non dispone di un programma di installazione pacchettizzato.
+Compila e installa come descritto nella [sezione 10.5](#105-build-su-macos).
+
+Per disinstallare:
+
+```sh
+sudo xargs rm -f < build/install_manifest.txt
+```
 
 ---
 

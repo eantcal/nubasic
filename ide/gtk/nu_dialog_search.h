@@ -218,7 +218,7 @@ private:
 
     enum class op_t { FIND, REPLACE, REPLACE_ALL };
 
-    static void find_and_replace(GtkButton* button, GtkEntry* entry, op_t op)
+    static void find_and_replace(GtkButton* /*button*/, GtkEntry* entry, op_t op)
     {
         auto& _this = get_instance();
 
@@ -304,7 +304,7 @@ private:
 
     /* ---------------------------------------------------------------------- */
 
-    static void search_text(GtkWidget* item, GtkEntry* entry)
+    static void search_text(GtkWidget* /*item*/, GtkEntry* entry)
     {
         gtk_entry_set_icon_from_stock(
             entry, GTK_ENTRY_ICON_PRIMARY, GTK_STOCK_FIND);
@@ -341,7 +341,7 @@ private:
     /* ---------------------------------------------------------------------- */
 
     static void icon_press_cb(
-        GtkEntry* entry, gint position, GdkEventButton* event, gpointer data)
+        GtkEntry* entry, gint position, GdkEventButton* event, gpointer /*data*/)
     {
         if (position == GTK_ENTRY_ICON_PRIMARY) {
             gtk_menu_popup(GTK_MENU(get_instance()._menu), NULL, NULL, NULL,
@@ -355,7 +355,7 @@ private:
     /* ---------------------------------------------------------------------- */
 
     static void text_changed_cb(
-        GtkEntry* entry, GParamSpec* pspec, GtkWidget* button)
+        GtkEntry* entry, GParamSpec* /*pspec*/, GtkWidget* button)
     {
         gboolean has_text;
 
@@ -369,7 +369,7 @@ private:
 
     /* ---------------------------------------------------------------------- */
 
-    static void search_entry_destroyed(GtkWidget* widget)
+    static void search_entry_destroyed(GtkWidget* /*widget*/)
     {
         auto& _this = get_instance();
         _this._window = nullptr;
@@ -379,7 +379,7 @@ private:
     /* ---------------------------------------------------------------------- */
 
     static void entry_populate_popup(
-        GtkEntry* entry, GtkMenu* menu, gpointer user_data)
+        GtkEntry* entry, GtkMenu* menu, gpointer /*user_data*/)
     {
         gboolean has_text = gtk_entry_get_text_length(entry) > 0;
 

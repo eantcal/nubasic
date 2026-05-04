@@ -57,8 +57,8 @@ enum class debug_stop_reason_t {
 
 struct debug_exec_request_t {
     debug_exec_action_t action = debug_exec_action_t::Continue;
-    prog_pointer_t start_pc;
-    prog_pointer_t target_pc;
+    prog_pointer_t start_pc = {};
+    prog_pointer_t target_pc = {};
     size_t start_stack_depth = 0;
     bool has_target_pc = false;
 };

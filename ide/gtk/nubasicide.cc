@@ -837,7 +837,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
     /* --------------------------------------------------------------------------
      */
 
-    static void toolbar_openfile(GtkToolItem* toolitem, GtkWindow* parentWindow)
+    static void toolbar_openfile(GtkToolItem* /*toolitem*/, GtkWindow* parentWindow)
     {
         menu_file_open(nullptr, parentWindow);
     }
@@ -933,7 +933,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
      */
 
     // on stop the GTK+ main loop function
-    static void destroy_window(GtkWidget* window, gpointer data)
+    static void destroy_window(GtkWidget* /*window*/, gpointer /*data*/)
     {
         get_instance().quit();
         // gtk_main_quit();
@@ -960,7 +960,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
     /* ---------------------------------------------------------------------- */
 
-    static void menu_dummy(GtkMenuItem* fileopen, GtkWindow* parentWindow)
+    static void menu_dummy(GtkMenuItem* /*fileopen*/, GtkWindow* parentWindow)
     {
         nu::msgbox(parentWindow, "Menu clicked.", "Menu");
     }
@@ -990,7 +990,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
     /* --------------------------------------------------------------------------
      */
 
-    static void menu_file_saveas(GtkMenuItem*, GtkWindow* window)
+    static void menu_file_saveas(GtkMenuItem*, GtkWindow* /*window*/)
     {
         get_instance().save_document_as();
     }
@@ -1354,7 +1354,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
 
         long pos = (long)ed.get_current_position();
 
-        Sci_TextToFind tf = { 0 };
+        Sci_TextToFind tf = {};
         tf.lpstrText = text.c_str();
         tf.chrg.cpMin = pos + 1;
         tf.chrg.cpMax = long(ed.cmd(SCI_GETLENGTH, 0, 0));
@@ -1383,7 +1383,7 @@ struct app_t : public nu::dialog_search_t::observer_t {
         long pos = (long)ed.get_current_position();
         // long lMinSel = (long)ed.get_selection_begin();
 
-        Sci_TextToFind tf = { 0 };
+        Sci_TextToFind tf = {};
         tf.lpstrText = text.c_str();
 
         // if (lMinSel >= 0)
@@ -2463,7 +2463,7 @@ int main(int argc, char* argv[])
     nu::create_terminal_frame(argc, argv);
     app_t app(argc, argv);
 
-    sigset(SIGHUP, sig_handler); // it prevents application can be closed
+    signal(SIGHUP, sig_handler); // it prevents application can be closed
                                  // closing xterm window
     app.run();
 

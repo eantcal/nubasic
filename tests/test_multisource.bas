@@ -36,9 +36,9 @@ AssertEq "#Include service function", ServiceSummary$(counter), "service:core=13
 
 Print "--- 2. Object references across source boundary ---"
 
-Dim alias As MultiCounter
-alias = counter
-alias.Add(1)
+Dim counterCopy As MultiCounter
+counterCopy = counter
+counterCopy.Add(1)
 AssertEq "alias mutates included class instance", counter.Report$(), "core=14"
 
 Print "--- 3. Extra domain methods (GetValue, GetSteps, Reset) ---"

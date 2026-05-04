@@ -169,7 +169,7 @@ not available; `WITH_X11` and `WITH_IDE` both default to `OFF` on macOS.
 
 ```sh
 xcode-select --install
-brew install cmake git
+brew install cmake git libffi
 ```
 
 ### Configure and Build
@@ -177,9 +177,15 @@ brew install cmake git
 ```sh
 cd nubasic
 mkdir build && cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j$(sysctl -n hw.logicalcpu)
-sudo make install
+sudo make install   # installs nubasic and nubasicdebug to /usr/local/bin
+```
+
+### Uninstall on macOS
+
+```sh
+sudo xargs rm -f < build/install_manifest.txt
 ```
 
 ---
@@ -233,37 +239,137 @@ make -j$(nproc)
 
 ## Creating Installers and Packages
 
-### Windows MSI Installer
+### Windows — MSI installer (WiX) or setup.exe (NSIS)
 
-Requires WiX Toolset 3.x installed and on `PATH`:
+#### Windows installer prerequisites
+
+| Tool | Where to get it |
+| ---- | --------------- |
+| Visual Studio 2022 (Desktop C++ workload) | [visualstudio.microsoft.com](https://visualstudio.microsoft.com) |
+| WiX Toolset v3.x (`candle.exe` + `light.exe` on PATH) | [wixtoolset.org/releases](https://wixtoolset.org/releases/) |
+| Node.js 18 LTS+ *(optional — VS Code extension component only)* | [nodejs.org](https://nodejs.org) |
+
+> **NSIS fallback** — add `-DNUBASIC_INSTALLER=NSIS` to cmake and install [NSIS](https://nsis.sourceforge.io/) instead of WiX.
+
+#### Generate the Visual Studio solution
+
+```bat
+cd nubasic
+mkdir build-win && cd build-win
+cmake -G "Visual Studio 17 2022" -A x64 ..
+```
+
+#### Using Visual Studio (recommended)
+
+Open `nuBASIC.sln`, set the configuration to **Release**, then in Solution Explorer:
+
+- Expand the **Installer** folder.
+- Right-click **`CreateInstaller`** → **Build**.
+
+The MSI is written to the build directory as `nuBASIC_<version>.msi`. The `PACKAGE` target (also in the Installer folder) runs the standard CPack pipeline without the WiX shortcut-patch step.
+
+The installer includes four optional components selectable at setup time:
+
+| Component | Contents |
+| --------- | -------- |
+| **nuBASIC Runtime** *(required)* | `nubasic.exe`, `nubasicdebug.exe` |
+| **nuBASIC IDE** | `NuBasicIDE.exe` (Scintilla-based IDE) |
+| **VS Code Extension** | `nubasic-latest.vsix` (auto-installed into VS Code if found) |
+| **Example Programs** | Sample `.bas` source files |
+
+`CreateInstaller` internally calls `cmake/RunCpackInstaller.ps1`, which runs CPack and then `cmake/PatchWixMSI.ps1` to inject Start Menu and Desktop shortcuts into the MSI.
+
+#### Using the command line
 
 ```bat
 cmake --build . --config Release
-cpack -G WIX -C Release
+cmake --build . --target CreateInstaller --config Release
 ```
 
-The installer:
-- Copies `NuBasicIDE.exe`, `nubasic.exe`, and `SciLexer.dll` to `bin\`
-- Installs example `.bas` files to `examples\`
-- Creates a `nuBASIC` folder in the Start Menu with shortcuts for the IDE, CLI, and Uninstall
-- Writes registry keys so that the IDE can locate the examples at startup
-- Registers the `.bas` file extension with `NuBasicIDE.exe`
-
-To use the legacy NSIS installer instead:
+**NSIS variant (setup.exe instead of MSI):**
 
 ```bat
-cmake .. -DNUBASIC_INSTALLER=NSIS
-cpack -G NSIS -C Release
+cmake -G "Visual Studio 17 2022" -A x64 -DNUBASIC_INSTALLER=NSIS ..
+cmake --build . --config Release
+cmake --build . --target CreateInstaller --config Release
 ```
 
-### Linux DEB Package
+#### Windows install and uninstall
+
+Install silently:
+
+```bat
+msiexec /i nuBASIC_2.0.0.msi /quiet /norestart
+```
+
+Uninstall silently:
+
+```bat
+msiexec /x nuBASIC_2.0.0.msi /quiet
+```
+
+---
+
+### Ubuntu / Debian — `.deb` package
+
+#### Using the script (recommended)
+
+The script `create_ubuntu_package.sh` (at the repository root) installs build
+dependencies, configures, compiles, and packages nuBASIC in one step:
 
 ```sh
-cd build
-cpack -G DEB
+# Full build (console interpreter + GTK2 IDE):
+./create_ubuntu_package.sh
+
+# Console-only (no GTK2 IDE):
+./create_ubuntu_package.sh --console-only
+
+# Custom build directory, 8 parallel jobs:
+./create_ubuntu_package.sh --build-dir /tmp/nubasic-deb --jobs 8
+
+# Skip apt-get (dependencies already installed):
+./create_ubuntu_package.sh --no-install-deps
 ```
 
-Produces a `.deb` package installable with `dpkg -i nubasic-*.deb`.
+If GTK2 packages are not available the script falls back automatically to a
+console-only build.
+
+#### Manual build
+
+```sh
+cd nubasic
+mkdir build-deb && cd build-deb
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr ..
+make -j$(nproc)
+cpack -G DEB -D CPACK_PACKAGING_INSTALL_PREFIX=/usr
+```
+
+#### Ubuntu install and uninstall
+
+```sh
+# Install:
+sudo dpkg -i nuBASIC_2.0.0.deb
+sudo apt-get install -f   # resolve any missing runtime dependencies
+
+# Uninstall:
+sudo dpkg -r nubasic
+```
+
+After installation `nubasic` and `nubasicdebug` are in `/usr/bin`. On a full
+build `nubasicide` (the GTK2 IDE) is also installed.
+
+---
+
+### macOS — manual install
+
+macOS has no packaged installer. Build and install as described in
+[Building on macOS](#building-on-macos) above.
+
+To uninstall:
+
+```sh
+sudo xargs rm -f < build/install_manifest.txt
+```
 
 ---
 

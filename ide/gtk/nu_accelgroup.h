@@ -9,7 +9,10 @@
 
 /* -------------------------------------------------------------------------- */
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <gtk/gtk.h>
+#pragma GCC diagnostic pop
 
 
 /* -------------------------------------------------------------------------- */
@@ -21,7 +24,7 @@ namespace nu {
 
 class accelgroup_t {
 public:
-    accelgroup_t(GtkAccelGroup* group = gtk_accel_group_new())
+    explicit accelgroup_t(GtkAccelGroup* group = gtk_accel_group_new())
         : _group(group)
     {
     }
