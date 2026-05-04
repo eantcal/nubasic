@@ -35,7 +35,8 @@ case "$(uname -s 2>/dev/null)" in
 esac
 
 platform_matches() {
-    local token="${1,,}"
+    local token
+    token=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
     [[ -z "$token" ]] && return 0
     if [[ "$token" == "posix" ]]; then
         [[ "$HOST_PLATFORM" == "linux" || "$HOST_PLATFORM" == "darwin" ]]
@@ -47,7 +48,7 @@ platform_matches() {
 # ── parse CLI args ────────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --interpreter|-i) INTERPRETER="$2"; shift 2 ;;
+        --interpreter|-i) INTERPRETER="$(cd "$(dirname "$2")" 2>/dev/null && pwd)/$(basename "$2")"; shift 2 ;;
         --testdir|-d)     TEST_DIR="$2";    shift 2 ;;
         *) echo "Unknown option: $1" >&2; exit 1 ;;
     esac
@@ -283,13 +284,13 @@ for f in "${TEST_FILES[@]}"; do
         missing_parts=()
         forbidden_parts=()
 
-        for expected in "${expected_parts[@]}"; do
+        for expected in "${expected_parts[@]+"${expected_parts[@]}"}"; do
             if ! contains_ci "$output" "$expected"; then
                 missing_parts+=("$expected")
             fi
         done
 
-        for forbidden in "${not_expected_parts[@]}"; do
+        for forbidden in "${not_expected_parts[@]+"${not_expected_parts[@]}"}"; do
             if contains_ci "$output" "$forbidden"; then
                 forbidden_parts+=("$forbidden")
             fi
@@ -303,7 +304,7 @@ for f in "${TEST_FILES[@]}"; do
             suite_pass=$(( suite_pass + 1 ))
         else
             printf '  [EXPECTED OUTPUT FAIL] %s  missing=%q forbidden=%q exit=%d\n' \
-                   "$name" "${missing_parts[*]}" "${forbidden_parts[*]}" "$interp_exit"
+                   "$name" "${missing_parts[*]+"${missing_parts[*]}"}" "${forbidden_parts[*]+"${forbidden_parts[*]}"}" "$interp_exit"
             total_fail=$(( total_fail + ${#missing_parts[@]} + ${#forbidden_parts[@]} + (interp_exit == 0 ? 0 : 1) ))
             suite_fail=$(( suite_fail + 1 ))
             failed_suites+=("$name")
