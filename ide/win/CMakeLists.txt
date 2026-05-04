@@ -131,6 +131,8 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/examples/"
   COMPONENT Examples
   FILES_MATCHING
   PATTERN "*.bas"
+  PATTERN "*.nbp"
+  PATTERN "*.bmp"
   PATTERN "manifest.txt")
 
 

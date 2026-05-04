@@ -885,6 +885,11 @@ public:
     void open_document_file(const char* fileName);
 
     /**
+     * Close the active document tab.
+     */
+    void close_active_document();
+
+    /**
      * Open/activate a source file and scroll to a line (no execution marker).
      */
     void navigate_to_source(const std::string& path, int line);
@@ -1737,6 +1742,7 @@ protected:
     void update_document_tab_title(size_t index);
     void create_new_document_tab(const std::string& path = {});
     int find_document_by_path(const std::string& path) const;
+    int save_active_document_if_unsure();
     std::string active_source_name() const;
     void open_included_source_files();
     void close_all_documents();
@@ -2749,6 +2755,41 @@ void nu::editor_t::create_examples_menu() noexcept
 
     const std::string ex = nu::examples_directory();
     const auto entries = nu::list_example_entries();
+    std::map<std::string, HMENU> submenu_by_path;
+
+    auto submenu_for_parent_path = [&](const fs::path& parent_path) -> HMENU {
+        HMENU parent_menu = _examples_submenu;
+        fs::path current_path;
+
+        for (const auto& part : parent_path) {
+            const std::string name = part.string();
+            if (name.empty() || name == ".")
+                continue;
+
+            current_path /= name;
+            const std::string key = current_path.generic_string();
+
+            auto it = submenu_by_path.find(key);
+            if (it == submenu_by_path.end()) {
+                HMENU submenu = ::CreatePopupMenu();
+                if (!submenu)
+                    return nullptr;
+
+                if (!::AppendMenuA(parent_menu, MF_STRING | MF_POPUP,
+                        (UINT_PTR)submenu, name.c_str())) {
+                    ::DestroyMenu(submenu);
+                    return nullptr;
+                }
+
+                it = submenu_by_path.emplace(key, submenu).first;
+            }
+
+            parent_menu = it->second;
+        }
+
+        return parent_menu;
+    };
+
     int n = 0;
 
     for (const auto& e : entries) {
@@ -2760,9 +2801,8 @@ void nu::editor_t::create_examples_menu() noexcept
         if (!fs::is_regular_file(full, ec))
             continue;
 
-        _example_menu_paths.push_back(full.string());
-
-        std::string label = e.filename;
+        const fs::path rel(e.filename);
+        std::string label = rel.filename().string();
         if (!e.description.empty() && e.description != "Sample program") {
             std::string d = e.description;
             if (d.size() > 52)
@@ -2772,7 +2812,12 @@ void nu::editor_t::create_examples_menu() noexcept
         }
 
         const UINT idm = IDM_EXAMPLE_FIRST + n;
-        ::AppendMenuA(_examples_submenu, MF_STRING, idm, label.c_str());
+        HMENU parent_menu = submenu_for_parent_path(rel.parent_path());
+        if (!parent_menu)
+            continue;
+
+        _example_menu_paths.push_back(full.string());
+        ::AppendMenuA(parent_menu, MF_STRING, idm, label.c_str());
         ++n;
     }
 
@@ -4187,6 +4232,123 @@ void nu::editor_t::switch_to_selected_document()
 
 /* -------------------------------------------------------------------------- */
 
+int nu::editor_t::save_active_document_if_unsure()
+{
+    sync_active_document_state();
+
+    if (_active_document < 0
+        || _active_document >= static_cast<int>(_documents.size()))
+        return IDYES;
+
+    const auto& doc = _documents[static_cast<size_t>(_active_document)];
+    if (!doc.dirty)
+        return IDYES;
+
+    const bool save_as_dialog = _full_path_str.empty();
+    const std::string display_name
+        = save_as_dialog ? EDITOR_NONAME_FILE : _full_path_str;
+
+    std::string msg = "Save changes to \"" + display_name + "\"?";
+    const int decision = MessageBox(
+        _hwnd_main, msg.c_str(), editor::application_name, MB_YESNOCANCEL);
+
+    if (decision == IDYES) {
+        if (save_as_dialog) {
+            save_document_as();
+        } else {
+            save_document();
+        }
+
+        sync_active_document_state();
+        if (_active_document >= 0
+            && _active_document < static_cast<int>(_documents.size())
+            && _documents[static_cast<size_t>(_active_document)].dirty) {
+            return IDCANCEL;
+        }
+    }
+
+    return decision;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void nu::editor_t::close_active_document()
+{
+    if (_program_running) {
+        MessageBoxA(_hwnd_main,
+            "Stop the running program before closing the file.",
+            editor::application_name, MB_OK | MB_ICONINFORMATION);
+        return;
+    }
+
+    if (_documents.empty())
+        return;
+
+    if (save_active_document_if_unsure() == IDCANCEL)
+        return;
+
+    sync_active_document_state();
+
+    const int closing_index = _active_document;
+    if (closing_index < 0
+        || closing_index >= static_cast<int>(_documents.size()))
+        return;
+
+    remove_prog_cnt_marker();
+    interpreter().clear_all();
+    remove_funcs_menu();
+
+    if (_documents.size() == 1) {
+        send_command(SCI_CLEARALL);
+        send_command(EM_EMPTYUNDOBUFFER);
+        send_command(SCI_SETSAVEPOINT);
+
+        _full_path_str.clear();
+        _is_dirty = false;
+        _need_build = true;
+
+        auto& doc = _documents[0];
+        doc.path.clear();
+        doc.dirty = false;
+        doc.need_build = true;
+        doc.caret_pos = 0;
+        doc.first_visible_line = 0;
+        doc.title = "Untitled " + std::to_string(_untitled_document_counter++);
+        update_document_tab_title(0);
+
+        remove_all_bookmarks();
+        remove_all_breakpoints();
+        sync_active_document_state();
+        set_title();
+        ::SetFocus(_hwnd_editor);
+        return;
+    }
+
+    const sptr_t closing_doc
+        = _documents[static_cast<size_t>(closing_index)].scintilla_doc;
+    const int target_index
+        = closing_index == static_cast<int>(_documents.size()) - 1
+        ? closing_index - 1
+        : closing_index + 1;
+
+    activate_document(static_cast<size_t>(target_index));
+
+    send_command(SCI_RELEASEDOCUMENT, 0, closing_doc);
+    TabCtrl_DeleteItem(_hwnd_doc_tabs, closing_index);
+    _documents.erase(_documents.begin() + closing_index);
+
+    if (_active_document > closing_index)
+        --_active_document;
+
+    TabCtrl_SetCurSel(_hwnd_doc_tabs, _active_document);
+    update_active_document_from_state();
+    ::SetFocus(_hwnd_editor);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 int nu::editor_t::find_document_by_path(const std::string& path) const
 {
     const auto normalized = normalize_editor_path(path);
@@ -5333,6 +5495,10 @@ void nu::editor_t::exec_command(int id)
         open_document();
         break;
 
+    case IDM_FILE_CLOSE:
+        close_active_document();
+        break;
+
     case IDM_FILE_SAVE:
         save_document();
         break;
@@ -5716,6 +5882,7 @@ void nu::editor_t::enable_menu_item(int id, bool enable)
 
 void nu::editor_t::check_menus()
 {
+    enable_menu_item(IDM_FILE_CLOSE, !_program_running);
     enable_menu_item(IDM_FILE_SAVE, _is_dirty);
     enable_menu_item(IDM_EDIT_UNDO, send_command(EM_CANUNDO) != FALSE);
     enable_menu_item(IDM_EDIT_REDO, send_command(SCI_CANREDO) != FALSE);

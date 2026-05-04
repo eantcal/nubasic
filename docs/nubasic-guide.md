@@ -1833,8 +1833,9 @@ offsets, field sizes, and structure layouts must match the target API
 exactly. Native calls are enabled by default in trusted local hosts and
 can be disabled with `--disable-native-calls`.
 
-See `docs/native-dll-calls.md` and `examples/native_open_file_dialog.bas`
-for a complete Win32 common file-open dialog example. On POSIX the same
+See `docs/native-dll-calls.md`, `examples/native/native_dll_function.bas`, and
+`examples/native/native_open_file_dialog.bas` for Win32 native-call examples.
+On POSIX the same
 mechanism reaches `libc`, `libm`, `libpthread`, and any user-built `.so`
 or `.dylib`.
 
@@ -2957,7 +2958,7 @@ transformed nuBASIC from a toy interpreter into a usable programming tool:
   and Linux (X11), then `TextOut` and `SetPixel` (v0.7–v0.9)
 - **Mouse support** — `GetMouseX()`, `GetMouseY()`, `GetMouseBtn()` (v1.06)
 - **`Eval` function** — evaluate a nuBASIC expression from a string at run time (v1.10)
-- First game examples: `breakout.bas` (ASCII art), `breakout2.bas` (GDI graphics),
+- First game examples: `games/breakout.bas` (ASCII art), `games/breakout2.bas` (GDI graphics),
   `minehunter.bas` (the Mine Hunter clone)
 
 In parallel, the nuBasicEditor — a Windows IDE with syntax highlighting, autocomplete,

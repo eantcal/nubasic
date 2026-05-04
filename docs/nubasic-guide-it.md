@@ -1827,8 +1827,9 @@ NativeFree p
 
 Le chiamate native sono abilitate per default negli host locali fidati e
 si possono disabilitare con `--disable-native-calls`. Vedi
-`docs/native-dll-calls.md` ed `examples/native_open_file_dialog.bas` per
-un esempio Win32 completo; su POSIX lo stesso meccanismo raggiunge
+`docs/native-dll-calls.md`, `examples/native/native_dll_function.bas` ed
+`examples/native/native_open_file_dialog.bas` per esempi Win32; su POSIX lo
+stesso meccanismo raggiunge
 `libc`, `libm`, `libpthread` e qualsiasi `.so` o `.dylib` costruito
 dall'utente.
 
@@ -2921,7 +2922,7 @@ programmazione:
   e Linux (X11), poi `TextOut` e `SetPixel` (v0.7–v0.9)
 - **Supporto al mouse** — `GetMouseX()`, `GetMouseY()`, `GetMouseBtn()` (v1.06)
 - **Funzione `Eval`** — valuta un'espressione nuBASIC da una stringa a runtime (v1.10)
-- Primi esempi di giochi: `breakout.bas` (grafica ASCII art), `breakout2.bas` (grafica GDI),
+- Primi esempi di giochi: `games/breakout.bas` (grafica ASCII art), `games/breakout2.bas` (grafica GDI),
   `minehunter.bas` (il clone di Mine Hunter)
 
 In parallelo, il nuBasicEditor — un IDE per Windows con evidenziazione della sintassi,

@@ -93,7 +93,7 @@ if ($Warmup -lt 0) {
 }
 
 if (-not $Script) {
-    $Script = Join-Path $repoRoot "examples\rosetta.bas"
+    $Script = Join-Path $repoRoot "examples\math\rosetta.bas"
 }
 
 $scriptPath = Resolve-Path $Script -ErrorAction Stop

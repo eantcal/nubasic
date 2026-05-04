@@ -247,7 +247,8 @@ std::vector<example_entry_t> list_example_entries()
     std::vector<example_entry_t> extras;
     if (!exdir.empty()) {
         std::error_code ec;
-        for (const auto& ent : fs::directory_iterator(fs::path(exdir), ec)) {
+        const fs::path root(exdir);
+        for (const auto& ent : fs::recursive_directory_iterator(root, ec)) {
             if (ec)
                 break;
             if (!ent.is_regular_file())
@@ -255,7 +256,8 @@ std::vector<example_entry_t> list_example_entries()
             const std::string ext = to_lower(ent.path().extension().string());
             if (ext != ".bas")
                 continue;
-            const std::string fn = ent.path().filename().string();
+            const std::string fn
+                = ent.path().lexically_relative(root).generic_string();
             if (seen.count(to_lower(fn)))
                 continue;
             example_entry_t e;

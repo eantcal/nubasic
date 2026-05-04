@@ -105,6 +105,7 @@ BEGIN
     BEGIN
         MENUITEM "&New\tCtrl+N",                IDM_FILE_NEW
         MENUITEM "&Open...\tCtrl+O",            IDM_FILE_OPEN
+        MENUITEM "&Close\tCtrl+W",              IDM_FILE_CLOSE
         MENUITEM SEPARATOR
         MENUITEM "&Save\tCtrl+S",               IDM_FILE_SAVE
         MENUITEM "Save &As...",                 IDM_FILE_SAVEAS
@@ -234,6 +235,7 @@ BEGIN
     "Z",            IDM_EDIT_UNDO,          VIRTKEY, CONTROL, NOINVERT
     "N",            IDM_FILE_NEW,           VIRTKEY, CONTROL, NOINVERT
     "O",            IDM_FILE_OPEN,          VIRTKEY, CONTROL, NOINVERT
+    "W",            IDM_FILE_CLOSE,         VIRTKEY, CONTROL, NOINVERT
     "S",            IDM_FILE_SAVE,          VIRTKEY, CONTROL, NOINVERT
     VK_F12,         IDC_AUTOCOMPLETE,       VIRTKEY, NOINVERT
     VK_F11,         IDM_DEBUG_EVALSEL,      VIRTKEY, CONTROL, NOINVERT

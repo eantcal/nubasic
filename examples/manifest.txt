@@ -1,31 +1,34 @@
-# nuBASIC examples manifest — lines: filename|short description (UTF-8)
+# nuBASIC examples manifest - lines: relative/path.bas|short description (UTF-8)
 # Used by help examples, IDE File->Examples menu, and install layout.
-bitmap.bas|Bitmap drawing demo
-breakout.bas|Breakout (text / console)
-breakout2.bas|Breakout with GDI graphics
-breakout3.bas|Breakout with GDI and keyboard
-calc.bas|Simple calculator
-cartoon.bas|Cartoon-style graphics
-clock.bas|Analog clock
-code.bas|Code / listing demo
-conv.bas|Conversions demo
-fact.bas|Factorial (recursion)
-graph.bas|Graph plotting
-graph2.bas|More graph plotting
-guess.bas|Guessing game
-line.bas|Line drawing
-math.bas|Math samples
-minesHunter.bas|Mines / Minesweeper-style game
-native_open_file_dialog.bas|Native Win32 file-open dialog
-nutetris.bas|Tetris-style game
-nutetris3d.bas|Tetris 3D variant
-parabola.bas|Parabola plot
-pingpong.bas|Ping-pong game
-plane.bas|Plane / 3D wireframe
-raycast3d.bas|Raycasting 3D demo
-readfile.bas|Read text file demo
-recursive.bas|Recursion demo
-rosetta.bas|Rosetta Code style task
-rosettatxt.bas|Rosetta text task
-tictactoe.bas|Tic-tac-toe
-unicode.bas|Unicode / string demo
+basics/calc.bas|Simple calculator
+basics/code.bas|Code / listing demo
+basics/conv.bas|Conversions demo
+basics/guess.bas|Guessing game
+basics/line.bas|Line drawing
+basics/readfile.bas|Read text file demo
+basics/unicode.bas|Unicode / string demo
+basics/utf8_helloworld.bas|UTF-8 hello world
+graphics/bitmap.bas|Bitmap drawing demo
+graphics/cartoon.bas|Cartoon-style graphics
+graphics/clock.bas|Analog clock
+graphics/plane.bas|Plane / 3D wireframe
+graphics/raycast3d.bas|Raycasting 3D demo
+games/breakout.bas|Breakout (text / console)
+games/breakout2.bas|Breakout with GDI graphics
+games/breakout3.bas|Breakout with GDI and keyboard
+games/minesHunter.bas|Mines / Minesweeper-style game
+games/nutetris.bas|Tetris-style game
+games/nutetris3d.bas|Tetris 3D variant
+games/pingpong.bas|Ping-pong game
+games/tictactoe.bas|Tic-tac-toe
+math/fact.bas|Factorial (recursion)
+math/graph.bas|Graph plotting
+math/graph2.bas|More graph plotting
+math/math.bas|Math samples
+math/parabola.bas|Parabola plot
+math/recursive.bas|Recursion demo
+math/rosetta.bas|Rosetta Code style task
+math/rosettatxt.bas|Rosetta text task
+multisource/main.bas|Multi-source program with main() entry point
+native/native_dll_function.bas|Call a function exported by a DLL
+native/native_open_file_dialog.bas|Native Win32 file-open dialog

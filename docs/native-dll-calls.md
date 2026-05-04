@@ -145,8 +145,9 @@ Print NativePeekStr$(p, 0, 32)
 NativeFree p
 ```
 
-For a complete Win32 common dialog example, see
-`examples/native_open_file_dialog.bas`.
+For runnable examples, see `examples/native/native_dll_function.bas` for a
+small DLL function call and `examples/native/native_open_file_dialog.bas` for a
+complete Win32 common dialog.
 
 ## Build prerequisites
 
