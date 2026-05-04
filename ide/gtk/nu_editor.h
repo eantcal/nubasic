@@ -395,7 +395,7 @@ public:
 
     void get_text_range(int start, int end, char* text) const noexcept
     {
-        Sci_TextRange tr = { 0 };
+        Sci_TextRange tr = {};
 
         tr.chrg.cpMin = start;
         tr.chrg.cpMax = end;

@@ -31,7 +31,7 @@ public:
         return GTK_WIDGET(_dialog_font);
     }
 
-    dialog_font_t(const window_t& parent, const char* font, const int size,
+    dialog_font_t(const window_t& /*parent*/, const char* font, const int size,
         const char* title = "Select Font")
     {
         _dialog_font
@@ -86,7 +86,7 @@ public:
 
     const char* font() const noexcept { return _font.c_str(); }
 
-    const int font_size() const noexcept { return _font_size; }
+    int font_size() const noexcept { return _font_size; }
 
     virtual ~dialog_font_t() { gtk_widget_destroy(GTK_WIDGET(_dialog_font)); }
 
