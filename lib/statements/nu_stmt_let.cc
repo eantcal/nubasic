@@ -101,7 +101,11 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
 
     variable_t::type_t vart = var->get_type();
 
-    if (var->is_class_type()) {
+    // Scalar class assignment: "Dim x As Foo : x = New Foo()".
+    // Indexed class-array assignment ("a(i) = New Foo()") is handled in the
+    // vector branch below; do not eagerly replace the whole array here.
+    if (var->is_class_type() && !var->is_vector() && _vect_idx == nullptr
+        && _element_vect_idx == nullptr) {
         rt_error_code_t::get_instance().throw_if(!val.is_class_type(),
             ctx.runtime_pc.get_line(),
             rt_error_code_t::value_t::E_TYPE_MISMATCH, "'" + _variable + "'");
@@ -158,13 +162,31 @@ void stmt_let_t::run(rt_prog_ctx_t& ctx)
                 "'" + _variable + "(" + nu::to_string(idx) + ")'");
 
             if (val.is_struct()) {
-                rt_error_code_t::get_instance().throw_if(
-                    var->struct_type_name() != val.struct_type_name(),
-                    ctx.runtime_pc.get_line(),
-                    rt_error_code_t::value_t::E_TYPE_MISMATCH,
-                    "'" + _variable + "(" + nu::to_string(idx) + ")'");
+                if (var->is_class_type() && val.is_class_type()) {
+                    // Array-of-class assignment: allow base/derived
+                    // compatibility, mirroring the scalar branch above.
+                    const std::string target_type
+                        = var->declared_class_type().empty()
+                        ? var->struct_type_name()
+                        : var->declared_class_type();
 
-                var->set_struct_value(val, idx);
+                    rt_error_code_t::get_instance().throw_if(
+                        !ctx.is_class_assignable(
+                            target_type, val.struct_type_name()),
+                        ctx.runtime_pc.get_line(),
+                        rt_error_code_t::value_t::E_TYPE_MISMATCH,
+                        "'" + _variable + "(" + nu::to_string(idx) + ")'");
+
+                    var->set_class_slot(val, idx);
+                } else {
+                    rt_error_code_t::get_instance().throw_if(
+                        var->struct_type_name() != val.struct_type_name(),
+                        ctx.runtime_pc.get_line(),
+                        rt_error_code_t::value_t::E_TYPE_MISMATCH,
+                        "'" + _variable + "(" + nu::to_string(idx) + ")'");
+
+                    var->set_struct_value(val, idx);
+                }
             } else {
                 _assign<size_t>(ctx, *var, val, vart, idx);
             }

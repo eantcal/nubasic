@@ -130,10 +130,11 @@ public:
     explicit variant_t(const std::string& name, const struct_data_t& value,
         const size_t vect_size = 0)
         : _type(type_t::STRUCT)
+        , _vect_size(vect_size)
+        , _vector_type(vect_size > 0)
         , _struct_data_type_name(name)
     {
         _struct_data.resize(1 > vect_size ? 1 : vect_size);
-        _vector_type = vect_size > 0;
 
         _struct_data[0] = value;
     }
@@ -141,12 +142,13 @@ public:
     explicit variant_t(
         const struct_variant_t& value, const size_t vect_size = 0)
         : _type(type_t::STRUCT)
+        , _vect_size(vect_size)
+        , _vector_type(vect_size > 0)
         , _struct_data_type_name(value.get())
         , _declared_class_type(value.is_class_type() ? value.get() : "")
         , _class_type(value.is_class_type())
     {
         _struct_data.resize(1 > vect_size ? 1 : vect_size);
-        _vector_type = vect_size > 0;
     }
 
     static variant_t make_object_instance(
@@ -295,6 +297,25 @@ public:
             0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
         _struct_data[vector_idx] = v._struct_data[0];
+    }
+
+    // Assign one slot of a class-instance array to a class instance.
+    // Caller must validate base/derived compatibility via
+    // prog_ctx_t::is_class_assignable; this method does not check type names
+    // because polymorphism allows the source to be a derived class.
+    void set_class_slot(const variant_t& v, const size_t vector_idx)
+    {
+        rt_error_code_t::get_instance().throw_if(!is_class_type()
+                || !v.is_class_type() || vector_idx >= _struct_data.size()
+                || v._struct_data.size() != 1,
+            0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
+
+        _struct_data[vector_idx] = v._struct_data[0];
+        if (_object_ids.size() <= vector_idx)
+            _object_ids.resize(vector_idx + 1);
+        _object_ids[vector_idx] = v._object_ids.empty()
+            ? std::shared_ptr<size_t>()
+            : v._object_ids[0];
     }
 
     const std::string& struct_type_name() const noexcept
