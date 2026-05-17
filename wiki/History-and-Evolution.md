@@ -187,6 +187,27 @@ statements), `nu_parser_flow.cc` (control-flow statements), and `nu_parser_struc
 - CLI: arguments following `-e filename` are now passed to the script as `argv` entries and
   no longer corrupted into the filename string.
 
+### Debugger, Native Calls, and Runtime Optimisation (May 2026, v2.0)
+
+The 2.0 cycle also modernised the execution and tooling layers:
+
+- **Debugger stepping model** — the interpreter core now exposes reusable Continue, Step Into,
+  Step Over, Step Out, Pause/Break, and Run to Cursor commands. The same model is used by the
+  native IDE, the debug CLI, and the VS Code debug adapter.
+- **Graphics-aware VS Code debugging** — graphical programs can be debugged with drawing routed
+  to a separate GDI window while debugger protocol messages and textual diagnostics remain in
+  the VS Code session.
+- **Native library calls** — `Declare Function ... Lib ...` can call exported functions from
+  Windows DLLs, Linux shared objects, and macOS dylibs through libffi. Native calls are enabled
+  by default for trusted local hosts and can be disabled with `--disable-native-calls`.
+- **Line continuation** — `_` joins the following physical source line into the same logical
+  BASIC statement before parsing.
+- **Runtime value optimisation** — `variant_t` now stores scalar values inline, boxes
+  struct/object metadata, uses copy-on-write for struct payload copies, and preserves struct
+  field declaration order for native interop and predictable introspection.
+- **Hex literal compatibility** — the original BASIC `&hFF` / `&HFF` syntax remains supported,
+  and `0xFF` / `0XFF` is accepted as a convenience for C-style constants.
+
 ---
 
 ## Struct-returning Functions, Screen Mode, Regression Tests (April 2026, v1.62)

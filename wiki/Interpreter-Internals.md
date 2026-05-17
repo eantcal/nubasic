@@ -221,10 +221,13 @@ to a `variant_t`; every variable stores one.
 | `OBJECT` | Object handle (for GUI/external objects) |
 | `ANY` | Wildcard (used in procedure signatures) |
 
-Internally, scalar values are stored in a
-`std::vector<std::variant<string_t, integer_t, double_t>>`. The vector has size 1 for
-scalars and size *n* for array variables. Structure instances carry field data in a separate
-`std::vector<struct_data_t>`.
+Internally, scalar integers, doubles, booleans, and strings use inline storage, so the hot
+paths for arithmetic, comparisons, and short strings avoid the old one-element vector
+allocation. Array variables still use the vector payload path for indexed storage. Structure
+and object metadata is boxed behind a payload pointer, and struct payload copies use
+copy-on-write so pass-by-value is cheap until a copy is mutated. Struct field storage preserves
+declaration order, which is important for native interop layouts and predictable
+introspection.
 
 ---
 

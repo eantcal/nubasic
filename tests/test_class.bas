@@ -1,5 +1,5 @@
 ' test_class.bas
-' Tests for VB-style class support (Phase 1: encapsulation and information hiding)
+' Tests for VB-style class support (encapsulation and information hiding)
 '
 ' Tests:
 '   1. Class definition and public field access

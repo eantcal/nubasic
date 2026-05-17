@@ -146,12 +146,10 @@ public:
 
     // Ordered field map.
     //
-    // Pre-Phase 6 this was std::map<string, handle>: alphabetical by name,
-    // which breaks the moment the FFI marshaller needs fields in their
-    // declaration order (e.g. WIN32_FIND_DATA, where alphabetical != ABI
-    // layout). Replaced with a small wrapper around vector<pair<>> that
-    // preserves insertion order; lookup degrades from O(log N) to O(N)
-    // but N is tiny in practice (typical struct = 2-20 fields).
+    // Ordered field storage preserves declaration order. This matters for
+    // FFI marshalling, where C struct layout follows declaration order
+    // (e.g. WIN32_FIND_DATA) rather than alphabetical field names.
+    // Lookup is O(N), but N is tiny in practice (typical struct = 2-20 fields).
     //
     // Public surface mirrors the std::map subset actually used by callers:
     //   - default construction, copy/move
@@ -435,7 +433,7 @@ public:
                 || v._struct->struct_data.size() != 1,
             0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
-        // Phase 4: detach if shared before mutating.
+        // Detach if the payload is shared before mutating.
         _struct_mut().struct_data[vector_idx] = v._struct->struct_data[0];
     }
 
@@ -622,9 +620,8 @@ public:
         _data.clear();
     }
     // Indexed setters always operate on the vector backing store. If the
-    // variant was previously holding an inline scalar (Phase 1a), we must
-    // demote it to the vector path before writing, otherwise _data would
-    // be initialised with a default value instead of the inline one.
+    // variant was previously holding an inline scalar, demote it before
+    // writing so _data starts from the current scalar value.
     void set_str(const string_t& value, const size_t idx)
     {
         _demote_inline();
@@ -680,16 +677,16 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const variant_t& val);
 
 protected:
-    // Phase 1c: struct/object metadata is boxed so that scalar variants
-    // (the 99% case at runtime) do not pay its ~80 B of inline footprint.
+    // Struct/object metadata is boxed so that scalar variants do not pay
+    // its inline footprint.
     // _struct is nullptr for non-STRUCT variants.
     //
-    // Phase 4: the payload is now ref-counted (shared_ptr) with
-    // copy-on-write. A plain pass-by-value of a STRUCT variant is now an
+    // The payload is ref-counted (shared_ptr) with copy-on-write.
+    // A plain pass-by-value of a STRUCT variant is an
     // O(1) refcount bump; the deep clone happens lazily when a mutating
     // operation finds use_count() > 1. Object-reference (class) variants
-    // intentionally keep aliasing as the observable semantics; Phase 4
-    // never detaches them.
+    // intentionally keep aliasing as the observable semantics and never
+    // detach.
     struct StructPayload {
         std::vector<struct_data_t> struct_data;
         std::string type_name;
@@ -755,7 +752,7 @@ protected:
 
     mutable std::vector<std::variant<string_t, integer_t, double_t>> _data;
 
-    // Inline scalar storage (Phase 1a + 1b).
+    // Inline scalar storage.
     // For non-vector INTEGER / DOUBLE / BOOLEAN / STRING scalars we keep
     // the value inline instead of materialising a single-element
     // std::vector. This eliminates the per-scalar heap allocation visible

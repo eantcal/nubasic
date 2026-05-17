@@ -621,8 +621,9 @@ result = a bShl 2    ' shift left 2 positions  (multiply by 4)
 result = a bShr 2    ' shift right 2 positions (divide by 4)
 ```
 
-Hexadecimal literals are written with the `&h` prefix and are particularly useful for colors
-and bitmasks:
+Hexadecimal literals are normally written with the BASIC `&h` / `&H` prefix and are
+particularly useful for colors and bitmasks. nuBASIC also accepts `0x` / `0X` as a
+convenience when copying constants from C headers or platform documentation:
 
 ```basic
 mask%   = &hFF000000   ' top byte only
@@ -631,6 +632,7 @@ green%  = &h00FF00
 blue%   = &hFF0000
 white%  = &hFFFFFF
 black%  = &h000000
+same%   = 0xFFFFFF    ' accepted synonym for &hFFFFFF
 ```
 
 ### 4.3 Control Flow
@@ -2750,8 +2752,10 @@ when the document has unsaved changes.
 | Stop | Debug → Stop Debugging | `Esc` |
 | Breakpoint | Debug → Toggle Breakpoint | `F9` |
 | Build | Debug → Build Program | `Ctrl+B` |
-| Evaluate | Debug → Evaluate Selection | `F11` |
-| Step | Debug → Step | `F10` |
+| Evaluate | Debug → Evaluate Selection | — |
+| Step Into | Debug → Step Into | `F11` |
+| Step Over | Debug → Step Over | `F10` |
+| Step Out | Debug → Step Out | `Shift+F11` |
 | Cont | Debug → Continue Debugging | `F8` |
 | Find | Search → Find… | `Ctrl+F` |
 | Con Top | Debug → Console Window Topmost | — |
@@ -3412,11 +3416,13 @@ The supported types are identified by the `variant_t::type_t` enumeration:
 | `OBJECT` | Object handle (for GUI/external objects) |
 | `ANY` | Wildcard (used in procedure signatures) |
 
-Internally, scalar values are stored in a
-`std::vector<std::variant<string_t, integer_t, double_t>>`. The vector has size 1 for
-scalars and size *n* for array variables (nuBASIC arrays are implemented as `variant_t` with
-`_vect_size > 1`). Structure instances carry their field data in a separate
-`std::vector<struct_data_t>`.
+Internally, scalar integers, doubles, booleans, and strings use inline storage so ordinary
+arithmetic, comparisons, and short string values do not allocate a one-element backing vector.
+Array variables still use the vector payload path, because they need indexed storage.
+Structure and object metadata is boxed behind a payload pointer, keeping non-struct values
+small and cache-friendly. Struct payload copies are copy-on-write: passing or assigning a
+struct value is cheap until one copy is mutated. Struct field storage also preserves
+declaration order, which matters for native interop and predictable runtime introspection.
 
 Using `variant_t` rather than a C-style `union` or a class hierarchy for each type
 dramatically simplifies the evaluator: every arithmetic operation, comparison, string

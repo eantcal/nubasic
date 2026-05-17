@@ -632,8 +632,9 @@ result = a bShl 2    ' scorrimento a sinistra di 2 posizioni  (moltiplica per 4)
 result = a bShr 2    ' scorrimento a destra di 2 posizioni (divide per 4)
 ```
 
-I letterali esadecimali si scrivono con il prefisso `&h` e sono particolarmente utili per i
-colori e le maschere di bit:
+I letterali esadecimali si scrivono normalmente con il prefisso BASIC `&h` / `&H` e sono
+particolarmente utili per i colori e le maschere di bit. nuBASIC accetta anche `0x` / `0X`
+quando si copiano costanti da header C o documentazione di piattaforma:
 
 ```basic
 mask%   = &hFF000000   ' solo il byte superiore
@@ -642,6 +643,7 @@ green%  = &h00FF00
 blue%   = &hFF0000
 white%  = &hFFFFFF
 black%  = &h000000
+same%   = 0xFFFFFF    ' sinonimo accettato di &hFFFFFF
 ```
 
 ### 4.3 Controllo del flusso
@@ -2705,8 +2707,10 @@ quando il documento ha modifiche non salvate.
 | Interrompi | Debug → Arresta debug | `Esc` |
 | Breakpoint | Debug → Attiva/disattiva breakpoint | `F9` |
 | Compila | Debug → Compila programma | `Ctrl+B` |
-| Valuta | Debug → Valuta selezione | `F11` |
-| Passo | Debug → Passo | `F10` |
+| Valuta | Debug → Valuta selezione | — |
+| Step Into | Debug → Step Into | `F11` |
+| Step Over | Debug → Step Over | `F10` |
+| Step Out | Debug → Step Out | `Shift+F11` |
 | Cont | Debug → Continua debug | `F8` |
 | Trova | Cerca → Trova… | `Ctrl+F` |
 | Con Top | Debug → Console in primo piano | — |
@@ -3373,11 +3377,14 @@ I tipi supportati sono identificati dall'enumerazione `variant_t::type_t`:
 | `OBJECT` | Handle di oggetto (per oggetti GUI/esterni) |
 | `ANY` | Jolly (usato nelle firme delle procedure) |
 
-Internamente, i valori scalari sono memorizzati in un
-`std::vector<std::variant<string_t, integer_t, double_t>>`. Il vettore ha dimensione 1 per i
-valori scalari e dimensione *n* per le variabili array (gli array di nuBASIC sono implementati
-come `variant_t` con `_vect_size > 1`). Le istanze di struttura portano i dati dei loro campi
-in un `std::vector<struct_data_t>` separato.
+Internamente, interi, double, booleani e stringhe scalari usano storage inline, quindi le
+operazioni aritmetiche comuni, i confronti e le stringhe brevi non allocano piu' un vettore
+di appoggio con un solo elemento. Le variabili array continuano a usare il payload vettoriale,
+perche' richiedono storage indicizzato. I metadati di strutture e oggetti sono contenuti in un
+payload separato, mantenendo piu' leggeri i valori non-struct. Le copie dei payload struct
+usano copy-on-write: passare o assegnare una struct e' economico finche' una copia non viene
+modificata. L'ordine dei campi struct segue l'ordine di dichiarazione, cosa importante per
+l'interoperabilita' nativa e per un'introspezione runtime prevedibile.
 
 Usare `variant_t` anziché una `union` in stile C o una gerarchia di classi per ciascun tipo
 semplifica enormemente il valutatore: ogni operazione aritmetica, confronto, funzione su

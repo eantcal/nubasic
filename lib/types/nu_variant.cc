@@ -81,8 +81,6 @@ const char* variant_t::get_type_desc(const type_t& type) noexcept
 // Compound assignment with in-place mutation for the common scalar paths.
 // The fallback to *this = *this <op> b covers the type promotions that
 // require a fresh variant_t (e.g. int += double promoting to double).
-// Pre-Phase 2 these were all read-modify-write; the per-op time on scalar
-// inline storage dropped meaningfully once these specialisations landed.
 
 variant_t& variant_t::operator+=(const variant_t& b)
 {
@@ -710,7 +708,7 @@ variant_t::variant_t(variant_t&& v)
 
 
 variant_t::variant_t(const variant_t& v)
-    : _struct(v._struct) // Phase 4 COW: O(1) refcount bump, detach lazily
+    : _struct(v._struct) // COW: O(1) refcount bump, detach lazily
     , _type(v._type)
     , _vect_size(v._vect_size)
     , _vector_type(v._vector_type)
@@ -752,7 +750,7 @@ variant_t& variant_t::operator=(const variant_t& v)
 {
     if (this != &v) {
         _data = v._data;
-        _struct = v._struct; // Phase 4 COW: O(1) refcount bump
+        _struct = v._struct; // COW: O(1) refcount bump
 
         _vector_type = v._vector_type;
         _vect_size = v._vect_size;
@@ -865,10 +863,10 @@ variant_t::handle_t variant_t::struct_member(
     rt_error_code_t::get_instance().throw_if(is_nothing(vector_idx), 0,
         rt_error_code_t::value_t::E_NULL_REFERENCE, _struct->type_name);
 
-    // Phase 4: the returned handle is a writable alias into the payload.
-    // For value-struct variants this would leak mutations across COW
-    // copies, so detach here. For object references aliasing is the
-    // intended semantics; _struct_mut() skips the detach by design.
+    // The returned handle is a writable alias into the payload. For
+    // value-struct variants this would leak mutations across COW copies,
+    // so detach here. For object references aliasing is the intended
+    // semantics; _struct_mut() skips the detach by design.
     auto& s = _struct_mut();
 
     const auto it = s.struct_data[vector_idx].find(field_name);

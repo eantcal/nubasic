@@ -113,12 +113,14 @@ result = a bShl 2    ' shift left 2 positions
 result = a bShr 2    ' shift right 2 positions
 ```
 
-Hexadecimal literals use the `&h` prefix:
+Hexadecimal literals use the BASIC `&h` / `&H` prefix. `0x` / `0X` is also accepted as a
+convenience for C-style constants:
 
 ```basic
 mask%   = &hFF000000
 red%    = &h0000FF
 white%  = &hFFFFFF
+same%   = 0xFFFFFF
 ```
 
 ---

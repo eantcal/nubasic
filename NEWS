@@ -96,6 +96,13 @@ The Win32/64 build created with Visual Studio 2022 requires the
 - Added line continuation with `_`: a physical source line ending in `_` is
   joined with the following line before parsing. Debuggers treat the joined
   sequence as one BASIC statement and stop on the first physical line.
+- Added optional C-style hexadecimal literals (`0xFF`, `0XFF`) while
+  preserving the original BASIC `&hFF` / `&HFF` syntax.
+- Optimized the central `variant_t` runtime value representation: scalar
+  integers, doubles, booleans, and strings now avoid the one-element vector
+  allocation path; struct/object metadata is boxed; struct payload copies use
+  copy-on-write; and struct field storage preserves declaration order for FFI
+  and runtime introspection.
 - Added `examples/native_open_file_dialog.bas`, demonstrating a Win32
   `GetOpenFileNameA` call using `Declare Function`, native buffers, and a
   manually laid-out `OPENFILENAMEA` structure.

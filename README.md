@@ -68,6 +68,8 @@ The classic, structured and OOP styles are not separate dialects: a single sourc
 - **Mouse and keyboard input** — `GetMouse()` returns a `Mouse` struct (`x`, `y`, `btn`) in one call
 - **Date/time** — `GetDateTime()` returns a `DateTime` struct with all fields in one call
 - **UTF-8** string literals and console output
+- **Hex literals** — classic BASIC `&hFF` / `&HFF` syntax, with optional `0xFF` / `0XFF` accepted for imported C-style constants
+- **Optimized runtime values** — scalar `variant_t` values are stored inline, struct/object metadata is boxed, and struct payload copies use copy-on-write
 - **Built-in help** — `Help <keyword>` and `Apropos <topic>` accessible from the REPL
 - **Native library calls** — `Declare Function name Lib "kernel32.dll" \| "libc.so.6" \| "libSystem.B.dylib" (...) As Type` plus runtime memory helpers (`NativeAlloc`, `NativePoke*`, `NativePeekStr$`); libffi-backed, opt-out via `--disable-native-calls`
 - **Native IDE** for Windows and Linux (GTK+2) with Scintilla-based syntax highlighting, auto-completion, code folding, bookmarks; integrated debugger with breakpoints, Step Into / Step Over / Step Out / Run to Cursor / Pause-Break, watch and call stack
@@ -80,6 +82,7 @@ The classic, structured and OOP styles are not separate dialects: a single sourc
 
 - **[Wiki](https://github.com/eantcal/nubasic/wiki)** — full language reference, graphics API, IDE guide, interpreter internals, and build instructions
 - **[User Guide](https://github.com/eantcal/nubasic/blob/master/docs/nubasic-guide.md)** — complete guide in a single document (v2.0)
+- **[Making nuBASIC 2.0](https://github.com/eantcal/nubasic/blob/master/docs/making-nubasic-2.0.md)** — developer-oriented internals note about debugger, runtime values, native calls, and performance work ([Italiano](https://github.com/eantcal/nubasic/blob/master/docs/making-nubasic-2.0-it.md))
 - **[Examples](https://github.com/eantcal/nubasic/tree/master/examples)** — ready-to-run `.bas` programs covering games, graphics, fractals, animations, and more
 
 ## Quick Start

@@ -1,5 +1,5 @@
 ' test_inheritance.bas
-' Tests for VB-style single inheritance (Phase 2)
+' Tests for VB-style single inheritance
 '
 ' Tests:
 '   1. Derived class inherits public field from base
