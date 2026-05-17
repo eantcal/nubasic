@@ -7,6 +7,7 @@
 '   5. Const declarations
 '   6. Type coercion: Val / Str$ / Int
 '   7. Mixed-type expressions
+'   8. Hexadecimal integer literals
 '
 ' Notes on nuBASIC boolean semantics:
 '   - Comparison operators (>, <, =, <>, >=, <=) return  1 (true) or 0 (false)
@@ -148,6 +149,18 @@ AssertFuzzy3 "int * double = 4.5", n% * x, 4.5
 ' Note: comparing Integer variable to Double literal returns "true"/"false" string,
 '       not 0/1 — use same-type comparisons for reliable results.
 AssertFuzzy3 "3 + 1.5 = 4.5", n% + 1.5, 4.5
+
+' -----------------------------------------------------------------------
+' 8. Hexadecimal integer literals
+' -----------------------------------------------------------------------
+Print "--- 8. Hex literals ---"
+
+AssertEq "&hff",        Str$(&hff),        "255"
+AssertEq "&H10",        Str$(&H10),        "16"
+AssertEq "&h in expr",  Str$(&h10 + 1),    "17"
+AssertEq "0xff",        Str$(0xff),        "255"
+AssertEq "0X10",        Str$(0X10),        "16"
+AssertEq "0x in expr",  Str$(0x10 + 1),    "17"
 
 GoTo EndHelpers
 

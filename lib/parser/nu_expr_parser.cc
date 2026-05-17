@@ -20,12 +20,46 @@
 #include "nu_expr_var.h"
 #include "nu_variant.h"
 
+#include <cctype>
 #include <cstring>
 
 
 /* -------------------------------------------------------------------------- */
 
 namespace nu {
+
+
+/* -------------------------------------------------------------------------- */
+
+namespace {
+
+bool is_hex_literal(const std::string& id)
+{
+    if (id.size() <= 2)
+        return false;
+
+    const bool basic_hex = id[0] == '&'
+        && std::toupper(static_cast<unsigned char>(id[1])) == 'H';
+    const bool c_hex = id[0] == '0'
+        && std::toupper(static_cast<unsigned char>(id[1])) == 'X';
+
+    if (!basic_hex && !c_hex)
+        return false;
+
+    for (size_t i = 2; i < id.size(); ++i) {
+        if (!std::isxdigit(static_cast<unsigned char>(id[i])))
+            return false;
+    }
+
+    return true;
+}
+
+integer_t parse_hex_literal(const std::string& id)
+{
+    return static_cast<integer_t>(std::stoull(id.substr(2), nullptr, 16));
+}
+
+} // namespace
 
 
 /* -------------------------------------------------------------------------- */
@@ -288,17 +322,14 @@ expr_any_t::handle_t expr_parser_t::parse_operand(token_list_t& tl)
                     = expr_any_t::handle_t(std::make_shared<expr_literal_t>(
                         variant_t::make_nothing()));
             }
-            // 0xnnnnnn  (hexadecimal value)
-            else if (id.size() > 2 && id.c_str()[0] == '&'
-                && toupper(id.c_str()[1]) == 'H') {
+            // &Hnnnnnn is the traditional BASIC hexadecimal literal syntax.
+            // 0xnnnnnn is also accepted as a practical extension.
+            else if (is_hex_literal(id)) {
                 tl.data().erase(tl.begin());
 
-                std::string hex = id.substr(2, id.size() - 2);
-                int n = 0;
-                sscanf(hex.c_str(), "%x", &n);
-
                 ret_handle = expr_any_t::handle_t(
-                    std::make_shared<expr_literal_t>(integer_t(variant_t(n))));
+                    std::make_shared<expr_literal_t>(
+                        variant_t(parse_hex_literal(id))));
             } else {
                 std::string id = t.identifier();
 

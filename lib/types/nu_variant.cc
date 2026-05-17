@@ -9,10 +9,10 @@
 /* -------------------------------------------------------------------------- */
 
 #include "nu_variant.h"
-#include "nu_basic_defs.h"
 #include "nu_error_codes.h"
 #include "nu_exception.h"
 #include "nu_os_std.h"
+#include "nu_basic_defs.h"
 
 #include <algorithm>
 #include <cassert>
@@ -78,8 +78,31 @@ const char* variant_t::get_type_desc(const type_t& type) noexcept
 
 /* -------------------------------------------------------------------------- */
 
+// Compound assignment with in-place mutation for the common scalar paths.
+// The fallback to *this = *this <op> b covers the type promotions that
+// require a fresh variant_t (e.g. int += double promoting to double).
+// Pre-Phase 2 these were all read-modify-write; the per-op time on scalar
+// inline storage dropped meaningfully once these specialisations landed.
+
 variant_t& variant_t::operator+=(const variant_t& b)
 {
+    if (_has_inline && _type == type_t::INTEGER && b.is_integral()) {
+        _inline_int += b.to_int();
+        return *this;
+    }
+    if (_has_inline && _type == type_t::DOUBLE && b.is_number()) {
+        _inline_double += b.to_double();
+        return *this;
+    }
+    if (_has_inline && _type == type_t::STRING && b.is_string()) {
+        _inline_string += b._at<string_t>(0);
+        return *this;
+    }
+    if (_type == type_t::STRING && b.is_string() && !is_vector()
+        && !_data.empty() && std::holds_alternative<string_t>(_data[0])) {
+        std::get<string_t>(_data[0]) += b._at<string_t>(0);
+        return *this;
+    }
     *this = *this + b;
     return *this;
 }
@@ -89,7 +112,59 @@ variant_t& variant_t::operator+=(const variant_t& b)
 
 variant_t& variant_t::operator-=(const variant_t& b)
 {
+    if (_has_inline && _type == type_t::INTEGER && b.is_integral()) {
+        _inline_int -= b.to_int();
+        return *this;
+    }
+    if (_has_inline && _type == type_t::DOUBLE && b.is_number()) {
+        _inline_double -= b.to_double();
+        return *this;
+    }
     *this = *this - b;
+    return *this;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+variant_t& variant_t::operator*=(const variant_t& b)
+{
+    if (_has_inline && _type == type_t::INTEGER && b.is_integral()) {
+        _inline_int *= b.to_int();
+        return *this;
+    }
+    if (_has_inline && _type == type_t::DOUBLE && b.is_number()) {
+        _inline_double *= b.to_double();
+        return *this;
+    }
+    *this = *this * b;
+    return *this;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+variant_t& variant_t::operator/=(const variant_t& b)
+{
+    // Division by zero must throw consistently with operator/. Defer to
+    // the fallback when we can't statically rule it out, which is the
+    // safer path on integer / when b can be zero; operator/ already
+    // raises E_DIV_BY_ZERO.
+    if (_has_inline && _type == type_t::DOUBLE && b.is_number()) {
+        const double_t rhs = b.to_double();
+        rt_error_code_t::get_instance().throw_if(
+            rhs == 0.0, 0, rt_error_code_t::value_t::E_DIV_BY_ZERO, "");
+        _inline_double /= rhs;
+        return *this;
+    }
+    if (_has_inline && _type == type_t::INTEGER && b.is_integral()) {
+        const integer_t rhs = b.to_int();
+        rt_error_code_t::get_instance().throw_if(
+            rhs == 0, 0, rt_error_code_t::value_t::E_DIV_BY_ZERO, "");
+        _inline_int /= rhs;
+        return *this;
+    }
+    *this = *this / b;
     return *this;
 }
 
@@ -124,12 +199,18 @@ variant_t variant_t::increment()
 
     switch (get_type()) {
     case variant_t::type_t::DOUBLE: {
-        _data[0] = std::get<double_t>(_data[0]) + 1.;
+        if (_has_inline)
+            _inline_double += 1.;
+        else
+            _data[0] = std::get<double_t>(_data[0]) + 1.;
         return *this;
     }
 
     case variant_t::type_t::INTEGER: {
-        _data[0] = std::get<integer_t>(_data[0]) + integer_t(1);
+        if (_has_inline)
+            _inline_int += integer_t(1);
+        else
+            _data[0] = std::get<integer_t>(_data[0]) + integer_t(1);
         return *this;
     }
 
@@ -159,12 +240,18 @@ variant_t variant_t::decrement()
 
     switch (get_type()) {
     case variant_t::type_t::DOUBLE: {
-        _data[0] = std::get<double_t>(_data[0]) - 1.;
+        if (_has_inline)
+            _inline_double -= 1.;
+        else
+            _data[0] = std::get<double_t>(_data[0]) - 1.;
         return *this;
     }
 
     case variant_t::type_t::INTEGER: {
-        _data[0] = std::get<integer_t>(_data[0]) - integer_t(1);
+        if (_has_inline)
+            _inline_int -= integer_t(1);
+        else
+            _data[0] = std::get<integer_t>(_data[0]) - integer_t(1);
         return *this;
     }
 
@@ -492,12 +579,12 @@ std::ostream& operator<<(std::ostream& os, const variant_t& val)
                 break;
 
             case variant_t::type_t::STRUCT: {
-                os << " " << val._struct_data_type_name << "\n";
+                os << " " << val.struct_type_name() << "\n";
 
                 os << "\t\t{\n";
 
-                if (val._struct_data.size() > vidx)
-                    for (const auto& e : val._struct_data[vidx]) {
+                if (val._struct && val._struct->struct_data.size() > vidx)
+                    for (const auto& e : val._struct->struct_data[vidx]) {
                         os << "\t\t  " << e.first << " : ";
                         if (e.second)
                             os << *e.second << "\n";
@@ -608,40 +695,31 @@ bool variant_t::is_real(const std::string& value)
 /* -------------------------------------------------------------------------- */
 
 variant_t::variant_t(variant_t&& v)
-    : _type(std::move(v._type))
+    : _struct(std::move(v._struct))
+    , _type(std::move(v._type))
     , _vect_size(std::move(v._vect_size))
     , _vector_type(std::move(v._vector_type))
     , _data(std::move(v._data))
-    , _struct_data(std::move(v._struct_data))
-    , _struct_data_type_name(std::move(v._struct_data_type_name))
-    , _declared_class_type(std::move(v._declared_class_type))
-    , _class_type(std::move(v._class_type))
-    , _object_ids(std::move(v._object_ids))
+    , _has_inline(v._has_inline)
+    , _inline_int(v._inline_int)
+    , _inline_double(v._inline_double)
+    , _inline_string(std::move(v._inline_string))
 {
+    v._has_inline = false;
 }
 
 
 variant_t::variant_t(const variant_t& v)
-    : _type(v._type)
+    : _struct(v._struct) // Phase 4 COW: O(1) refcount bump, detach lazily
+    , _type(v._type)
     , _vect_size(v._vect_size)
     , _vector_type(v._vector_type)
     , _data(v._data)
-    , _struct_data_type_name(v._struct_data_type_name)
-    , _declared_class_type(v._declared_class_type)
-    , _class_type(v._class_type)
-    , _object_ids(v._object_ids)
+    , _has_inline(v._has_inline)
+    , _inline_int(v._inline_int)
+    , _inline_double(v._inline_double)
+    , _inline_string(v._inline_string)
 {
-    if (v.is_object_reference()) {
-        _struct_data = v._struct_data;
-    } else {
-        if (_struct_data.size() != v._struct_data.size()) {
-            _struct_data.resize(v._struct_data.size());
-        }
-
-        for (size_t i = 0; i < v._struct_data.size(); ++i) {
-            copy_struct_data(_struct_data[i], v._struct_data[i]);
-        }
-    }
 }
 
 
@@ -651,15 +729,17 @@ variant_t& variant_t::operator=(variant_t&& v)
 {
     if (this != &v) {
         _data = std::move(v._data);
-        _struct_data = std::move(v._struct_data);
-        _struct_data_type_name = std::move(v._struct_data_type_name);
-        _declared_class_type = std::move(v._declared_class_type);
-        _class_type = std::move(v._class_type);
-        _object_ids = std::move(v._object_ids);
+        _struct = std::move(v._struct);
 
         _vector_type = std::move(v._vector_type);
         _vect_size = std::move(v._vect_size);
         _type = std::move(v._type);
+
+        _has_inline = v._has_inline;
+        _inline_int = v._inline_int;
+        _inline_double = v._inline_double;
+        _inline_string = std::move(v._inline_string);
+        v._has_inline = false;
     }
 
     return *this;
@@ -672,25 +752,16 @@ variant_t& variant_t::operator=(const variant_t& v)
 {
     if (this != &v) {
         _data = v._data;
-        _class_type = v._class_type;
-        _object_ids = v._object_ids;
-
-        if (v.is_object_reference()) {
-            _struct_data = v._struct_data;
-        } else {
-            if (_struct_data.size() != v._struct_data.size())
-                _struct_data.resize(v._struct_data.size());
-
-            for (size_t i = 0; i < v._struct_data.size(); ++i)
-                copy_struct_data(_struct_data[i], v._struct_data[i]);
-        }
-
-        _struct_data_type_name = v._struct_data_type_name;
-        _declared_class_type = v._declared_class_type;
+        _struct = v._struct; // Phase 4 COW: O(1) refcount bump
 
         _vector_type = v._vector_type;
         _vect_size = v._vect_size;
         _type = v._type;
+
+        _has_inline = v._has_inline;
+        _inline_int = v._inline_int;
+        _inline_double = v._inline_double;
+        _inline_string = v._inline_string;
     }
 
     return *this;
@@ -703,25 +774,26 @@ variant_t variant_t::make_object_instance(
     const variant_t& prototype, const size_t vect_size)
 {
     rt_error_code_t::get_instance().throw_if(
-        prototype.get_type() != type_t::STRUCT || !prototype._class_type, 0,
-        rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
+        prototype.get_type() != type_t::STRUCT || !prototype._struct
+            || !prototype._struct->class_type,
+        0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
     variant_t value(
-        struct_variant_t(prototype._struct_data_type_name, true), vect_size);
-    value._declared_class_type = prototype._struct_data_type_name;
+        struct_variant_t(prototype._struct->type_name, true), vect_size);
+    auto& vs = *value._struct;
+    vs.declared_class_type = prototype._struct->type_name;
 
-    const size_t size
-        = value._struct_data.empty() ? 1 : value._struct_data.size();
-    value._struct_data.resize(size);
-    value._object_ids.resize(size);
+    const auto& ps_data = prototype._struct->struct_data;
+    const size_t size = vs.struct_data.empty() ? 1 : vs.struct_data.size();
+    vs.struct_data.resize(size);
+    vs.object_ids.resize(size);
 
     for (size_t i = 0; i < size; ++i) {
-        const auto& src = prototype._struct_data.empty()
+        const auto& src = ps_data.empty()
             ? variant_t::struct_data_t()
-            : prototype
-                  ._struct_data[std::min(i, prototype._struct_data.size() - 1)];
-        copy_struct_data(value._struct_data[i], src, true);
-        value._object_ids[i] = new_object_id();
+            : ps_data[std::min(i, ps_data.size() - 1)];
+        copy_struct_data(vs.struct_data[i], src, true);
+        vs.object_ids[i] = new_object_id();
     }
 
     return value;
@@ -734,11 +806,11 @@ variant_t variant_t::make_nothing(
     const std::string& type_name, const size_t vect_size)
 {
     variant_t value(struct_variant_t(type_name, true), vect_size);
-    value._declared_class_type = type_name;
-    const size_t size
-        = value._struct_data.empty() ? 1 : value._struct_data.size();
-    value._struct_data.resize(size);
-    value._object_ids.resize(size);
+    auto& vs = *value._struct;
+    vs.declared_class_type = type_name;
+    const size_t size = vs.struct_data.empty() ? 1 : vs.struct_data.size();
+    vs.struct_data.resize(size);
+    vs.object_ids.resize(size);
     return value;
 }
 
@@ -758,7 +830,7 @@ bool variant_t::same_object_reference(const variant_t& other) const noexcept
         return this_null && other_null;
     }
 
-    return _object_ids[0] == other._object_ids[0];
+    return _struct->object_ids[0] == other._struct->object_ids[0];
 }
 
 
@@ -772,11 +844,12 @@ void variant_t::define_struct_member(
 
     const auto hvalue = std::make_shared<variant_t>(value);
 
-    if (_struct_data.empty()) {
-        _struct_data.resize(1);
+    auto& s = _ensure_struct();
+    if (s.struct_data.empty()) {
+        s.struct_data.resize(1);
     }
 
-    _struct_data[0].insert(std::make_pair(field_name, hvalue));
+    s.struct_data[0].insert(std::make_pair(field_name, hvalue));
 }
 
 
@@ -785,17 +858,23 @@ void variant_t::define_struct_member(
 variant_t::handle_t variant_t::struct_member(
     const std::string& field_name, const size_t vector_idx)
 {
-    rt_error_code_t::get_instance().throw_if(
-        _type != type_t::STRUCT || vector_idx >= _struct_data.size(), 0,
-        rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
+    rt_error_code_t::get_instance().throw_if(_type != type_t::STRUCT || !_struct
+            || vector_idx >= _struct->struct_data.size(),
+        0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
     rt_error_code_t::get_instance().throw_if(is_nothing(vector_idx), 0,
-        rt_error_code_t::value_t::E_NULL_REFERENCE, _struct_data_type_name);
+        rt_error_code_t::value_t::E_NULL_REFERENCE, _struct->type_name);
 
-    const auto it = _struct_data[vector_idx].find(field_name);
+    // Phase 4: the returned handle is a writable alias into the payload.
+    // For value-struct variants this would leak mutations across COW
+    // copies, so detach here. For object references aliasing is the
+    // intended semantics; _struct_mut() skips the detach by design.
+    auto& s = _struct_mut();
+
+    const auto it = s.struct_data[vector_idx].find(field_name);
 
     rt_error_code_t::get_instance().throw_if(
-        it == _struct_data[vector_idx].end(), 0,
+        it == s.struct_data[vector_idx].end(), 0,
         rt_error_code_t::value_t::E_INV_IDENTIF, "");
 
     return it->second;
@@ -807,27 +886,29 @@ variant_t::handle_t variant_t::struct_member(
 void variant_t::_resize(const size_t size)
 {
     if (is_struct()) {
-        if (size != _struct_data.size()) {
-            _struct_data.resize(size);
+        auto& s = _ensure_struct();
+        if (size != s.struct_data.size()) {
+            s.struct_data.resize(size);
             if (is_object_reference())
-                _object_ids.resize(size);
+                s.object_ids.resize(size);
 
             if (size > 0) {
-                auto it = _struct_data.begin();
+                auto it = s.struct_data.begin();
                 auto prototype = *it;
-                auto object_id = is_object_reference() && !_object_ids.empty()
-                    ? _object_ids.front()
+                auto object_id = is_object_reference() && !s.object_ids.empty()
+                    ? s.object_ids.front()
                     : std::shared_ptr<size_t>();
                 ++it;
                 size_t idx = 1;
-                for (; it != _struct_data.end(); ++it, ++idx) {
+                for (; it != s.struct_data.end(); ++it, ++idx) {
                     copy_struct_data(*it, prototype);
-                    if (is_object_reference() && idx < _object_ids.size())
-                        _object_ids[idx] = object_id;
+                    if (is_object_reference() && idx < s.object_ids.size())
+                        s.object_ids[idx] = object_id;
                 }
             }
         }
     } else {
+        _demote_inline();
         _data.resize(size);
     }
 }
@@ -841,10 +922,10 @@ void variant_t::describe_type(std::stringstream& ss) const noexcept
         ss << "\t\tStruct " << struct_type_name() << "\n";
         ss << "\t\t{\n";
 
-        for (size_t i = 0; i < _struct_data.size(); ++i)
-            if (!_struct_data.empty())
-                for (auto& s : _struct_data[i]) {
-                    ss << "\t\t  " << s.first << " As ";
+        if (_struct)
+            for (size_t i = 0; i < _struct->struct_data.size(); ++i)
+                for (auto& s : _struct->struct_data[i]) {
+                    ss << "\t\t  " << s.first << " : ";
 
                     if (s.second)
                         s.second->describe_type(ss);
@@ -933,15 +1014,16 @@ variant_t variant_t::operator[](const size_t idx) const
     if (is_struct()) {
         if (is_object_reference()) {
             variant_t value(struct_variant_t(struct_type_name(), true));
-            value._declared_class_type = _declared_class_type;
-            value._struct_data[0] = _struct_data[idx];
-            value._object_ids.resize(1);
-            value._object_ids[0] = idx < _object_ids.size()
-                ? _object_ids[idx]
+            auto& vs = *value._struct;
+            vs.declared_class_type = _struct->declared_class_type;
+            vs.struct_data[0] = _struct->struct_data[idx];
+            vs.object_ids.resize(1);
+            vs.object_ids[0] = idx < _struct->object_ids.size()
+                ? _struct->object_ids[idx]
                 : std::shared_ptr<size_t>();
             return value;
         }
-        return variant_t(struct_type_name(), _struct_data[idx]);
+        return variant_t(struct_type_name(), _struct->struct_data[idx]);
     } else {
         if (is_number()) {
             return is_integral() ? variant_t(_at<integer_t>(idx))
@@ -968,7 +1050,7 @@ void variant_t::copy_struct_data(struct_data_t& dst, const struct_data_t& src,
     dst = src;
     for (auto& [key, value] : dst) {
         if (value) {
-            if (instantiate_class_prototypes && value->_class_type
+            if (instantiate_class_prototypes && value->is_class_type()
                 && !value->is_object_reference()) {
                 value = std::make_shared<variant_t>(
                     variant_t::make_object_instance(*value));

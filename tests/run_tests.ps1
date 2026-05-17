@@ -74,7 +74,7 @@ $Interpreter = (Resolve-Path -Path $Interpreter).Path
 # ── locate test directory ────────────────────────────────────────────────────
 if ($TestDir -eq "") { $TestDir = $ScriptDir }
 $TestDir = (Resolve-Path -Path $TestDir).Path
-$TestFiles = Get-ChildItem -Path $TestDir -Filter "test_*.bas" | Sort-Object Name
+$TestFiles = @(Get-ChildItem -Path $TestDir -Filter "test_*.bas" | Sort-Object Name)
 
 if ($TestFiles.Count -eq 0) {
     Write-Error "No test_*.bas files found in $TestDir"

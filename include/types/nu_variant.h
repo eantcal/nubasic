@@ -81,6 +81,25 @@ class variant_t {
 protected:
     void _resize(const size_t size);
 
+    // Materialise the inline scalar (if any) into _data[0] so that
+    // subsequent vector-mode operations see a consistent backing store.
+    // Cheap when there's no inline scalar (single bool check).
+    void _demote_inline()
+    {
+        if (!_has_inline)
+            return;
+        _has_inline = false;
+        if (_data.empty())
+            _data.resize(1);
+        if (_type == type_t::DOUBLE)
+            _data[0] = _inline_double;
+        else if (_type == type_t::STRING)
+            _data[0] = std::move(_inline_string);
+        else
+            _data[0] = _inline_int; // INTEGER / BOOLEAN
+        _inline_string.clear();
+    }
+
     template <class T, class DT = T>
     void _set(const T& value, std::vector<DT>& data, variable_t::type_t t)
     {
@@ -125,30 +144,95 @@ public:
     {
     }
 
-    using struct_data_t = std::map<std::string, variant_t::handle_t>;
+    // Ordered field map.
+    //
+    // Pre-Phase 6 this was std::map<string, handle>: alphabetical by name,
+    // which breaks the moment the FFI marshaller needs fields in their
+    // declaration order (e.g. WIN32_FIND_DATA, where alphabetical != ABI
+    // layout). Replaced with a small wrapper around vector<pair<>> that
+    // preserves insertion order; lookup degrades from O(log N) to O(N)
+    // but N is tiny in practice (typical struct = 2-20 fields).
+    //
+    // Public surface mirrors the std::map subset actually used by callers:
+    //   - default construction, copy/move
+    //   - find(key) / count(key) / empty() / size()
+    //   - insert(make_pair(k, v)): appends if absent, replaces if present
+    //   - range-for with structured binding [name, handle]
+    //   - operator= for whole-map replacement (used by copy_struct_data)
+    class struct_data_t {
+    public:
+        using value_type = std::pair<std::string, variant_t::handle_t>;
+        using iterator = std::vector<value_type>::iterator;
+        using const_iterator = std::vector<value_type>::const_iterator;
+
+        struct_data_t() = default;
+
+        iterator begin() noexcept { return _fields.begin(); }
+        iterator end() noexcept { return _fields.end(); }
+        const_iterator begin() const noexcept { return _fields.begin(); }
+        const_iterator end() const noexcept { return _fields.end(); }
+
+        bool empty() const noexcept { return _fields.empty(); }
+        size_t size() const noexcept { return _fields.size(); }
+
+        iterator find(const std::string& key) noexcept
+        {
+            for (auto it = _fields.begin(); it != _fields.end(); ++it)
+                if (it->first == key)
+                    return it;
+            return _fields.end();
+        }
+        const_iterator find(const std::string& key) const noexcept
+        {
+            for (auto it = _fields.begin(); it != _fields.end(); ++it)
+                if (it->first == key)
+                    return it;
+            return _fields.end();
+        }
+        size_t count(const std::string& key) const noexcept
+        {
+            return find(key) == _fields.end() ? 0 : 1;
+        }
+
+        // std::map-style insert: leaves an existing entry untouched and
+        // appends a new one in declaration order. Returns
+        // {iterator, inserted}. Most callers ignore the bool.
+        std::pair<iterator, bool> insert(const value_type& v)
+        {
+            auto it = find(v.first);
+            if (it != _fields.end())
+                return { it, false };
+            _fields.push_back(v);
+            return { _fields.end() - 1, true };
+        }
+
+    private:
+        std::vector<value_type> _fields;
+    };
 
     explicit variant_t(const std::string& name, const struct_data_t& value,
         const size_t vect_size = 0)
-        : _type(type_t::STRUCT)
+        : _struct(std::make_shared<StructPayload>())
+        , _type(type_t::STRUCT)
         , _vect_size(vect_size)
         , _vector_type(vect_size > 0)
-        , _struct_data_type_name(name)
     {
-        _struct_data.resize(1 > vect_size ? 1 : vect_size);
-
-        _struct_data[0] = value;
+        _struct->type_name = name;
+        _struct->struct_data.resize(1 > vect_size ? 1 : vect_size);
+        _struct->struct_data[0] = value;
     }
 
     explicit variant_t(
         const struct_variant_t& value, const size_t vect_size = 0)
-        : _type(type_t::STRUCT)
+        : _struct(std::make_shared<StructPayload>())
+        , _type(type_t::STRUCT)
         , _vect_size(vect_size)
         , _vector_type(vect_size > 0)
-        , _struct_data_type_name(value.get())
-        , _declared_class_type(value.is_class_type() ? value.get() : "")
-        , _class_type(value.is_class_type())
     {
-        _struct_data.resize(1 > vect_size ? 1 : vect_size);
+        _struct->type_name = value.get();
+        _struct->declared_class_type = value.is_class_type() ? value.get() : "";
+        _struct->class_type = value.is_class_type();
+        _struct->struct_data.resize(1 > vect_size ? 1 : vect_size);
     }
 
     static variant_t make_object_instance(
@@ -164,12 +248,33 @@ public:
         , _vect_size(vect_size)
         , _vector_type(vect_size > 1)
     {
+        // Scalar (vect_size == 0) types use inline storage to skip the
+        // single-element _data allocation. BYTEVECTOR keeps using _data
+        // because it is always a vector by definition.
+        const bool inline_path = (vect_size == 0) && t != type_t::BYTEVECTOR;
         switch (t) {
         case type_t::STRING:
-            _data.resize(1 > vect_size ? 1 : vect_size, string_t(value));
+            if (inline_path) {
+                _has_inline = true;
+                _inline_string = value;
+            } else {
+                _data.resize(1 > vect_size ? 1 : vect_size, string_t(value));
+            }
             break;
         case type_t::INTEGER:
-        case type_t::BOOLEAN:
+        case type_t::BOOLEAN: {
+            integer_t ivalue{ 0 };
+            try {
+                ivalue = nu::stoll(value);
+            } catch (...) {
+            }
+            if (inline_path) {
+                _has_inline = true;
+                _inline_int = ivalue;
+            } else {
+                _data.resize(1 > vect_size ? 1 : vect_size, integer_t(ivalue));
+            }
+        } break;
         case type_t::BYTEVECTOR: {
             integer_t ivalue{ 0 };
             try {
@@ -184,8 +289,12 @@ public:
                 fvalue = stold(value);
             } catch (...) {
             }
-            _data.resize(1 > vect_size ? 1 : vect_size, double_t(fvalue));
-
+            if (inline_path) {
+                _has_inline = true;
+                _inline_double = fvalue;
+            } else {
+                _data.resize(1 > vect_size ? 1 : vect_size, double_t(fvalue));
+            }
         } break;
         default:
             break;
@@ -197,7 +306,12 @@ public:
         , _vect_size(vect_size)
         , _vector_type(vect_size > 1)
     {
-        _data.resize(1 > vect_size ? 1 : vect_size, string_t(value));
+        if (vect_size == 0) {
+            _has_inline = true;
+            _inline_string = value;
+        } else {
+            _data.resize(vect_size, string_t(value));
+        }
     }
 
     variant_t(const char* value, const size_t vect_size = 0)
@@ -205,7 +319,12 @@ public:
         , _vect_size(vect_size)
         , _vector_type(vect_size > 1)
     {
-        _data.resize(1 > vect_size ? 1 : vect_size, string_t(value));
+        if (vect_size == 0) {
+            _has_inline = true;
+            _inline_string = value;
+        } else {
+            _data.resize(vect_size, string_t(value));
+        }
     }
 
     variant_t(const double_t value, const size_t vect_size = 0)
@@ -213,7 +332,12 @@ public:
         , _vect_size(vect_size)
         , _vector_type(vect_size > 1)
     {
-        _data.resize(1 > vect_size ? 1 : vect_size, double_t(value));
+        if (vect_size == 0) {
+            _has_inline = true;
+            _inline_double = value;
+        } else {
+            _data.resize(vect_size, double_t(value));
+        }
     }
 
     variant_t(const std::vector<double_t>& value)
@@ -253,7 +377,12 @@ public:
         , _vect_size(vect_size)
         , _vector_type(vect_size > 1)
     {
-        _data.resize(1 > vect_size ? 1 : vect_size, integer_t(value));
+        if (vect_size == 0) {
+            _has_inline = true;
+            _inline_int = value;
+        } else {
+            _data.resize(vect_size, integer_t(value));
+        }
     }
 
     variant_t(const int value, const size_t vect_size = 0)
@@ -261,7 +390,12 @@ public:
         , _vect_size(vect_size)
         , _vector_type(vect_size > 1)
     {
-        _data.resize(1 > vect_size ? 1 : vect_size, integer_t(value));
+        if (vect_size == 0) {
+            _has_inline = true;
+            _inline_int = value;
+        } else {
+            _data.resize(vect_size, integer_t(value));
+        }
     }
 
     variant_t(const bool_t value, const size_t vect_size = 0)
@@ -269,7 +403,12 @@ public:
         , _vect_size(vect_size)
         , _vector_type(vect_size > 1)
     {
-        _data.resize(1 > vect_size ? 1 : vect_size, integer_t(value));
+        if (vect_size == 0) {
+            _has_inline = true;
+            _inline_int = value;
+        } else {
+            _data.resize(vect_size, integer_t(value));
+        }
     }
 
     variant_t() = default;
@@ -290,13 +429,14 @@ public:
     void set_struct_value(const variant_t& v, const size_t vector_idx = 0)
     {
         rt_error_code_t::get_instance().throw_if(_type != type_t::STRUCT
-                || v._type != type_t::STRUCT
-                || _struct_data_type_name != v._struct_data_type_name
-                || vector_idx >= _struct_data.size()
-                || v._struct_data.size() != 1,
+                || v._type != type_t::STRUCT || !_struct || !v._struct
+                || _struct->type_name != v._struct->type_name
+                || vector_idx >= _struct->struct_data.size()
+                || v._struct->struct_data.size() != 1,
             0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
-        _struct_data[vector_idx] = v._struct_data[0];
+        // Phase 4: detach if shared before mutating.
+        _struct_mut().struct_data[vector_idx] = v._struct->struct_data[0];
     }
 
     // Assign one slot of a class-instance array to a class instance.
@@ -306,47 +446,52 @@ public:
     void set_class_slot(const variant_t& v, const size_t vector_idx)
     {
         rt_error_code_t::get_instance().throw_if(!is_class_type()
-                || !v.is_class_type() || vector_idx >= _struct_data.size()
-                || v._struct_data.size() != 1,
+                || !v.is_class_type()
+                || vector_idx >= _struct->struct_data.size()
+                || v._struct->struct_data.size() != 1,
             0, rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
 
-        _struct_data[vector_idx] = v._struct_data[0];
-        if (_object_ids.size() <= vector_idx)
-            _object_ids.resize(vector_idx + 1);
-        _object_ids[vector_idx] = v._object_ids.empty()
+        // For class arrays, mutation is still in-place: _struct_mut() will
+        // skip the detach because class_type is true (aliasing is the
+        // intended semantics for object references).
+        auto& s = _struct_mut();
+        s.struct_data[vector_idx] = v._struct->struct_data[0];
+        if (s.object_ids.size() <= vector_idx)
+            s.object_ids.resize(vector_idx + 1);
+        s.object_ids[vector_idx] = v._struct->object_ids.empty()
             ? std::shared_ptr<size_t>()
-            : v._object_ids[0];
+            : v._struct->object_ids[0];
     }
 
     const std::string& struct_type_name() const noexcept
     {
-        return _struct_data_type_name;
+        return _struct_ro().type_name;
     }
 
     const std::string& declared_class_type() const noexcept
     {
-        return _declared_class_type;
+        return _struct_ro().declared_class_type;
     }
 
     void set_declared_class_type(const std::string& type_name)
     {
-        _declared_class_type = type_name;
+        _ensure_struct().declared_class_type = type_name;
     }
 
     bool is_class_type() const noexcept
     {
-        return _type == type_t::STRUCT && _class_type;
+        return _type == type_t::STRUCT && _struct && _struct->class_type;
     }
 
     bool is_object_reference() const noexcept
     {
-        return is_class_type() && !_object_ids.empty();
+        return is_class_type() && !_struct->object_ids.empty();
     }
 
     bool is_nothing(const size_t idx = 0) const noexcept
     {
         return is_object_reference()
-            && (idx >= _object_ids.size() || !_object_ids[idx]);
+            && (idx >= _struct->object_ids.size() || !_struct->object_ids[idx]);
     }
 
     bool same_object_reference(const variant_t& other) const noexcept;
@@ -355,7 +500,9 @@ public:
     const struct_data_t& struct_fields() const noexcept
     {
         static const struct_data_t _empty{};
-        return _struct_data.empty() ? _empty : _struct_data[0];
+        return (_struct && !_struct->struct_data.empty())
+            ? _struct->struct_data[0]
+            : _empty;
     }
 
     void describe_type(std::stringstream& ss) const noexcept;
@@ -434,49 +581,78 @@ public:
 
     const string_t to_str(const size_t idx = 0) const;
 
-    void set_str(const string_t& value) { _set(value, _data, type_t::STRING); }
+    void set_str(const string_t& value)
+    {
+        _type = type_t::STRING;
+        _has_inline = true;
+        _inline_string = value;
+        _data.clear();
+    }
     void set_str(const char* value)
     {
-        _set<string_t>(value, _data, type_t::STRING);
+        _type = type_t::STRING;
+        _has_inline = true;
+        _inline_string = value;
+        _data.clear();
     }
     void set_int(const integer_t& value)
     {
-        _set<integer_t>(value, _data, type_t::INTEGER);
+        _type = type_t::INTEGER;
+        _has_inline = true;
+        _inline_int = value;
+        _data.clear();
     }
     void set_double(const double_t value)
     {
-        _set<double_t>(value, _data, type_t::DOUBLE);
+        _type = type_t::DOUBLE;
+        _has_inline = true;
+        _inline_double = value;
+        _data.clear();
     }
     void set_bvect(const integer_t value)
     {
+        _has_inline = false;
         _set<integer_t>(value, _data, type_t::BYTEVECTOR);
     }
     void set_bool(const bool_t value)
     {
-        _set<integer_t>(value, _data, type_t::BOOLEAN);
+        _type = type_t::BOOLEAN;
+        _has_inline = true;
+        _inline_int = value;
+        _data.clear();
     }
+    // Indexed setters always operate on the vector backing store. If the
+    // variant was previously holding an inline scalar (Phase 1a), we must
+    // demote it to the vector path before writing, otherwise _data would
+    // be initialised with a default value instead of the inline one.
     void set_str(const string_t& value, const size_t idx)
     {
+        _demote_inline();
         _set<string_t>(value, _data, type_t::STRING, idx);
     }
     void set_str(const char* value, const size_t idx)
     {
+        _demote_inline();
         _set<string_t>(value, _data, type_t::STRING, idx);
     }
     void set_int(const integer_t& value, const size_t idx)
     {
+        _demote_inline();
         _set<integer_t>(value, _data, type_t::INTEGER, idx);
     }
     void set_double(const double_t value, const size_t idx)
     {
+        _demote_inline();
         _set<double_t>(value, _data, type_t::DOUBLE, idx);
     }
     void set_bvect(const integer_t value, const size_t idx)
     {
+        _demote_inline();
         _set<integer_t>(value, _data, type_t::BYTEVECTOR, idx);
     }
     void set_bool(const bool_t value, const size_t idx)
     {
+        _demote_inline();
         _set<integer_t>(value, _data, type_t::BOOLEAN, idx);
     }
 
@@ -498,24 +674,134 @@ public:
     variant_t decrement();
     variant_t& operator+=(const variant_t& b);
     variant_t& operator-=(const variant_t& b);
+    variant_t& operator*=(const variant_t& b);
+    variant_t& operator/=(const variant_t& b);
 
     friend std::ostream& operator<<(std::ostream& os, const variant_t& val);
 
 protected:
+    // Phase 1c: struct/object metadata is boxed so that scalar variants
+    // (the 99% case at runtime) do not pay its ~80 B of inline footprint.
+    // _struct is nullptr for non-STRUCT variants.
+    //
+    // Phase 4: the payload is now ref-counted (shared_ptr) with
+    // copy-on-write. A plain pass-by-value of a STRUCT variant is now an
+    // O(1) refcount bump; the deep clone happens lazily when a mutating
+    // operation finds use_count() > 1. Object-reference (class) variants
+    // intentionally keep aliasing as the observable semantics; Phase 4
+    // never detaches them.
+    struct StructPayload {
+        std::vector<struct_data_t> struct_data;
+        std::string type_name;
+        std::string declared_class_type;
+        std::vector<std::shared_ptr<size_t>> object_ids;
+        bool class_type = false;
+    };
+    std::shared_ptr<StructPayload> _struct;
+
+    // Lazy COW detach: ensures the payload is uniquely owned before
+    // returning a writable reference. For class/object-reference
+    // variants, aliasing IS the intended semantics, so detach is
+    // skipped; callers are responsible for not invoking _struct_mut()
+    // on those (or accepting that any change is observed by all
+        // references, which is what nuBASIC object semantics require).
+    StructPayload& _struct_mut()
+    {
+        if (!_struct) {
+            _struct = std::make_shared<StructPayload>();
+            return *_struct;
+        }
+        if (_struct.use_count() > 1 && !_struct->class_type) {
+            _struct
+                = std::make_shared<StructPayload>(_struct_deep_clone(*_struct));
+        }
+        return *_struct;
+    }
+
+    // Original ensure (no detach). Kept for callsites where allocating
+    // an empty payload is the goal and no concurrent observer exists
+    // (e.g. inside copy/move ctor bodies that have just default-set
+    // members and own the only refcount).
+    StructPayload& _ensure_struct() { return _struct_mut(); }
+
+    // Deep clone helper used by _struct_mut. Defined inline here so all
+    // headers that need it see the body. Mirrors the previous behaviour
+    // of the copy ctor; object_ids stays shared (identity preserved).
+    static StructPayload _struct_deep_clone(const StructPayload& src)
+    {
+        StructPayload dst;
+        dst.type_name = src.type_name;
+        dst.declared_class_type = src.declared_class_type;
+        dst.class_type = src.class_type;
+        dst.object_ids = src.object_ids; // identity tokens stay shared
+        dst.struct_data.resize(src.struct_data.size());
+        for (size_t i = 0; i < src.struct_data.size(); ++i) {
+            copy_struct_data(dst.struct_data[i], src.struct_data[i]);
+        }
+        return dst;
+    }
+
+    // Read-only accessor with a static empty fallback for non-STRUCT
+    // variants; lets accessors like struct_type_name() stay noexcept.
+    const StructPayload& _struct_ro() const noexcept
+    {
+        static const StructPayload kEmpty{};
+        return _struct ? *_struct : kEmpty;
+    }
+
     type_t _type = type_t::UNDEFINED;
     size_t _vect_size = 0;
     bool _vector_type = false;
 
     mutable std::vector<std::variant<string_t, integer_t, double_t>> _data;
 
-    std::vector<struct_data_t> _struct_data;
-    std::string _struct_data_type_name;
-    std::string _declared_class_type;
-    bool _class_type = false;
-    std::vector<std::shared_ptr<size_t>> _object_ids;
+    // Inline scalar storage (Phase 1a + 1b).
+    // For non-vector INTEGER / DOUBLE / BOOLEAN / STRING scalars we keep
+    // the value inline instead of materialising a single-element
+    // std::vector. This eliminates the per-scalar heap allocation visible
+    // by the upstream micro-benchmark (~40 B/op on x64 MSVC).
+    // When _has_inline is true, _data is intentionally left empty and the
+    // canonical value lives in _inline_int / _inline_double /
+    // _inline_string according to _type. Setters that mutate a scalar
+    // update the inline slot and clear _data; vector-mode setters
+    // (with idx, or with vect_size > 0) take the legacy path and clear
+    // _has_inline.
+    //
+    // Tradeoff: _inline_string adds ~32 B to sizeof(variant_t) on MSVC.
+    // STRING is uncommon enough at runtime that paying this for every
+    // variant is non-trivial but cheaper than the alternative: boxing it
+    // (unique_ptr<string>) costs at least one allocation per STRING
+    // scalar, defeating the point.
+    bool _has_inline = false;
+    integer_t _inline_int = 0;
+    double_t _inline_double = 0.0;
+    string_t _inline_string;
 
     template <class T> T _at(size_t idx) const
     {
+        // Fast path: scalar reads from inline storage.
+        if (_has_inline && idx == 0) {
+            if constexpr (std::is_same_v<T, integer_t>) {
+                rt_error_code_t::get_instance().throw_if(
+                    _type != type_t::INTEGER && _type != type_t::BOOLEAN, 0,
+                    rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
+                return _inline_int;
+            } else if constexpr (std::is_same_v<T, double_t>) {
+                rt_error_code_t::get_instance().throw_if(
+                    _type != type_t::DOUBLE, 0,
+                    rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
+                return _inline_double;
+            } else if constexpr (std::is_same_v<T, string_t>) {
+                rt_error_code_t::get_instance().throw_if(
+                    _type != type_t::STRING, 0,
+                    rt_error_code_t::value_t::E_TYPE_ILLEGAL, "");
+                return _inline_string;
+            }
+            // Any other T: fall through. Inline scalars never hold any
+            // other alternative, so the bounds check below will report
+            // E_VAL_OUT_OF_RANGE consistently with the legacy path.
+        }
+
         rt_error_code_t::get_instance().throw_if(idx >= _data.size(), 0,
             rt_error_code_t::value_t::E_VAL_OUT_OF_RANGE, "");
 

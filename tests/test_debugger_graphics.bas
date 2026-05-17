@@ -1,4 +1,5 @@
 ' test_debugger_graphics.bas - graphics debugger contract fixture
+' SKIP: covered by RunDebuggerGraphicsContract
 Cls
 FillRect 0, 0, 80, 80, 0
 ScreenLock
