@@ -437,14 +437,14 @@ try {
         -CompletionPattern '@@nubasic event="ok"' `
         -Description "ClrBrk completion before stepout input contract"
 
-    $null = Send-Command -Command 'break 7' `
+    $null = Send-Command -Command 'break 9' `
         -CompletionPattern '@@nubasic event="ok"' `
         -Description "stepout input breakpoint creation"
 
     $stepOutInputRunOutput = Send-Command -Command 'run' `
         -CompletionPattern '@@nubasic event="stopped"' `
         -Description "stepout input RUN breakpoint stop"
-    if ($stepOutInputRunOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="breakpoint"[^\r\n]*line="7"') {
+    if ($stepOutInputRunOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="breakpoint"[^\r\n]*line="9"') {
         throw "StepOut input setup did not stop before the input line.`nOutput:`n$stepOutInputRunOutput"
     }
 

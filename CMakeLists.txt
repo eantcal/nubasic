@@ -537,6 +537,18 @@ if(WIN32 AND MSVC)
   )
   set_property(TARGET RunDebuggerContract PROPERTY FOLDER "Tests")
 
+  add_custom_target(RunDebuggerGraphicsContract
+    COMMAND powershell -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/tests/run_debugger_graphics_contract.ps1"
+            -Interpreter "$<TARGET_FILE:nuBasicDebugCLI>"
+            -TestDir "${CMAKE_SOURCE_DIR}/tests"
+    DEPENDS nuBasicDebugCLI
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    COMMENT "Running nuBASIC graphical debugger backend contract test..."
+    VERBATIM
+  )
+  set_property(TARGET RunDebuggerGraphicsContract PROPERTY FOLDER "Tests")
+
   add_custom_target(RunInterruptibleInputContract
     COMMAND powershell -NoProfile -ExecutionPolicy Bypass
             -File "${CMAKE_SOURCE_DIR}/tests/run_interruptible_input_contract.ps1"

@@ -165,7 +165,6 @@ static int nuBASIC_console(int argc, char* argv[])
 #ifdef _WIN32
         if (nu_winconsole_is_active()) {
             nu_winconsole_process_messages();
-            return;
         }
         // When stdin is a pipe (e.g. VS Code debug adapter), poll for Ctrl+C
         // (0x03) so the debugger pause button can interrupt running programs.

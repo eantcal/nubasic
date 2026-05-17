@@ -1535,6 +1535,24 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
             && !ctx.debug_function_checkpoints.empty();
     };
 
+    auto should_complete_pending_expression_return = [&]() {
+        return !ctx.debug_pending_returns.empty();
+    };
+
+    auto restore_pending_expression_call_site = [&]() {
+        if (ctx.runtime_pc.get_line() > 0 || ctx.debug_pending_returns.empty())
+            return;
+
+        const auto call_site_line
+            = ctx.debug_pending_returns.front().call_site_line;
+        if (call_site_line < 1)
+            return;
+
+        ctx.runtime_pc.set(call_site_line, 0);
+        ctx.last_break_line = call_site_line;
+        ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, false);
+    };
+
     auto should_keep_stepping_out = [&]() {
         if (debug_start_stack_depth == 0)
             return false;
@@ -1580,15 +1598,25 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
             && source_line_has_blocking_input(it->second);
     };
 
+    auto current_line_has_blocking_input = [&]() {
+        const auto line = get_cur_line_n();
+        const auto it = _source_line.find(line);
+        return it != _source_line.end()
+            && source_line_has_blocking_input(it->second);
+    };
+
     auto normalize_expression_function_step_stop
         = [&](exec_res_t res, prog_pointer_t::line_number_t call_site_line) {
-              if (res != exec_res_t::STOP_REQ
-                  || get_last_debug_stop_reason() != debug_stop_reason_t::Step
+              const bool step_stop = res == exec_res_t::STOP_REQ
+                  && get_last_debug_stop_reason() == debug_stop_reason_t::Step;
+              const bool completed_without_stop = res == exec_res_t::CMD_EXEC;
+
+              if ((!step_stop && !completed_without_stop)
                   || call_site_line < 1 || ctx.runtime_pc.get_line() > 0
                   || ctx.last_break_line > 0
                   || !ctx.debug_function_checkpoints.empty()
                   || !ctx.debug_pending_returns.empty()) {
-                  return;
+                  return res;
               }
 
               for (auto it = _prog_line.upper_bound(call_site_line);
@@ -1597,9 +1625,13 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
                       ctx.runtime_pc.set(it->first, 0);
                       ctx.last_break_line = it->first;
                       ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, false);
-                      return;
+                      ctx.last_stop_was_step = true;
+                      ctx.last_debug_stop_reason = debug_stop_reason_t::Step;
+                      return exec_res_t::STOP_REQ;
                   }
               }
+
+              return res;
           };
 
     switch (request.action) {
@@ -1624,12 +1656,14 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
             (res == exec_res_t::STOP_REQ && !stopped_on_blocking_input_line(res)
                 && (should_keep_stepping_over()
                     || should_resume_expression_function()))
+            || should_complete_pending_expression_return()
             || stopped_on_procedure_boundary(res)
             || stopped_again_on_start_breakpoint(res)) {
+            restore_pending_expression_call_site();
             res = execute_step_into_once();
         }
 
-        normalize_expression_function_step_stop(res, debug_start_line);
+        res = normalize_expression_function_step_stop(res, debug_start_line);
 
         return res;
     }
@@ -1638,19 +1672,29 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
         if (debug_start_stack_depth == 0)
             return debug_continue();
 
+        if (current_line_has_blocking_input()) {
+            ctx.last_break_line = get_cur_line_n();
+            ctx.last_stop_was_step = true;
+            ctx.last_debug_stop_reason = debug_stop_reason_t::Step;
+            ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, false);
+            return exec_res_t::STOP_REQ;
+        }
+
         auto res = execute_step_into_once();
 
         while (
             (res == exec_res_t::STOP_REQ && !stopped_on_blocking_input_line(res)
                 && (should_keep_stepping_out()
                     || should_resume_expression_function()))
+            || should_complete_pending_expression_return()
             || stopped_again_on_start_breakpoint(res)
             || stopped_on_procedure_boundary(res)
             || stopped_on_stepout_call_site(res)) {
+            restore_pending_expression_call_site();
             res = execute_step_into_once();
         }
 
-        normalize_expression_function_step_stop(
+        res = normalize_expression_function_step_stop(
             res, debug_has_target_pc ? debug_target_line : debug_start_line);
 
         return res;
