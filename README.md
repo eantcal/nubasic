@@ -81,9 +81,9 @@ The classic, structured and OOP styles are not separate dialects: a single sourc
 ## Documentation
 
 - **[Wiki](https://github.com/eantcal/nubasic/wiki)** — full language reference, graphics API, IDE guide, interpreter internals, and build instructions
-- **[User Guide](https://github.com/eantcal/nubasic/blob/master/docs/nubasic-guide.md)** — complete guide in a single document (v2.0)
-- **[Making nuBASIC 2.0](https://github.com/eantcal/nubasic/blob/master/docs/making-nubasic-2.0.md)** — developer-oriented internals note about debugger, runtime values, native calls, and performance work ([Italiano](https://github.com/eantcal/nubasic/blob/master/docs/making-nubasic-2.0-it.md))
-- **[Examples](https://github.com/eantcal/nubasic/tree/master/examples)** — ready-to-run `.bas` programs covering games, graphics, fractals, animations, and more
+- **[User Guide](https://github.com/eantcal/nubasic/blob/main/docs/nubasic-guide.md)** — complete guide in a single document (v2.0)
+- **[Making nuBASIC 2.0](https://github.com/eantcal/nubasic/blob/main/docs/making-nubasic-2.0.md)** — developer-oriented internals note about debugger, runtime values, native calls, and performance work ([Italiano](https://github.com/eantcal/nubasic/blob/main/docs/making-nubasic-2.0-it.md))
+- **[Examples](https://github.com/eantcal/nubasic/tree/main/examples)** — ready-to-run `.bas` programs covering games, graphics, fractals, animations, and more
 
 ## Quick Start
 

@@ -992,9 +992,9 @@ structures, together with the `runtime` module helpers (`NativeAlloc`,
 
 Native calls are enabled by default on trusted local hosts and can be
 disabled with `--disable-native-calls`. See the full guide in
-[`docs/native-dll-calls.md`](https://github.com/eantcal/nubasic/blob/master/docs/native-dll-calls.md)
+[`docs/native-dll-calls.md`](https://github.com/eantcal/nubasic/blob/main/docs/native-dll-calls.md)
 and the worked example
-[`examples/native_open_file_dialog.bas`](https://github.com/eantcal/nubasic/blob/master/examples/native_open_file_dialog.bas).
+[`examples/native_open_file_dialog.bas`](https://github.com/eantcal/nubasic/blob/main/examples/native_open_file_dialog.bas).
 
 ---
 
