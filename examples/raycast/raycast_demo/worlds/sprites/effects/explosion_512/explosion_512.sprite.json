@@ -1,0 +1,574 @@
+{
+    "spriteSet":  "explosion_512",
+    "format":  "PNG",
+    "transparentColor":  [
+                             0,
+                             0,
+                             0
+                         ],
+    "supportedResolutions":  [
+                                 512
+                             ],
+    "defaultResolution":  512,
+    "maxResolution":  512,
+    "animations":  {
+                       "idle":  {
+                                    "frameDurationMs":  90,
+                                    "loop":  true,
+                                    "frames":  [
+                                                   {
+                                                       "directions":  [
+                                                                          {
+                                                                              "name":  "front",
+                                                                              "files":  {
+                                                                                            "512":  "512/explosion_00.png"
+                                                                                        },
+                                                                              "angle":  0
+                                                                          },
+                                                                          {
+                                                                              "name":  "front_right",
+                                                                              "files":  {
+                                                                                            "512":  "512/explosion_00.png"
+                                                                                        },
+                                                                              "angle":  45
+                                                                          },
+                                                                          {
+                                                                              "name":  "right",
+                                                                              "files":  {
+                                                                                            "512":  "512/explosion_00.png"
+                                                                                        },
+                                                                              "angle":  90
+                                                                          },
+                                                                          {
+                                                                              "name":  "back_right",
+                                                                              "files":  {
+                                                                                            "512":  "512/explosion_00.png"
+                                                                                        },
+                                                                              "angle":  135
+                                                                          },
+                                                                          {
+                                                                              "name":  "back",
+                                                                              "files":  {
+                                                                                            "512":  "512/explosion_00.png"
+                                                                                        },
+                                                                              "angle":  180
+                                                                          },
+                                                                          {
+                                                                              "name":  "back_left",
+                                                                              "files":  {
+                                                                                            "512":  "512/explosion_00.png"
+                                                                                        },
+                                                                              "angle":  225
+                                                                          },
+                                                                          {
+                                                                              "name":  "left",
+                                                                              "files":  {
+                                                                                            "512":  "512/explosion_00.png"
+                                                                                        },
+                                                                              "angle":  270
+                                                                          },
+                                                                          {
+                                                                              "name":  "front_left",
+                                                                              "files":  {
+                                                                                            "512":  "512/explosion_00.png"
+                                                                                        },
+                                                                              "angle":  315
+                                                                          }
+                                                                      ]
+                                                   }
+                                               ]
+                                },
+                       "explode":  {
+                                       "frameDurationMs":  70,
+                                       "loop":  false,
+                                       "frames":  [
+                                                      {
+                                                          "directions":  [
+                                                                             {
+                                                                                 "name":  "front",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_00.png"
+                                                                                           },
+                                                                                 "angle":  0
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_00.png"
+                                                                                           },
+                                                                                 "angle":  45
+                                                                             },
+                                                                             {
+                                                                                 "name":  "right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_00.png"
+                                                                                           },
+                                                                                 "angle":  90
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_00.png"
+                                                                                           },
+                                                                                 "angle":  135
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_00.png"
+                                                                                           },
+                                                                                 "angle":  180
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_00.png"
+                                                                                           },
+                                                                                 "angle":  225
+                                                                             },
+                                                                             {
+                                                                                 "name":  "left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_00.png"
+                                                                                           },
+                                                                                 "angle":  270
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_00.png"
+                                                                                           },
+                                                                                 "angle":  315
+                                                                             }
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "directions":  [
+                                                                             {
+                                                                                 "name":  "front",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_01.png"
+                                                                                           },
+                                                                                 "angle":  0
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_01.png"
+                                                                                           },
+                                                                                 "angle":  45
+                                                                             },
+                                                                             {
+                                                                                 "name":  "right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_01.png"
+                                                                                           },
+                                                                                 "angle":  90
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_01.png"
+                                                                                           },
+                                                                                 "angle":  135
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_01.png"
+                                                                                           },
+                                                                                 "angle":  180
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_01.png"
+                                                                                           },
+                                                                                 "angle":  225
+                                                                             },
+                                                                             {
+                                                                                 "name":  "left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_01.png"
+                                                                                           },
+                                                                                 "angle":  270
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_01.png"
+                                                                                           },
+                                                                                 "angle":  315
+                                                                             }
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "directions":  [
+                                                                             {
+                                                                                 "name":  "front",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_02.png"
+                                                                                           },
+                                                                                 "angle":  0
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_02.png"
+                                                                                           },
+                                                                                 "angle":  45
+                                                                             },
+                                                                             {
+                                                                                 "name":  "right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_02.png"
+                                                                                           },
+                                                                                 "angle":  90
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_02.png"
+                                                                                           },
+                                                                                 "angle":  135
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_02.png"
+                                                                                           },
+                                                                                 "angle":  180
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_02.png"
+                                                                                           },
+                                                                                 "angle":  225
+                                                                             },
+                                                                             {
+                                                                                 "name":  "left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_02.png"
+                                                                                           },
+                                                                                 "angle":  270
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_02.png"
+                                                                                           },
+                                                                                 "angle":  315
+                                                                             }
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "directions":  [
+                                                                             {
+                                                                                 "name":  "front",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_03.png"
+                                                                                           },
+                                                                                 "angle":  0
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_03.png"
+                                                                                           },
+                                                                                 "angle":  45
+                                                                             },
+                                                                             {
+                                                                                 "name":  "right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_03.png"
+                                                                                           },
+                                                                                 "angle":  90
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_03.png"
+                                                                                           },
+                                                                                 "angle":  135
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_03.png"
+                                                                                           },
+                                                                                 "angle":  180
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_03.png"
+                                                                                           },
+                                                                                 "angle":  225
+                                                                             },
+                                                                             {
+                                                                                 "name":  "left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_03.png"
+                                                                                           },
+                                                                                 "angle":  270
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_03.png"
+                                                                                           },
+                                                                                 "angle":  315
+                                                                             }
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "directions":  [
+                                                                             {
+                                                                                 "name":  "front",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_04.png"
+                                                                                           },
+                                                                                 "angle":  0
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_04.png"
+                                                                                           },
+                                                                                 "angle":  45
+                                                                             },
+                                                                             {
+                                                                                 "name":  "right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_04.png"
+                                                                                           },
+                                                                                 "angle":  90
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_04.png"
+                                                                                           },
+                                                                                 "angle":  135
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_04.png"
+                                                                                           },
+                                                                                 "angle":  180
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_04.png"
+                                                                                           },
+                                                                                 "angle":  225
+                                                                             },
+                                                                             {
+                                                                                 "name":  "left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_04.png"
+                                                                                           },
+                                                                                 "angle":  270
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_04.png"
+                                                                                           },
+                                                                                 "angle":  315
+                                                                             }
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "directions":  [
+                                                                             {
+                                                                                 "name":  "front",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_05.png"
+                                                                                           },
+                                                                                 "angle":  0
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_05.png"
+                                                                                           },
+                                                                                 "angle":  45
+                                                                             },
+                                                                             {
+                                                                                 "name":  "right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_05.png"
+                                                                                           },
+                                                                                 "angle":  90
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_05.png"
+                                                                                           },
+                                                                                 "angle":  135
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_05.png"
+                                                                                           },
+                                                                                 "angle":  180
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_05.png"
+                                                                                           },
+                                                                                 "angle":  225
+                                                                             },
+                                                                             {
+                                                                                 "name":  "left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_05.png"
+                                                                                           },
+                                                                                 "angle":  270
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_05.png"
+                                                                                           },
+                                                                                 "angle":  315
+                                                                             }
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "directions":  [
+                                                                             {
+                                                                                 "name":  "front",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_06.png"
+                                                                                           },
+                                                                                 "angle":  0
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_06.png"
+                                                                                           },
+                                                                                 "angle":  45
+                                                                             },
+                                                                             {
+                                                                                 "name":  "right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_06.png"
+                                                                                           },
+                                                                                 "angle":  90
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_06.png"
+                                                                                           },
+                                                                                 "angle":  135
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_06.png"
+                                                                                           },
+                                                                                 "angle":  180
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_06.png"
+                                                                                           },
+                                                                                 "angle":  225
+                                                                             },
+                                                                             {
+                                                                                 "name":  "left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_06.png"
+                                                                                           },
+                                                                                 "angle":  270
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_06.png"
+                                                                                           },
+                                                                                 "angle":  315
+                                                                             }
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "directions":  [
+                                                                             {
+                                                                                 "name":  "front",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_07.png"
+                                                                                           },
+                                                                                 "angle":  0
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_07.png"
+                                                                                           },
+                                                                                 "angle":  45
+                                                                             },
+                                                                             {
+                                                                                 "name":  "right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_07.png"
+                                                                                           },
+                                                                                 "angle":  90
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_right",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_07.png"
+                                                                                           },
+                                                                                 "angle":  135
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_07.png"
+                                                                                           },
+                                                                                 "angle":  180
+                                                                             },
+                                                                             {
+                                                                                 "name":  "back_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_07.png"
+                                                                                           },
+                                                                                 "angle":  225
+                                                                             },
+                                                                             {
+                                                                                 "name":  "left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_07.png"
+                                                                                           },
+                                                                                 "angle":  270
+                                                                             },
+                                                                             {
+                                                                                 "name":  "front_left",
+                                                                                 "files":  {
+                                                                                               "512":  "512/explosion_07.png"
+                                                                                           },
+                                                                                 "angle":  315
+                                                                             }
+                                                                         ]
+                                                      }
+                                                  ]
+                                   }
+                   },
+    "lod":  [
+                {
+                    "resolution":  512,
+                    "maxDistance":  9999
+                }
+            ]
+}

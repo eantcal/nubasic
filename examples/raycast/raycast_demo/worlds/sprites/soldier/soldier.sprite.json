@@ -1,0 +1,1482 @@
+﻿{
+    "spriteSet":  "soldier",
+    "format":  "PNG",
+    "transparentColor":  [
+                             0,
+                             0,
+                             0
+                         ],
+    "supportedResolutions":  [
+                                 256
+                             ],
+    "defaultResolution":  256,
+    "maxResolution":  256,
+    "animations":  {
+                       "idle":  {
+                                    "frameDurationMs":  180,
+                                    "loop":  true,
+                                    "directions":  [
+                                                       {
+                                                           "name":  "front",
+                                                           "angle":  0,
+                                                           "files":  {
+                                                                         "256":  "256/front.png"
+                                                                     }
+                                                       },
+                                                       {
+                                                           "name":  "front_right",
+                                                           "angle":  45,
+                                                           "files":  {
+                                                                         "256":  "256/front_right.png"
+                                                                     }
+                                                       },
+                                                       {
+                                                           "name":  "right",
+                                                           "angle":  90,
+                                                           "files":  {
+                                                                         "256":  "256/right.png"
+                                                                     }
+                                                       },
+                                                       {
+                                                           "name":  "back_right",
+                                                           "angle":  135,
+                                                           "files":  {
+                                                                         "256":  "256/back_right.png"
+                                                                     }
+                                                       },
+                                                       {
+                                                           "name":  "back",
+                                                           "angle":  180,
+                                                           "files":  {
+                                                                         "256":  "256/back.png"
+                                                                     }
+                                                       },
+                                                       {
+                                                           "name":  "back_left",
+                                                           "angle":  225,
+                                                           "files":  {
+                                                                         "256":  "256/back_left.png"
+                                                                     }
+                                                       },
+                                                       {
+                                                           "name":  "left",
+                                                           "angle":  270,
+                                                           "files":  {
+                                                                         "256":  "256/left.png"
+                                                                     }
+                                                       },
+                                                       {
+                                                           "name":  "front_left",
+                                                           "angle":  315,
+                                                           "files":  {
+                                                                         "256":  "256/front_left.png"
+                                                                     }
+                                                       }
+                                                   ]
+                                },
+                       "walk":  {
+                                    "frameDurationMs":  125,
+                                    "loop":  true,
+                                    "frames":  [
+                                                   {
+                                                       "directions":  [
+                                                                          {
+                                                                              "name":  "front",
+                                                                              "angle":  0,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_0/front.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "front_right",
+                                                                              "angle":  45,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_0/front_right.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "right",
+                                                                              "angle":  90,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_0/right.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "back_right",
+                                                                              "angle":  135,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_0/back_right.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "back",
+                                                                              "angle":  180,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_0/back.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "back_left",
+                                                                              "angle":  225,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_0/back_left.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "left",
+                                                                              "angle":  270,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_0/left.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "front_left",
+                                                                              "angle":  315,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_0/front_left.png"
+                                                                                        }
+                                                                          }
+                                                                      ]
+                                                   },
+                                                   {
+                                                       "directions":  [
+                                                                          {
+                                                                              "name":  "front",
+                                                                              "angle":  0,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_1/front.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "front_right",
+                                                                              "angle":  45,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_1/front_right.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "right",
+                                                                              "angle":  90,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_1/right.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "back_right",
+                                                                              "angle":  135,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_1/back_right.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "back",
+                                                                              "angle":  180,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_1/back.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "back_left",
+                                                                              "angle":  225,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_1/back_left.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "left",
+                                                                              "angle":  270,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_1/left.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "front_left",
+                                                                              "angle":  315,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_1/front_left.png"
+                                                                                        }
+                                                                          }
+                                                                      ]
+                                                   },
+                                                   {
+                                                       "directions":  [
+                                                                          {
+                                                                              "name":  "front",
+                                                                              "angle":  0,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_2/front.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "front_right",
+                                                                              "angle":  45,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_2/front_right.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "right",
+                                                                              "angle":  90,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_2/right.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "back_right",
+                                                                              "angle":  135,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_2/back_right.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "back",
+                                                                              "angle":  180,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_2/back.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "back_left",
+                                                                              "angle":  225,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_2/back_left.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "left",
+                                                                              "angle":  270,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_2/left.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "front_left",
+                                                                              "angle":  315,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_2/front_left.png"
+                                                                                        }
+                                                                          }
+                                                                      ]
+                                                   },
+                                                   {
+                                                       "directions":  [
+                                                                          {
+                                                                              "name":  "front",
+                                                                              "angle":  0,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_3/front.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "front_right",
+                                                                              "angle":  45,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_3/front_right.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "right",
+                                                                              "angle":  90,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_3/right.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "back_right",
+                                                                              "angle":  135,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_3/back_right.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "back",
+                                                                              "angle":  180,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_3/back.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "back_left",
+                                                                              "angle":  225,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_3/back_left.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "left",
+                                                                              "angle":  270,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_3/left.png"
+                                                                                        }
+                                                                          },
+                                                                          {
+                                                                              "name":  "front_left",
+                                                                              "angle":  315,
+                                                                              "files":  {
+                                                                                            "256":  "256_walk_3/front_left.png"
+                                                                                        }
+                                                                          }
+                                                                      ]
+                                                   }
+                                               ]
+                                },
+                       "attack":  {
+                                      "frameDurationMs":  90,
+                                      "loop":  true,
+                                      "frames":  [
+                                                     {
+                                                         "directions":  [
+                                                                            {
+                                                                                "name":  "front",
+                                                                                "angle":  0,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_0/front.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "front_right",
+                                                                                "angle":  45,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_0/front_right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "right",
+                                                                                "angle":  90,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_0/right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back_right",
+                                                                                "angle":  135,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_0/back_right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back",
+                                                                                "angle":  180,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_0/back.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back_left",
+                                                                                "angle":  225,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_0/back_left.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "left",
+                                                                                "angle":  270,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_0/left.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "front_left",
+                                                                                "angle":  315,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_0/front_left.png"
+                                                                                          }
+                                                                            }
+                                                                        ]
+                                                     },
+                                                     {
+                                                         "directions":  [
+                                                                            {
+                                                                                "name":  "front",
+                                                                                "angle":  0,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_1/front.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "front_right",
+                                                                                "angle":  45,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_1/front_right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "right",
+                                                                                "angle":  90,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_1/right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back_right",
+                                                                                "angle":  135,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_1/back_right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back",
+                                                                                "angle":  180,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_1/back.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back_left",
+                                                                                "angle":  225,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_1/back_left.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "left",
+                                                                                "angle":  270,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_1/left.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "front_left",
+                                                                                "angle":  315,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_1/front_left.png"
+                                                                                          }
+                                                                            }
+                                                                        ]
+                                                     },
+                                                     {
+                                                         "directions":  [
+                                                                            {
+                                                                                "name":  "front",
+                                                                                "angle":  0,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_2/front.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "front_right",
+                                                                                "angle":  45,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_2/front_right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "right",
+                                                                                "angle":  90,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_2/right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back_right",
+                                                                                "angle":  135,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_2/back_right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back",
+                                                                                "angle":  180,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_2/back.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back_left",
+                                                                                "angle":  225,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_2/back_left.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "left",
+                                                                                "angle":  270,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_2/left.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "front_left",
+                                                                                "angle":  315,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_2/front_left.png"
+                                                                                          }
+                                                                            }
+                                                                        ]
+                                                     },
+                                                     {
+                                                         "directions":  [
+                                                                            {
+                                                                                "name":  "front",
+                                                                                "angle":  0,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_3/front.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "front_right",
+                                                                                "angle":  45,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_3/front_right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "right",
+                                                                                "angle":  90,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_3/right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back_right",
+                                                                                "angle":  135,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_3/back_right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back",
+                                                                                "angle":  180,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_3/back.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back_left",
+                                                                                "angle":  225,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_3/back_left.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "left",
+                                                                                "angle":  270,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_3/left.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "front_left",
+                                                                                "angle":  315,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_3/front_left.png"
+                                                                                          }
+                                                                            }
+                                                                        ]
+                                                     },
+                                                     {
+                                                         "directions":  [
+                                                                            {
+                                                                                "name":  "front",
+                                                                                "angle":  0,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_4/front.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "front_right",
+                                                                                "angle":  45,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_4/front_right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "right",
+                                                                                "angle":  90,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_4/right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back_right",
+                                                                                "angle":  135,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_4/back_right.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back",
+                                                                                "angle":  180,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_4/back.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "back_left",
+                                                                                "angle":  225,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_4/back_left.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "left",
+                                                                                "angle":  270,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_4/left.png"
+                                                                                          }
+                                                                            },
+                                                                            {
+                                                                                "name":  "front_left",
+                                                                                "angle":  315,
+                                                                                "files":  {
+                                                                                              "256":  "256_attack_4/front_left.png"
+                                                                                          }
+                                                                            }
+                                                                        ]
+                                                     }
+                                                 ]
+                                  },
+                       "death":  {
+                                     "frameDurationMs":  115,
+                                     "loop":  false,
+                                     "frames":  [
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "angle":  0,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_00.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "angle":  45,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_00.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "angle":  90,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_00.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "angle":  135,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_00.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "angle":  180,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_00.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "angle":  225,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_00.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "angle":  270,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_00.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "angle":  315,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_00.png"
+                                                                                         }
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "angle":  0,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_01.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "angle":  45,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_01.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "angle":  90,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_01.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "angle":  135,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_01.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "angle":  180,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_01.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "angle":  225,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_01.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "angle":  270,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_01.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "angle":  315,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_01.png"
+                                                                                         }
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "angle":  0,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_02.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "angle":  45,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_02.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "angle":  90,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_02.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "angle":  135,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_02.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "angle":  180,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_02.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "angle":  225,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_02.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "angle":  270,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_02.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "angle":  315,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_02.png"
+                                                                                         }
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "angle":  0,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_03.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "angle":  45,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_03.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "angle":  90,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_03.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "angle":  135,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_03.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "angle":  180,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_03.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "angle":  225,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_03.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "angle":  270,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_03.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "angle":  315,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_03.png"
+                                                                                         }
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "angle":  0,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_04.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "angle":  45,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_04.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "angle":  90,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_04.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "angle":  135,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_04.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "angle":  180,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_04.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "angle":  225,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_04.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "angle":  270,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_04.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "angle":  315,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_04.png"
+                                                                                         }
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "angle":  0,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_05.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "angle":  45,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_05.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "angle":  90,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_05.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "angle":  135,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_05.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "angle":  180,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_05.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "angle":  225,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_05.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "angle":  270,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_05.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "angle":  315,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_05.png"
+                                                                                         }
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "angle":  0,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_06.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "angle":  45,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_06.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "angle":  90,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_06.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "angle":  135,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_06.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "angle":  180,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_06.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "angle":  225,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_06.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "angle":  270,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_06.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "angle":  315,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_06.png"
+                                                                                         }
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "angle":  0,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_07.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "angle":  45,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_07.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "angle":  90,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_07.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "angle":  135,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_07.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "angle":  180,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_07.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "angle":  225,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_07.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "angle":  270,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_07.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "angle":  315,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_07.png"
+                                                                                         }
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "angle":  0,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_08.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "angle":  45,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_08.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "angle":  90,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_08.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "angle":  135,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_08.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "angle":  180,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_08.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "angle":  225,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_08.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "angle":  270,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_08.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "angle":  315,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_08.png"
+                                                                                         }
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "angle":  0,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_09.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "angle":  45,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_09.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "angle":  90,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_09.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "angle":  135,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_09.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "angle":  180,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_09.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "angle":  225,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_09.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "angle":  270,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_09.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "angle":  315,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_09.png"
+                                                                                         }
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "angle":  0,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_10.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "angle":  45,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_10.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "angle":  90,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_10.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "angle":  135,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_10.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "angle":  180,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_10.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "angle":  225,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_10.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "angle":  270,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_10.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "angle":  315,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_10.png"
+                                                                                         }
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "angle":  0,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_11.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "angle":  45,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_11.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "angle":  90,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_11.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "angle":  135,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_11.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "angle":  180,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_11.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "angle":  225,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_11.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "angle":  270,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_11.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "angle":  315,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_11.png"
+                                                                                         }
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "angle":  0,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_12.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "angle":  45,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_12.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "angle":  90,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_12.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "angle":  135,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_12.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "angle":  180,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_12.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "angle":  225,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_12.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "angle":  270,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_12.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "angle":  315,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_12.png"
+                                                                                         }
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "angle":  0,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_13.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "angle":  45,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_13.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "angle":  90,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_13.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "angle":  135,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_13.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "angle":  180,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_13.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "angle":  225,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_13.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "angle":  270,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_13.png"
+                                                                                         }
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "angle":  315,
+                                                                               "files":  {
+                                                                                             "256":  "256_death/death_13.png"
+                                                                                         }
+                                                                           }
+                                                                       ]
+                                                    }
+                                                ]
+                                 }
+                   },
+    "lod":  [
+                {
+                    "maxDistance":  9999,
+                    "resolution":  256
+                }
+            ]
+}

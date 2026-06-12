@@ -1,0 +1,7347 @@
+{
+  "format": "winraycast.world",
+  "version": 2,
+  "name": "demo.world",
+  "grid": {
+    "columns": 16,
+    "rows": 16,
+    "cellWidth": 512,
+    "cellDepth": 512,
+    "defaultWallHeight": 512
+  },
+  "playerStart": {
+    "xCell": 4.5,
+    "yCell": 10.5,
+    "facingDegrees": 90
+  },
+  "playerStats": {
+    "maxHealth": 100,
+    "health": 100
+  },
+  "playerTurn": {
+    "baseDegreesPerSecond": 90,
+    "maxDegreesPerSecond": 300,
+    "accelerationDegreesPerSecondSquared": 360
+  },
+  "textureRoot": ".",
+  "defaultHorizonImage": "textures/texture_sky_clouds.png",
+  "playerWeapon": {
+    "file": "weapons/pistol/pistol.weapon.json",
+    "visible": true,
+    "unlocked": false,
+    "screenHeightFraction": 0.48
+  },
+  "playerWeapons": [
+    {
+      "file": "weapons/pistol/pistol.weapon.json",
+      "visible": true,
+      "unlocked": false,
+      "screenHeightFraction": 0.48
+    },
+    {
+      "file": "weapons/super_shotgun/super_shotgun.weapon.json",
+      "visible": true,
+      "unlocked": false,
+      "screenHeightFraction": 0.34
+    },
+    {
+      "file": "weapons/submachine_gun/submachine_gun.weapon.json",
+      "visible": true,
+      "unlocked": false,
+      "screenHeightFraction": 0.31
+    }
+  ],
+  "backgroundMusic": {
+    "file": "audio/holst_mars_15s_no_fadein.ogg",
+    "enabled": true,
+    "loop": true,
+    "volumePercent": 20
+  },
+  "activeLayer": "level_1",
+  "startLayer": "level_1",
+  "textures": {
+    "01": {
+      "name": "textures/texture_original_01_wall.png",
+      "file": "textures/texture_original_01_wall.png"
+    },
+    "02": {
+      "name": "textures/texture_original_02_wall.png",
+      "file": "textures/texture_original_02_wall.png"
+    },
+    "03": {
+      "name": "textures/texture_original_03_transparent_wall.png",
+      "file": "textures/texture_original_03_transparent_wall.png"
+    },
+    "04": {
+      "name": "textures/texture_original_04_wall.png",
+      "file": "textures/texture_original_04_wall.png"
+    },
+    "05": {
+      "name": "textures/texture_original_05_wall.png",
+      "file": "textures/texture_original_05_wall.png"
+    },
+    "06": {
+      "name": "textures/texture_original_06_wall.png",
+      "file": "textures/texture_original_06_wall.png"
+    },
+    "07": {
+      "name": "textures/texture_original_07_wall.png",
+      "file": "textures/texture_original_07_wall.png"
+    },
+    "08": {
+      "name": "textures/texture_original_08_floor.png",
+      "file": "textures/texture_original_08_floor.png"
+    },
+    "09": {
+      "name": "textures/texture_original_09_floor.png",
+      "file": "textures/texture_original_09_floor.png"
+    },
+    "0a": {
+      "name": "textures/texture_original_0a_wall.png",
+      "file": "textures/texture_original_0a_wall.png"
+    },
+    "0b": {
+      "name": "textures/texture_original_0b_ceiling.png",
+      "file": "textures/texture_original_0b_ceiling.png"
+    },
+    "0c": {
+      "name": "textures/texture_original_0c_ceiling.png",
+      "file": "textures/texture_original_0c_ceiling.png"
+    },
+    "0d": {
+      "name": "textures/texture_original_0d_wall.png",
+      "file": "textures/texture_original_0d_wall.png"
+    },
+    "0e": {
+      "name": "textures/texture_original_0e_wall.png",
+      "file": "textures/texture_original_0e_wall.png"
+    },
+    "0f": {
+      "name": "textures/wall_clinic_room.png",
+      "file": "textures/wall_clinic_room.png"
+    },
+    "10": {
+      "name": "textures/wall_engine4_room.png",
+      "file": "textures/wall_engine4_room.png"
+    },
+    "11": {
+      "name": "textures/texture_museum_01_classical_marble_red_panels.png",
+      "file": "textures/texture_museum_01_classical_marble_red_panels.png"
+    },
+    "12": {
+      "name": "textures/texture_museum_02_gallery_gold_frames.png",
+      "file": "textures/texture_museum_02_gallery_gold_frames.png"
+    },
+    "13": {
+      "name": "textures/texture_museum_03_dark_wood_display_niches.png",
+      "file": "textures/texture_museum_03_dark_wood_display_niches.png"
+    },
+    "14": {
+      "name": "textures/texture_museum_04_green_marble_bronze_artdeco.png",
+      "file": "textures/texture_museum_04_green_marble_bronze_artdeco.png"
+    },
+    "15": {
+      "name": "textures/texture_museum_05_glass_display_recesses.png",
+      "file": "textures/texture_museum_05_glass_display_recesses.png"
+    },
+    "16": {
+      "name": "textures/texture_museum_06_burgundy_gallery_wallpaper.png",
+      "file": "textures/texture_museum_06_burgundy_gallery_wallpaper.png"
+    },
+    "17": {
+      "name": "textures/texture_museum_07_natural_history_banners.png",
+      "file": "textures/texture_museum_07_natural_history_banners.png"
+    },
+    "18": {
+      "name": "textures/texture_museum_08_classical_mosaic.png",
+      "file": "textures/texture_museum_08_classical_mosaic.png"
+    },
+    "19": {
+      "name": "textures/texture_museum_09_black_marble_red_accent.png",
+      "file": "textures/texture_museum_09_black_marble_red_accent.png"
+    },
+    "1a": {
+      "name": "textures/texture_museum_10_sandstone_sculpture_niches.png",
+      "file": "textures/texture_museum_10_sandstone_sculpture_niches.png"
+    },
+    "1b": {
+      "name": "textures/wall_armory_room.png",
+      "file": "textures/wall_armory_room.png"
+    },
+    "1c": {
+      "name": "textures/wall_cabinet.png",
+      "file": "textures/wall_cabinet.png"
+    },
+    "1d": {
+      "name": "textures/wall_elevator.png",
+      "file": "textures/wall_elevator.png"
+    },
+    "1e": {
+      "name": "textures/wall_engine_room.png",
+      "file": "textures/wall_engine_room.png"
+    },
+    "1f": {
+      "name": "textures/wall_engine2_room.png",
+      "file": "textures/wall_engine2_room.png"
+    },
+    "20": {
+      "name": "textures/wall_with_stars.png",
+      "file": "textures/wall_with_stars.png"
+    },
+    "21": {
+      "name": "textures/texture_industrial_01_rusted_panel.png",
+      "file": "textures/texture_industrial_01_rusted_panel.png"
+    },
+    "22": {
+      "name": "textures/texture_industrial_02_hazard_panel.png",
+      "file": "textures/texture_industrial_02_hazard_panel.png"
+    },
+    "23": {
+      "name": "textures/texture_industrial_03_demonic_stone_skulls.png",
+      "file": "textures/texture_industrial_03_demonic_stone_skulls.png"
+    },
+    "24": {
+      "name": "textures/texture_industrial_04_lava_bricks.png",
+      "file": "textures/texture_industrial_04_lava_bricks.png"
+    },
+    "25": {
+      "name": "textures/texture_industrial_05_biomechanical_flesh.png",
+      "file": "textures/texture_industrial_05_biomechanical_flesh.png"
+    },
+    "26": {
+      "name": "textures/clinic6.png",
+      "file": "textures/clinic6.png"
+    },
+    "27": {
+      "name": "textures/texture_industrial_07_pipework_grates.png",
+      "file": "textures/texture_industrial_07_pipework_grates.png"
+    },
+    "28": {
+      "name": "textures/texture_industrial_08_toxic_slime.png",
+      "file": "textures/texture_industrial_08_toxic_slime.png"
+    },
+    "29": {
+      "name": "textures/texture_industrial_09_occult_runes.png",
+      "file": "textures/texture_industrial_09_occult_runes.png"
+    },
+    "2a": {
+      "name": "textures/texture_industrial_10_chains_spikes.png",
+      "file": "textures/texture_industrial_10_chains_spikes.png"
+    },
+    "2b": {
+      "name": "textures/clinic1.png",
+      "file": "textures/clinic1.png"
+    },
+    "2c": {
+      "name": "textures/clinic2.png",
+      "file": "textures/clinic2.png"
+    },
+    "2d": {
+      "name": "textures/clinic3.png",
+      "file": "textures/clinic3.png"
+    },
+    "2e": {
+      "name": "textures/clinic4.png",
+      "file": "textures/clinic4.png"
+    },
+    "2f": {
+      "name": "textures/clinic5.png",
+      "file": "textures/clinic5.png"
+    },
+    "30": {
+      "name": "textures/clinic7.png",
+      "file": "textures/clinic7.png"
+    },
+    "31": {
+      "name": "textures/texture_museum_02_gallery_gold_frames.png",
+      "file": "textures/texture_museum_02_gallery_gold_frames.png"
+    },
+    "32": {
+      "name": "textures/texture_industrial_01_rusted_panel.png",
+      "file": "textures/texture_industrial_01_rusted_panel.png"
+    },
+    "33": {
+      "name": "textures/texture_museum_03_dark_wood_display_niches.png",
+      "file": "textures/texture_museum_03_dark_wood_display_niches.png"
+    },
+    "34": {
+      "name": "textures/texture_industrial_10_chains_spikes.png",
+      "file": "textures/texture_industrial_10_chains_spikes.png"
+    },
+    "35": {
+      "name": "textures/texture_museum_10_sandstone_sculpture_niches.png",
+      "file": "textures/texture_museum_10_sandstone_sculpture_niches.png"
+    },
+    "36": {
+      "name": "textures/texture_industrial_04_lava_bricks.png",
+      "file": "textures/texture_industrial_04_lava_bricks.png"
+    },
+    "37": {
+      "name": "textures/texture_museum_07_natural_history_banners.png",
+      "file": "textures/texture_museum_07_natural_history_banners.png"
+    },
+    "38": {
+      "name": "textures/texture_industrial_08_toxic_slime.png",
+      "file": "textures/texture_industrial_08_toxic_slime.png"
+    },
+    "39": {
+      "name": "textures/texture_museum_09_black_marble_red_accent.png",
+      "file": "textures/texture_museum_09_black_marble_red_accent.png"
+    },
+    "3a": {
+      "name": "textures/texture_museum_04_green_marble_bronze_artdeco.png",
+      "file": "textures/texture_museum_04_green_marble_bronze_artdeco.png"
+    },
+    "3b": {
+      "name": "textures/clinic8.png",
+      "file": "textures/clinic8.png"
+    },
+    "3c": {
+      "name": "textures/clinic9.png",
+      "file": "textures/clinic9.png"
+    },
+    "3d": {
+      "name": "textures/armory1.png",
+      "file": "textures/armory1.png"
+    },
+    "3e": {
+      "name": "textures/armory2.png",
+      "file": "textures/armory2.png"
+    },
+    "3f": {
+      "name": "textures/armory3.png",
+      "file": "textures/armory3.png"
+    },
+    "40": {
+      "name": "textures/armory4.png",
+      "file": "textures/armory4.png"
+    },
+    "41": {
+      "name": "textures/armory5.png",
+      "file": "textures/armory5.png"
+    },
+    "42": {
+      "name": "textures/armory6.png",
+      "file": "textures/armory6.png"
+    },
+    "43": {
+      "name": "textures/armory7.png",
+      "file": "textures/armory7.png"
+    },
+    "44": {
+      "name": "textures/armory8.png",
+      "file": "textures/armory8.png"
+    },
+    "45": {
+      "name": "textures/armory9.png",
+      "file": "textures/armory9.png"
+    },
+    "46": {
+      "name": "textures/armory10.png",
+      "file": "textures/armory10.png"
+    },
+    "47": {
+      "name": "textures/armory11.png",
+      "file": "textures/armory11.png"
+    },
+    "48": {
+      "name": "textures/wall_tiles.png",
+      "file": "textures/wall_tiles.png"
+    },
+    "80": {
+      "name": "textures/texture_library_bookshelf_dark.png",
+      "file": "textures/texture_library_bookshelf_dark.png"
+    },
+    "81": {
+      "name": "textures/texture_library_stone_wall.png",
+      "file": "textures/texture_library_stone_wall.png"
+    },
+    "82": {
+      "name": "textures/texture_library_wood_panel_dark.png",
+      "file": "textures/texture_library_wood_panel_dark.png"
+    },
+    "83": {
+      "name": "textures/texture_library_plaster_panel.png",
+      "file": "textures/texture_library_plaster_panel.png"
+    },
+    "84": {
+      "name": "textures/texture_library_old_plaster_brick.png",
+      "file": "textures/texture_library_old_plaster_brick.png"
+    },
+    "85": {
+      "name": "textures/texture_library_leather_panel.png",
+      "file": "textures/texture_library_leather_panel.png"
+    },
+    "86": {
+      "name": "textures/texture_library_bookshelf_tall.png",
+      "file": "textures/texture_library_bookshelf_tall.png"
+    },
+    "87": {
+      "name": "textures/texture_library_green_panel.png",
+      "file": "textures/texture_library_green_panel.png"
+    },
+    "88": {
+      "name": "textures/texture_library_gothic_wood_panel.png",
+      "file": "textures/texture_library_gothic_wood_panel.png"
+    },
+    "89": {
+      "name": "textures/texture_library_shelves_lit_modern.png",
+      "file": "textures/texture_library_shelves_lit_modern.png"
+    },
+    "8a": {
+      "name": "textures/texture_library_shelves_gray.png",
+      "file": "textures/texture_library_shelves_gray.png"
+    },
+    "8b": {
+      "name": "textures/texture_library_bookshelf_classic.png",
+      "file": "textures/texture_library_bookshelf_classic.png"
+    },
+    "90": {
+      "name": "textures/texture_lab_clean_concrete_panel.png",
+      "file": "textures/texture_lab_clean_concrete_panel.png"
+    },
+    "91": {
+      "name": "textures/texture_lab_rusted_vent_panel.png",
+      "file": "textures/texture_lab_rusted_vent_panel.png"
+    },
+    "92": {
+      "name": "textures/texture_lab_grimy_tile_green_stripe.png",
+      "file": "textures/texture_lab_grimy_tile_green_stripe.png"
+    },
+    "93": {
+      "name": "textures/texture_lab_teal_panel_vent.png",
+      "file": "textures/texture_lab_teal_panel_vent.png"
+    },
+    "94": {
+      "name": "textures/texture_lab_cracked_floor.png",
+      "file": "textures/texture_lab_cracked_floor.png"
+    },
+    "95": {
+      "name": "textures/texture_lab_diamond_plate.png",
+      "file": "textures/texture_lab_diamond_plate.png"
+    },
+    "96": {
+      "name": "textures/texture_lab_floor_tiles.png",
+      "file": "textures/texture_lab_floor_tiles.png"
+    },
+    "97": {
+      "name": "textures/texture_lab_grate_floor.png",
+      "file": "textures/texture_lab_grate_floor.png"
+    },
+    "98": {
+      "name": "textures/texture_lab_workbench.png",
+      "file": "textures/texture_lab_workbench.png"
+    },
+    "99": {
+      "name": "textures/texture_lab_corridor_window.png",
+      "file": "textures/texture_lab_corridor_window.png"
+    },
+    "9a": {
+      "name": "textures/texture_lab_heavy_door.png",
+      "file": "textures/texture_lab_heavy_door.png"
+    },
+    "9b": {
+      "name": "textures/texture_lab_control_panel.png",
+      "file": "textures/texture_lab_control_panel.png"
+    },
+    "9c": {
+      "name": "textures/texture_lab_specimen_cabinet.png",
+      "file": "textures/texture_lab_specimen_cabinet.png"
+    },
+    "9d": {
+      "name": "textures/texture_lab_specimen_tank.png",
+      "file": "textures/texture_lab_specimen_tank.png"
+    },
+    "9e": {
+      "name": "textures/texture_lab_concrete_panel_alt.png",
+      "file": "textures/texture_lab_concrete_panel_alt.png"
+    },
+    "9f": {
+      "name": "textures/texture_lab_green_wall_panel.png",
+      "file": "textures/texture_lab_green_wall_panel.png"
+    },
+    "a0": {
+      "name": "textures/texture_lab_bench_glassware_alt.png",
+      "file": "textures/texture_lab_bench_glassware_alt.png"
+    },
+    "a1": {
+      "name": "textures/texture_lab_specimen_tank_alt.png",
+      "file": "textures/texture_lab_specimen_tank_alt.png"
+    },
+    "b0": {
+      "name": "textures/texture_door_slide_00.png",
+      "file": "textures/texture_door_slide_00.png"
+    },
+    "b1": {
+      "name": "textures/texture_door_slide_01.png",
+      "file": "textures/texture_door_slide_01.png"
+    },
+    "b2": {
+      "name": "textures/texture_door_slide_02.png",
+      "file": "textures/texture_door_slide_02.png"
+    },
+    "b3": {
+      "name": "textures/texture_door_slide_03.png",
+      "file": "textures/texture_door_slide_03.png"
+    },
+    "b4": {
+      "name": "textures/texture_door_slide_04.png",
+      "file": "textures/texture_door_slide_04.png"
+    },
+    "b5": {
+      "name": "textures/texture_door_slide_05.png",
+      "file": "textures/texture_door_slide_05.png"
+    },
+    "b6": {
+      "name": "textures/texture_door_slide_06.png",
+      "file": "textures/texture_door_slide_06.png"
+    },
+    "b7": {
+      "name": "textures/texture_door_slide_07.png",
+      "file": "textures/texture_door_slide_07.png"
+    },
+    "c0": {
+      "name": "textures/texture_tvcc_overlay_00.png",
+      "file": "textures/texture_tvcc_overlay_00.png"
+    },
+    "c1": {
+      "name": "textures/texture_tvcc_overlay_01.png",
+      "file": "textures/texture_tvcc_overlay_01.png"
+    },
+    "c2": {
+      "name": "textures/texture_tvcc_overlay_02.png",
+      "file": "textures/texture_tvcc_overlay_02.png"
+    },
+    "c3": {
+      "name": "textures/texture_tvcc_overlay_03.png",
+      "file": "textures/texture_tvcc_overlay_03.png"
+    },
+    "d0": {
+      "name": "textures/texture_door_elevator_slide_00.png",
+      "file": "textures/texture_door_elevator_slide_00.png"
+    },
+    "d1": {
+      "name": "textures/texture_door_elevator_slide_01.png",
+      "file": "textures/texture_door_elevator_slide_01.png"
+    },
+    "d2": {
+      "name": "textures/texture_door_elevator_slide_02.png",
+      "file": "textures/texture_door_elevator_slide_02.png"
+    },
+    "d3": {
+      "name": "textures/texture_door_elevator_slide_03.png",
+      "file": "textures/texture_door_elevator_slide_03.png"
+    },
+    "d4": {
+      "name": "textures/texture_door_elevator_slide_04.png",
+      "file": "textures/texture_door_elevator_slide_04.png"
+    },
+    "d5": {
+      "name": "textures/texture_door_elevator_slide_05.png",
+      "file": "textures/texture_door_elevator_slide_05.png"
+    },
+    "d6": {
+      "name": "textures/texture_door_elevator_slide_06.png",
+      "file": "textures/texture_door_elevator_slide_06.png"
+    },
+    "d7": {
+      "name": "textures/texture_door_elevator_slide_07.png",
+      "file": "textures/texture_door_elevator_slide_07.png"
+    },
+    "d8": {
+      "name": "textures/texture_door_elevator_slide_08.png",
+      "file": "textures/texture_door_elevator_slide_08.png"
+    },
+    "ea": {
+      "name": "textures/texture_wall_elevator.png",
+      "file": "textures/texture_wall_elevator.png"
+    },
+    "f0": {
+      "name": "textures/texture_door_key_overlay_green.png",
+      "file": "textures/texture_door_key_overlay_green.png"
+    },
+    "f1": {
+      "name": "textures/texture_door_key_overlay_blue.png",
+      "file": "textures/texture_door_key_overlay_blue.png"
+    },
+    "f2": {
+      "name": "textures/texture_door_key_overlay_red.png",
+      "file": "textures/texture_door_key_overlay_red.png"
+    },
+    "ff": {
+      "name": "textures/texture_sky_clouds.png",
+      "file": "textures/texture_sky_clouds.png"
+    }
+  },
+  "blocks": {
+    "00": {
+      "name": "two_level_original_01_02_wall",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "01",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "02",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "01": {
+      "name": "open_sky_original_08_floor",
+      "floor": {
+        "texture": "08",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "ff",
+        "height": 512
+      },
+      "walls": [],
+      "horizonImage": "textures/texture_sky_clouds.png"
+    },
+    "02": {
+      "name": "original_07_wall_05_upper",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "07",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "05",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "03": {
+      "name": "original_05_wall_07_upper",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "05",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "07",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "04": {
+      "name": "original_06_wall_02_upper",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "06",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "02",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "05": {
+      "name": "sliding_corridor_door",
+      "floor": {
+        "texture": "09",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "05",
+        "height": 512
+      },
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "04",
+          "faceTextures": {
+            "north": "04",
+            "east": "04",
+            "south": "04",
+            "west": "04"
+          },
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "transparent",
+          "texture": "b0",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ],
+      "door": {
+        "enabled": true,
+        "blocksWhenClosed": true,
+        "requiredKey": "green",
+        "triggerDistanceCells": 1.35,
+        "openTimeSeconds": 0.55,
+        "closeDelaySeconds": 1.1,
+        "openSound": "effects/Doors_Opening.mp3",
+        "openSoundVolumePercent": 100,
+        "frames": [
+          "b0",
+          "b1",
+          "b2",
+          "b3",
+          "b4",
+          "b5",
+          "b6",
+          "b7"
+        ],
+        "lockedOverlays": {
+          "green": "f0",
+          "blue": "f1",
+          "red": "f2"
+        }
+      }
+    },
+    "06": {
+      "name": "original_04_wall",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "04",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "07": {
+      "name": "open_original_09_floor_0c_ceiling",
+      "floor": {
+        "texture": "09",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "0c",
+        "height": 512
+      },
+      "walls": []
+    },
+    "08": {
+      "name": "original_06_wall",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "06",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "09": {
+      "name": "open_original_09_floor_06_ceiling",
+      "floor": {
+        "texture": "09",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "06",
+        "height": 512
+      },
+      "walls": []
+    },
+    "0a": {
+      "name": "open_original_09_floor_0b_ceiling",
+      "floor": {
+        "texture": "09",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "0b",
+        "height": 512
+      },
+      "walls": []
+    },
+    "0b": {
+      "name": "original_0e_wall_0a_upper_09_floor",
+      "floor": {
+        "texture": "09",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "0c",
+        "height": 512
+      },
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "0e",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "0a",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "0c": {
+      "name": "original_04_wall_0a_upper_09_floor",
+      "floor": {
+        "texture": "09",
+        "height": 0
+      },
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "04",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "0d": {
+      "name": "original_0d_wall_available",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "0d",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "0e": {
+      "name": "original_0e_wall_0a_upper_09_floor_2_10",
+      "ceiling": {
+        "texture": "0c",
+        "height": 512
+      },
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "0e",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "0f": {
+      "name": "cell_block_12_13",
+      "ceiling": {
+        "texture": "01",
+        "height": 512
+      },
+      "walls": []
+    },
+    "10": {
+      "name": "cell_block_12_13_12_13",
+      "floor": {
+        "texture": "01",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "01",
+        "height": 512
+      },
+      "walls": []
+    },
+    "11": {
+      "name": "elevator_museum_wall_metal_interior_faces_10_14",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "04",
+          "faceTextures": {
+            "east": "04",
+            "west": "04",
+            "north": "04",
+            "south": "04"
+          },
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "12": {
+      "name": "stack_2",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "3c",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "12",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "13": {
+      "name": "stack_2",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "26",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "12",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "14": {
+      "name": "stack_2",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "2f",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "12",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "15": {
+      "name": "wall_3b",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "3b",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "16": {
+      "name": "wall_2c",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "2c",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "17": {
+      "name": "wall_30",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "30",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "18": {
+      "name": "wall_2b",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "2b",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "19": {
+      "name": "wall_0f",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "0f",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "1a": {
+      "name": "wall_2d",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "2d",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "1b": {
+      "name": "wall_3c",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "3c",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "1c": {
+      "name": "original_06_wall_0_9",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9e",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "1d": {
+      "name": "elevator_museum_wall_metal_interior_faces_10_14_8_13",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "82",
+          "faceTextures": {
+            "east": "04",
+            "west": "04",
+            "north": "04",
+            "south": "04"
+          },
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "1e": {
+      "name": "library_stack_2_9_8",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "82",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "1f": {
+      "name": "library_stack_2_9_8_15_4",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "88",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "20": {
+      "name": "sliding_corridor_door_14_7",
+      "floor": {
+        "texture": "09",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "05",
+        "height": 512
+      },
+      "walls": [
+        {
+          "kind": "transparent",
+          "texture": "b0",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ],
+      "door": {
+        "enabled": true,
+        "blocksWhenClosed": true,
+        "requiredKey": "red",
+        "triggerDistanceCells": 1.35,
+        "openTimeSeconds": 0.55,
+        "closeDelaySeconds": 1.1,
+        "openSound": "effects/Doors_Opening.mp3",
+        "openSoundVolumePercent": 100,
+        "frames": [
+          "b0",
+          "b1",
+          "b2",
+          "b3",
+          "b4",
+          "b5",
+          "b6",
+          "b7"
+        ],
+        "lockedOverlays": {
+          "green": "f0",
+          "blue": "f1",
+          "red": "f2"
+        }
+      }
+    },
+    "21": {
+      "name": "sliding_corridor_door_blue",
+      "floor": {
+        "texture": "08",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "05",
+        "height": 512
+      },
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "04",
+          "faceTextures": {
+            "north": "04",
+            "east": "04",
+            "south": "04",
+            "west": "04"
+          },
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "transparent",
+          "texture": "b0",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ],
+      "door": {
+        "enabled": true,
+        "blocksWhenClosed": true,
+        "requiredKey": "blue",
+        "triggerDistanceCells": 1.35,
+        "openTimeSeconds": 0.55,
+        "closeDelaySeconds": 1.1,
+        "openSound": "effects/Doors_Opening.mp3",
+        "openSoundVolumePercent": 100,
+        "frames": [
+          "b0",
+          "b1",
+          "b2",
+          "b3",
+          "b4",
+          "b5",
+          "b6",
+          "b7"
+        ],
+        "lockedOverlays": {
+          "green": "f0",
+          "blue": "f1",
+          "red": "f2"
+        }
+      }
+    },
+    "22": {
+      "name": "sliding_corridor_door_red",
+      "floor": {
+        "texture": "08",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "05",
+        "height": 512
+      },
+      "walls": [
+        {
+          "kind": "transparent",
+          "texture": "b0",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ],
+      "door": {
+        "enabled": true,
+        "blocksWhenClosed": true,
+        "requiredKey": "green",
+        "triggerDistanceCells": 1.35,
+        "openTimeSeconds": 0.55,
+        "closeDelaySeconds": 1.1,
+        "openSound": "effects/Doors_Opening.mp3",
+        "openSoundVolumePercent": 100,
+        "frames": [
+          "b0",
+          "b1",
+          "b2",
+          "b3",
+          "b4",
+          "b5",
+          "b6",
+          "b7"
+        ],
+        "lockedOverlays": {
+          "green": "f0",
+          "blue": "f1",
+          "red": "f2"
+        }
+      }
+    },
+    "23": {
+      "name": "sliding_corridor_door_red_8_11",
+      "floor": {
+        "texture": "08",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "05",
+        "height": 512
+      },
+      "walls": [
+        {
+          "kind": "transparent",
+          "texture": "b0",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ],
+      "door": {
+        "enabled": true,
+        "blocksWhenClosed": true,
+        "requiredKey": "green",
+        "triggerDistanceCells": 1.35,
+        "openTimeSeconds": 0.55,
+        "closeDelaySeconds": 1.1,
+        "openSound": "effects/Doors_Opening.mp3",
+        "openSoundVolumePercent": 100,
+        "frames": [
+          "b0",
+          "b1",
+          "b2",
+          "b3",
+          "b4",
+          "b5",
+          "b6",
+          "b7"
+        ],
+        "lockedOverlays": {
+          "green": "f0",
+          "blue": "f1",
+          "red": "f2"
+        }
+      }
+    },
+    "24": {
+      "name": "original_06_wall_hybrid_palette_15_9",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "99",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "25": {
+      "name": "original_06_wall_hybrid_palette_15_10",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9a",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "26": {
+      "name": "original_06_wall_hybrid_palette_15_11",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "93",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "27": {
+      "name": "original_06_wall_hybrid_palette_15_12",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "98",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "28": {
+      "name": "original_06_wall_hybrid_palette_15_13",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9a",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "29": {
+      "name": "original_06_wall_hybrid_palette_15_14",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9c",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "2a": {
+      "name": "original_06_wall_hybrid_palette_14_15",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9c",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "2b": {
+      "name": "original_06_wall_hybrid_palette_13_15",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9d",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "2c": {
+      "name": "original_06_wall_02_upper_hybrid_palette_13_8",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9a",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "32",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "2d": {
+      "name": "original_06_wall_02_upper_hybrid_palette_14_8",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9c",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "2e": {
+      "name": "original_06_wall_hybrid_palette_12_9",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "23",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "2f": {
+      "name": "open_original_09_floor_06_ceiling_hybrid_palette_13_9",
+      "floor": {
+        "texture": "39",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "36",
+        "height": 512
+      },
+      "walls": []
+    },
+    "30": {
+      "name": "open_original_09_floor_06_ceiling_hybrid_palette_13_9",
+      "floor": {
+        "texture": "97",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "36",
+        "height": 512
+      },
+      "walls": []
+    },
+    "31": {
+      "name": "original_06_wall_hybrid_palette_12_15",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "95",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "32": {
+      "name": "tvcc_monitor_wall_main_floor_7_14",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "42",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ],
+      "animations": [
+        {
+          "name": "tvcc_cycle",
+          "target": "wallOverlay",
+          "wallIndex": 0,
+          "face": "all",
+          "frameDurationMs": 2500,
+          "loop": true,
+          "frames": [
+            "c0",
+            "c1",
+            "c2",
+            "c3"
+          ]
+        }
+      ]
+    },
+    "33": {
+      "name": "tvcc_monitor_wall_main_floor_7_14_7_14",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "42",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "34": {
+      "name": "original_06_wall_0_9_5_8",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9e",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "35": {
+      "name": "original_06_wall_0_9_5_8",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9e",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ],
+      "animations": [
+        {
+          "name": "animation_1",
+          "target": "wall",
+          "wallIndex": 0,
+          "face": "all",
+          "frameDurationMs": 120,
+          "loop": true,
+          "frames": [
+            "9e"
+          ]
+        }
+      ]
+    },
+    "36": {
+      "name": "open_original_09_floor_0c_ceiling_hybrid_palette_9_12",
+      "floor": {
+        "texture": "39",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "9e",
+        "height": 512
+      },
+      "walls": []
+    },
+    "37": {
+      "name": "open_original_09_floor_0b_ceiling_hybrid_palette_9_13",
+      "floor": {
+        "texture": "81",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "38",
+        "height": 512
+      },
+      "walls": []
+    },
+    "38": {
+      "name": "elevator_museum_wall_metal_interior_faces_10_14_1_14",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "81",
+          "faceTextures": {
+            "east": "04",
+            "west": "04",
+            "north": "04",
+            "south": "04"
+          },
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "39": {
+      "name": "original_06_wall_hybrid_palette_12_15_12_15",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9b",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "3a": {
+      "name": "original_06_wall_hybrid_palette_12_15_11_15",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9d",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "3b": {
+      "name": "original_06_wall_hybrid_palette_12_15_13_8",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9f",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "3c": {
+      "name": "original_06_wall_hybrid_palette_12_15_10_7",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9f",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "3d": {
+      "name": "original_06_wall_hybrid_palette_12_15_9_7",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9f",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "3e": {
+      "name": "original_06_wall_hybrid_palette_12_15_10_7_8_7",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "a1",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "3f": {
+      "name": "original_06_wall_hybrid_palette_12_15_10_7_7_7",
+      "walls": []
+    },
+    "40": {
+      "name": "two_level_original_01_02_wall_museum_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "11",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "12",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "41": {
+      "name": "open_sky_original_08_floor_museum_palette",
+      "floor": {
+        "texture": "18",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "ea",
+        "height": 512
+      },
+      "walls": [],
+      "horizonImage": "textures/texture_sky_clouds.png"
+    },
+    "42": {
+      "name": "original_07_wall_05_upper_museum_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "17",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "15",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "43": {
+      "name": "original_05_wall_07_upper_museum_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "15",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "17",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "44": {
+      "name": "original_06_wall_02_upper_museum_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "16",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "12",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "45": {
+      "name": "original_04_wall_museum_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "14",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "46": {
+      "name": "open_original_09_floor_0c_ceiling_museum_palette",
+      "floor": {
+        "texture": "19",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "19",
+        "height": 512
+      },
+      "walls": []
+    },
+    "47": {
+      "name": "original_06_wall_museum_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "16",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "48": {
+      "name": "open_original_09_floor_06_ceiling_museum_palette",
+      "floor": {
+        "texture": "19",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "16",
+        "height": 512
+      },
+      "walls": []
+    },
+    "49": {
+      "name": "open_original_09_floor_0b_ceiling_museum_palette",
+      "floor": {
+        "texture": "19",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "18",
+        "height": 512
+      },
+      "walls": []
+    },
+    "4a": {
+      "name": "original_0e_wall_0a_upper_09_floor_museum_palette",
+      "floor": {
+        "texture": "19",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "19",
+        "height": 512
+      },
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "1a",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "1a",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "4b": {
+      "name": "original_04_wall_0a_upper_09_floor_museum_palette",
+      "floor": {
+        "texture": "19",
+        "height": 0
+      },
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "14",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "1a",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "4c": {
+      "name": "original_0d_wall_available_museum_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "13",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "4d": {
+      "name": "original_06_wall_hybrid_palette_12_15_10_7_7_8",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "48",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "4e": {
+      "name": "original_06_wall_hybrid_palette_12_15_9_7_9_8",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "92",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "4f": {
+      "name": "original_06_wall_hybrid_palette_15_11_0_12",
+      "floor": {
+        "texture": "9b",
+        "height": 0
+      },
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "93",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "50": {
+      "name": "two_level_original_01_02_wall_industrial_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "21",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "22",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "51": {
+      "name": "open_sky_original_08_floor_industrial_palette",
+      "floor": {
+        "texture": "28",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "ff",
+        "height": 512
+      },
+      "walls": [],
+      "horizonImage": "textures/texture_sky_clouds.png"
+    },
+    "52": {
+      "name": "original_07_wall_05_upper_industrial_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "27",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "25",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "53": {
+      "name": "original_05_wall_07_upper_industrial_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "25",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "27",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "54": {
+      "name": "original_06_wall_02_upper_industrial_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "22",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "22",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "55": {
+      "name": "original_04_wall_industrial_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "24",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "56": {
+      "name": "open_original_09_floor_0c_ceiling_industrial_palette",
+      "floor": {
+        "texture": "29",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "29",
+        "height": 512
+      },
+      "walls": []
+    },
+    "57": {
+      "name": "original_06_wall_industrial_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "22",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "58": {
+      "name": "open_original_09_floor_06_ceiling_industrial_palette",
+      "floor": {
+        "texture": "29",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "22",
+        "height": 512
+      },
+      "walls": []
+    },
+    "59": {
+      "name": "open_original_09_floor_0b_ceiling_industrial_palette",
+      "floor": {
+        "texture": "29",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "28",
+        "height": 512
+      },
+      "walls": []
+    },
+    "5a": {
+      "name": "original_0e_wall_0a_upper_09_floor_industrial_palette",
+      "floor": {
+        "texture": "29",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "29",
+        "height": 512
+      },
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "2a",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "2a",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "5b": {
+      "name": "original_04_wall_0a_upper_09_floor_industrial_palette",
+      "floor": {
+        "texture": "29",
+        "height": 0
+      },
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "24",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "2a",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "5c": {
+      "name": "original_0d_wall_available_industrial_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "23",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "5d": {
+      "name": "open_original_09_floor_0b_ceiling_hybrid_palette_9_13_11_4",
+      "floor": {
+        "texture": "81",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "92",
+        "height": 512
+      },
+      "walls": []
+    },
+    "5e": {
+      "name": "open_original_09_floor_06_ceiling_hybrid_palette_13_9_5_8",
+      "floor": {
+        "texture": "97",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "92",
+        "height": 512
+      },
+      "walls": []
+    },
+    "5f": {
+      "name": "open_original_09_floor_0b_ceiling_hybrid_palette_9_13_11_4_8_4",
+      "floor": {
+        "texture": "94",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "92",
+        "height": 512
+      },
+      "walls": []
+    },
+    "60": {
+      "name": "two_level_original_01_02_wall_hybrid_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "31",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "32",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "61": {
+      "name": "open_sky_original_08_floor_hybrid_palette",
+      "floor": {
+        "texture": "38",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "ff",
+        "height": 512
+      },
+      "walls": [],
+      "horizonImage": "textures/texture_sky_clouds.png"
+    },
+    "62": {
+      "name": "original_07_wall_05_upper_hybrid_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "37",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "35",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "63": {
+      "name": "original_05_wall_07_upper_hybrid_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "35",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "37",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "64": {
+      "name": "original_06_wall_02_upper_hybrid_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "36",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "32",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "65": {
+      "name": "original_04_wall_hybrid_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "34",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "66": {
+      "name": "open_original_09_floor_0c_ceiling_hybrid_palette",
+      "floor": {
+        "texture": "39",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "39",
+        "height": 512
+      },
+      "walls": []
+    },
+    "67": {
+      "name": "original_06_wall_hybrid_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "36",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "68": {
+      "name": "open_original_09_floor_06_ceiling_hybrid_palette",
+      "floor": {
+        "texture": "39",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "36",
+        "height": 512
+      },
+      "walls": []
+    },
+    "69": {
+      "name": "open_original_09_floor_0b_ceiling_hybrid_palette",
+      "floor": {
+        "texture": "39",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "38",
+        "height": 512
+      },
+      "walls": []
+    },
+    "6a": {
+      "name": "original_0e_wall_0a_upper_09_floor_hybrid_palette",
+      "floor": {
+        "texture": "39",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "39",
+        "height": 512
+      },
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "3a",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "6b": {
+      "name": "original_04_wall_0a_upper_09_floor_hybrid_palette",
+      "floor": {
+        "texture": "39",
+        "height": 0
+      },
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "34",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "6c": {
+      "name": "original_0d_wall_available_hybrid_palette",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "33",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "6d": {
+      "name": "two_level_original_01_02_wall_7_4",
+      "floor": {
+        "texture": "08",
+        "height": 0
+      },
+      "walls": [
+        {
+          "kind": "transparent",
+          "texture": "03",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "02",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ],
+      "door": {
+        "enabled": true,
+        "blocksWhenClosed": false,
+        "triggerDistanceCells": 1.25,
+        "openTimeSeconds": 0.45,
+        "closeDelaySeconds": 1,
+        "frames": []
+      }
+    },
+    "6e": {
+      "name": "open_sky_original_08_floor_museum_palette_8_1",
+      "floor": {
+        "texture": "18",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "37",
+        "height": 512
+      },
+      "walls": [],
+      "horizonImage": "textures/texture_sky_clouds.png"
+    },
+    "6f": {
+      "name": "two_level_original_01_02_wall_museum_palette_8_7",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "11",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "71": {
+      "name": "library_stack_2",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "86",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "72": {
+      "name": "library_stack_2",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "89",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "73": {
+      "name": "library_wall_3b",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "8a",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "74": {
+      "name": "library_wall_2c",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "81",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "75": {
+      "name": "library_wall_30",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "87",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "76": {
+      "name": "library_wall_2b",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "83",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "77": {
+      "name": "library_wall_0f",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "80",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "78": {
+      "name": "library_wall_2d",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "84",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "79": {
+      "name": "library_wall_3c",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "8b",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "7a": {
+      "name": "lab_stack_2",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "91",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "90",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "7b": {
+      "name": "lab_stack_2",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "99",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "90",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "7c": {
+      "name": "lab_wall_46",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "91",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "7d": {
+      "name": "lab_wall_45",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9a",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "7e": {
+      "name": "lab_wall_3d",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "90",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "7f": {
+      "name": "lab_wall_44",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9c",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "81": {
+      "name": "lab_wall_43",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9b",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "82": {
+      "name": "lab_wall_42",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "9d",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "83": {
+      "name": "lab_wall_3f",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "92",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "84": {
+      "name": "lab_wall_40",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "93",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "85": {
+      "name": "lab_wall_41",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "a0",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "86": {
+      "name": "open_lab_floor_clean_ceiling",
+      "floor": {
+        "texture": "96",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "90",
+        "height": 512
+      },
+      "walls": []
+    },
+    "87": {
+      "name": "open_library_floor_plaster_ceiling",
+      "floor": {
+        "texture": "85",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "83",
+        "height": 512
+      },
+      "walls": []
+    },
+    "89": {
+      "name": "original_06_wall_02_upper_museum_palette_10_8",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "12",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "90": {
+      "name": "tvcc_monitor_wall_main_floor",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "90",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ],
+      "animations": [
+        {
+          "name": "tvcc_cycle",
+          "target": "wallOverlay",
+          "wallIndex": 0,
+          "face": "all",
+          "frameDurationMs": 2500,
+          "loop": true,
+          "frames": [
+            "c0",
+            "c1",
+            "c2",
+            "c3"
+          ]
+        }
+      ]
+    },
+    "91": {
+      "name": "tvcc_monitor_wall_library",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "8a",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ],
+      "animations": [
+        {
+          "name": "tvcc_cycle",
+          "target": "wallOverlay",
+          "wallIndex": 0,
+          "face": "all",
+          "frameDurationMs": 2500,
+          "loop": true,
+          "frames": [
+            "c0",
+            "c1",
+            "c2",
+            "c3"
+          ]
+        }
+      ]
+    },
+    "a0": {
+      "name": "stack_2",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "46",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "02",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "a1": {
+      "name": "stack_2",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "47",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "02",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "a2": {
+      "name": "wall_46",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "46",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "a3": {
+      "name": "wall_45",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "45",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "a4": {
+      "name": "wall_3d",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "3d",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "a5": {
+      "name": "wall_44",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "44",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "a6": {
+      "name": "wall_3e",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "3e",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "a7": {
+      "name": "wall_43",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "43",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "a8": {
+      "name": "wall_42",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "42",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "a9": {
+      "name": "wall_3f",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "3f",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "aa": {
+      "name": "wall_40",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "40",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "ab": {
+      "name": "wall_41",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "41",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "ac": {
+      "name": "open_original_09_floor_0b_ceiling_industrial_palette_1_9",
+      "floor": {
+        "texture": "38",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "28",
+        "height": 512
+      },
+      "walls": []
+    },
+    "ad": {
+      "name": "open_original_09_floor_0b_ceiling_industrial_palette_1_9_1_9",
+      "floor": {
+        "texture": "34",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "28",
+        "height": 512
+      },
+      "walls": []
+    },
+    "ae": {
+      "name": "original_07_wall_05_upper_industrial_palette_2_3",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "25",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        },
+        {
+          "kind": "solid",
+          "texture": "25",
+          "bottom": 512,
+          "top": 1024,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "da": {
+      "name": "original_06_wall_museum_palette_13_15",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "0e",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "db": {
+      "name": "original_06_wall_museum_palette_12_15",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "ea",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "de": {
+      "name": "open_original_09_floor_06_ceiling_12_14_12_14",
+      "floor": {
+        "texture": "10",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "0c",
+        "height": 512
+      },
+      "walls": []
+    },
+    "e1": {
+      "name": "level_transition_elevator_door",
+      "floor": {
+        "texture": "04",
+        "height": 0
+      },
+      "ceiling": {
+        "texture": "04",
+        "height": 512
+      },
+      "walls": [
+        {
+          "kind": "transparent",
+          "texture": "d0",
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ],
+      "door": {
+        "enabled": true,
+        "blocksWhenClosed": true,
+        "triggerDistanceCells": 1.35,
+        "openTimeSeconds": 0.55,
+        "closeDelaySeconds": 1.1,
+        "openSound": "effects/Elevator_Opening_Sequence.mp3",
+        "openSoundVolumePercent": 100,
+        "frames": [
+          "d0",
+          "d1",
+          "d2",
+          "d3",
+          "d4",
+          "d5",
+          "d6",
+          "d7",
+          "d8"
+        ]
+      }
+    },
+    "e2": {
+      "name": "elevator_original_06_wall_metal_interior_faces",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "06",
+          "faceTextures": {
+            "east": "04",
+            "west": "04",
+            "north": "0b"
+          },
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "e3": {
+      "name": "elevator_museum_wall_metal_interior_faces",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "16",
+          "faceTextures": {
+            "east": "16",
+            "west": "04",
+            "north": "16",
+            "south": "16"
+          },
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "e4": {
+      "name": "elevator_industrial_wall_metal_interior_faces",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "22",
+          "faceTextures": {
+            "east": "04",
+            "west": "04",
+            "north": "04"
+          },
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    },
+    "e5": {
+      "name": "elevator_hybrid_wall_metal_interior_faces",
+      "walls": [
+        {
+          "kind": "solid",
+          "texture": "36",
+          "faceTextures": {
+            "east": "04",
+            "west": "04",
+            "north": "04"
+          },
+          "bottom": 0,
+          "top": 512,
+          "collision": true,
+          "passable": false
+        }
+      ]
+    }
+  },
+  "cells": [
+    [
+      "00",
+      "00",
+      "00",
+      "00",
+      "00",
+      "00",
+      "00",
+      "00",
+      "6f",
+      "6f",
+      "6f",
+      "6f",
+      "6f",
+      "6f",
+      "6f",
+      "6f"
+    ],
+    [
+      "00",
+      "01",
+      "01",
+      "01",
+      "01",
+      "01",
+      "01",
+      "00",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6f"
+    ],
+    [
+      "00",
+      "01",
+      "01",
+      "01",
+      "01",
+      "01",
+      "01",
+      "00",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6f"
+    ],
+    [
+      "00",
+      "01",
+      "02",
+      "01",
+      "03",
+      "01",
+      "01",
+      "00",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6f"
+    ],
+    [
+      "00",
+      "01",
+      "01",
+      "01",
+      "01",
+      "01",
+      "01",
+      "6d",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6f"
+    ],
+    [
+      "00",
+      "01",
+      "01",
+      "01",
+      "01",
+      "01",
+      "01",
+      "00",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6f"
+    ],
+    [
+      "00",
+      "01",
+      "01",
+      "01",
+      "01",
+      "01",
+      "01",
+      "00",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6f"
+    ],
+    [
+      "00",
+      "00",
+      "00",
+      "05",
+      "00",
+      "00",
+      "00",
+      "00",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6e",
+      "6f"
+    ],
+    [
+      "04",
+      "04",
+      "04",
+      "05",
+      "04",
+      "a0",
+      "a1",
+      "04",
+      "6f",
+      "6f",
+      "6f",
+      "6f",
+      "6f",
+      "6f",
+      "6f",
+      "6f"
+    ],
+    [
+      "08",
+      "09",
+      "07",
+      "09",
+      "07",
+      "09",
+      "07",
+      "a2",
+      "15",
+      "09",
+      "07",
+      "09",
+      "16",
+      "09",
+      "0a",
+      "17"
+    ],
+    [
+      "15",
+      "0a",
+      "09",
+      "07",
+      "09",
+      "07",
+      "09",
+      "a3",
+      "11",
+      "07",
+      "09",
+      "07",
+      "18",
+      "07",
+      "09",
+      "17"
+    ],
+    [
+      "1b",
+      "09",
+      "07",
+      "09",
+      "07",
+      "09",
+      "07",
+      "22",
+      "23",
+      "09",
+      "07",
+      "09",
+      "19",
+      "09",
+      "07",
+      "15"
+    ],
+    [
+      "a4",
+      "07",
+      "09",
+      "07",
+      "09",
+      "07",
+      "09",
+      "a5",
+      "11",
+      "07",
+      "09",
+      "07",
+      "1a",
+      "07",
+      "09",
+      "1b"
+    ],
+    [
+      "a6",
+      "09",
+      "0a",
+      "09",
+      "07",
+      "09",
+      "07",
+      "a7",
+      "11",
+      "09",
+      "07",
+      "09",
+      "07",
+      "09",
+      "07",
+      "db"
+    ],
+    [
+      "08",
+      "11",
+      "e1",
+      "11",
+      "09",
+      "07",
+      "09",
+      "33",
+      "11",
+      "e1",
+      "11",
+      "07",
+      "09",
+      "0a",
+      "09",
+      "90"
+    ],
+    [
+      "08",
+      "08",
+      "11",
+      "08",
+      "a9",
+      "aa",
+      "ab",
+      "08",
+      "47",
+      "11",
+      "47",
+      "db",
+      "db",
+      "da",
+      "db",
+      "47"
+    ]
+  ],
+  "layers": [
+    {
+      "id": "level_0",
+      "name": "Demo level 0 - lower floor",
+      "grid": {
+        "columns": 16,
+        "rows": 16,
+        "cellWidth": 512,
+        "cellDepth": 512,
+        "defaultWallHeight": 512
+      },
+      "playerStart": {
+        "xCell": 4.5,
+        "yCell": 5.5,
+        "facingDegrees": 0
+      },
+      "defaultHorizonImage": "textures/texture_red_sky_clouds.png",
+      "backgroundMusic": {
+        "file": "audio/holst_mars_15s_no_fadein.ogg",
+        "enabled": true,
+        "loop": true,
+        "volumePercent": 20
+      },
+      "cells": [
+        [
+          "31",
+          "31",
+          "31",
+          "31",
+          "31",
+          "31",
+          "31",
+          "31",
+          "31",
+          "31",
+          "31",
+          "31",
+          "31",
+          "31",
+          "31",
+          "31"
+        ],
+        [
+          "31",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "31",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "31"
+        ],
+        [
+          "31",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "31",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "31"
+        ],
+        [
+          "31",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "31",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "31"
+        ],
+        [
+          "31",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "31"
+        ],
+        [
+          "31",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "5f",
+          "31"
+        ],
+        [
+          "31",
+          "31",
+          "31",
+          "5f",
+          "31",
+          "31",
+          "31",
+          "31",
+          "31",
+          "31",
+          "31",
+          "5f",
+          "31",
+          "31",
+          "31",
+          "31"
+        ],
+        [
+          "31",
+          "24",
+          "31",
+          "05",
+          "3c",
+          "3c",
+          "3c",
+          "3c",
+          "3e",
+          "3d",
+          "3c",
+          "05",
+          "3c",
+          "3c",
+          "3c",
+          "3c"
+        ],
+        [
+          "2b",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "3c",
+          "4d",
+          "5e",
+          "4d",
+          "3c",
+          "5e",
+          "5e",
+          "3b",
+          "2d",
+          "3c"
+        ],
+        [
+          "39",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "28",
+          "3d",
+          "05",
+          "3d",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "24"
+        ],
+        [
+          "3d",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "3d",
+          "3d",
+          "5e",
+          "3d",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "25"
+        ],
+        [
+          "3d",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "3d",
+          "5e",
+          "5e",
+          "3d",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "26"
+        ],
+        [
+          "3d",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "3d",
+          "5e",
+          "3d",
+          "3d",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "27"
+        ],
+        [
+          "3d",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "28"
+        ],
+        [
+          "38",
+          "11",
+          "e1",
+          "11",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "11",
+          "e1",
+          "11",
+          "5e",
+          "5e",
+          "5e",
+          "5e",
+          "29"
+        ],
+        [
+          "55",
+          "55",
+          "11",
+          "3d",
+          "3d",
+          "3d",
+          "3d",
+          "3d",
+          "67",
+          "11",
+          "67",
+          "3a",
+          "39",
+          "2b",
+          "2a",
+          "67"
+        ]
+      ],
+      "spriteInstances": [
+        {
+          "name": "level0_medikit_west_room",
+          "spriteSet": "item_medikit",
+          "xCell": 2.5,
+          "yCell": 2.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.28,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 35,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level0_medikit_east_room",
+          "spriteSet": "item_medikit",
+          "xCell": 12.5,
+          "yCell": 2.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.28,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 35,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level0_medikit_lift_hall",
+          "spriteSet": "item_medikit",
+          "xCell": 1.5,
+          "yCell": 12.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.28,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 35,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level0_ammo_box_west_room",
+          "spriteSet": "item_ammo_box",
+          "xCell": 4.5,
+          "yCell": 4.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level0_ammo_box_east_room",
+          "spriteSet": "item_ammo_box",
+          "xCell": 13.5,
+          "yCell": 4.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level0_ammo_box_lift_hall",
+          "spriteSet": "item_ammo_box",
+          "xCell": 1.5,
+          "yCell": 10.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "item_key_red_11",
+          "spriteSet": "item_key_red",
+          "xCell": 8.5,
+          "yCell": 8.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.5,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "item_wire_spool_12",
+          "spriteSet": "item_wire_spool",
+          "xCell": 14.5,
+          "yCell": 5.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.5,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "item_toolbox_13",
+          "spriteSet": "item_toolbox",
+          "xCell": 13.5,
+          "yCell": 5.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.5,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        }
+      ]
+    },
+    {
+      "id": "level_1",
+      "name": "Demo level 1 - main floor",
+      "grid": {
+        "columns": 16,
+        "rows": 16,
+        "cellWidth": 512,
+        "cellDepth": 512,
+        "defaultWallHeight": 512
+      },
+      "playerStart": {
+        "xCell": 4.5,
+        "yCell": 10.5,
+        "facingDegrees": 90
+      },
+      "defaultHorizonImage": "textures/texture_sky_clouds.png",
+      "backgroundMusic": {
+        "file": "audio/holst_mars_15s_no_fadein.ogg",
+        "enabled": true,
+        "loop": true,
+        "volumePercent": 20
+      },
+      "cells": [
+        [
+          "00",
+          "00",
+          "00",
+          "00",
+          "00",
+          "00",
+          "00",
+          "00",
+          "6f",
+          "6f",
+          "6f",
+          "6f",
+          "6f",
+          "6f",
+          "6f",
+          "6f"
+        ],
+        [
+          "00",
+          "01",
+          "01",
+          "01",
+          "01",
+          "01",
+          "01",
+          "00",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6f"
+        ],
+        [
+          "00",
+          "01",
+          "01",
+          "01",
+          "01",
+          "01",
+          "01",
+          "00",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6f"
+        ],
+        [
+          "00",
+          "01",
+          "02",
+          "01",
+          "03",
+          "01",
+          "01",
+          "00",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6f"
+        ],
+        [
+          "00",
+          "01",
+          "01",
+          "01",
+          "01",
+          "01",
+          "01",
+          "6d",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6f"
+        ],
+        [
+          "00",
+          "01",
+          "01",
+          "01",
+          "01",
+          "01",
+          "01",
+          "00",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6f"
+        ],
+        [
+          "00",
+          "01",
+          "01",
+          "01",
+          "01",
+          "01",
+          "01",
+          "00",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6f"
+        ],
+        [
+          "00",
+          "00",
+          "00",
+          "05",
+          "00",
+          "00",
+          "00",
+          "00",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6e",
+          "6f"
+        ],
+        [
+          "04",
+          "04",
+          "04",
+          "05",
+          "04",
+          "a0",
+          "a1",
+          "04",
+          "6f",
+          "6f",
+          "6f",
+          "6f",
+          "6f",
+          "6f",
+          "6f",
+          "6f"
+        ],
+        [
+          "08",
+          "09",
+          "07",
+          "09",
+          "07",
+          "09",
+          "07",
+          "a2",
+          "15",
+          "09",
+          "07",
+          "09",
+          "16",
+          "09",
+          "0a",
+          "17"
+        ],
+        [
+          "15",
+          "0a",
+          "09",
+          "07",
+          "09",
+          "07",
+          "09",
+          "a3",
+          "11",
+          "07",
+          "09",
+          "07",
+          "18",
+          "07",
+          "09",
+          "17"
+        ],
+        [
+          "1b",
+          "09",
+          "07",
+          "09",
+          "07",
+          "09",
+          "07",
+          "22",
+          "23",
+          "09",
+          "07",
+          "09",
+          "19",
+          "09",
+          "07",
+          "15"
+        ],
+        [
+          "a4",
+          "07",
+          "09",
+          "07",
+          "09",
+          "07",
+          "09",
+          "a5",
+          "11",
+          "07",
+          "09",
+          "07",
+          "1a",
+          "07",
+          "09",
+          "1b"
+        ],
+        [
+          "a6",
+          "09",
+          "0a",
+          "09",
+          "07",
+          "09",
+          "07",
+          "a7",
+          "11",
+          "09",
+          "07",
+          "09",
+          "07",
+          "09",
+          "07",
+          "db"
+        ],
+        [
+          "08",
+          "11",
+          "e1",
+          "11",
+          "09",
+          "07",
+          "09",
+          "33",
+          "11",
+          "e1",
+          "11",
+          "07",
+          "09",
+          "0a",
+          "09",
+          "90"
+        ],
+        [
+          "08",
+          "08",
+          "11",
+          "08",
+          "a9",
+          "aa",
+          "ab",
+          "08",
+          "47",
+          "11",
+          "47",
+          "db",
+          "db",
+          "da",
+          "db",
+          "47"
+        ]
+      ],
+      "spriteInstances": [
+        {
+          "name": "level1_supply_crate",
+          "spriteSet": "item_supply_crate",
+          "xCell": 4.5,
+          "yCell": 11.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.38,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level1_ammo_box",
+          "spriteSet": "item_ammo_box",
+          "xCell": 2.5,
+          "yCell": 9.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.34,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level1_medikit",
+          "spriteSet": "item_medikit",
+          "xCell": 11.5,
+          "yCell": 11.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.28,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 35,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level1_oxygen_tank",
+          "spriteSet": "item_oxygen_tank",
+          "xCell": 9.5,
+          "yCell": 9.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.36,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level1_toolbox",
+          "spriteSet": "item_toolbox",
+          "xCell": 12.5,
+          "yCell": 13.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.32,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level1_computer_terminal",
+          "spriteSet": "item_computer",
+          "xCell": 14.5,
+          "yCell": 14.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.34,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": true,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level1_wire_spool",
+          "spriteSet": "item_wire_spool",
+          "xCell": 13.5,
+          "yCell": 10.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "item_toolbox_13",
+          "spriteSet": "item_toolbox",
+          "xCell": 1.5,
+          "yCell": 10.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.32,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "item_computer_14",
+          "spriteSet": "item_computer",
+          "xCell": 4.5,
+          "yCell": 14.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.34,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": true,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level1_office_copier",
+          "spriteSet": "item_office_copier",
+          "xCell": 6.5,
+          "yCell": 9.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.62,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level1_potted_plant",
+          "spriteSet": "item_potted_plant",
+          "xCell": 1.5,
+          "yCell": 6.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.54,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55,
+          "damageResponse": {
+            "type": "break",
+            "hitPoints": 18,
+            "effectSpriteSet": "vase_break_256",
+            "effectAnimation": "break",
+            "effectScaleCells": 0.72,
+            "destroyedSpriteSet": "broken_vase_256",
+            "destroyedScaleCells": 0.58,
+            "sound": "effects/breaking/can_crush_0.wav",
+            "radiusCells": 0,
+            "damage": 0
+          }
+        },
+        {
+          "name": "level1_potted_plant_2",
+          "spriteSet": "item_potted_plant",
+          "xCell": 12.5,
+          "yCell": 14.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.54,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55,
+          "damageResponse": {
+            "type": "break",
+            "hitPoints": 18,
+            "effectSpriteSet": "vase_break_256",
+            "effectAnimation": "break",
+            "effectScaleCells": 0.72,
+            "destroyedSpriteSet": "broken_vase_256",
+            "destroyedScaleCells": 0.58,
+            "sound": "effects/breaking/can_crush_0.wav",
+            "radiusCells": 0,
+            "damage": 0
+          }
+        },
+        {
+          "name": "level1_potted_plant_3",
+          "spriteSet": "item_potted_plant",
+          "xCell": 11.5,
+          "yCell": 14.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.54,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55,
+          "damageResponse": {
+            "type": "break",
+            "hitPoints": 18,
+            "effectSpriteSet": "vase_break_256",
+            "effectAnimation": "break",
+            "effectScaleCells": 0.72,
+            "destroyedSpriteSet": "broken_vase_256",
+            "destroyedScaleCells": 0.58,
+            "sound": "effects/breaking/can_crush_0.wav",
+            "radiusCells": 0,
+            "damage": 0
+          }
+        },
+        {
+          "name": "level1_potted_plant_4",
+          "spriteSet": "item_potted_plant",
+          "xCell": 13.5,
+          "yCell": 14.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.54,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55,
+          "damageResponse": {
+            "type": "break",
+            "hitPoints": 18,
+            "effectSpriteSet": "vase_break_256",
+            "effectAnimation": "break",
+            "effectScaleCells": 0.72,
+            "destroyedSpriteSet": "broken_vase_256",
+            "destroyedScaleCells": 0.58,
+            "sound": "effects/breaking/can_crush_0.wav",
+            "radiusCells": 0,
+            "damage": 0
+          }
+        },
+        {
+          "name": "level1_potted_plant_5",
+          "spriteSet": "item_potted_plant",
+          "xCell": 6.5,
+          "yCell": 6.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.54,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55,
+          "damageResponse": {
+            "type": "break",
+            "hitPoints": 18,
+            "effectSpriteSet": "vase_break_256",
+            "effectAnimation": "break",
+            "effectScaleCells": 0.72,
+            "destroyedSpriteSet": "broken_vase_256",
+            "destroyedScaleCells": 0.58,
+            "sound": "effects/breaking/can_crush_0.wav",
+            "radiusCells": 0,
+            "damage": 0
+          }
+        },
+        {
+          "name": "level1_hazard_barrel",
+          "spriteSet": "item_hazard_barrel",
+          "xCell": 14.5,
+          "yCell": 6.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.42,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level1_green_key",
+          "spriteSet": "item_key_green",
+          "xCell": 1.5,
+          "yCell": 1.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.24,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level1_medikit_north_gallery",
+          "spriteSet": "item_medikit",
+          "xCell": 2.5,
+          "yCell": 2.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.28,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 35,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level1_medikit_west_corridor",
+          "spriteSet": "item_medikit",
+          "xCell": 1.5,
+          "yCell": 13.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.28,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 35,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level1_medikit_east_gallery",
+          "spriteSet": "item_medikit",
+          "xCell": 13.5,
+          "yCell": 2.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.28,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 35,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level1_medikit_lift_hall",
+          "spriteSet": "item_medikit",
+          "xCell": 9.5,
+          "yCell": 13.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.28,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 35,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level1_ammo_box_north_gallery",
+          "spriteSet": "item_ammo_box",
+          "xCell": 4.5,
+          "yCell": 2.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level1_ammo_box_west_corridor",
+          "spriteSet": "item_ammo_box",
+          "xCell": 2.5,
+          "yCell": 13.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level1_ammo_box_east_gallery",
+          "spriteSet": "item_ammo_box",
+          "xCell": 14.5,
+          "yCell": 4.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level1_ammo_box_lift_hall",
+          "spriteSet": "item_ammo_box",
+          "xCell": 10.5,
+          "yCell": 13.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level1_weapon_pistol_start_room",
+          "spriteSet": "item_weapon_pistol",
+          "xCell": 1.5,
+          "yCell": 4.5,
+          "facingDegrees": 270,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0.14,
+          "visible": true,
+          "passThroughWalls": false,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "pickupWeapon": "weapons/pistol/pistol.weapon.json",
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level1_weapon_super_shotgun_gallery",
+          "spriteSet": "item_weapon_super_shotgun",
+          "xCell": 6.5,
+          "yCell": 13.5,
+          "facingDegrees": 315,
+          "scaleCells": 0.34,
+          "collisionRadiusCells": 0.16,
+          "visible": true,
+          "passThroughWalls": false,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "pickupWeapon": "weapons/super_shotgun/super_shotgun.weapon.json",
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level1_weapon_submachine_gun_east_gallery",
+          "spriteSet": "item_weapon_submachine_gun",
+          "xCell": 12.5,
+          "yCell": 4.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.35,
+          "collisionRadiusCells": 0.16,
+          "visible": true,
+          "passThroughWalls": false,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "pickupWeapon": "weapons/submachine_gun/submachine_gun.weapon.json",
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "item_key_green_33",
+          "spriteSet": "item_key_green",
+          "xCell": 5.5,
+          "yCell": 5.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.5,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "item_key_green_34",
+          "spriteSet": "item_key_green",
+          "xCell": 5.5,
+          "yCell": 14.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.5,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        }
+      ]
+    },
+    {
+      "id": "level_2",
+      "name": "Demo level 2 - library and laboratory",
+      "grid": {
+        "columns": 16,
+        "rows": 16,
+        "cellWidth": 512,
+        "cellDepth": 512,
+        "defaultWallHeight": 512
+      },
+      "playerStart": {
+        "xCell": 8.5,
+        "yCell": 4.5,
+        "facingDegrees": 0
+      },
+      "defaultHorizonImage": "textures/texture_sky_clouds.png",
+      "backgroundMusic": {
+        "file": "audio/holst_mars_15s_no_fadein.ogg",
+        "enabled": true,
+        "loop": true,
+        "volumePercent": 20
+      },
+      "cells": [
+        [
+          "1e",
+          "71",
+          "71",
+          "71",
+          "71",
+          "78",
+          "78",
+          "1e",
+          "71",
+          "71",
+          "1e",
+          "71",
+          "1e",
+          "78",
+          "1e",
+          "1e"
+        ],
+        [
+          "1e",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "1f",
+          "86",
+          "86",
+          "71",
+          "86",
+          "86",
+          "86",
+          "86",
+          "1e"
+        ],
+        [
+          "1e",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "73",
+          "86",
+          "86",
+          "71",
+          "86",
+          "86",
+          "86",
+          "86",
+          "1e"
+        ],
+        [
+          "1e",
+          "86",
+          "73",
+          "86",
+          "72",
+          "86",
+          "86",
+          "73",
+          "86",
+          "86",
+          "71",
+          "86",
+          "86",
+          "73",
+          "86",
+          "71"
+        ],
+        [
+          "71",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "73",
+          "86",
+          "86",
+          "86",
+          "86",
+          "71"
+        ],
+        [
+          "71",
+          "86",
+          "73",
+          "86",
+          "72",
+          "86",
+          "86",
+          "73",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "73",
+          "86",
+          "1f"
+        ],
+        [
+          "1e",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "72",
+          "86",
+          "86",
+          "72",
+          "86",
+          "86",
+          "86",
+          "86",
+          "1f"
+        ],
+        [
+          "1e",
+          "1e",
+          "1e",
+          "1e",
+          "1e",
+          "1e",
+          "1e",
+          "1e",
+          "1e",
+          "1e",
+          "1f",
+          "1f",
+          "1f",
+          "1f",
+          "20",
+          "1f"
+        ],
+        [
+          "1c",
+          "1c",
+          "1c",
+          "1c",
+          "1c",
+          "35",
+          "1c",
+          "1c",
+          "1c",
+          "1c",
+          "1c",
+          "1c",
+          "1c",
+          "1c",
+          "86",
+          "1c"
+        ],
+        [
+          "1c",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "1c"
+        ],
+        [
+          "1c",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "1c"
+        ],
+        [
+          "1c",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "1c"
+        ],
+        [
+          "1c",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "1c"
+        ],
+        [
+          "1c",
+          "86",
+          "86",
+          "1c",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "86",
+          "1c"
+        ],
+        [
+          "1c",
+          "11",
+          "e1",
+          "11",
+          "86",
+          "86",
+          "86",
+          "86",
+          "11",
+          "e1",
+          "11",
+          "86",
+          "86",
+          "86",
+          "86",
+          "1c"
+        ],
+        [
+          "1c",
+          "1c",
+          "11",
+          "1c",
+          "1c",
+          "1c",
+          "1c",
+          "1c",
+          "1c",
+          "11",
+          "11",
+          "1c",
+          "1c",
+          "1c",
+          "1c",
+          "1c"
+        ]
+      ],
+      "spriteInstances": [
+        {
+          "name": "level2_supply_crate",
+          "spriteSet": "item_supply_crate",
+          "xCell": 1.5,
+          "yCell": 9.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.38,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_ammo_box",
+          "spriteSet": "item_ammo_box",
+          "xCell": 1.5,
+          "yCell": 5.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.34,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level2_medikit",
+          "spriteSet": "item_medikit",
+          "xCell": 11.5,
+          "yCell": 11.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.28,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 35,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_oxygen_tank",
+          "spriteSet": "item_oxygen_tank",
+          "xCell": 9.5,
+          "yCell": 9.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.36,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level2_toolbox",
+          "spriteSet": "item_toolbox",
+          "xCell": 12.5,
+          "yCell": 13.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.32,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_computer_terminal",
+          "spriteSet": "item_computer",
+          "xCell": 14.5,
+          "yCell": 14.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.34,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": true,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_wire_spool",
+          "spriteSet": "item_wire_spool",
+          "xCell": 13.5,
+          "yCell": 10.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_item_toolbox_13",
+          "spriteSet": "item_toolbox",
+          "xCell": 1.5,
+          "yCell": 10.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.32,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_item_computer_14",
+          "spriteSet": "item_computer",
+          "xCell": 4.5,
+          "yCell": 14.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.34,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": true,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_office_copier",
+          "spriteSet": "item_office_copier",
+          "xCell": 12.5,
+          "yCell": 1.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.62,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_potted_plant",
+          "spriteSet": "item_potted_plant",
+          "xCell": 1.5,
+          "yCell": 1.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.54,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55,
+          "damageResponse": {
+            "type": "break",
+            "hitPoints": 18,
+            "effectSpriteSet": "vase_break_256",
+            "effectAnimation": "break",
+            "effectScaleCells": 0.72,
+            "destroyedSpriteSet": "broken_vase_256",
+            "destroyedScaleCells": 0.58,
+            "sound": "effects/breaking/can_crush_0.wav",
+            "radiusCells": 0,
+            "damage": 0
+          }
+        },
+        {
+          "name": "level2_potted_plant_2",
+          "spriteSet": "item_potted_plant",
+          "xCell": 12.5,
+          "yCell": 14.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.54,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55,
+          "damageResponse": {
+            "type": "break",
+            "hitPoints": 18,
+            "effectSpriteSet": "vase_break_256",
+            "effectAnimation": "break",
+            "effectScaleCells": 0.72,
+            "destroyedSpriteSet": "broken_vase_256",
+            "destroyedScaleCells": 0.58,
+            "sound": "effects/breaking/can_crush_0.wav",
+            "radiusCells": 0,
+            "damage": 0
+          }
+        },
+        {
+          "name": "level2_potted_plant_3",
+          "spriteSet": "item_potted_plant",
+          "xCell": 11.5,
+          "yCell": 14.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.54,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55,
+          "damageResponse": {
+            "type": "break",
+            "hitPoints": 18,
+            "effectSpriteSet": "vase_break_256",
+            "effectAnimation": "break",
+            "effectScaleCells": 0.72,
+            "destroyedSpriteSet": "broken_vase_256",
+            "destroyedScaleCells": 0.58,
+            "sound": "effects/breaking/can_crush_0.wav",
+            "radiusCells": 0,
+            "damage": 0
+          }
+        },
+        {
+          "name": "level2_potted_plant_4",
+          "spriteSet": "item_potted_plant",
+          "xCell": 13.5,
+          "yCell": 14.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.54,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55,
+          "damageResponse": {
+            "type": "break",
+            "hitPoints": 18,
+            "effectSpriteSet": "vase_break_256",
+            "effectAnimation": "break",
+            "effectScaleCells": 0.72,
+            "destroyedSpriteSet": "broken_vase_256",
+            "destroyedScaleCells": 0.58,
+            "sound": "effects/breaking/can_crush_0.wav",
+            "radiusCells": 0,
+            "damage": 0
+          }
+        },
+        {
+          "name": "level2_potted_plant_5",
+          "spriteSet": "item_potted_plant",
+          "xCell": 5.5,
+          "yCell": 14.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.54,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55,
+          "damageResponse": {
+            "type": "break",
+            "hitPoints": 18,
+            "effectSpriteSet": "vase_break_256",
+            "effectAnimation": "break",
+            "effectScaleCells": 0.72,
+            "destroyedSpriteSet": "broken_vase_256",
+            "destroyedScaleCells": 0.58,
+            "sound": "effects/breaking/can_crush_0.wav",
+            "radiusCells": 0,
+            "damage": 0
+          }
+        },
+        {
+          "name": "level2_hazard_barrel",
+          "spriteSet": "item_hazard_barrel",
+          "xCell": 3.5,
+          "yCell": 12.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.42,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level2_blue_key",
+          "spriteSet": "item_key_blue",
+          "xCell": 1.5,
+          "yCell": 3.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.24,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_medikit_north_gallery",
+          "spriteSet": "item_medikit",
+          "xCell": 2.5,
+          "yCell": 2.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.28,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 35,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_medikit_west_corridor",
+          "spriteSet": "item_medikit",
+          "xCell": 1.5,
+          "yCell": 13.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.28,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 35,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_medikit_east_gallery",
+          "spriteSet": "item_medikit",
+          "xCell": 13.5,
+          "yCell": 2.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.28,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 35,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_medikit_lift_hall",
+          "spriteSet": "item_medikit",
+          "xCell": 9.5,
+          "yCell": 13.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.28,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 35,
+          "unlocksMap": false,
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_ammo_box_north_gallery",
+          "spriteSet": "item_ammo_box",
+          "xCell": 4.5,
+          "yCell": 2.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level2_ammo_box_west_corridor",
+          "spriteSet": "item_ammo_box",
+          "xCell": 2.5,
+          "yCell": 13.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level2_ammo_box_east_gallery",
+          "spriteSet": "item_ammo_box",
+          "xCell": 14.5,
+          "yCell": 4.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level2_ammo_box_lift_hall",
+          "spriteSet": "item_ammo_box",
+          "xCell": 10.5,
+          "yCell": 13.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0,
+          "visible": true,
+          "passThroughWalls": true,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "explosive": true,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 2.2,
+          "explosionDamage": 60,
+          "explosionScaleCells": 1.35,
+          "explosionSpriteSet": "explosion_512",
+          "destroyedSpriteSet": "ash_pile",
+          "destroyedScaleCells": 0.48
+        },
+        {
+          "name": "level2_weapon_pistol_start_room",
+          "spriteSet": "item_weapon_pistol",
+          "xCell": 10.5,
+          "yCell": 12.5,
+          "facingDegrees": 270,
+          "scaleCells": 0.3,
+          "collisionRadiusCells": 0.14,
+          "visible": true,
+          "passThroughWalls": false,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "pickupWeapon": "weapons/pistol/pistol.weapon.json",
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_weapon_super_shotgun_gallery",
+          "spriteSet": "item_weapon_super_shotgun",
+          "xCell": 6.5,
+          "yCell": 13.5,
+          "facingDegrees": 315,
+          "scaleCells": 0.34,
+          "collisionRadiusCells": 0.16,
+          "visible": true,
+          "passThroughWalls": false,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "pickupWeapon": "weapons/super_shotgun/super_shotgun.weapon.json",
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        },
+        {
+          "name": "level2_weapon_submachine_gun_east_gallery",
+          "spriteSet": "item_weapon_submachine_gun",
+          "xCell": 12.5,
+          "yCell": 4.5,
+          "facingDegrees": 180,
+          "scaleCells": 0.35,
+          "collisionRadiusCells": 0.16,
+          "visible": true,
+          "passThroughWalls": false,
+          "chasePlayer": false,
+          "speedCellsPerSecond": 0,
+          "detectionRadiusCells": 0,
+          "patrolRadiusCells": 0,
+          "engagementHysteresisCells": 0.5,
+          "patrolCircuit": false,
+          "stoppingDistanceCells": 0,
+          "maxHealth": 0,
+          "health": 0,
+          "attackDamage": 0,
+          "rangedAttack": false,
+          "attackRangeCells": 0,
+          "attackCooldownSeconds": 1,
+          "attackFovDegrees": 70,
+          "attackBurstShots": 3,
+          "attackBurstPauseSeconds": 1.2,
+          "pickupHealth": 0,
+          "unlocksMap": false,
+          "pickupWeapon": "weapons/submachine_gun/submachine_gun.weapon.json",
+          "explosive": false,
+          "explosiveHitPoints": 45,
+          "explosionRadiusCells": 0,
+          "explosionDamage": 0,
+          "explosionScaleCells": 1.5,
+          "destroyedScaleCells": 0.55
+        }
+      ]
+    }
+  ],
+  "layerTransitions": [
+    {
+      "fromLayer": "level_0",
+      "toLayer": "level_1",
+      "trigger": {
+        "blockId": "e1",
+        "row": 14,
+        "column": 2
+      },
+      "waitSeconds": 1.5,
+      "targetPlayerStart": {
+        "xCell": 2.5,
+        "yCell": 14.5,
+        "facingDegrees": 0
+      }
+    },
+    {
+      "fromLayer": "level_0",
+      "toLayer": "level_2",
+      "trigger": {
+        "blockId": "e1",
+        "row": 14,
+        "column": 2
+      },
+      "waitSeconds": 1.5,
+      "targetPlayerStart": {
+        "xCell": 2.5,
+        "yCell": 14.5,
+        "facingDegrees": 0
+      }
+    },
+    {
+      "fromLayer": "level_0",
+      "toLayer": "level_1",
+      "trigger": {
+        "blockId": "e1",
+        "row": 14,
+        "column": 9
+      },
+      "waitSeconds": 1.5,
+      "targetPlayerStart": {
+        "xCell": 9.5,
+        "yCell": 14.5,
+        "facingDegrees": 0
+      }
+    },
+    {
+      "fromLayer": "level_0",
+      "toLayer": "level_2",
+      "trigger": {
+        "blockId": "e1",
+        "row": 14,
+        "column": 9
+      },
+      "waitSeconds": 1.5,
+      "targetPlayerStart": {
+        "xCell": 9.5,
+        "yCell": 14.5,
+        "facingDegrees": 0
+      }
+    },
+    {
+      "fromLayer": "level_1",
+      "toLayer": "level_0",
+      "trigger": {
+        "blockId": "e1",
+        "row": 14,
+        "column": 2
+      },
+      "waitSeconds": 1.5,
+      "targetPlayerStart": {
+        "xCell": 2.5,
+        "yCell": 14.5,
+        "facingDegrees": 0
+      }
+    },
+    {
+      "fromLayer": "level_1",
+      "toLayer": "level_2",
+      "trigger": {
+        "blockId": "e1",
+        "row": 14,
+        "column": 2
+      },
+      "waitSeconds": 1.5,
+      "targetPlayerStart": {
+        "xCell": 2.5,
+        "yCell": 14.5,
+        "facingDegrees": 0
+      }
+    },
+    {
+      "fromLayer": "level_1",
+      "toLayer": "level_0",
+      "trigger": {
+        "blockId": "e1",
+        "row": 14,
+        "column": 9
+      },
+      "waitSeconds": 1.5,
+      "targetPlayerStart": {
+        "xCell": 9.5,
+        "yCell": 14.5,
+        "facingDegrees": 0
+      }
+    },
+    {
+      "fromLayer": "level_1",
+      "toLayer": "level_2",
+      "trigger": {
+        "blockId": "e1",
+        "row": 14,
+        "column": 9
+      },
+      "waitSeconds": 1.5,
+      "targetPlayerStart": {
+        "xCell": 9.5,
+        "yCell": 14.5,
+        "facingDegrees": 0
+      }
+    },
+    {
+      "fromLayer": "level_2",
+      "toLayer": "level_0",
+      "trigger": {
+        "blockId": "e1",
+        "row": 14,
+        "column": 2
+      },
+      "waitSeconds": 1.5,
+      "targetPlayerStart": {
+        "xCell": 2.5,
+        "yCell": 14.5,
+        "facingDegrees": 0
+      }
+    },
+    {
+      "fromLayer": "level_2",
+      "toLayer": "level_1",
+      "trigger": {
+        "blockId": "e1",
+        "row": 14,
+        "column": 2
+      },
+      "waitSeconds": 1.5,
+      "targetPlayerStart": {
+        "xCell": 2.5,
+        "yCell": 14.5,
+        "facingDegrees": 0
+      }
+    },
+    {
+      "fromLayer": "level_2",
+      "toLayer": "level_0",
+      "trigger": {
+        "blockId": "e1",
+        "row": 14,
+        "column": 9
+      },
+      "waitSeconds": 1.5,
+      "targetPlayerStart": {
+        "xCell": 9.5,
+        "yCell": 14.5,
+        "facingDegrees": 0
+      }
+    },
+    {
+      "fromLayer": "level_2",
+      "toLayer": "level_1",
+      "trigger": {
+        "blockId": "e1",
+        "row": 14,
+        "column": 9
+      },
+      "waitSeconds": 1.5,
+      "targetPlayerStart": {
+        "xCell": 9.5,
+        "yCell": 14.5,
+        "facingDegrees": 0
+      }
+    }
+  ],
+  "spriteSets": [
+    "sprites/sheet_brute/sheet_brute.sprite.json",
+    "sprites/missile_brute/missile_brute.sprite.json",
+    "sprites/soldier/soldier.sprite.json",
+    "sprites/items/item_supply_crate/item_supply_crate.sprite.json",
+    "sprites/items/item_ammo_box/item_ammo_box.sprite.json",
+    "sprites/items/item_medikit/item_medikit.sprite.json",
+    "sprites/items/item_oxygen_tank/item_oxygen_tank.sprite.json",
+    "sprites/items/item_toolbox/item_toolbox.sprite.json",
+    "sprites/items/item_computer/item_computer.sprite.json",
+    "sprites/items/item_wire_spool/item_wire_spool.sprite.json",
+    "sprites/items/item_office_copier/item_office_copier.sprite.json",
+    "sprites/items/item_potted_plant/item_potted_plant.sprite.json",
+    "sprites/items/item_hazard_barrel/item_hazard_barrel.sprite.json",
+    "sprites/items/item_key_green/item_key_green.sprite.json",
+    "sprites/items/item_key_blue/item_key_blue.sprite.json",
+    "sprites/items/item_key_red/item_key_red.sprite.json",
+    "sprites/items/item_weapon_pistol/item_weapon_pistol.sprite.json",
+    "sprites/items/item_weapon_super_shotgun/item_weapon_super_shotgun.sprite.json",
+    "sprites/items/item_weapon_submachine_gun/item_weapon_submachine_gun.sprite.json",
+    "sprites/effects/explosion_512/explosion_512.sprite.json",
+    "sprites/effects/vase_break_256/vase_break_256.sprite.json",
+    "sprites/effects/broken_vase_256/broken_vase_256.sprite.json",
+    "sprites/effects/ash_pile/ash_pile.sprite.json"
+  ],
+  "spriteInstances": [
+    {
+      "name": "sheet_brute_patrol",
+      "spriteSet": "sheet_brute",
+      "xCell": 5.5,
+      "yCell": 5.5,
+      "facingDegrees": 180,
+      "scaleCells": 0.75,
+      "collisionRadiusCells": 0.2,
+      "visible": true,
+      "passThroughWalls": false,
+      "chasePlayer": true,
+      "speedCellsPerSecond": 0.55,
+      "detectionRadiusCells": 2.25,
+      "patrolRadiusCells": 3.5,
+      "engagementHysteresisCells": 0.75,
+      "patrolCircuit": true,
+      "stoppingDistanceCells": 0.7,
+      "maxHealth": 120,
+      "health": 120,
+      "attackDamage": 16,
+      "rangedAttack": false,
+      "attackRangeCells": 0,
+      "attackCooldownSeconds": 1,
+      "attackFovDegrees": 70,
+      "attackBurstShots": 3,
+      "attackBurstPauseSeconds": 1.2,
+      "pickupHealth": 0,
+      "unlocksMap": false,
+      "explosive": false,
+      "explosiveHitPoints": 45,
+      "explosionRadiusCells": 0,
+      "explosionDamage": 0,
+      "explosionScaleCells": 1.5,
+      "destroyedScaleCells": 0.55
+    },
+    {
+      "name": "missile_brute_hybrid_patrol",
+      "spriteSet": "missile_brute",
+      "xCell": 13.5,
+      "yCell": 11.5,
+      "facingDegrees": 225,
+      "scaleCells": 0.85,
+      "collisionRadiusCells": 0.24,
+      "visible": true,
+      "passThroughWalls": false,
+      "chasePlayer": true,
+      "speedCellsPerSecond": 0.52,
+      "detectionRadiusCells": 3,
+      "patrolRadiusCells": 3.5,
+      "engagementHysteresisCells": 0.8,
+      "patrolCircuit": true,
+      "stoppingDistanceCells": 0.75,
+      "maxHealth": 150,
+      "health": 150,
+      "attackDamage": 18,
+      "rangedAttack": true,
+      "attackRangeCells": 5.5,
+      "attackCooldownSeconds": 1.25,
+      "attackFovDegrees": 80,
+      "attackBurstShots": 3,
+      "attackBurstPauseSeconds": 1.5,
+      "pickupHealth": 0,
+      "unlocksMap": false,
+      "explosive": false,
+      "explosiveHitPoints": 45,
+      "explosionRadiusCells": 0,
+      "explosionDamage": 0,
+      "explosionScaleCells": 1.5,
+      "destroyedScaleCells": 0.55
+    },
+    {
+      "name": "missile_brute_7",
+      "spriteSet": "missile_brute",
+      "xCell": 5.5,
+      "yCell": 1.5,
+      "facingDegrees": 0,
+      "scaleCells": 1,
+      "collisionRadiusCells": 0.2,
+      "visible": true,
+      "passThroughWalls": false,
+      "chasePlayer": true,
+      "speedCellsPerSecond": 0.55,
+      "detectionRadiusCells": 2.25,
+      "patrolRadiusCells": 3.5,
+      "engagementHysteresisCells": 0.75,
+      "patrolCircuit": true,
+      "stoppingDistanceCells": 0.7,
+      "maxHealth": 150,
+      "health": 150,
+      "attackDamage": 18,
+      "rangedAttack": true,
+      "attackRangeCells": 5.5,
+      "attackCooldownSeconds": 1.25,
+      "attackFovDegrees": 80,
+      "attackBurstShots": 3,
+      "attackBurstPauseSeconds": 1.5,
+      "pickupHealth": 0,
+      "unlocksMap": false,
+      "explosive": false,
+      "explosiveHitPoints": 45,
+      "explosionRadiusCells": 0,
+      "explosionDamage": 0,
+      "explosionScaleCells": 1.5,
+      "destroyedScaleCells": 0.55
+    },
+    {
+      "name": "soldier_gallery_patrol",
+      "spriteSet": "soldier",
+      "xCell": 10.5,
+      "yCell": 5.5,
+      "facingDegrees": 180,
+      "scaleCells": 0.7,
+      "collisionRadiusCells": 0.18,
+      "visible": true,
+      "passThroughWalls": false,
+      "chasePlayer": true,
+      "speedCellsPerSecond": 0.7,
+      "detectionRadiusCells": 2.8,
+      "patrolRadiusCells": 3.25,
+      "engagementHysteresisCells": 0.75,
+      "patrolCircuit": true,
+      "stoppingDistanceCells": 0.68,
+      "maxHealth": 90,
+      "health": 90,
+      "attackDamage": 12,
+      "rangedAttack": true,
+      "attackRangeCells": 4.5,
+      "attackCooldownSeconds": 0.95,
+      "attackFovDegrees": 75,
+      "attackBurstShots": 2,
+      "attackBurstPauseSeconds": 1.25,
+      "pickupHealth": 0,
+      "unlocksMap": false,
+      "explosive": false,
+      "explosiveHitPoints": 45,
+      "explosionRadiusCells": 0,
+      "explosionDamage": 0,
+      "explosionScaleCells": 1.5,
+      "destroyedScaleCells": 0.55
+    }
+  ]
+}

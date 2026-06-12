@@ -1,0 +1,454 @@
+﻿{
+    "spriteSet":  "vase_break_256",
+    "format":  "PNG",
+    "transparentColor":  [
+                             0,
+                             0,
+                             0
+                         ],
+    "supportedResolutions":  [
+                                 256
+                             ],
+    "defaultResolution":  256,
+    "maxResolution":  256,
+    "animations":  {
+                       "idle":  {
+                                    "frameDurationMs":  120,
+                                    "loop":  true,
+                                    "frames":  [
+                                                   {
+                                                       "directions":  [
+                                                                          {
+                                                                              "name":  "front",
+                                                                              "files":  {
+                                                                                            "256":  "256/break_00.png"
+                                                                                        },
+                                                                              "angle":  0
+                                                                          },
+                                                                          {
+                                                                              "name":  "front_right",
+                                                                              "files":  {
+                                                                                            "256":  "256/break_00.png"
+                                                                                        },
+                                                                              "angle":  45
+                                                                          },
+                                                                          {
+                                                                              "name":  "right",
+                                                                              "files":  {
+                                                                                            "256":  "256/break_00.png"
+                                                                                        },
+                                                                              "angle":  90
+                                                                          },
+                                                                          {
+                                                                              "name":  "back_right",
+                                                                              "files":  {
+                                                                                            "256":  "256/break_00.png"
+                                                                                        },
+                                                                              "angle":  135
+                                                                          },
+                                                                          {
+                                                                              "name":  "back",
+                                                                              "files":  {
+                                                                                            "256":  "256/break_00.png"
+                                                                                        },
+                                                                              "angle":  180
+                                                                          },
+                                                                          {
+                                                                              "name":  "back_left",
+                                                                              "files":  {
+                                                                                            "256":  "256/break_00.png"
+                                                                                        },
+                                                                              "angle":  225
+                                                                          },
+                                                                          {
+                                                                              "name":  "left",
+                                                                              "files":  {
+                                                                                            "256":  "256/break_00.png"
+                                                                                        },
+                                                                              "angle":  270
+                                                                          },
+                                                                          {
+                                                                              "name":  "front_left",
+                                                                              "files":  {
+                                                                                            "256":  "256/break_00.png"
+                                                                                        },
+                                                                              "angle":  315
+                                                                          }
+                                                                      ]
+                                                   }
+                                               ]
+                                },
+                       "break":  {
+                                     "frameDurationMs":  95,
+                                     "loop":  false,
+                                     "frames":  [
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_00.png"
+                                                                                         },
+                                                                               "angle":  0
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_00.png"
+                                                                                         },
+                                                                               "angle":  45
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_00.png"
+                                                                                         },
+                                                                               "angle":  90
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_00.png"
+                                                                                         },
+                                                                               "angle":  135
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_00.png"
+                                                                                         },
+                                                                               "angle":  180
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_00.png"
+                                                                                         },
+                                                                               "angle":  225
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_00.png"
+                                                                                         },
+                                                                               "angle":  270
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_00.png"
+                                                                                         },
+                                                                               "angle":  315
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_01.png"
+                                                                                         },
+                                                                               "angle":  0
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_01.png"
+                                                                                         },
+                                                                               "angle":  45
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_01.png"
+                                                                                         },
+                                                                               "angle":  90
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_01.png"
+                                                                                         },
+                                                                               "angle":  135
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_01.png"
+                                                                                         },
+                                                                               "angle":  180
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_01.png"
+                                                                                         },
+                                                                               "angle":  225
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_01.png"
+                                                                                         },
+                                                                               "angle":  270
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_01.png"
+                                                                                         },
+                                                                               "angle":  315
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_02.png"
+                                                                                         },
+                                                                               "angle":  0
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_02.png"
+                                                                                         },
+                                                                               "angle":  45
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_02.png"
+                                                                                         },
+                                                                               "angle":  90
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_02.png"
+                                                                                         },
+                                                                               "angle":  135
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_02.png"
+                                                                                         },
+                                                                               "angle":  180
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_02.png"
+                                                                                         },
+                                                                               "angle":  225
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_02.png"
+                                                                                         },
+                                                                               "angle":  270
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_02.png"
+                                                                                         },
+                                                                               "angle":  315
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_03.png"
+                                                                                         },
+                                                                               "angle":  0
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_03.png"
+                                                                                         },
+                                                                               "angle":  45
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_03.png"
+                                                                                         },
+                                                                               "angle":  90
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_03.png"
+                                                                                         },
+                                                                               "angle":  135
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_03.png"
+                                                                                         },
+                                                                               "angle":  180
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_03.png"
+                                                                                         },
+                                                                               "angle":  225
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_03.png"
+                                                                                         },
+                                                                               "angle":  270
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_03.png"
+                                                                                         },
+                                                                               "angle":  315
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_04.png"
+                                                                                         },
+                                                                               "angle":  0
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_04.png"
+                                                                                         },
+                                                                               "angle":  45
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_04.png"
+                                                                                         },
+                                                                               "angle":  90
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_04.png"
+                                                                                         },
+                                                                               "angle":  135
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_04.png"
+                                                                                         },
+                                                                               "angle":  180
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_04.png"
+                                                                                         },
+                                                                               "angle":  225
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_04.png"
+                                                                                         },
+                                                                               "angle":  270
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_04.png"
+                                                                                         },
+                                                                               "angle":  315
+                                                                           }
+                                                                       ]
+                                                    },
+                                                    {
+                                                        "directions":  [
+                                                                           {
+                                                                               "name":  "front",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_05.png"
+                                                                                         },
+                                                                               "angle":  0
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_05.png"
+                                                                                         },
+                                                                               "angle":  45
+                                                                           },
+                                                                           {
+                                                                               "name":  "right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_05.png"
+                                                                                         },
+                                                                               "angle":  90
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_right",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_05.png"
+                                                                                         },
+                                                                               "angle":  135
+                                                                           },
+                                                                           {
+                                                                               "name":  "back",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_05.png"
+                                                                                         },
+                                                                               "angle":  180
+                                                                           },
+                                                                           {
+                                                                               "name":  "back_left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_05.png"
+                                                                                         },
+                                                                               "angle":  225
+                                                                           },
+                                                                           {
+                                                                               "name":  "left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_05.png"
+                                                                                         },
+                                                                               "angle":  270
+                                                                           },
+                                                                           {
+                                                                               "name":  "front_left",
+                                                                               "files":  {
+                                                                                             "256":  "256/break_05.png"
+                                                                                         },
+                                                                               "angle":  315
+                                                                           }
+                                                                       ]
+                                                    }
+                                                ]
+                                 }
+                   },
+    "lod":  [
+                {
+                    "resolution":  256,
+                    "maxDistance":  9999
+                }
+            ]
+}

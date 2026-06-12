@@ -1,0 +1,4 @@
+Sound-Origin:    http://soundbible.com/1645-Pling.html
+Sound-Copyright: KevanGC  @ Soundbible (2010)
+License-Name:    Creative Commons 0 (CC-0)
+License-URL:     https://creativecommons.org/publicdomain/zero/1.0/

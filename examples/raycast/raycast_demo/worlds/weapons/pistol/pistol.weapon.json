@@ -1,0 +1,61 @@
+{
+  "weapon": "pistol",
+  "format": "PNG",
+  "frameWidth": 640,
+  "frameHeight": 440,
+  "screenHeightFraction": 0.48,
+  "damage": 18,
+  "rangeCells": 8.5,
+  "anchor": {
+    "x": 0.5,
+    "y": 1
+  },
+  "baseOffset": {
+    "x": 0,
+    "y": 14
+  },
+  "bob": {
+    "enabled": true,
+    "amount": 0.35,
+    "amplitudeX": 5,
+    "amplitudeY": 3,
+    "frequencyHz": 2.8
+  },
+  "animations": {
+    "idle": {
+      "frameDurationMs": 140,
+      "loop": true,
+      "files": [
+        "idle/idle_00.png"
+      ]
+    },
+    "fire": {
+      "frameDurationMs": 70,
+      "loop": false,
+      "files": [
+        "fire/fire_00.png",
+        "fire/fire_01.png",
+        "fire/fire_02.png"
+      ]
+    },
+    "reload": {
+      "frameDurationMs": 90,
+      "loop": false,
+      "files": [
+        "reload/reload_00.png",
+        "reload/reload_01.png",
+        "reload/reload_02.png",
+        "reload/reload_03.png",
+        "reload/reload_04.png"
+      ]
+    }
+  },
+  "sounds": {
+    "fire": "sounds/pistol_shot_outdoor_retro.wav"
+  },
+  "ammo": {
+    "magazineSize": 18,
+    "maxAmmo": 90,
+    "initialAmmo": 90
+  }
+}
