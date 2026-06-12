@@ -51,6 +51,28 @@ target_link_libraries(nuRaycastEngine PUBLIC
   nlohmann_json::nlohmann_json)
 
 if(WIN32)
+  add_library(nuRaycastTextureLoader STATIC
+    win/WinTextureLoader.cpp
+    win/WinTextureLoader.h)
+
+  target_include_directories(nuRaycastTextureLoader PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/win"
+    "${CMAKE_CURRENT_SOURCE_DIR}/engine")
+
+  target_compile_features(nuRaycastTextureLoader PUBLIC cxx_std_20)
+
+  target_compile_definitions(nuRaycastTextureLoader PUBLIC
+    WIN32
+    _WINDOWS
+    _MBCS
+    $<$<CONFIG:Debug>:_DEBUG>
+    $<$<NOT:$<CONFIG:Debug>>:NDEBUG>)
+
+  target_link_libraries(nuRaycastTextureLoader PUBLIC
+    nuRaycastEngine
+    ole32
+    windowscodecs)
+
   set(NURAYCAST_WIN_SUPPORT_SOURCES
     win/BackgroundMusicPlayer.cpp
     win/D2dPresenter.cpp
@@ -104,6 +126,9 @@ endif()
 
 if(MSVC)
   target_compile_options(nuRaycastEngine PRIVATE /W3)
+  if(TARGET nuRaycastTextureLoader)
+    target_compile_options(nuRaycastTextureLoader PRIVATE /W3)
+  endif()
   if(TARGET nuRaycastWinSupport)
     target_compile_options(nuRaycastWinSupport PRIVATE /W3)
   endif()

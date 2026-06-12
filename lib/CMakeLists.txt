@@ -37,6 +37,9 @@ endif()
 
 if(NUBASIC_WITH_RAYCAST AND TARGET nuRaycastEngine)
   target_link_libraries(nuBasicInterpreter PUBLIC nuRaycastEngine)
+  if(TARGET nuRaycastTextureLoader)
+    target_link_libraries(nuBasicInterpreter PUBLIC nuRaycastTextureLoader)
+  endif()
   target_compile_definitions(nuBasicInterpreter PUBLIC NUBASIC_HAS_RAYCAST=1)
 endif()
 

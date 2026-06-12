@@ -1094,37 +1094,54 @@ HDC console_window_t::get_offscreen_dc()
 
     _surface_mutex.lock();
 
-    if (!_gfx_dc) {
+    RECT client_rc;
+    GetClientRect(_hwnd, &client_rc);
+    int w = client_rc.right > 0
+        ? client_rc.right
+        : (_config.window_width > 0 ? _config.window_width : 640);
+    int h = client_rc.bottom > 0
+        ? client_rc.bottom
+        : (_config.window_height > 0 ? _config.window_height : 400);
+
+    _config.window_width = w;
+    _config.window_height = h;
+
+    if (!_gfx_dc || _backbuffer_width != w || _backbuffer_height != h) {
         HDC hdc = GetDC(_hwnd);
         if (!hdc) {
             _surface_mutex.unlock();
             return nullptr;
         }
 
-        int w = _config.window_width > 0 ? _config.window_width : 640;
-        int h = _config.window_height > 0 ? _config.window_height : 400;
-
-        _gfx_dc = CreateCompatibleDC(hdc);
-        _gfx_bitmap = CreateCompatibleBitmap(hdc, w, h);
-        if (!_gfx_dc || !_gfx_bitmap) {
-            if (_gfx_bitmap)
-                DeleteObject(_gfx_bitmap);
-            if (_gfx_dc)
-                DeleteDC(_gfx_dc);
-            _gfx_dc = nullptr;
-            _gfx_bitmap = nullptr;
+        HDC new_gfx = CreateCompatibleDC(hdc);
+        HBITMAP new_gfx_bitmap = CreateCompatibleBitmap(hdc, w, h);
+        if (!new_gfx || !new_gfx_bitmap) {
+            if (new_gfx_bitmap)
+                DeleteObject(new_gfx_bitmap);
+            if (new_gfx)
+                DeleteDC(new_gfx);
             ReleaseDC(_hwnd, hdc);
             _surface_mutex.unlock();
             return nullptr;
         }
-        SelectObject(_gfx_dc, _gfx_bitmap);
-        _backbuffer_width = w;
-        _backbuffer_height = h;
+        SelectObject(new_gfx, new_gfx_bitmap);
 
         HBRUSH bg = CreateSolidBrush(_config.background_color);
         RECT rc = { 0, 0, w, h };
-        FillRect(_gfx_dc, &rc, bg);
+        FillRect(new_gfx, &rc, bg);
         DeleteObject(bg);
+
+        if (_gfx_dc) {
+            BitBlt(new_gfx, 0, 0, std::min(w, _backbuffer_width),
+                std::min(h, _backbuffer_height), _gfx_dc, 0, 0, SRCCOPY);
+            DeleteDC(_gfx_dc);
+            DeleteObject(_gfx_bitmap);
+        }
+
+        _gfx_dc = new_gfx;
+        _gfx_bitmap = new_gfx_bitmap;
+        _backbuffer_width = w;
+        _backbuffer_height = h;
 
         ReleaseDC(_hwnd, hdc);
     }
