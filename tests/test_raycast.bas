@@ -1,6 +1,6 @@
 ' test_raycast.bas
 ' PLATFORM: windows
-' EXPECT_OUTPUT: available=1|loaded=1|project=1|layer=level_1|rows=16|cols=16|celldx=512|celldy=512|solid=1|door=2|weapon=1|sprites=34|actors=4|enemies=4|killed=0|items=18|collected=0|destroyed=0|shot=0|objectshot=3|destroyed2=1|collected2=1|healing=35|damage=36|killshot=2|killed2=1|layer2=level_0|x=2304|y=5376|facing=90|x2=2303|y2=5408|hash=1368953682
+' EXPECT_OUTPUT: available=1|loaded=1|project=1|layer=level_1|rows=16|cols=16|celldx=512|celldy=512|solid=1|door=2|map=0|key=1|pistol=1|weapon=0|sprites=32|actors=4|enemies=4|killed=0|items=16|collected=0|destroyed=0|shot=0|objectshot=3|destroyed2=1|collected2=1|healing=35|damage=36|killshot=2|killed2=1|layer2=level_0|x=2304|y=5376|facing=90|x2=2303|y2=5408|hash=2095660438|map2=1|weapon2=1
 
 Using raycast
 
@@ -24,6 +24,9 @@ Print "celldx="; RayCellDx()
 Print "celldy="; RayCellDy()
 Print "solid="; RayIsSolidCell(0, 0)
 Print "door="; RayCellKind(4, 7)
+Print "map="; RayMapUnlockCount()
+Print "key="; RayKeyAtCell(10, 5)
+Print "pistol="; RayHasWeapon("weapons/pistol/pistol.weapon.json")
 Print "weapon="; RayLoadWeapon("weapons/super_shotgun/super_shotgun.weapon.json")
 Print "sprites="; RaySpriteCount()
 Print "actors="; RayActorCount()
@@ -36,7 +39,7 @@ Print "shot="; RayDamageEnemy(1.0, 0.1, 1.0)
 RaySetPlayer 6400, 6912, 90
 Print "objectshot="; RayDamageEnemy(50.0, 2.0, 40.0)
 Print "destroyed2="; RayDestroyedObjectCount()
-RaySetPlayer 768, 768, 0
+RaySetPlayer 2816, 5376, 0
 RayUpdate 0.016
 Print "collected2="; RayCollectedItemCount()
 RaySetPlayer 5888, 5888, 0
@@ -55,6 +58,12 @@ RayRender 320, 200
 Print "x2="; RayPlayerX()
 Print "y2="; RayPlayerY()
 Print "hash="; RayFrameHash()
+RaySetPlayer 7424, 7424, 0
+RayUpdate 0.016
+Print "map2="; RayMapUnlockCount()
+RaySetPlayer 3328, 6912, 0
+RayUpdate 0.016
+Print "weapon2="; RayLoadWeapon("weapons/super_shotgun/super_shotgun.weapon.json")
 
 RaySetPlayer 6912, 6400, 0
 For i% = 1 To 80

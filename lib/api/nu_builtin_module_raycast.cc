@@ -111,6 +111,7 @@ namespace {
         std::vector<RuntimeSpriteInfo> runtime_sprites;
         std::vector<RuntimeEffect> runtime_effects;
         std::vector<std::string> keyring;
+        std::vector<std::string> weapon_inventory;
         std::vector<LayerTransition> transitions;
         std::map<std::string, loaded_sprite_set_t> loaded_sprite_sets;
         int projection_width = kDefaultProjectionWidth;
@@ -118,6 +119,7 @@ namespace {
         double pending_player_damage = 0.0;
         double pending_player_healing = 0.0;
         double transition_cooldown_seconds = 0.0;
+        int map_unlock_count = 0;
         std::string background_music_alias;
         std::string base_dir;
         std::string project_path;
@@ -159,6 +161,34 @@ namespace {
             = normalize_ray(player.getAlpha() + player.degHalfVisual(), player);
         return static_cast<double>(facing_ray) * 360.0
             / static_cast<double>(player.deg360());
+    }
+
+    std::string normalized_weapon_id(std::string path)
+    {
+        std::replace(path.begin(), path.end(), '\\', '/');
+        std::transform(path.begin(), path.end(), path.begin(),
+            [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+        return path;
+    }
+
+    bool has_weapon_in_inventory(
+        const raycast_session_t& session, const std::string& weapon_path)
+    {
+        const auto id = normalized_weapon_id(weapon_path);
+        return std::find(session.weapon_inventory.begin(),
+                   session.weapon_inventory.end(), id)
+            != session.weapon_inventory.end();
+    }
+
+    void add_weapon_to_inventory(
+        raycast_session_t& session, const std::string& weapon_path)
+    {
+        const auto id = normalized_weapon_id(weapon_path);
+        if (id.empty() || has_weapon_in_inventory(session, id)) {
+            return;
+        }
+
+        session.weapon_inventory.push_back(id);
     }
 
     std::string parent_path_string(const std::string& path)
@@ -1017,6 +1047,10 @@ namespace {
                 session.pending_player_healing += info.pickup_health;
             }
 
+            if (info.unlocks_map) {
+                ++session.map_unlock_count;
+            }
+
             const auto key_id = inferred_key_id(info);
             if (!key_id.empty()) {
                 session.keyring.push_back(key_id);
@@ -1024,6 +1058,7 @@ namespace {
             }
 
             if (!info.pickup_weapon.empty()) {
+                add_weapon_to_inventory(session, info.pickup_weapon);
                 const auto weapon_path = session.project_dir.empty()
                     ? resolve_session_path(info.pickup_weapon)
                     : join_path(session.project_dir, info.pickup_weapon);
@@ -1181,11 +1216,13 @@ namespace {
         session.runtime_sprites.clear();
         session.runtime_effects.clear();
         session.keyring.clear();
+        session.weapon_inventory.clear();
         session.transitions.clear();
         session.loaded_sprite_sets.clear();
         session.pending_player_damage = 0.0;
         session.pending_player_healing = 0.0;
         session.transition_cooldown_seconds = 0.0;
+        session.map_unlock_count = 0;
         stop_background_music(session);
         session.project_path.clear();
         session.project_dir.clear();
@@ -1236,10 +1273,12 @@ namespace {
         session.runtime_sprites.clear();
         session.runtime_effects.clear();
         session.keyring.clear();
+        session.weapon_inventory.clear();
         session.loaded_sprite_sets.clear();
         session.pending_player_damage = 0.0;
         session.pending_player_healing = 0.0;
         session.transition_cooldown_seconds = 0.0;
+        session.map_unlock_count = 0;
         session.world_path = world_path;
         session.active_layer_id = result.activeLayerId;
         session.pending_transition_index = -1;
@@ -1264,7 +1303,9 @@ namespace {
 
         auto& session = raycast_session();
         auto keyring = session.keyring;
+        auto weapon_inventory = session.weapon_inventory;
         auto transitions = session.transitions;
+        const auto map_unlock_count = session.map_unlock_count;
         const auto stored_project_path = session.project_path.empty()
             ? project_path
             : session.project_path;
@@ -1278,12 +1319,15 @@ namespace {
         session.project_dir = project_dir;
         session.transitions = std::move(transitions);
         session.keyring = std::move(keyring);
+        session.weapon_inventory = std::move(weapon_inventory);
+        session.map_unlock_count = map_unlock_count;
         if (session.world) {
             session.world->setDoorKeyring(session.keyring);
         }
 
         load_scene_sprites(session, result.scene, project_dir);
         if (!result.scene.playerWeapon.file.empty() && session.engine) {
+            add_weapon_to_inventory(session, result.scene.playerWeapon.file);
             auto weapon = load_view_weapon_from_metadata(
                 join_path(project_dir, result.scene.playerWeapon.file));
             if (weapon && result.scene.playerWeapon.visible) {
@@ -1473,11 +1517,12 @@ namespace {
                 = { "rayavailable", "rayinit", "rayloadworld", "rayrender",
                       "rayframehash", "rayplayerx", "rayplayery",
                       "rayplayerfacing", "raycurrentlayer$", "raycurrentlayer",
-                      "rayloadweapon", "raysetplayer", "raymove", "raystrafe",
-                      "rayturn", "raymaprows", "raymapcols", "raycelldx",
-                      "raycelldy", "rayissolidcell", "raycellkind",
-                      "rayloadproject", "raypresent", "raykeydown", "rayupdate",
-                      "raydamageenemy", "rayconsumeplayerdamage",
+                      "rayloadweapon", "rayhasweapon", "raysetplayer",
+                      "raymove", "raystrafe", "rayturn", "raymaprows",
+                      "raymapcols", "raycelldx", "raycelldy", "rayissolidcell",
+                      "raycellkind", "raymapunlockcount", "raykeyatcell",
+                      "rayloadproject", "raypresent", "raykeydown",
+                      "rayupdate", "raydamageenemy", "rayconsumeplayerdamage",
                       "rayconsumeplayerhealing", "rayitemcount",
                       "raycollecteditemcount", "raydestroyedobjectcount",
                       "rayplaysound", "rayspritecount", "rayactorcount",
@@ -1625,9 +1670,14 @@ namespace {
 
                       auto* engine = checked_engine(ctx, name);
                       auto& session = raycast_session();
+                      const auto requested_weapon = vargs[0].to_str();
+                      if (!has_weapon_in_inventory(session, requested_weapon)) {
+                          return variant_t(integer_t(0));
+                      }
+
                       const auto weapon_path = session.project_dir.empty()
-                          ? resolve_session_path(vargs[0].to_str())
-                          : join_path(session.project_dir, vargs[0].to_str());
+                          ? resolve_session_path(requested_weapon)
+                          : join_path(session.project_dir, requested_weapon);
                       auto weapon = load_view_weapon_from_metadata(weapon_path);
                       if (weapon == nullptr) {
                           ctx.set_errno(EINVAL);
@@ -1636,6 +1686,19 @@ namespace {
 
                       engine->setViewWeapon(std::move(*weapon));
                       return variant_t(integer_t(1));
+                  };
+
+            fmap["rayhasweapon"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      std::vector<variant_t> vargs;
+                      get_functor_vargs(ctx, name, args,
+                          { variant_t::type_t::STRING }, vargs);
+                      checked_engine(ctx, name);
+                      return variant_t(integer_t(has_weapon_in_inventory(
+                          raycast_session(), vargs[0].to_str())
+                              ? 1
+                              : 0));
                   };
 
             fmap["raysetplayer"] = [](rt_prog_ctx_t& ctx,
@@ -1769,6 +1832,57 @@ namespace {
                     * static_cast<double>(world->getCellDy());
                 return variant_t(
                     integer_t(world->isSolidAtWorld(x, y) ? 1 : 0));
+            };
+
+            fmap["raymapunlockcount"] = [](rt_prog_ctx_t&,
+                                            const std::string& name,
+                                            const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                return variant_t(integer_t(raycast_session().map_unlock_count));
+            };
+
+            fmap["raykeyatcell"] = [](rt_prog_ctx_t& ctx,
+                                       const std::string& name,
+                                       const func_args_t& args) {
+                std::vector<variant_t> vargs;
+                get_functor_vargs(ctx, name, args,
+                    { variant_t::type_t::INTEGER, variant_t::type_t::INTEGER },
+                    vargs);
+                auto* engine = checked_engine(ctx, name);
+                auto* world = checked_world(ctx, name);
+                const auto row = static_cast<int>(vargs[0].to_int());
+                const auto col = static_cast<int>(vargs[1].to_int());
+
+                for (const auto& info : raycast_session().runtime_sprites) {
+                    if (info.consumed || !contains_ignore_case(info.sprite_set, "key")) {
+                        continue;
+                    }
+
+                    const auto* sprite = engine->sprite(info.sprite_index);
+                    if (sprite == nullptr || !sprite->visible) {
+                        continue;
+                    }
+
+                    const auto sprite_col =
+                        static_cast<int>(sprite->x / world->getCellDx());
+                    const auto sprite_row =
+                        static_cast<int>(sprite->y / world->getCellDy());
+                    if (sprite_row != row || sprite_col != col) {
+                        continue;
+                    }
+
+                    if (contains_ignore_case(info.sprite_set, "green")) {
+                        return variant_t(integer_t(1));
+                    }
+                    if (contains_ignore_case(info.sprite_set, "red")) {
+                        return variant_t(integer_t(2));
+                    }
+                    if (contains_ignore_case(info.sprite_set, "blue")) {
+                        return variant_t(integer_t(3));
+                    }
+                }
+
+                return variant_t(integer_t(0));
             };
 
             fmap["rayupdate"] = [](rt_prog_ctx_t& ctx, const std::string& name,

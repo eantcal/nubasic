@@ -1,5 +1,3 @@
-Syntax Modern
-
 ' WinRayCast demo in nuBASIC.
 '
 ' This file is intentionally written as a tutorial.
@@ -8,6 +6,7 @@ Syntax Modern
 '
 ' WinRayCast provides the pseudo-3D raycasting engine.
 ' nuBASIC provides the scripting layer, graphics window, HUD drawing and game logic.
+Syntax Modern
 
 Using raycast
 Using graphics
@@ -85,8 +84,14 @@ Sub DrawWeaponPreview(hudX As Integer, y As Integer, selectedWeapon As Integer, 
     Dim slotW As Integer
     Dim x1 As Integer
     Dim activeColor As Integer
+    Dim pistolAvailable As Integer
+    Dim shotgunAvailable As Integer
+    Dim smgAvailable As Integer
 
     slotW = 68
+    pistolAvailable = RayHasWeapon("weapons/pistol/pistol.weapon.json")
+    shotgunAvailable = RayHasWeapon("weapons/super_shotgun/super_shotgun.weapon.json")
+    smgAvailable = RayHasWeapon("weapons/submachine_gun/submachine_gun.weapon.json")
 
     TextOut hudX, y, "WEAPON", Rgb(230, 230, 230)
     TextOut hudX, y + 24, weaponName, Rgb(190, 210, 235)
@@ -99,9 +104,23 @@ Sub DrawWeaponPreview(hudX As Integer, y As Integer, selectedWeapon As Integer, 
         x1 = x1 + slotW
     Wend
 
-    TextOut hudX + 24, y + 60, "1", Rgb(220, 220, 220)
-    TextOut hudX + slotW + 24, y + 60, "2", Rgb(220, 220, 220)
-    TextOut hudX + slotW * 2 + 24, y + 60, "3", Rgb(220, 220, 220)
+    If pistolAvailable = 1 Then
+        TextOut hudX + 24, y + 60, "1", Rgb(220, 220, 220)
+    Else
+        TextOut hudX + 24, y + 60, "-", Rgb(95, 100, 110)
+    End If
+
+    If shotgunAvailable = 1 Then
+        TextOut hudX + slotW + 24, y + 60, "2", Rgb(220, 220, 220)
+    Else
+        TextOut hudX + slotW + 24, y + 60, "-", Rgb(95, 100, 110)
+    End If
+
+    If smgAvailable = 1 Then
+        TextOut hudX + slotW * 2 + 24, y + 60, "3", Rgb(220, 220, 220)
+    Else
+        TextOut hudX + slotW * 2 + 24, y + 60, "-", Rgb(95, 100, 110)
+    End If
 
     activeColor = Rgb(115, 190, 255)
     If selectedWeapon = 1 Then Rect hudX - 2, y + 50, hudX + slotW - 4, y + 88, activeColor
@@ -113,7 +132,7 @@ End Sub
 '
 ' The engine exposes only map queries; BASIC decides how much of the map to
 ' draw and how to style it. This keeps the minimap easy to customize.
-Sub DrawMiniMap(hudX As Integer, y As Integer)
+Sub DrawMiniMap(hudX As Integer, y As Integer, mapUnlocks As Integer)
     Dim cellDx As Integer
     Dim cellDy As Integer
     Dim rows As Integer
@@ -137,18 +156,11 @@ Sub DrawMiniMap(hudX As Integer, y As Integer)
     Dim panelX As Integer
     Dim panelY As Integer
     Dim cellKind As Integer
+    Dim keyKind As Integer
     Dim angleRad As Double
     Dim facingX As Integer
     Dim facingY As Integer
 
-    cellDx = RayCellDx()
-    cellDy = RayCellDy()
-    rows = RayMapRows()
-    cols = RayMapCols()
-    If cellDx <= 0 Or cellDy <= 0 Then Exit Sub
-
-    playerCol = RayPlayerX() / cellDx
-    playerRow = RayPlayerY() / cellDy
     radius = 5
     tile = 14
     gridSize = (radius * 2 + 1) * tile
@@ -162,6 +174,21 @@ Sub DrawMiniMap(hudX As Integer, y As Integer)
     TextOut hudX, y, "MAP", Rgb(230, 230, 230)
     FillRect panelX, panelY, panelX + gridSize + 16, panelY + gridSize + 16, Rgb(12, 14, 18)
     Rect panelX, panelY, panelX + gridSize + 16, panelY + gridSize + 16, Rgb(78, 88, 105)
+
+    If mapUnlocks < 1 Then
+        TextOut panelX + 38, panelY + 68, "MAP OFFLINE", Rgb(130, 140, 155)
+        TextOut panelX + 28, panelY + 92, "Find a computer", Rgb(90, 100, 115)
+        Exit Sub
+    End If
+
+    cellDx = RayCellDx()
+    cellDy = RayCellDy()
+    rows = RayMapRows()
+    cols = RayMapCols()
+    If cellDx <= 0 Or cellDy <= 0 Then Exit Sub
+
+    playerCol = RayPlayerX() / cellDx
+    playerRow = RayPlayerY() / cellDy
 
     For dy = 0 - radius To radius
         For dx = 0 - radius To radius
@@ -184,6 +211,14 @@ Sub DrawMiniMap(hudX As Integer, y As Integer)
             End If
 
             FillRect x, yy, x + tile, yy + tile, color
+
+            ' After the second computer item, uncollected keys appear on the map.
+            If mapUnlocks >= 2 Then
+                keyKind = RayKeyAtCell(mapRow, mapCol)
+                If keyKind = 1 Then FillRect x + 4, yy + 4, x + tile - 4, yy + tile - 4, Rgb(80, 230, 120)
+                If keyKind = 2 Then FillRect x + 4, yy + 4, x + tile - 4, yy + tile - 4, Rgb(230, 80, 80)
+                If keyKind = 3 Then FillRect x + 4, yy + 4, x + tile - 4, yy + tile - 4, Rgb(80, 140, 255)
+            End If
         Next dx
     Next dy
 
@@ -205,7 +240,7 @@ End Sub
 ' - killed enemies
 ' - collected items
 ' - player position and facing direction
-Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integer, autosaveTimer As Double, autosaveSeconds As Double, saved As Integer, gameDone As Integer, selectedWeapon As Integer, weaponName As String, log1 As String, log2 As String, log3 As String, log4 As String)
+Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integer, autosaveTimer As Double, autosaveSeconds As Double, saved As Integer, gameDone As Integer, selectedWeapon As Integer, weaponName As String, mapUnlocks As Integer, log1 As String, log2 As String, log3 As String, log4 As String)
     Dim enemies As Integer
     Dim killed As Integer
     Dim killPct As Integer
@@ -269,7 +304,7 @@ Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integ
     TextOut hudX, 550, "Q/Esc: quit", Rgb(170, 180, 190)
 
     DrawWeaponPreview hudX, 580, selectedWeapon, weaponName
-    DrawMiniMap hudX, 720
+    DrawMiniMap hudX, 720, mapUnlocks
 
     ' Event log. Keeping it in the side panel avoids covering the 3D view.
     TextOut hudX, 908, "EVENT LOG", Rgb(230, 230, 230)
@@ -347,6 +382,7 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim lastLayer As String
     Dim currentLayer As String
     Dim selectedWeapon As Integer
+    Dim mapUnlocks As Integer
     Dim lastWeaponKey1 As Integer
     Dim lastWeaponKey2 As Integer
     Dim lastWeaponKey3 As Integer
@@ -470,7 +506,7 @@ Function Main(argc As Integer, argv() As String) As Integer
     log1 = "World loaded: " + lastLayer
     log2 = "Autosave ready"
     log3 = "Keys 1/2/3 switch weapons"
-    log4 = "Collect medkits to restore energy"
+    log4 = "Find computers to unlock the map"
 
     ' ------------------------------------------------------------------
     ' nuBASIC GRAPHICS WINDOW SETUP
@@ -535,16 +571,20 @@ Function Main(argc As Integer, argv() As String) As Integer
             ' values so the tutorial can show the full gameplay loop.
             If RayKeyDown(vk1) = 1 Then
                 If lastWeaponKey1 = 0 And selectedWeapon <> 1 Then
-                    selectedWeapon = 1
-                    weaponName = "Pistol"
                     weaponPath = "weapons/pistol/pistol.weapon.json"
-                    fireDamage = 18.0
-                    fireRangeCells = 8.5
-                    fireFovDegrees = 22.0
-                    fireCooldownSeconds = 0.32
-                    energyShotCost = 0.05
                     weaponLoaded = RayLoadWeapon(weaponPath)
-                    If weaponLoaded = 1 Then PushLog log1, log2, log3, log4, "Weapon selected: " + weaponName
+                    If weaponLoaded = 1 Then
+                        selectedWeapon = 1
+                        weaponName = "Pistol"
+                        fireDamage = 18.0
+                        fireRangeCells = 8.5
+                        fireFovDegrees = 22.0
+                        fireCooldownSeconds = 0.32
+                        energyShotCost = 0.05
+                        PushLog log1, log2, log3, log4, "Weapon selected: " + weaponName
+                    Else
+                        PushLog log1, log2, log3, log4, "Weapon locked: Pistol"
+                    End If
                 End If
                 lastWeaponKey1 = 1
             Else
@@ -553,16 +593,20 @@ Function Main(argc As Integer, argv() As String) As Integer
 
             If RayKeyDown(vk2) = 1 Then
                 If lastWeaponKey2 = 0 And selectedWeapon <> 2 Then
-                    selectedWeapon = 2
-                    weaponName = "Super Shotgun"
                     weaponPath = "weapons/super_shotgun/super_shotgun.weapon.json"
-                    fireDamage = 45.0
-                    fireRangeCells = 7.5
-                    fireFovDegrees = 34.0
-                    fireCooldownSeconds = 0.72
-                    energyShotCost = 0.16
                     weaponLoaded = RayLoadWeapon(weaponPath)
-                    If weaponLoaded = 1 Then PushLog log1, log2, log3, log4, "Weapon selected: " + weaponName
+                    If weaponLoaded = 1 Then
+                        selectedWeapon = 2
+                        weaponName = "Super Shotgun"
+                        fireDamage = 45.0
+                        fireRangeCells = 7.5
+                        fireFovDegrees = 34.0
+                        fireCooldownSeconds = 0.72
+                        energyShotCost = 0.16
+                        PushLog log1, log2, log3, log4, "Weapon selected: " + weaponName
+                    Else
+                        PushLog log1, log2, log3, log4, "Weapon locked: Super Shotgun"
+                    End If
                 End If
                 lastWeaponKey2 = 1
             Else
@@ -571,16 +615,20 @@ Function Main(argc As Integer, argv() As String) As Integer
 
             If RayKeyDown(vk3) = 1 Then
                 If lastWeaponKey3 = 0 And selectedWeapon <> 3 Then
-                    selectedWeapon = 3
-                    weaponName = "Submachine Gun"
                     weaponPath = "weapons/submachine_gun/submachine_gun.weapon.json"
-                    fireDamage = 10.0
-                    fireRangeCells = 7.0
-                    fireFovDegrees = 24.0
-                    fireCooldownSeconds = 0.125
-                    energyShotCost = 0.02
                     weaponLoaded = RayLoadWeapon(weaponPath)
-                    If weaponLoaded = 1 Then PushLog log1, log2, log3, log4, "Weapon selected: " + weaponName
+                    If weaponLoaded = 1 Then
+                        selectedWeapon = 3
+                        weaponName = "Submachine Gun"
+                        fireDamage = 10.0
+                        fireRangeCells = 7.0
+                        fireFovDegrees = 24.0
+                        fireCooldownSeconds = 0.125
+                        energyShotCost = 0.02
+                        PushLog log1, log2, log3, log4, "Weapon selected: " + weaponName
+                    Else
+                        PushLog log1, log2, log3, log4, "Weapon locked: Submachine Gun"
+                    End If
                 End If
                 lastWeaponKey3 = 1
             Else
@@ -704,6 +752,8 @@ Function Main(argc As Integer, argv() As String) As Integer
             lastLayer = currentLayer
         End If
 
+        mapUnlocks = RayMapUnlockCount()
+
         ' --------------------------------------------------------------
         ' RENDERING PIPELINE
         '
@@ -727,7 +777,7 @@ Function Main(argc As Integer, argv() As String) As Integer
 
         ' Draw the BASIC-side HUD over/next to the rendered scene.
         energyInt = energy
-        DrawHud viewW, viewH, hudX, energyInt, autosaveTimer, autosaveSeconds, checkpointSaved, gameDone, selectedWeapon, weaponName, log1, log2, log3, log4
+        DrawHud viewW, viewH, hudX, energyInt, autosaveTimer, autosaveSeconds, checkpointSaved, gameDone, selectedWeapon, weaponName, mapUnlocks, log1, log2, log3, log4
 
         ' Draw death overlay if needed.
         If lifeState <> 0 Then
