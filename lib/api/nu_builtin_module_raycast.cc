@@ -22,8 +22,10 @@
 #include <algorithm>
 #include <cerrno>
 #include <cmath>
+#include <cctype>
 #include <cstdint>
 #include <cstring>
+#include <fstream>
 #include <filesystem>
 #include <functional>
 #include <map>
@@ -31,12 +33,15 @@
 #include <string>
 #include <vector>
 
+#include <nlohmann/json.hpp>
+
 #ifdef _WIN32
 #include "WinTextureLoader.h"
 #include "nu_os_console.h"
 #include "nu_os_gdi.h"
 #include "nu_winconsole_api.h"
 
+#include <mmsystem.h>
 #include <windows.h>
 #endif
 #endif
@@ -49,18 +54,76 @@ namespace {
     constexpr int kDefaultProjectionWidth = 320;
     constexpr int kDefaultProjectionHeight = 200;
     constexpr int kDefaultCellSize = 512;
-    constexpr double kDefaultScale = 250000.0;
+    constexpr double kDefaultScale = 500000.0;
+    constexpr double kPi = 3.14159265358979323846;
+
+    struct loaded_sprite_set_t {
+        DirectionalSpriteFrames frames;
+        std::vector<SpriteAnimationClip> animations;
+        Color transparent_color = makeColor(0, 0, 0);
+    };
 
     struct raycast_session_t {
+        struct RuntimeSpriteInfo {
+            size_t sprite_index = 0;
+            std::string name;
+            std::string sprite_set;
+            std::string pickup_weapon;
+            double pickup_health = 0.0;
+            bool unlocks_map = false;
+            bool explosive = false;
+            double explosive_health = 0.0;
+            double explosion_radius_cells = 0.0;
+            double explosion_damage = 0.0;
+            double explosion_scale_cells = 1.5;
+            std::string explosion_sprite_set;
+            std::string destroyed_sprite_set;
+            double destroyed_scale_cells = 0.55;
+            std::string damage_response_type;
+            std::string damage_response_effect_sprite_set;
+            std::string damage_response_effect_animation;
+            double damage_response_effect_scale_cells = 1.5;
+            std::string damage_response_sound;
+            bool consumed = false;
+            bool destroyed = false;
+        };
+
+        struct RuntimeEffect {
+            size_t sprite_index = 0;
+            double remaining_seconds = 0.0;
+        };
+
+        struct LayerTransition {
+            std::string from_layer;
+            std::string to_layer;
+            int trigger_row = -1;
+            int trigger_column = -1;
+            double wait_seconds = 0.0;
+            double target_x_cell = 1.5;
+            double target_y_cell = 1.5;
+            double target_facing_degrees = 0.0;
+        };
+
         std::unique_ptr<WorldMap> world;
         std::unique_ptr<RaycastEngine> engine;
         ActorSystem actor_system;
         std::vector<SpriteActor> actors;
+        std::vector<RuntimeSpriteInfo> runtime_sprites;
+        std::vector<RuntimeEffect> runtime_effects;
+        std::vector<std::string> keyring;
+        std::vector<LayerTransition> transitions;
+        std::map<std::string, loaded_sprite_set_t> loaded_sprite_sets;
         int projection_width = kDefaultProjectionWidth;
         int projection_height = kDefaultProjectionHeight;
+        double pending_player_damage = 0.0;
+        std::string background_music_alias;
         std::string base_dir;
+        std::string project_path;
         std::string project_dir;
         std::string world_path;
+        std::string active_layer_id;
+        int pending_transition_index = -1;
+        double pending_transition_seconds = 0.0;
     };
 
     raycast_session_t& raycast_session()
@@ -151,11 +214,501 @@ namespace {
         return extension == ".bmp" || extension == ".png";
     }
 
-    struct loaded_sprite_set_t {
-        DirectionalSpriteFrames frames;
-        std::vector<SpriteAnimationClip> animations;
-        Color transparent_color = makeColor(0, 0, 0);
-    };
+    double normalize_degrees(double degrees) noexcept
+    {
+        while (degrees < 0.0) {
+            degrees += 360.0;
+        }
+
+        while (degrees >= 360.0) {
+            degrees -= 360.0;
+        }
+
+        return degrees;
+    }
+
+    double absolute_angle_delta_degrees(double lhs, double rhs) noexcept
+    {
+        const auto delta =
+            std::fabs(normalize_degrees(lhs) - normalize_degrees(rhs));
+        return delta > 180.0 ? 360.0 - delta : delta;
+    }
+
+    bool is_completion_enemy(const SpriteActor& actor) noexcept
+    {
+        return actor.maxHealth > 0.0 && actor.chasePlayer;
+    }
+
+    bool contains_ignore_case(std::string text, std::string needle)
+    {
+        std::transform(text.begin(), text.end(), text.begin(),
+            [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+        std::transform(needle.begin(), needle.end(), needle.begin(),
+            [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+        return text.find(needle) != std::string::npos;
+    }
+
+    bool is_pickup_item(const raycast_session_t::RuntimeSpriteInfo& info)
+    {
+        return info.pickup_health > 0.0 || !info.pickup_weapon.empty()
+            || info.unlocks_map
+            || contains_ignore_case(info.sprite_set, "ammo")
+            || contains_ignore_case(info.sprite_set, "key")
+            || contains_ignore_case(info.sprite_set, "med")
+            || contains_ignore_case(info.name, "ammo")
+            || contains_ignore_case(info.name, "key")
+            || contains_ignore_case(info.name, "med");
+    }
+
+    bool is_damage_reactive(const raycast_session_t::RuntimeSpriteInfo& info)
+    {
+        return info.explosive || !info.damage_response_type.empty()
+            || info.explosive_health > 0.0;
+    }
+
+    bool is_completion_item(const raycast_session_t::RuntimeSpriteInfo& info)
+    {
+        return is_pickup_item(info);
+    }
+
+    std::string inferred_key_id(
+        const raycast_session_t::RuntimeSpriteInfo& info)
+    {
+        if (!contains_ignore_case(info.sprite_set, "key")
+            && !contains_ignore_case(info.name, "key")) {
+            return std::string();
+        }
+
+        if (contains_ignore_case(info.sprite_set, "red")
+            || contains_ignore_case(info.name, "red")) {
+            return "red";
+        }
+
+        if (contains_ignore_case(info.sprite_set, "blue")
+            || contains_ignore_case(info.name, "blue")) {
+            return "blue";
+        }
+
+        if (contains_ignore_case(info.sprite_set, "yellow")
+            || contains_ignore_case(info.name, "yellow")) {
+            return "yellow";
+        }
+
+        if (contains_ignore_case(info.sprite_set, "green")
+            || contains_ignore_case(info.name, "green")) {
+            return "green";
+        }
+
+        return "default";
+    }
+
+    void start_actor_death(SpriteActor& actor, Sprite* sprite) noexcept
+    {
+        actor.dead = true;
+        actor.health = 0.0;
+        actor.state = ActorState::Idle;
+        actor.collidesWithWorld = false;
+
+        if (sprite != nullptr && !actor.deathAnimationStarted) {
+            if (sprite->setAnimation("death")) {
+                actor.deathAnimationStarted = true;
+            } else {
+                sprite->visible = false;
+            }
+        }
+    }
+
+    std::string json_string(const nlohmann::json& object,
+        const std::string& field,
+        const std::string& fallback = std::string())
+    {
+        if (!object.is_object() || !object.contains(field)
+            || !object[field].is_string()) {
+            return fallback;
+        }
+        return object[field].get<std::string>();
+    }
+
+    double json_double(const nlohmann::json& object,
+        const std::string& field,
+        double fallback = 0.0)
+    {
+        if (!object.is_object() || !object.contains(field)
+            || !object[field].is_number()) {
+            return fallback;
+        }
+        return object[field].get<double>();
+    }
+
+    int json_int(const nlohmann::json& object,
+        const std::string& field,
+        int fallback = 0)
+    {
+        if (!object.is_object() || !object.contains(field)
+            || !object[field].is_number_integer()) {
+            return fallback;
+        }
+        return object[field].get<int>();
+    }
+
+    bool json_bool(const nlohmann::json& object,
+        const std::string& field,
+        bool fallback = false)
+    {
+        if (!object.is_object() || !object.contains(field)
+            || !object[field].is_boolean()) {
+            return fallback;
+        }
+        return object[field].get<bool>();
+    }
+
+    bool play_sound_file(const std::string& path)
+    {
+#ifdef _WIN32
+        static unsigned sound_id = 0;
+        const auto alias = "nubasic_raycast_sound_"
+            + std::to_string(++sound_id);
+        std::string open = "open \"" + path + "\" alias " + alias;
+        if (mciSendStringA(open.c_str(), nullptr, 0, nullptr) != 0) {
+            return false;
+        }
+
+        const auto play = "play " + alias + " from 0";
+        return mciSendStringA(play.c_str(), nullptr, 0, nullptr) == 0;
+#else
+        (void)path;
+        return false;
+#endif
+    }
+
+    void stop_background_music(raycast_session_t& session)
+    {
+#ifdef _WIN32
+        if (!session.background_music_alias.empty()) {
+            const auto stop = "stop " + session.background_music_alias;
+            const auto close = "close " + session.background_music_alias;
+            mciSendStringA(stop.c_str(), nullptr, 0, nullptr);
+            mciSendStringA(close.c_str(), nullptr, 0, nullptr);
+            session.background_music_alias.clear();
+        }
+#else
+        (void)session;
+#endif
+    }
+
+    bool start_background_music_file(
+        raycast_session_t& session,
+        const std::string& path,
+        bool loop,
+        int volume_percent)
+    {
+#ifdef _WIN32
+        static unsigned music_id = 0;
+        stop_background_music(session);
+        const auto alias = "nubasic_raycast_music_"
+            + std::to_string(++music_id);
+        const auto open = "open \"" + path + "\" alias " + alias;
+        if (mciSendStringA(open.c_str(), nullptr, 0, nullptr) != 0) {
+            return false;
+        }
+
+        const auto volume = std::clamp(volume_percent, 0, 100) * 10;
+        const auto set_volume =
+            "setaudio " + alias + " volume to " + std::to_string(volume);
+        mciSendStringA(set_volume.c_str(), nullptr, 0, nullptr);
+
+        const auto play = "play " + alias + (loop ? " repeat" : "");
+        if (mciSendStringA(play.c_str(), nullptr, 0, nullptr) != 0) {
+            const auto close = "close " + alias;
+            mciSendStringA(close.c_str(), nullptr, 0, nullptr);
+            return false;
+        }
+
+        session.background_music_alias = alias;
+        return true;
+#else
+        (void)session;
+        (void)path;
+        (void)loop;
+        (void)volume_percent;
+        return false;
+#endif
+    }
+
+    bool play_project_sound(const std::string& relative_path)
+    {
+        if (relative_path.empty()) {
+            return false;
+        }
+
+        const auto& session = raycast_session();
+        if (!session.project_dir.empty()) {
+            return play_sound_file(join_path(session.project_dir, relative_path));
+        }
+
+        if (!session.world_path.empty()) {
+            return play_sound_file(
+                join_path(parent_path_string(session.world_path), relative_path));
+        }
+
+        return play_sound_file(resolve_session_path(relative_path));
+    }
+
+    bool play_pickup_sound(
+        const raycast_session_t::RuntimeSpriteInfo& info)
+    {
+        if (!info.pickup_weapon.empty()) {
+            return play_project_sound("effects/pickups/beep4.mp3");
+        }
+
+        if (info.pickup_health > 0.0
+            || contains_ignore_case(info.sprite_set, "med")
+            || contains_ignore_case(info.name, "med")) {
+            return play_project_sound("effects/pickups/beep5.mp3");
+        }
+
+        if (info.unlocks_map || contains_ignore_case(info.sprite_set, "key")
+            || contains_ignore_case(info.name, "key")) {
+            return play_project_sound("effects/pickups/bling1.mp3");
+        }
+
+        return play_project_sound("effects/pickups/beep6.mp3");
+    }
+
+    std::vector<raycast_session_t::LayerTransition> load_layer_transitions(
+        const std::string& project_path)
+    {
+        std::ifstream input(project_path);
+        if (!input.is_open()) {
+            return {};
+        }
+
+        nlohmann::json document;
+        try {
+            input >> document;
+        } catch (...) {
+            return {};
+        }
+
+        if (!document.is_object() || !document.contains("layerTransitions")
+            || !document["layerTransitions"].is_array()) {
+            return {};
+        }
+
+        std::vector<raycast_session_t::LayerTransition> transitions;
+        for (const auto& entry : document["layerTransitions"]) {
+            if (!entry.is_object() || !entry.contains("trigger")
+                || !entry["trigger"].is_object()) {
+                continue;
+            }
+
+            raycast_session_t::LayerTransition transition;
+            transition.from_layer =
+                json_string(entry, "fromLayer", std::string());
+            transition.to_layer = json_string(entry, "toLayer", std::string());
+            transition.wait_seconds =
+                std::max(0.0, json_double(entry, "waitSeconds", 0.0));
+            transition.trigger_row = json_int(entry["trigger"], "row", -1);
+            transition.trigger_column =
+                json_int(entry["trigger"], "column", -1);
+
+            if (entry.contains("targetPlayerStart")
+                && entry["targetPlayerStart"].is_object()) {
+                const auto& target = entry["targetPlayerStart"];
+                transition.target_x_cell = json_double(target, "xCell", 1.5);
+                transition.target_y_cell = json_double(target, "yCell", 1.5);
+                transition.target_facing_degrees =
+                    json_double(target, "facingDegrees", 0.0);
+            }
+
+            if (!transition.from_layer.empty()
+                && !transition.to_layer.empty()
+                && transition.trigger_row >= 0
+                && transition.trigger_column >= 0) {
+                transitions.push_back(std::move(transition));
+            }
+        }
+
+        return transitions;
+    }
+
+    void trigger_weapon_fire(RaycastEngine& engine)
+    {
+        auto* weapon = engine.viewWeapon();
+        if (weapon == nullptr) {
+            return;
+        }
+
+        weapon->restartAnimationOrFallback("fire", "idle");
+        if (!weapon->fireSoundPath().empty() && weapon->fireSoundReady()) {
+            play_sound_file(weapon->fireSoundPath());
+            weapon->markFireSoundStarted();
+        }
+    }
+
+    double animation_duration_seconds(
+        const SpriteAnimationClip* animation,
+        double fallback = 0.6) noexcept
+    {
+        if (animation == nullptr || animation->frameDurationMs <= 0.0
+            || animation->frameSets.empty()) {
+            return fallback;
+        }
+
+        return std::max(0.05,
+            animation->frameDurationMs
+                * static_cast<double>(animation->frameSets.size()) / 1000.0);
+    }
+
+    bool apply_loaded_sprite_set(Sprite& sprite,
+        const loaded_sprite_set_t& sprite_set)
+    {
+        sprite.transparentColor = sprite_set.transparent_color;
+        sprite.frames = sprite_set.frames;
+        sprite.animations = sprite_set.animations;
+        return !sprite.frames.empty() || !sprite.animations.empty();
+    }
+
+    void spawn_runtime_effect(raycast_session_t& session,
+        double x,
+        double y,
+        double scale,
+        const std::string& sprite_set_name,
+        const std::string& animation_name)
+    {
+        if (!session.engine || sprite_set_name.empty()) {
+            return;
+        }
+
+        const auto set_it = session.loaded_sprite_sets.find(sprite_set_name);
+        if (set_it == session.loaded_sprite_sets.end()) {
+            return;
+        }
+
+        Sprite effect;
+        effect.x = x;
+        effect.y = y;
+        effect.scale = std::max(1.0, scale);
+        effect.collisionRadius = 0.0;
+        effect.visible = true;
+        if (!apply_loaded_sprite_set(effect, set_it->second)) {
+            return;
+        }
+
+        const auto animation = animation_name.empty()
+            ? std::string("idle")
+            : animation_name;
+        effect.setAnimationOrFallback(animation, "idle");
+        const auto duration =
+            animation_duration_seconds(effect.animation(effect.activeAnimation));
+        const auto sprite_index = session.engine->sprites().size();
+        session.engine->addSprite(std::move(effect));
+        session.runtime_effects.push_back({ sprite_index, duration });
+    }
+
+    void update_runtime_effects(raycast_session_t& session, double dt)
+    {
+        if (!session.engine) {
+            return;
+        }
+
+        for (auto& effect : session.runtime_effects) {
+            auto* sprite = session.engine->sprite(effect.sprite_index);
+            if (sprite != nullptr && sprite->visible) {
+                sprite->advanceAnimation(dt);
+            }
+
+            effect.remaining_seconds -= dt;
+            if (effect.remaining_seconds <= 0.0 && sprite != nullptr) {
+                sprite->visible = false;
+            }
+        }
+
+        session.runtime_effects.erase(
+            std::remove_if(session.runtime_effects.begin(),
+                session.runtime_effects.end(),
+                [](const raycast_session_t::RuntimeEffect& effect) {
+                    return effect.remaining_seconds <= 0.0;
+                }),
+            session.runtime_effects.end());
+    }
+
+    bool actor_has_line_of_fire(const SpriteActor& actor,
+        const Sprite& sprite,
+        double player_x,
+        double player_y) noexcept
+    {
+        const auto dx = player_x - sprite.x;
+        const auto dy = player_y - sprite.y;
+        auto angle = std::atan2(dy, dx) * 180.0 / kPi;
+        if (angle < 0.0) {
+            angle += 360.0;
+        }
+
+        auto facing = sprite.facingRadians * 180.0 / kPi;
+        if (facing < 0.0) {
+            facing += 360.0;
+        }
+
+        return absolute_angle_delta_degrees(angle, facing)
+            <= std::max(1.0, actor.attackFovDegrees) * 0.5;
+    }
+
+    void update_enemy_attacks(raycast_session_t& session)
+    {
+        if (!session.engine || !session.world) {
+            return;
+        }
+
+        const auto& player = session.engine->player();
+        const auto player_x = static_cast<double>(player.getX());
+        const auto player_y = static_cast<double>(player.getY());
+        const auto cell_size =
+            (static_cast<double>(session.world->getCellDx())
+                + static_cast<double>(session.world->getCellDy()))
+            * 0.5;
+
+        for (auto& actor : session.actors) {
+            if (!is_completion_enemy(actor) || actor.dead
+                || actor.health <= 0.0 || actor.attackDamage <= 0.0
+                || actor.attackCooldownRemaining > 0.0) {
+                continue;
+            }
+
+            auto* sprite = session.engine->sprite(actor.spriteIndex);
+            if (sprite == nullptr || !sprite->visible) {
+                continue;
+            }
+
+            const auto dx = player_x - sprite->x;
+            const auto dy = player_y - sprite->y;
+            const auto distance = std::sqrt(dx * dx + dy * dy);
+            const auto attack_range = actor.rangedAttack
+                ? std::max(0.0, actor.attackRangeCells) * cell_size
+                : std::max(cell_size * 0.75,
+                    std::max(0.0, actor.stoppingDistanceCells) * cell_size);
+            if (distance > attack_range || distance <= 0.000001) {
+                continue;
+            }
+
+            if (!actor_has_line_of_fire(actor, *sprite, player_x, player_y)) {
+                continue;
+            }
+
+            actor.state = ActorState::Attacking;
+            actor.attackCooldownRemaining =
+                std::max(0.1, actor.attackCooldownSeconds);
+            actor.attackHoldSecondsRemaining = 0.25;
+            sprite->setAnimationOrFallback("attack", "idle");
+            session.pending_player_damage += actor.attackDamage;
+            if (actor.rangedAttack) {
+                play_project_sound(
+                    "weapons/submachine_gun/sounds/machine_gun_burst_dry_close.wav");
+            } else {
+                play_project_sound("effects/enemies/punch1.mp3");
+            }
+        }
+    }
 
     uint32_t pick_sprite_resolution(const SpriteSet& sprite_set)
     {
@@ -309,6 +862,7 @@ namespace {
 
             sprite_sets[sprite_set.name()] = std::move(loaded);
         }
+        session.loaded_sprite_sets = sprite_sets;
 
         for (const auto& instance : scene.spriteInstances) {
             if (!instance.visible) {
@@ -335,6 +889,60 @@ namespace {
 
             const auto sprite_index = session.engine->sprites().size();
             session.engine->addSprite(std::move(sprite));
+
+            raycast_session_t::RuntimeSpriteInfo runtime_info;
+            runtime_info.sprite_index = sprite_index;
+            runtime_info.name = instance.name;
+            runtime_info.sprite_set = instance.spriteSet;
+            runtime_info.pickup_weapon = instance.pickupWeapon;
+            runtime_info.pickup_health = std::max(0.0, instance.pickupHealth);
+            runtime_info.unlocks_map = instance.unlocksMap;
+            runtime_info.explosive = instance.explosive;
+            const auto has_damage_response =
+                !instance.damageResponseType.empty()
+                || !instance.damageResponseEffectSpriteSet.empty()
+                || !instance.damageResponseDestroyedSpriteSet.empty()
+                || !instance.damageResponseSound.empty()
+                || instance.damageResponseHitPoints > 0.0;
+            if (instance.explosive || has_damage_response) {
+                runtime_info.explosive_health = std::max(1.0,
+                    instance.damageResponseHitPoints > 0.0
+                        ? instance.damageResponseHitPoints
+                        : instance.explosiveHitPoints);
+                runtime_info.explosion_radius_cells =
+                    std::max(0.0, instance.damageResponseRadiusCells > 0.0
+                        ? instance.damageResponseRadiusCells
+                        : instance.explosionRadiusCells);
+                runtime_info.explosion_damage =
+                    std::max(0.0, instance.damageResponseDamage > 0.0
+                        ? instance.damageResponseDamage
+                        : instance.explosionDamage);
+                runtime_info.explosion_scale_cells =
+                    std::max(0.0, instance.explosionScaleCells);
+                runtime_info.explosion_sprite_set = instance.explosionSpriteSet;
+                runtime_info.destroyed_sprite_set =
+                    !instance.damageResponseDestroyedSpriteSet.empty()
+                    ? instance.damageResponseDestroyedSpriteSet
+                    : instance.destroyedSpriteSet;
+                runtime_info.destroyed_scale_cells =
+                    std::max(0.0, instance.damageResponseDestroyedScaleCells);
+            }
+            runtime_info.damage_response_type = has_damage_response
+                &&
+                instance.damageResponseType.empty()
+                && (!instance.damageResponseEffectSpriteSet.empty()
+                    || !instance.damageResponseDestroyedSpriteSet.empty()
+                    || instance.damageResponseHitPoints > 0.0)
+                ? std::string("break")
+                : instance.damageResponseType;
+            runtime_info.damage_response_sound = instance.damageResponseSound;
+            runtime_info.damage_response_effect_sprite_set =
+                instance.damageResponseEffectSpriteSet;
+            runtime_info.damage_response_effect_animation =
+                instance.damageResponseEffectAnimation;
+            runtime_info.damage_response_effect_scale_cells =
+                std::max(0.0, instance.damageResponseEffectScaleCells);
+            session.runtime_sprites.push_back(std::move(runtime_info));
 
             if (instance.chasePlayer || instance.patrolCircuit
                 || instance.maxHealth > 0.0) {
@@ -380,6 +988,194 @@ namespace {
 #endif
     }
 
+    std::unique_ptr<ViewWeapon> load_view_weapon_from_metadata(
+        const std::string& metadata_path);
+
+    int update_player_pickups(raycast_session_t& session)
+    {
+        if (!session.engine || !session.world) {
+            return 0;
+        }
+
+        auto& player = session.engine->player();
+        const auto player_x = static_cast<double>(player.getX());
+        const auto player_y = static_cast<double>(player.getY());
+        const auto pickup_radius =
+            (static_cast<double>(session.world->getCellDx())
+                + static_cast<double>(session.world->getCellDy()))
+            * 0.35;
+        int collected = 0;
+
+        for (auto& info : session.runtime_sprites) {
+            if (info.consumed || !is_pickup_item(info)) {
+                continue;
+            }
+
+            auto* sprite = session.engine->sprite(info.sprite_index);
+            if (sprite == nullptr || !sprite->visible) {
+                continue;
+            }
+
+            const auto dx = sprite->x - player_x;
+            const auto dy = sprite->y - player_y;
+            if (std::sqrt(dx * dx + dy * dy) > pickup_radius) {
+                continue;
+            }
+
+            info.consumed = true;
+            sprite->visible = false;
+            ++collected;
+
+            const auto key_id = inferred_key_id(info);
+            if (!key_id.empty()) {
+                session.keyring.push_back(key_id);
+                session.world->setDoorKeyring(session.keyring);
+            }
+
+            if (!info.pickup_weapon.empty()) {
+                const auto weapon_path = session.project_dir.empty()
+                    ? resolve_session_path(info.pickup_weapon)
+                    : join_path(session.project_dir, info.pickup_weapon);
+                auto weapon = load_view_weapon_from_metadata(weapon_path);
+                if (weapon != nullptr && session.engine) {
+                    session.engine->setViewWeapon(std::move(*weapon));
+                }
+            }
+
+            play_pickup_sound(info);
+        }
+
+        return collected;
+    }
+
+    std::unique_ptr<ViewWeapon> load_view_weapon_from_metadata(
+        const std::string& metadata_path)
+    {
+#ifdef _WIN32
+        std::ifstream input(metadata_path);
+        if (!input.is_open()) {
+            return {};
+        }
+
+        nlohmann::json document;
+        try {
+            input >> document;
+        } catch (...) {
+            return {};
+        }
+
+        if (!document.is_object() || !document.contains("animations")
+            || !document["animations"].is_object()) {
+            return {};
+        }
+
+        const auto metadata_dir = parent_path_string(metadata_path);
+        const auto frame_width = json_int(document, "frameWidth", 320);
+        const auto frame_height = json_int(document, "frameHeight", 220);
+        if (frame_width <= 0 || frame_height <= 0) {
+            return {};
+        }
+
+        auto weapon = std::make_unique<ViewWeapon>();
+        weapon->setName(json_string(document, "weapon", "view_weapon"));
+        weapon->setScreenHeightFraction(
+            json_double(document, "screenHeightFraction", 0.45));
+        weapon->setDamage(json_double(document, "damage", 0.0));
+        weapon->setRangeCells(json_double(document, "rangeCells", 8.0));
+
+        if (document.contains("fireBehavior")
+            && document["fireBehavior"].is_object()) {
+            const auto& fire_behavior = document["fireBehavior"];
+            weapon->setFireBehavior(
+                json_bool(fire_behavior, "automatic", false),
+                json_double(fire_behavior, "intervalMs", 0.0),
+                json_double(fire_behavior, "soundIntervalMs", 0.0));
+        } else {
+            weapon->setFireBehavior(
+                json_bool(document, "automaticFire", false),
+                json_double(document, "fireIntervalMs", 0.0));
+        }
+
+        if (document.contains("sounds") && document["sounds"].is_object()) {
+            const auto fire_sound =
+                json_string(document["sounds"], "fire", std::string());
+            if (!fire_sound.empty()) {
+                weapon->setFireSoundPath(join_path(metadata_dir, fire_sound));
+            }
+        }
+
+        if (document.contains("ammo") && document["ammo"].is_object()) {
+            const auto& ammo = document["ammo"];
+            weapon->setAmmo(
+                json_int(ammo, "magazineSize", 0),
+                json_int(ammo, "maxAmmo", 0),
+                json_int(ammo, "initialAmmo", -1));
+        }
+
+        if (document.contains("anchor") && document["anchor"].is_object()) {
+            weapon->setAnchor(
+                json_double(document["anchor"], "x", 0.5),
+                json_double(document["anchor"], "y", 1.0));
+        }
+
+        if (document.contains("baseOffset")
+            && document["baseOffset"].is_object()) {
+            weapon->setBaseOffset(
+                json_double(document["baseOffset"], "x", 0.0),
+                json_double(document["baseOffset"], "y", 0.0));
+        }
+
+        if (document.contains("bob") && document["bob"].is_object()) {
+            weapon->setBob(
+                json_bool(document["bob"], "enabled", true),
+                json_double(document["bob"], "amount", 1.0),
+                json_double(document["bob"], "amplitudeX", 6.0),
+                json_double(document["bob"], "amplitudeY", 4.0),
+                json_double(document["bob"], "frequencyHz", 3.0));
+        }
+
+        for (const auto& animation_item : document["animations"].items()) {
+            if (!animation_item.value().is_object()
+                || !animation_item.value().contains("files")
+                || !animation_item.value()["files"].is_array()) {
+                continue;
+            }
+
+            ViewWeapon::Animation animation;
+            animation.name = animation_item.key();
+            animation.frameDurationMs =
+                json_double(animation_item.value(), "frameDurationMs", 100.0);
+            animation.loop = json_bool(animation_item.value(), "loop", true);
+
+            for (const auto& file_entry : animation_item.value()["files"]) {
+                if (!file_entry.is_string()) {
+                    continue;
+                }
+
+                auto texture = loadTextureFromFile(
+                    join_path(metadata_dir, file_entry.get<std::string>()),
+                    frame_width,
+                    frame_height);
+                if (texture) {
+                    texture->setHasAlpha(true);
+                    animation.frames.push_back(std::move(texture));
+                }
+            }
+
+            weapon->addAnimation(std::move(animation));
+        }
+
+        if (!weapon->setAnimation("idle")) {
+            return {};
+        }
+
+        return weapon;
+#else
+        (void)metadata_path;
+        return {};
+#endif
+    }
+
     bool ensure_session_initialized()
     {
         auto& session = raycast_session();
@@ -401,6 +1197,19 @@ namespace {
         session.world = std::move(world);
         session.engine = std::make_unique<RaycastEngine>(player, kDefaultScale);
         session.actors.clear();
+        session.runtime_sprites.clear();
+        session.runtime_effects.clear();
+        session.keyring.clear();
+        session.transitions.clear();
+        session.loaded_sprite_sets.clear();
+        session.pending_player_damage = 0.0;
+        stop_background_music(session);
+        session.project_path.clear();
+        session.project_dir.clear();
+        session.world_path.clear();
+        session.active_layer_id.clear();
+        session.pending_transition_index = -1;
+        session.pending_transition_seconds = 0.0;
         return true;
     }
 
@@ -445,8 +1254,148 @@ namespace {
         session.world = std::move(world);
         session.engine = std::make_unique<RaycastEngine>(player, kDefaultScale);
         session.actors.clear();
+        session.runtime_sprites.clear();
+        session.runtime_effects.clear();
+        session.keyring.clear();
+        session.loaded_sprite_sets.clear();
+        session.pending_player_damage = 0.0;
         session.world_path = world_path;
+        session.active_layer_id = result.activeLayerId;
+        session.pending_transition_index = -1;
+        session.pending_transition_seconds = 0.0;
         return true;
+    }
+
+    bool load_project_layer_into_session(const std::string& project_path,
+        const std::string& layer_id,
+        const raycast_session_t::LayerTransition* transition = nullptr)
+    {
+        const auto project_dir = parent_path_string(project_path);
+        SceneLoader loader;
+        const auto result = loader.loadFromFile(project_path, layer_id);
+        if (!result.success) {
+            return false;
+        }
+
+        const auto world_path = result.scene.worldFile.empty()
+            ? project_path
+            : join_path(project_dir, result.scene.worldFile);
+
+        auto& session = raycast_session();
+        auto keyring = session.keyring;
+        auto transitions = session.transitions;
+        const auto stored_project_path = session.project_path.empty()
+            ? project_path
+            : session.project_path;
+
+        if (!load_world_into_session(
+                world_path,
+                result.scene.activeLayerId,
+                &result.scene)) {
+            return false;
+        }
+
+        session.project_path = stored_project_path;
+        session.project_dir = project_dir;
+        session.transitions = std::move(transitions);
+        session.keyring = std::move(keyring);
+        if (session.world) {
+            session.world->setDoorKeyring(session.keyring);
+        }
+
+        load_scene_sprites(session, result.scene, project_dir);
+        if (!result.scene.playerWeapon.file.empty() && session.engine) {
+            auto weapon = load_view_weapon_from_metadata(
+                join_path(project_dir, result.scene.playerWeapon.file));
+            if (weapon && result.scene.playerWeapon.visible) {
+                if (result.scene.playerWeapon.screenHeightFraction > 0.0) {
+                    weapon->setScreenHeightFraction(
+                        result.scene.playerWeapon.screenHeightFraction);
+                }
+                session.engine->setViewWeapon(std::move(*weapon));
+            }
+        }
+
+        if (result.scene.backgroundMusic.enabled
+            && !result.scene.backgroundMusic.file.empty()) {
+            const auto music_path =
+                join_path(project_dir, result.scene.backgroundMusic.file);
+            const auto music_volume =
+                std::min(result.scene.backgroundMusic.volumePercent, 12);
+            if (!start_background_music_file(session, music_path,
+                    result.scene.backgroundMusic.loop,
+                    music_volume)) {
+                start_background_music_file(session,
+                    join_path(project_dir, "audio/demo_theme.mp3"),
+                    result.scene.backgroundMusic.loop,
+                    music_volume);
+            }
+        }
+
+        if (transition != nullptr && session.engine) {
+            auto& player = session.engine->player();
+            player.setPos({
+                transition->target_x_cell
+                    * static_cast<double>(session.world->getCellDx()),
+                transition->target_y_cell
+                    * static_cast<double>(session.world->getCellDy())
+            });
+            player.setAlpha(player_alpha_for_facing_degrees(
+                player,
+                transition->target_facing_degrees));
+        }
+
+        return true;
+    }
+
+    bool update_layer_transition(raycast_session_t& session, double dt)
+    {
+        if (!session.engine || !session.world || session.project_path.empty()
+            || session.active_layer_id.empty() || session.transitions.empty()) {
+            return false;
+        }
+
+        const auto& player = session.engine->player();
+        const auto player_column =
+            static_cast<int>(player.getX() / session.world->getCellDx());
+        const auto player_row =
+            static_cast<int>(player.getY() / session.world->getCellDy());
+
+        int matching_index = -1;
+        for (int i = 0; i < static_cast<int>(session.transitions.size()); ++i) {
+            const auto& transition = session.transitions[i];
+            if (transition.from_layer == session.active_layer_id
+                && transition.trigger_row == player_row
+                && transition.trigger_column == player_column) {
+                matching_index = i;
+                break;
+            }
+        }
+
+        if (matching_index < 0) {
+            session.pending_transition_index = -1;
+            session.pending_transition_seconds = 0.0;
+            return false;
+        }
+
+        if (session.pending_transition_index != matching_index) {
+            session.pending_transition_index = matching_index;
+            session.pending_transition_seconds = 0.0;
+            play_project_sound("effects/Elevator_Entrance.mp3");
+        }
+
+        auto& transition = session.transitions[matching_index];
+        session.pending_transition_seconds += dt;
+        if (session.pending_transition_seconds < transition.wait_seconds) {
+            return false;
+        }
+
+        auto transition_copy = transition;
+        play_project_sound("effects/Elevator_Opening_Sequence.mp3");
+        return load_project_layer_into_session(
+            session.project_path,
+            transition_copy.to_layer,
+            &transition_copy);
     }
 
 #ifdef _WIN32
@@ -552,6 +1501,8 @@ namespace {
                 "rayplayerx",
                 "rayplayery",
                 "rayplayerfacing",
+                "raycurrentlayer$",
+                "raycurrentlayer",
                 "raysetplayer",
                 "raymove",
                 "raystrafe",
@@ -560,8 +1511,16 @@ namespace {
                 "raypresent",
                 "raykeydown",
                 "rayupdate",
+                "raydamageenemy",
+                "rayconsumeplayerdamage",
+                "rayitemcount",
+                "raycollecteditemcount",
+                "raydestroyedobjectcount",
+                "rayplaysound",
                 "rayspritecount",
                 "rayactorcount",
+                "rayenemycount",
+                "raykilledenemycount",
                 "raysetbasedir"
             };
             return module_exports;
@@ -625,28 +1584,15 @@ namespace {
 
                 const auto project_path =
                     resolve_session_path(vargs[0].to_str());
-                const auto project_dir = parent_path_string(project_path);
-                SceneLoader loader;
-                const auto result = loader.loadFromFile(project_path);
-                if (!result.success) {
-                    ctx.set_errno(EINVAL);
-                    return variant_t(integer_t(0));
-                }
-
-                const auto world_path = result.scene.worldFile.empty()
-                    ? project_path
-                    : join_path(project_dir, result.scene.worldFile);
                 auto& session = raycast_session();
-                if (!load_world_into_session(
-                        world_path,
-                        result.scene.activeLayerId,
-                        &result.scene)) {
+                session.project_path = project_path;
+                session.transitions = load_layer_transitions(project_path);
+                session.pending_transition_index = -1;
+                session.pending_transition_seconds = 0.0;
+                if (!load_project_layer_into_session(project_path, std::string())) {
                     ctx.set_errno(EINVAL);
                     return variant_t(integer_t(0));
                 }
-
-                session.project_dir = project_dir;
-                load_scene_sprites(session, result.scene, project_dir);
                 return variant_t(integer_t(1));
             };
 
@@ -709,6 +1655,14 @@ namespace {
                 return variant_t(double_t(camera_facing_degrees(
                     checked_engine(ctx, name)->player())));
             };
+
+            fmap["raycurrentlayer$"] = [](rt_prog_ctx_t&,
+                                           const std::string& name,
+                                           const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                return variant_t(raycast_session().active_layer_id);
+            };
+            fmap["raycurrentlayer"] = fmap["raycurrentlayer$"];
 
             fmap["raysetplayer"] = [](rt_prog_ctx_t& ctx,
                                        const std::string& name,
@@ -780,11 +1734,44 @@ namespace {
                 auto* world = checked_world(ctx, name);
                 const auto dt = std::clamp(vargs[0].to_double(), 0.0, 0.1);
                 world->advanceDynamicTextures(dt);
+                std::vector<Point2d> actor_positions;
+                actor_positions.reserve(session.actors.size());
+                for (const auto& actor : session.actors) {
+                    if (actor.dead) {
+                        continue;
+                    }
+
+                    const auto* sprite = engine->sprite(actor.spriteIndex);
+                    if (sprite != nullptr && sprite->visible) {
+                        actor_positions.push_back({ sprite->x, sprite->y });
+                    }
+                }
+                std::vector<WorldMap::DoorEvent> door_events;
                 world->updateDoors(engine->player().getX(),
-                    engine->player().getY(), {}, dt, nullptr);
+                    engine->player().getY(), actor_positions, dt,
+                    &door_events);
+                for (const auto& event : door_events) {
+                    if (event.type
+                        != WorldMap::DoorEvent::Type::OpeningStarted) {
+                        continue;
+                    }
+
+                    const auto* block =
+                        world->blockAtCell(event.row, event.column);
+                    if (block != nullptr && !block->door.openSound.empty()) {
+                        play_project_sound(block->door.openSound);
+                    }
+                }
+                if (update_layer_transition(session, dt)) {
+                    return variant_t(integer_t(1));
+                }
+                update_player_pickups(session);
                 session.actor_system.update(
                     *engine, *world, session.actors, dt);
+                update_enemy_attacks(session);
+                update_runtime_effects(session, dt);
                 engine->advanceSpriteAnimations(dt);
+                engine->advanceViewWeapon(dt, false);
                 return variant_t(integer_t(1));
             };
 
@@ -830,6 +1817,256 @@ namespace {
 #endif
             };
 
+            fmap["raydamageenemy"] = [](rt_prog_ctx_t& ctx,
+                                         const std::string& name,
+                                         const func_args_t& args) {
+                std::vector<variant_t> vargs;
+                get_functor_vargs(ctx, name, args,
+                    { variant_t::type_t::DOUBLE,
+                        variant_t::type_t::DOUBLE,
+                        variant_t::type_t::DOUBLE },
+                    vargs);
+                auto& session = raycast_session();
+                auto* engine = checked_engine(ctx, name);
+                auto* world = checked_world(ctx, name);
+                const auto damage = std::max(0.0, vargs[0].to_double());
+                const auto range =
+                    std::max(0.0, vargs[1].to_double())
+                    * (static_cast<double>(world->getCellDx())
+                        + static_cast<double>(world->getCellDy()))
+                    * 0.5;
+                const auto half_fov =
+                    std::max(0.0, vargs[2].to_double()) * 0.5;
+                const auto& player = engine->player();
+                const auto player_x = static_cast<double>(player.getX());
+                const auto player_y = static_cast<double>(player.getY());
+                const auto facing = camera_facing_degrees(player);
+                SpriteActor* best_actor = nullptr;
+                raycast_session_t::RuntimeSpriteInfo* best_info = nullptr;
+                Sprite* best_sprite = nullptr;
+                double best_distance = range;
+
+                for (auto& actor : session.actors) {
+                    if (!is_completion_enemy(actor) || actor.dead
+                        || actor.health <= 0.0) {
+                        continue;
+                    }
+
+                    auto* sprite = engine->sprite(actor.spriteIndex);
+                    if (sprite == nullptr || !sprite->visible) {
+                        continue;
+                    }
+
+                    const auto dx = sprite->x - player_x;
+                    const auto dy = sprite->y - player_y;
+                    const auto distance = std::sqrt(dx * dx + dy * dy);
+                    if (distance > range || distance <= 0.000001) {
+                        continue;
+                    }
+
+                    auto angle = std::atan2(dy, dx) * 180.0 / kPi;
+                    if (angle < 0.0) {
+                        angle += 360.0;
+                    }
+
+                    if (absolute_angle_delta_degrees(angle, facing)
+                        > half_fov) {
+                        continue;
+                    }
+
+                    if (best_actor == nullptr || distance < best_distance) {
+                        best_actor = &actor;
+                        best_info = nullptr;
+                        best_sprite = sprite;
+                        best_distance = distance;
+                    }
+                }
+
+                for (auto& info : session.runtime_sprites) {
+                    if (info.destroyed || !is_damage_reactive(info)) {
+                        continue;
+                    }
+
+                    auto* sprite = engine->sprite(info.sprite_index);
+                    if (sprite == nullptr || !sprite->visible) {
+                        continue;
+                    }
+
+                    const auto dx = sprite->x - player_x;
+                    const auto dy = sprite->y - player_y;
+                    const auto distance = std::sqrt(dx * dx + dy * dy);
+                    if (distance > range || distance <= 0.000001) {
+                        continue;
+                    }
+
+                    auto angle = std::atan2(dy, dx) * 180.0 / kPi;
+                    if (angle < 0.0) {
+                        angle += 360.0;
+                    }
+
+                    if (absolute_angle_delta_degrees(angle, facing)
+                        > half_fov) {
+                        continue;
+                    }
+
+                    if ((best_actor == nullptr && best_info == nullptr)
+                        || distance < best_distance) {
+                        best_actor = nullptr;
+                        best_info = &info;
+                        best_sprite = sprite;
+                        best_distance = distance;
+                    }
+                }
+
+                trigger_weapon_fire(*engine);
+
+                if (best_actor == nullptr && best_info == nullptr) {
+                    return variant_t(integer_t(0));
+                }
+
+                if (best_info != nullptr) {
+                    best_info->explosive_health =
+                        std::max(0.0, best_info->explosive_health - damage);
+                    if (best_info->explosive_health <= 0.0) {
+                        best_info->destroyed = true;
+                        if (best_sprite != nullptr) {
+                            const auto effect_sprite_set =
+                                !best_info->damage_response_effect_sprite_set.empty()
+                                ? best_info->damage_response_effect_sprite_set
+                                : best_info->explosion_sprite_set;
+                            const auto effect_animation =
+                                !best_info->damage_response_effect_animation.empty()
+                                ? best_info->damage_response_effect_animation
+                                : std::string("explode");
+                            const auto effect_scale_cells =
+                                best_info->damage_response_effect_scale_cells > 0.0
+                                ? best_info->damage_response_effect_scale_cells
+                                : best_info->explosion_scale_cells;
+                            spawn_runtime_effect(session,
+                                best_sprite->x,
+                                best_sprite->y,
+                                kDefaultCellSize * effect_scale_cells,
+                                effect_sprite_set,
+                                effect_animation);
+
+                            if (!best_info->destroyed_sprite_set.empty()) {
+                                const auto set_it = session.loaded_sprite_sets.find(
+                                    best_info->destroyed_sprite_set);
+                                if (set_it != session.loaded_sprite_sets.end()
+                                    && apply_loaded_sprite_set(
+                                        *best_sprite, set_it->second)) {
+                                    best_sprite->scale = kDefaultCellSize
+                                        * std::max(0.1,
+                                            best_info->destroyed_scale_cells);
+                                    best_sprite->collisionRadius = 0.0;
+                                    best_sprite->setAnimationOrFallback(
+                                        "idle", "");
+                                } else {
+                                    best_sprite->visible = false;
+                                }
+                            } else {
+                                best_sprite->visible = false;
+                            }
+                        }
+                        if (!best_info->damage_response_sound.empty()) {
+                            play_project_sound(best_info->damage_response_sound);
+                        } else if (best_info->explosive) {
+                            play_project_sound("effects/explosions/cannon1.mp3");
+                        }
+                        if (best_info->explosion_radius_cells > 0.0
+                            && best_info->explosion_damage > 0.0
+                            && best_sprite != nullptr) {
+                            const auto dx = best_sprite->x - player_x;
+                            const auto dy = best_sprite->y - player_y;
+                            const auto radius = best_info->explosion_radius_cells
+                                * (static_cast<double>(world->getCellDx())
+                                    + static_cast<double>(world->getCellDy()))
+                                * 0.5;
+                            const auto dist = std::sqrt(dx * dx + dy * dy);
+                            if (dist <= radius) {
+                                const auto falloff = radius <= 0.0
+                                    ? 1.0
+                                    : std::max(0.0, 1.0 - dist / radius);
+                                session.pending_player_damage +=
+                                    best_info->explosion_damage * falloff;
+                            }
+                        }
+                        return variant_t(integer_t(3));
+                    }
+
+                    return variant_t(integer_t(1));
+                }
+
+                best_actor->health =
+                    std::max(0.0, best_actor->health - damage);
+                best_actor->state = ActorState::Chasing;
+                if (best_actor->health <= 0.0) {
+                    start_actor_death(*best_actor, best_sprite);
+                    return variant_t(integer_t(2));
+                }
+
+                return variant_t(integer_t(1));
+            };
+
+            fmap["rayconsumeplayerdamage"] = [](rt_prog_ctx_t&,
+                                                 const std::string& name,
+                                                 const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                auto& session = raycast_session();
+                const auto damage = session.pending_player_damage;
+                session.pending_player_damage = 0.0;
+                return variant_t(double_t(damage));
+            };
+
+            fmap["rayitemcount"] = [](rt_prog_ctx_t&,
+                                       const std::string& name,
+                                       const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                integer_t count = 0;
+                for (const auto& info : raycast_session().runtime_sprites) {
+                    if (is_completion_item(info)) {
+                        ++count;
+                    }
+                }
+                return variant_t(count);
+            };
+
+            fmap["raycollecteditemcount"] = [](rt_prog_ctx_t&,
+                                                const std::string& name,
+                                                const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                integer_t count = 0;
+                for (const auto& info : raycast_session().runtime_sprites) {
+                    if (is_completion_item(info) && info.consumed) {
+                        ++count;
+                    }
+                }
+                return variant_t(count);
+            };
+
+            fmap["raydestroyedobjectcount"] = [](rt_prog_ctx_t&,
+                                                  const std::string& name,
+                                                  const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                integer_t count = 0;
+                for (const auto& info : raycast_session().runtime_sprites) {
+                    if (is_damage_reactive(info) && info.destroyed) {
+                        ++count;
+                    }
+                }
+                return variant_t(count);
+            };
+
+            fmap["rayplaysound"] = [](rt_prog_ctx_t& ctx,
+                                       const std::string& name,
+                                       const func_args_t& args) {
+                std::vector<variant_t> vargs;
+                get_functor_vargs(
+                    ctx, name, args, { variant_t::type_t::STRING }, vargs);
+                return variant_t(integer_t(
+                    play_project_sound(vargs[0].to_str()) ? 1 : 0));
+            };
+
             fmap["rayspritecount"] = [](rt_prog_ctx_t& ctx,
                                          const std::string& name,
                                          const func_args_t& args) {
@@ -843,6 +2080,33 @@ namespace {
                                         const func_args_t& args) {
                 check_arg_num(args, 0, name);
                 return variant_t(integer_t(raycast_session().actors.size()));
+            };
+
+            fmap["rayenemycount"] = [](rt_prog_ctx_t&,
+                                        const std::string& name,
+                                        const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                integer_t count = 0;
+                for (const auto& actor : raycast_session().actors) {
+                    if (actor.maxHealth > 0.0 && actor.chasePlayer) {
+                        ++count;
+                    }
+                }
+                return variant_t(count);
+            };
+
+            fmap["raykilledenemycount"] = [](rt_prog_ctx_t&,
+                                             const std::string& name,
+                                             const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                integer_t count = 0;
+                for (const auto& actor : raycast_session().actors) {
+                    if (actor.maxHealth > 0.0 && actor.chasePlayer
+                        && (actor.dead || actor.health <= 0.0)) {
+                        ++count;
+                    }
+                }
+                return variant_t(count);
             };
 
             fmap["raysetbasedir"] = [](rt_prog_ctx_t& ctx,

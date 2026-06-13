@@ -1,6 +1,6 @@
 ' test_raycast.bas
 ' PLATFORM: windows
-' EXPECT_OUTPUT: available=1|loaded=1|project=1|sprites=34|actors=4|x=2304|y=5376|facing=90|x2=2303|y2=5408|hash=654850628
+' EXPECT_OUTPUT: available=1|loaded=1|project=1|layer=level_1|sprites=34|actors=4|enemies=4|killed=0|items=18|collected=0|destroyed=0|shot=0|objectshot=3|destroyed2=1|collected2=1|damage=36|killshot=2|killed2=1|layer2=level_0|x=2304|y=5376|facing=90|x2=2303|y2=5408|hash=1900827628
 
 Using raycast
 
@@ -17,8 +17,22 @@ End If
 
 project% = RayLoadProject("examples/raycast/raycast_demo/worlds/demo.world.json")
 Print "project="; project%
+Print "layer="; RayCurrentLayer$()
 Print "sprites="; RaySpriteCount()
 Print "actors="; RayActorCount()
+Print "enemies="; RayEnemyCount()
+Print "killed="; RayKilledEnemyCount()
+Print "items="; RayItemCount()
+Print "collected="; RayCollectedItemCount()
+Print "destroyed="; RayDestroyedObjectCount()
+Print "shot="; RayDamageEnemy(1.0, 0.1, 1.0)
+RaySetPlayer 6400, 6912, 90
+Print "objectshot="; RayDamageEnemy(50.0, 2.0, 40.0)
+Print "destroyed2="; RayDestroyedObjectCount()
+RaySetPlayer 768, 768, 0
+RayUpdate 0.016
+Print "collected2="; RayCollectedItemCount()
+RaySetPlayer 2304, 5376, 90
 
 Print "x="; RayPlayerX()
 Print "y="; RayPlayerY()
@@ -31,3 +45,19 @@ RayRender 320, 200
 Print "x2="; RayPlayerX()
 Print "y2="; RayPlayerY()
 Print "hash="; RayFrameHash()
+
+RaySetPlayer 6912, 6400, 0
+For i% = 1 To 80
+    RayUpdate 0.016
+Next i%
+Print "damage="; RayConsumePlayerDamage()
+
+RaySetPlayer 2816, 4096, 270
+Print "killshot="; RayDamageEnemy(200.0, 8.0, 40.0)
+Print "killed2="; RayKilledEnemyCount()
+
+RaySetPlayer 1280, 7424, 0
+For i% = 1 To 100
+    RayUpdate 0.016
+Next i%
+Print "layer2="; RayCurrentLayer$()
