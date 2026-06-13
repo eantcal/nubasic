@@ -2,6 +2,16 @@
 
 nuBASIC is a modern, open-source BASIC interpreter written in modern C++, available for Windows, Linux, and macOS. It is designed to be both approachable for beginners and capable enough for real programs.
 
+## nuBASIC 2.0 for Windows: WinRaycast Integration
+
+nuBASIC 2.0 for Windows will include the integration of **WinRaycast**, a lightweight raycasting engine designed to create classic 90s-style first-person shooters directly in BASIC.
+
+The integration will allow nuBASIC programs to render pseudo-3D environments similar to early FPS games such as *Wolfenstein 3D*, using a simple 2D map representation, textured walls, sprites, player movement, collision detection, and basic game-loop support.
+
+In practice, WinRaycast will provide the low-level rendering and engine logic, while nuBASIC will expose a simpler scripting interface so that users can build playable retro-style games without dealing directly with complex graphics programming.
+
+<img width="1280" height="1387" alt="image" src="https://github.com/user-attachments/assets/afa5c38e-556e-4f36-83ad-fdba252a4349" />
+
 ## Three styles in one language
 
 The same nuBASIC interpreter supports three programming styles, and a single program can mix and match them.
@@ -382,4 +392,8 @@ Bug reports and feature requests: [antonino.calderone@gmail.com](mailto:antonino
 ![nuBASIC IDE on Linux/GTK](https://user-images.githubusercontent.com/13032534/27808819-69aaa2c2-6042-11e7-9132-675d1c71d162.png)
 
 <img width="2876" height="1704" alt="image" src="https://github.com/user-attachments/assets/dc0f0f01-33da-4df6-9ad3-33d4f43b92b8" />
+
+
+
+
 
