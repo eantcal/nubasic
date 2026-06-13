@@ -20,13 +20,13 @@
 #include "WorldMap.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cerrno>
 #include <cmath>
-#include <cctype>
 #include <cstdint>
 #include <cstring>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
 #include <functional>
 #include <map>
 #include <memory>
@@ -116,6 +116,8 @@ namespace {
         int projection_width = kDefaultProjectionWidth;
         int projection_height = kDefaultProjectionHeight;
         double pending_player_damage = 0.0;
+        double pending_player_healing = 0.0;
+        double transition_cooldown_seconds = 0.0;
         std::string background_music_alias;
         std::string base_dir;
         std::string project_path;
@@ -139,8 +141,7 @@ namespace {
     }
 
     int player_alpha_for_facing_degrees(
-        const Player& player,
-        double facing_degrees) noexcept
+        const Player& player, double facing_degrees) noexcept
     {
         auto normalized = std::fmod(facing_degrees, 360.0);
         if (normalized < 0.0) {
@@ -154,8 +155,8 @@ namespace {
 
     double camera_facing_degrees(const Player& player) noexcept
     {
-        const auto facing_ray =
-            normalize_ray(player.getAlpha() + player.degHalfVisual(), player);
+        const auto facing_ray
+            = normalize_ray(player.getAlpha() + player.degHalfVisual(), player);
         return static_cast<double>(facing_ray) * 360.0
             / static_cast<double>(player.deg360());
     }
@@ -210,7 +211,9 @@ namespace {
     {
         auto extension = std::filesystem::path(path).extension().string();
         std::transform(extension.begin(), extension.end(), extension.begin(),
-            [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+            [](unsigned char ch) {
+                return static_cast<char>(std::tolower(ch));
+            });
         return extension == ".bmp" || extension == ".png";
     }
 
@@ -229,8 +232,8 @@ namespace {
 
     double absolute_angle_delta_degrees(double lhs, double rhs) noexcept
     {
-        const auto delta =
-            std::fabs(normalize_degrees(lhs) - normalize_degrees(rhs));
+        const auto delta
+            = std::fabs(normalize_degrees(lhs) - normalize_degrees(rhs));
         return delta > 180.0 ? 360.0 - delta : delta;
     }
 
@@ -241,18 +244,21 @@ namespace {
 
     bool contains_ignore_case(std::string text, std::string needle)
     {
-        std::transform(text.begin(), text.end(), text.begin(),
-            [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
-        std::transform(needle.begin(), needle.end(), needle.begin(),
-            [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+        std::transform(
+            text.begin(), text.end(), text.begin(), [](unsigned char ch) {
+                return static_cast<char>(std::tolower(ch));
+            });
+        std::transform(
+            needle.begin(), needle.end(), needle.begin(), [](unsigned char ch) {
+                return static_cast<char>(std::tolower(ch));
+            });
         return text.find(needle) != std::string::npos;
     }
 
     bool is_pickup_item(const raycast_session_t::RuntimeSpriteInfo& info)
     {
         return info.pickup_health > 0.0 || !info.pickup_weapon.empty()
-            || info.unlocks_map
-            || contains_ignore_case(info.sprite_set, "ammo")
+            || info.unlocks_map || contains_ignore_case(info.sprite_set, "ammo")
             || contains_ignore_case(info.sprite_set, "key")
             || contains_ignore_case(info.sprite_set, "med")
             || contains_ignore_case(info.name, "ammo")
@@ -319,8 +325,7 @@ namespace {
     }
 
     std::string json_string(const nlohmann::json& object,
-        const std::string& field,
-        const std::string& fallback = std::string())
+        const std::string& field, const std::string& fallback = std::string())
     {
         if (!object.is_object() || !object.contains(field)
             || !object[field].is_string()) {
@@ -329,8 +334,7 @@ namespace {
         return object[field].get<std::string>();
     }
 
-    double json_double(const nlohmann::json& object,
-        const std::string& field,
+    double json_double(const nlohmann::json& object, const std::string& field,
         double fallback = 0.0)
     {
         if (!object.is_object() || !object.contains(field)
@@ -340,8 +344,7 @@ namespace {
         return object[field].get<double>();
     }
 
-    int json_int(const nlohmann::json& object,
-        const std::string& field,
+    int json_int(const nlohmann::json& object, const std::string& field,
         int fallback = 0)
     {
         if (!object.is_object() || !object.contains(field)
@@ -351,8 +354,7 @@ namespace {
         return object[field].get<int>();
     }
 
-    bool json_bool(const nlohmann::json& object,
-        const std::string& field,
+    bool json_bool(const nlohmann::json& object, const std::string& field,
         bool fallback = false)
     {
         if (!object.is_object() || !object.contains(field)
@@ -366,8 +368,8 @@ namespace {
     {
 #ifdef _WIN32
         static unsigned sound_id = 0;
-        const auto alias = "nubasic_raycast_sound_"
-            + std::to_string(++sound_id);
+        const auto alias
+            = "nubasic_raycast_sound_" + std::to_string(++sound_id);
         std::string open = "open \"" + path + "\" alias " + alias;
         if (mciSendStringA(open.c_str(), nullptr, 0, nullptr) != 0) {
             return false;
@@ -396,25 +398,22 @@ namespace {
 #endif
     }
 
-    bool start_background_music_file(
-        raycast_session_t& session,
-        const std::string& path,
-        bool loop,
-        int volume_percent)
+    bool start_background_music_file(raycast_session_t& session,
+        const std::string& path, bool loop, int volume_percent)
     {
 #ifdef _WIN32
         static unsigned music_id = 0;
         stop_background_music(session);
-        const auto alias = "nubasic_raycast_music_"
-            + std::to_string(++music_id);
+        const auto alias
+            = "nubasic_raycast_music_" + std::to_string(++music_id);
         const auto open = "open \"" + path + "\" alias " + alias;
         if (mciSendStringA(open.c_str(), nullptr, 0, nullptr) != 0) {
             return false;
         }
 
         const auto volume = std::clamp(volume_percent, 0, 100) * 10;
-        const auto set_volume =
-            "setaudio " + alias + " volume to " + std::to_string(volume);
+        const auto set_volume
+            = "setaudio " + alias + " volume to " + std::to_string(volume);
         mciSendStringA(set_volume.c_str(), nullptr, 0, nullptr);
 
         const auto play = "play " + alias + (loop ? " repeat" : "");
@@ -443,19 +442,19 @@ namespace {
 
         const auto& session = raycast_session();
         if (!session.project_dir.empty()) {
-            return play_sound_file(join_path(session.project_dir, relative_path));
+            return play_sound_file(
+                join_path(session.project_dir, relative_path));
         }
 
         if (!session.world_path.empty()) {
-            return play_sound_file(
-                join_path(parent_path_string(session.world_path), relative_path));
+            return play_sound_file(join_path(
+                parent_path_string(session.world_path), relative_path));
         }
 
         return play_sound_file(resolve_session_path(relative_path));
     }
 
-    bool play_pickup_sound(
-        const raycast_session_t::RuntimeSpriteInfo& info)
+    bool play_pickup_sound(const raycast_session_t::RuntimeSpriteInfo& info)
     {
         if (!info.pickup_weapon.empty()) {
             return play_project_sound("effects/pickups/beep4.mp3");
@@ -503,26 +502,25 @@ namespace {
             }
 
             raycast_session_t::LayerTransition transition;
-            transition.from_layer =
-                json_string(entry, "fromLayer", std::string());
+            transition.from_layer
+                = json_string(entry, "fromLayer", std::string());
             transition.to_layer = json_string(entry, "toLayer", std::string());
-            transition.wait_seconds =
-                std::max(0.0, json_double(entry, "waitSeconds", 0.0));
+            transition.wait_seconds
+                = std::max(0.0, json_double(entry, "waitSeconds", 0.0));
             transition.trigger_row = json_int(entry["trigger"], "row", -1);
-            transition.trigger_column =
-                json_int(entry["trigger"], "column", -1);
+            transition.trigger_column
+                = json_int(entry["trigger"], "column", -1);
 
             if (entry.contains("targetPlayerStart")
                 && entry["targetPlayerStart"].is_object()) {
                 const auto& target = entry["targetPlayerStart"];
                 transition.target_x_cell = json_double(target, "xCell", 1.5);
                 transition.target_y_cell = json_double(target, "yCell", 1.5);
-                transition.target_facing_degrees =
-                    json_double(target, "facingDegrees", 0.0);
+                transition.target_facing_degrees
+                    = json_double(target, "facingDegrees", 0.0);
             }
 
-            if (!transition.from_layer.empty()
-                && !transition.to_layer.empty()
+            if (!transition.from_layer.empty() && !transition.to_layer.empty()
                 && transition.trigger_row >= 0
                 && transition.trigger_column >= 0) {
                 transitions.push_back(std::move(transition));
@@ -547,8 +545,7 @@ namespace {
     }
 
     double animation_duration_seconds(
-        const SpriteAnimationClip* animation,
-        double fallback = 0.6) noexcept
+        const SpriteAnimationClip* animation, double fallback = 0.6) noexcept
     {
         if (animation == nullptr || animation->frameDurationMs <= 0.0
             || animation->frameSets.empty()) {
@@ -560,8 +557,8 @@ namespace {
                 * static_cast<double>(animation->frameSets.size()) / 1000.0);
     }
 
-    bool apply_loaded_sprite_set(Sprite& sprite,
-        const loaded_sprite_set_t& sprite_set)
+    bool apply_loaded_sprite_set(
+        Sprite& sprite, const loaded_sprite_set_t& sprite_set)
     {
         sprite.transparentColor = sprite_set.transparent_color;
         sprite.frames = sprite_set.frames;
@@ -569,11 +566,8 @@ namespace {
         return !sprite.frames.empty() || !sprite.animations.empty();
     }
 
-    void spawn_runtime_effect(raycast_session_t& session,
-        double x,
-        double y,
-        double scale,
-        const std::string& sprite_set_name,
+    void spawn_runtime_effect(raycast_session_t& session, double x, double y,
+        double scale, const std::string& sprite_set_name,
         const std::string& animation_name)
     {
         if (!session.engine || sprite_set_name.empty()) {
@@ -595,12 +589,11 @@ namespace {
             return;
         }
 
-        const auto animation = animation_name.empty()
-            ? std::string("idle")
-            : animation_name;
+        const auto animation
+            = animation_name.empty() ? std::string("idle") : animation_name;
         effect.setAnimationOrFallback(animation, "idle");
-        const auto duration =
-            animation_duration_seconds(effect.animation(effect.activeAnimation));
+        const auto duration = animation_duration_seconds(
+            effect.animation(effect.activeAnimation));
         const auto sprite_index = session.engine->sprites().size();
         session.engine->addSprite(std::move(effect));
         session.runtime_effects.push_back({ sprite_index, duration });
@@ -633,10 +626,8 @@ namespace {
             session.runtime_effects.end());
     }
 
-    bool actor_has_line_of_fire(const SpriteActor& actor,
-        const Sprite& sprite,
-        double player_x,
-        double player_y) noexcept
+    bool actor_has_line_of_fire(const SpriteActor& actor, const Sprite& sprite,
+        double player_x, double player_y) noexcept
     {
         const auto dx = player_x - sprite.x;
         const auto dy = player_y - sprite.y;
@@ -663,14 +654,14 @@ namespace {
         const auto& player = session.engine->player();
         const auto player_x = static_cast<double>(player.getX());
         const auto player_y = static_cast<double>(player.getY());
-        const auto cell_size =
-            (static_cast<double>(session.world->getCellDx())
-                + static_cast<double>(session.world->getCellDy()))
+        const auto cell_size
+            = (static_cast<double>(session.world->getCellDx())
+                  + static_cast<double>(session.world->getCellDy()))
             * 0.5;
 
         for (auto& actor : session.actors) {
-            if (!is_completion_enemy(actor) || actor.dead
-                || actor.health <= 0.0 || actor.attackDamage <= 0.0
+            if (!is_completion_enemy(actor) || actor.dead || actor.health <= 0.0
+                || actor.attackDamage <= 0.0
                 || actor.attackCooldownRemaining > 0.0) {
                 continue;
             }
@@ -686,7 +677,7 @@ namespace {
             const auto attack_range = actor.rangedAttack
                 ? std::max(0.0, actor.attackRangeCells) * cell_size
                 : std::max(cell_size * 0.75,
-                    std::max(0.0, actor.stoppingDistanceCells) * cell_size);
+                      std::max(0.0, actor.stoppingDistanceCells) * cell_size);
             if (distance > attack_range || distance <= 0.000001) {
                 continue;
             }
@@ -696,14 +687,14 @@ namespace {
             }
 
             actor.state = ActorState::Attacking;
-            actor.attackCooldownRemaining =
-                std::max(0.1, actor.attackCooldownSeconds);
+            actor.attackCooldownRemaining
+                = std::max(0.1, actor.attackCooldownSeconds);
             actor.attackHoldSecondsRemaining = 0.25;
             sprite->setAnimationOrFallback("attack", "idle");
             session.pending_player_damage += actor.attackDamage;
             if (actor.rangedAttack) {
-                play_project_sound(
-                    "weapons/submachine_gun/sounds/machine_gun_burst_dry_close.wav");
+                play_project_sound("weapons/submachine_gun/sounds/"
+                                   "machine_gun_burst_dry_close.wav");
             } else {
                 play_project_sound("effects/enemies/punch1.mp3");
             }
@@ -729,9 +720,7 @@ namespace {
 
     bool build_directional_frames(const SpriteSet& sprite_set,
         const std::vector<SpriteDirectionDefinition>& directions,
-        uint32_t resolution,
-        const std::string& sprite_set_dir,
-        WorldMap& world,
+        uint32_t resolution, const std::string& sprite_set_dir, WorldMap& world,
         MapCell::TextureResourceKey& next_texture_key,
         DirectionalSpriteFrames& frames)
     {
@@ -773,22 +762,21 @@ namespace {
     bool load_world_textures(WorldMap& world, const std::string& world_dir)
     {
 #ifdef _WIN32
-        const auto load_relative = [&](const std::string& image,
-                                       int width = kDefaultCellSize,
-                                       int height = kDefaultCellSize,
-                                       const char* default_ext = ".bmp") {
-            auto path = join_path(world_dir, image);
-            if (!has_image_extension(path)) {
-                path += default_ext;
-            }
+        const auto load_relative
+            = [&](const std::string& image, int width = kDefaultCellSize,
+                  int height = kDefaultCellSize,
+                  const char* default_ext = ".bmp") {
+                  auto path = join_path(world_dir, image);
+                  if (!has_image_extension(path)) {
+                      path += default_ext;
+                  }
 
-            return loadTextureFromFile(path, width, height);
-        };
+                  return loadTextureFromFile(path, width, height);
+              };
 
         for (const auto& item : world.getTextureList()) {
             world.applyTextureToPanel(
-                std::stoi(item.first, nullptr, 16),
-                load_relative(item.second));
+                std::stoi(item.first, nullptr, 16), load_relative(item.second));
         }
 
         if (!world.getTexture(MapCell::TRANSPARENT_TEXTURE_KEY)) {
@@ -806,8 +794,7 @@ namespace {
     }
 
     bool load_scene_sprites(raycast_session_t& session,
-        const SceneLoader::Scene& scene,
-        const std::string& project_dir)
+        const SceneLoader::Scene& scene, const std::string& project_dir)
     {
 #ifdef _WIN32
         if (!session.engine || !session.world) {
@@ -815,12 +802,11 @@ namespace {
         }
 
         std::map<std::string, loaded_sprite_set_t> sprite_sets;
-        auto next_texture_key =
-            static_cast<MapCell::TextureResourceKey>(0x100);
+        auto next_texture_key = static_cast<MapCell::TextureResourceKey>(0x100);
 
         for (const auto& sprite_set_relative : scene.spriteSets) {
-            const auto sprite_set_path =
-                join_path(project_dir, sprite_set_relative);
+            const auto sprite_set_path
+                = join_path(project_dir, sprite_set_relative);
             const auto sprite_set_dir = parent_path_string(sprite_set_path);
 
             SpriteMetadataLoader loader;
@@ -833,8 +819,8 @@ namespace {
             const auto resolution = pick_sprite_resolution(sprite_set);
             loaded_sprite_set_t loaded;
             if (!build_directional_frames(sprite_set, sprite_set.directions(),
-                    resolution, sprite_set_dir, *session.world, next_texture_key,
-                    loaded.frames)) {
+                    resolution, sprite_set_dir, *session.world,
+                    next_texture_key, loaded.frames)) {
                 continue;
             }
 
@@ -845,8 +831,8 @@ namespace {
                 clip.frameDurationMs = animation.frameDurationMs;
                 clip.loop = animation.loop;
                 build_directional_frames(sprite_set, animation.directions,
-                    resolution, sprite_set_dir, *session.world, next_texture_key,
-                    clip.frames);
+                    resolution, sprite_set_dir, *session.world,
+                    next_texture_key, clip.frames);
 
                 for (const auto& frame_directions : animation.frames) {
                     DirectionalSpriteFrames frame_set;
@@ -878,9 +864,10 @@ namespace {
             sprite.x = kDefaultCellSize * instance.xCell;
             sprite.y = kDefaultCellSize * instance.yCell;
             sprite.scale = kDefaultCellSize * instance.scaleCells;
-            sprite.facingRadians = instance.facingDegrees * 3.14159265358979323846 / 180.0;
-            sprite.collisionRadius =
-                kDefaultCellSize * instance.collisionRadiusCells;
+            sprite.facingRadians
+                = instance.facingDegrees * 3.14159265358979323846 / 180.0;
+            sprite.collisionRadius
+                = kDefaultCellSize * instance.collisionRadiusCells;
             sprite.visible = instance.visible;
             sprite.transparentColor = set_it->second.transparent_color;
             sprite.frames = set_it->second.frames;
@@ -898,8 +885,8 @@ namespace {
             runtime_info.pickup_health = std::max(0.0, instance.pickupHealth);
             runtime_info.unlocks_map = instance.unlocksMap;
             runtime_info.explosive = instance.explosive;
-            const auto has_damage_response =
-                !instance.damageResponseType.empty()
+            const auto has_damage_response
+                = !instance.damageResponseType.empty()
                 || !instance.damageResponseEffectSpriteSet.empty()
                 || !instance.damageResponseDestroyedSpriteSet.empty()
                 || !instance.damageResponseSound.empty()
@@ -909,39 +896,38 @@ namespace {
                     instance.damageResponseHitPoints > 0.0
                         ? instance.damageResponseHitPoints
                         : instance.explosiveHitPoints);
-                runtime_info.explosion_radius_cells =
-                    std::max(0.0, instance.damageResponseRadiusCells > 0.0
+                runtime_info.explosion_radius_cells = std::max(0.0,
+                    instance.damageResponseRadiusCells > 0.0
                         ? instance.damageResponseRadiusCells
                         : instance.explosionRadiusCells);
-                runtime_info.explosion_damage =
-                    std::max(0.0, instance.damageResponseDamage > 0.0
+                runtime_info.explosion_damage = std::max(0.0,
+                    instance.damageResponseDamage > 0.0
                         ? instance.damageResponseDamage
                         : instance.explosionDamage);
-                runtime_info.explosion_scale_cells =
-                    std::max(0.0, instance.explosionScaleCells);
+                runtime_info.explosion_scale_cells
+                    = std::max(0.0, instance.explosionScaleCells);
                 runtime_info.explosion_sprite_set = instance.explosionSpriteSet;
-                runtime_info.destroyed_sprite_set =
-                    !instance.damageResponseDestroyedSpriteSet.empty()
+                runtime_info.destroyed_sprite_set
+                    = !instance.damageResponseDestroyedSpriteSet.empty()
                     ? instance.damageResponseDestroyedSpriteSet
                     : instance.destroyedSpriteSet;
-                runtime_info.destroyed_scale_cells =
-                    std::max(0.0, instance.damageResponseDestroyedScaleCells);
+                runtime_info.destroyed_scale_cells
+                    = std::max(0.0, instance.damageResponseDestroyedScaleCells);
             }
             runtime_info.damage_response_type = has_damage_response
-                &&
-                instance.damageResponseType.empty()
-                && (!instance.damageResponseEffectSpriteSet.empty()
-                    || !instance.damageResponseDestroyedSpriteSet.empty()
-                    || instance.damageResponseHitPoints > 0.0)
+                    && instance.damageResponseType.empty()
+                    && (!instance.damageResponseEffectSpriteSet.empty()
+                        || !instance.damageResponseDestroyedSpriteSet.empty()
+                        || instance.damageResponseHitPoints > 0.0)
                 ? std::string("break")
                 : instance.damageResponseType;
             runtime_info.damage_response_sound = instance.damageResponseSound;
-            runtime_info.damage_response_effect_sprite_set =
-                instance.damageResponseEffectSpriteSet;
-            runtime_info.damage_response_effect_animation =
-                instance.damageResponseEffectAnimation;
-            runtime_info.damage_response_effect_scale_cells =
-                std::max(0.0, instance.damageResponseEffectScaleCells);
+            runtime_info.damage_response_effect_sprite_set
+                = instance.damageResponseEffectSpriteSet;
+            runtime_info.damage_response_effect_animation
+                = instance.damageResponseEffectAnimation;
+            runtime_info.damage_response_effect_scale_cells
+                = std::max(0.0, instance.damageResponseEffectScaleCells);
             session.runtime_sprites.push_back(std::move(runtime_info));
 
             if (instance.chasePlayer || instance.patrolCircuit
@@ -956,8 +942,8 @@ namespace {
                 actor.speedCellsPerSecond = instance.speedCellsPerSecond;
                 actor.detectionRadiusCells = instance.detectionRadiusCells;
                 actor.patrolRadiusCells = instance.patrolRadiusCells;
-                actor.engagementHysteresisCells =
-                    instance.engagementHysteresisCells;
+                actor.engagementHysteresisCells
+                    = instance.engagementHysteresisCells;
                 actor.patrolCircuit = instance.patrolCircuit;
                 actor.stoppingDistanceCells = instance.stoppingDistanceCells;
                 actor.collidesWithWorld = !instance.passThroughWalls;
@@ -967,14 +953,15 @@ namespace {
                     : 0.0;
                 actor.attackDamage = std::max(0.0, instance.attackDamage);
                 actor.rangedAttack = instance.rangedAttack;
-                actor.attackRangeCells = std::max(0.0, instance.attackRangeCells);
-                actor.attackCooldownSeconds =
-                    std::max(0.1, instance.attackCooldownSeconds);
-                actor.attackFovDegrees =
-                    std::max(1.0, instance.attackFovDegrees);
+                actor.attackRangeCells
+                    = std::max(0.0, instance.attackRangeCells);
+                actor.attackCooldownSeconds
+                    = std::max(0.1, instance.attackCooldownSeconds);
+                actor.attackFovDegrees
+                    = std::max(1.0, instance.attackFovDegrees);
                 actor.attackBurstShots = std::max(1, instance.attackBurstShots);
-                actor.attackBurstPauseSeconds =
-                    std::max(0.1, instance.attackBurstPauseSeconds);
+                actor.attackBurstPauseSeconds
+                    = std::max(0.1, instance.attackBurstPauseSeconds);
                 session.actors.push_back(actor);
             }
         }
@@ -1000,9 +987,9 @@ namespace {
         auto& player = session.engine->player();
         const auto player_x = static_cast<double>(player.getX());
         const auto player_y = static_cast<double>(player.getY());
-        const auto pickup_radius =
-            (static_cast<double>(session.world->getCellDx())
-                + static_cast<double>(session.world->getCellDy()))
+        const auto pickup_radius
+            = (static_cast<double>(session.world->getCellDx())
+                  + static_cast<double>(session.world->getCellDy()))
             * 0.35;
         int collected = 0;
 
@@ -1025,6 +1012,10 @@ namespace {
             info.consumed = true;
             sprite->visible = false;
             ++collected;
+
+            if (info.pickup_health > 0.0) {
+                session.pending_player_healing += info.pickup_health;
+            }
 
             const auto key_id = inferred_key_id(info);
             if (!key_id.empty()) {
@@ -1091,14 +1082,13 @@ namespace {
                 json_double(fire_behavior, "intervalMs", 0.0),
                 json_double(fire_behavior, "soundIntervalMs", 0.0));
         } else {
-            weapon->setFireBehavior(
-                json_bool(document, "automaticFire", false),
+            weapon->setFireBehavior(json_bool(document, "automaticFire", false),
                 json_double(document, "fireIntervalMs", 0.0));
         }
 
         if (document.contains("sounds") && document["sounds"].is_object()) {
-            const auto fire_sound =
-                json_string(document["sounds"], "fire", std::string());
+            const auto fire_sound
+                = json_string(document["sounds"], "fire", std::string());
             if (!fire_sound.empty()) {
                 weapon->setFireSoundPath(join_path(metadata_dir, fire_sound));
             }
@@ -1106,28 +1096,24 @@ namespace {
 
         if (document.contains("ammo") && document["ammo"].is_object()) {
             const auto& ammo = document["ammo"];
-            weapon->setAmmo(
-                json_int(ammo, "magazineSize", 0),
+            weapon->setAmmo(json_int(ammo, "magazineSize", 0),
                 json_int(ammo, "maxAmmo", 0),
                 json_int(ammo, "initialAmmo", -1));
         }
 
         if (document.contains("anchor") && document["anchor"].is_object()) {
-            weapon->setAnchor(
-                json_double(document["anchor"], "x", 0.5),
+            weapon->setAnchor(json_double(document["anchor"], "x", 0.5),
                 json_double(document["anchor"], "y", 1.0));
         }
 
         if (document.contains("baseOffset")
             && document["baseOffset"].is_object()) {
-            weapon->setBaseOffset(
-                json_double(document["baseOffset"], "x", 0.0),
+            weapon->setBaseOffset(json_double(document["baseOffset"], "x", 0.0),
                 json_double(document["baseOffset"], "y", 0.0));
         }
 
         if (document.contains("bob") && document["bob"].is_object()) {
-            weapon->setBob(
-                json_bool(document["bob"], "enabled", true),
+            weapon->setBob(json_bool(document["bob"], "enabled", true),
                 json_double(document["bob"], "amount", 1.0),
                 json_double(document["bob"], "amplitudeX", 6.0),
                 json_double(document["bob"], "amplitudeY", 4.0),
@@ -1143,8 +1129,8 @@ namespace {
 
             ViewWeapon::Animation animation;
             animation.name = animation_item.key();
-            animation.frameDurationMs =
-                json_double(animation_item.value(), "frameDurationMs", 100.0);
+            animation.frameDurationMs
+                = json_double(animation_item.value(), "frameDurationMs", 100.0);
             animation.loop = json_bool(animation_item.value(), "loop", true);
 
             for (const auto& file_entry : animation_item.value()["files"]) {
@@ -1154,8 +1140,7 @@ namespace {
 
                 auto texture = loadTextureFromFile(
                     join_path(metadata_dir, file_entry.get<std::string>()),
-                    frame_width,
-                    frame_height);
+                    frame_width, frame_height);
                 if (texture) {
                     texture->setHasAlpha(true);
                     animation.frames.push_back(std::move(texture));
@@ -1186,11 +1171,7 @@ namespace {
         auto world = std::make_unique<WorldMap>();
         world->resizeCell(kDefaultCellSize, kDefaultCellSize);
 
-        Player player(
-            0,
-            0,
-            kDefaultVisualDegrees,
-            session.projection_width,
+        Player player(0, 0, kDefaultVisualDegrees, session.projection_width,
             session.projection_height);
         player.setPos({ kDefaultCellSize * 1.5, kDefaultCellSize * 1.5 });
 
@@ -1203,6 +1184,8 @@ namespace {
         session.transitions.clear();
         session.loaded_sprite_sets.clear();
         session.pending_player_damage = 0.0;
+        session.pending_player_healing = 0.0;
+        session.transition_cooldown_seconds = 0.0;
         stop_background_music(session);
         session.project_path.clear();
         session.project_dir.clear();
@@ -1214,8 +1197,7 @@ namespace {
     }
 
     bool load_world_into_session(const std::string& world_path,
-        const std::string& layer_id,
-        const SceneLoader::Scene* scene)
+        const std::string& layer_id, const SceneLoader::Scene* scene)
     {
         auto world = std::make_unique<WorldMap>();
         WorldJsonLoader loader;
@@ -1228,8 +1210,7 @@ namespace {
 
         if (scene != nullptr && scene->hasPlayerStart) {
             world->setPlayerStartCell(scene->playerStart.xCell,
-                scene->playerStart.yCell,
-                scene->playerStart.facingDegrees);
+                scene->playerStart.yCell, scene->playerStart.facingDegrees);
         }
 
         Player player(0, 0, kDefaultVisualDegrees,
@@ -1237,13 +1218,11 @@ namespace {
             raycast_session().projection_height);
         if (world->hasPlayerStart()) {
             const auto& start = world->getPlayerCellPos();
-            player.setPos({
-                start.first * static_cast<double>(world->getCellDx()),
-                start.second * static_cast<double>(world->getCellDy())
-            });
+            player.setPos(
+                { start.first * static_cast<double>(world->getCellDx()),
+                    start.second * static_cast<double>(world->getCellDy()) });
             player.setAlpha(player_alpha_for_facing_degrees(
-                player,
-                world->getPlayerFacingDegrees()));
+                player, world->getPlayerFacingDegrees()));
         } else {
             player.setPos({ kDefaultCellSize * 1.5, kDefaultCellSize * 1.5 });
         }
@@ -1259,6 +1238,8 @@ namespace {
         session.keyring.clear();
         session.loaded_sprite_sets.clear();
         session.pending_player_damage = 0.0;
+        session.pending_player_healing = 0.0;
+        session.transition_cooldown_seconds = 0.0;
         session.world_path = world_path;
         session.active_layer_id = result.activeLayerId;
         session.pending_transition_index = -1;
@@ -1289,9 +1270,7 @@ namespace {
             : session.project_path;
 
         if (!load_world_into_session(
-                world_path,
-                result.scene.activeLayerId,
-                &result.scene)) {
+                world_path, result.scene.activeLayerId, &result.scene)) {
             return false;
         }
 
@@ -1318,31 +1297,26 @@ namespace {
 
         if (result.scene.backgroundMusic.enabled
             && !result.scene.backgroundMusic.file.empty()) {
-            const auto music_path =
-                join_path(project_dir, result.scene.backgroundMusic.file);
-            const auto music_volume =
-                std::min(result.scene.backgroundMusic.volumePercent, 12);
+            const auto music_path
+                = join_path(project_dir, result.scene.backgroundMusic.file);
+            const auto music_volume
+                = std::min(result.scene.backgroundMusic.volumePercent, 12);
             if (!start_background_music_file(session, music_path,
-                    result.scene.backgroundMusic.loop,
-                    music_volume)) {
+                    result.scene.backgroundMusic.loop, music_volume)) {
                 start_background_music_file(session,
                     join_path(project_dir, "audio/demo_theme.mp3"),
-                    result.scene.backgroundMusic.loop,
-                    music_volume);
+                    result.scene.backgroundMusic.loop, music_volume);
             }
         }
 
         if (transition != nullptr && session.engine) {
             auto& player = session.engine->player();
-            player.setPos({
-                transition->target_x_cell
+            player.setPos({ transition->target_x_cell
                     * static_cast<double>(session.world->getCellDx()),
                 transition->target_y_cell
-                    * static_cast<double>(session.world->getCellDy())
-            });
+                    * static_cast<double>(session.world->getCellDy()) });
             player.setAlpha(player_alpha_for_facing_degrees(
-                player,
-                transition->target_facing_degrees));
+                player, transition->target_facing_degrees));
         }
 
         return true;
@@ -1355,11 +1329,17 @@ namespace {
             return false;
         }
 
+        if (session.transition_cooldown_seconds > 0.0) {
+            session.transition_cooldown_seconds
+                = std::max(0.0, session.transition_cooldown_seconds - dt);
+            return false;
+        }
+
         const auto& player = session.engine->player();
-        const auto player_column =
-            static_cast<int>(player.getX() / session.world->getCellDx());
-        const auto player_row =
-            static_cast<int>(player.getY() / session.world->getCellDy());
+        const auto player_column
+            = static_cast<int>(player.getX() / session.world->getCellDx());
+        const auto player_row
+            = static_cast<int>(player.getY() / session.world->getCellDy());
 
         int matching_index = -1;
         for (int i = 0; i < static_cast<int>(session.transitions.size()); ++i) {
@@ -1392,19 +1372,20 @@ namespace {
 
         auto transition_copy = transition;
         play_project_sound("effects/Elevator_Opening_Sequence.mp3");
-        return load_project_layer_into_session(
-            session.project_path,
-            transition_copy.to_layer,
-            &transition_copy);
+        if (!load_project_layer_into_session(session.project_path,
+                transition_copy.to_layer, &transition_copy)) {
+            return false;
+        }
+
+        session.transition_cooldown_seconds = 4.0;
+        session.pending_transition_index = -1;
+        session.pending_transition_seconds = 0.0;
+        return true;
     }
 
 #ifdef _WIN32
     bool present_framebuffer_to_gdi(
-        const FrameBuffer& frame,
-        int x,
-        int y,
-        int width,
-        int height)
+        const FrameBuffer& frame, int x, int y, int width, int height)
     {
         if (nu::_os_get_screen_mode() == 0 || frame.empty()) {
             return false;
@@ -1425,12 +1406,10 @@ namespace {
         bmp_info.bmiHeader.biCompression = BI_RGB;
 
         const auto ok = StretchDIBits(hdc, x, y, width, height, 0, 0,
-            static_cast<int>(frame.width()),
-            static_cast<int>(frame.height()),
-            frame.data(),
-            &bmp_info,
-            DIB_RGB_COLORS,
-            SRCCOPY) != GDI_ERROR;
+                            static_cast<int>(frame.width()),
+                            static_cast<int>(frame.height()), frame.data(),
+                            &bmp_info, DIB_RGB_COLORS, SRCCOPY)
+            != GDI_ERROR;
 
         nu_winconsole_release_hdc(hdc);
         return ok;
@@ -1438,25 +1417,23 @@ namespace {
 #endif
 
     RaycastEngine* checked_engine(
-        rt_prog_ctx_t& ctx,
-        const std::string& function_name)
+        rt_prog_ctx_t& ctx, const std::string& function_name)
     {
         if (!ensure_session_initialized()) {
             ctx.set_errno(EINVAL);
-            syntax_error_if(
-                true,
+            syntax_error_if(true,
                 "'" + function_name + "': cannot initialize raycast session");
         }
 
         return raycast_session().engine.get();
     }
 
-    WorldMap* checked_world(rt_prog_ctx_t& ctx, const std::string& function_name)
+    WorldMap* checked_world(
+        rt_prog_ctx_t& ctx, const std::string& function_name)
     {
         if (!ensure_session_initialized()) {
             ctx.set_errno(EINVAL);
-            syntax_error_if(
-                true,
+            syntax_error_if(true,
                 "'" + function_name + "': cannot initialize raycast session");
         }
 
@@ -1492,44 +1469,25 @@ namespace {
 
         const builtin_export_list_t& exports() const noexcept override
         {
-            static const builtin_export_list_t module_exports = {
-                "rayavailable",
-                "rayinit",
-                "rayloadworld",
-                "rayrender",
-                "rayframehash",
-                "rayplayerx",
-                "rayplayery",
-                "rayplayerfacing",
-                "raycurrentlayer$",
-                "raycurrentlayer",
-                "raysetplayer",
-                "raymove",
-                "raystrafe",
-                "rayturn",
-                "rayloadproject",
-                "raypresent",
-                "raykeydown",
-                "rayupdate",
-                "raydamageenemy",
-                "rayconsumeplayerdamage",
-                "rayitemcount",
-                "raycollecteditemcount",
-                "raydestroyedobjectcount",
-                "rayplaysound",
-                "rayspritecount",
-                "rayactorcount",
-                "rayenemycount",
-                "raykilledenemycount",
-                "raysetbasedir"
-            };
+            static const builtin_export_list_t module_exports
+                = { "rayavailable", "rayinit", "rayloadworld", "rayrender",
+                      "rayframehash", "rayplayerx", "rayplayery",
+                      "rayplayerfacing", "raycurrentlayer$", "raycurrentlayer",
+                      "rayloadweapon", "raysetplayer", "raymove", "raystrafe",
+                      "rayturn", "raymaprows", "raymapcols", "raycelldx",
+                      "raycelldy", "rayissolidcell", "raycellkind",
+                      "rayloadproject", "raypresent", "raykeydown", "rayupdate",
+                      "raydamageenemy", "rayconsumeplayerdamage",
+                      "rayconsumeplayerhealing", "rayitemcount",
+                      "raycollecteditemcount", "raydestroyedobjectcount",
+                      "rayplaysound", "rayspritecount", "rayactorcount",
+                      "rayenemycount", "raykilledenemycount", "raysetbasedir" };
             return module_exports;
         }
 
         void register_functions(global_function_tbl_t& fmap) const override
         {
-            fmap["rayavailable"] = [](rt_prog_ctx_t&,
-                                       const std::string& name,
+            fmap["rayavailable"] = [](rt_prog_ctx_t&, const std::string& name,
                                        const func_args_t& args) {
                 check_arg_num(args, 0, name);
 #ifdef NUBASIC_HAS_RAYCAST
@@ -1540,20 +1498,18 @@ namespace {
             };
 
 #ifdef NUBASIC_HAS_RAYCAST
-            fmap["rayinit"] = [](rt_prog_ctx_t& ctx,
-                                  const std::string& name,
+            fmap["rayinit"] = [](rt_prog_ctx_t& ctx, const std::string& name,
                                   const func_args_t& args) {
                 std::vector<variant_t> vargs;
                 get_functor_vargs(ctx, name, args,
-                    { variant_t::type_t::INTEGER,
-                        variant_t::type_t::INTEGER },
+                    { variant_t::type_t::INTEGER, variant_t::type_t::INTEGER },
                     vargs);
 
                 auto& session = raycast_session();
-                session.projection_width =
-                    std::max(16, static_cast<int>(vargs[0].to_int()));
-                session.projection_height =
-                    std::max(16, static_cast<int>(vargs[1].to_int()));
+                session.projection_width
+                    = std::max(16, static_cast<int>(vargs[0].to_int()));
+                session.projection_height
+                    = std::max(16, static_cast<int>(vargs[1].to_int()));
                 session.engine.reset();
                 session.world.reset();
                 ensure_session_initialized();
@@ -1582,95 +1538,112 @@ namespace {
                 get_functor_vargs(
                     ctx, name, args, { variant_t::type_t::STRING }, vargs);
 
-                const auto project_path =
-                    resolve_session_path(vargs[0].to_str());
+                const auto project_path
+                    = resolve_session_path(vargs[0].to_str());
                 auto& session = raycast_session();
                 session.project_path = project_path;
                 session.transitions = load_layer_transitions(project_path);
                 session.pending_transition_index = -1;
                 session.pending_transition_seconds = 0.0;
-                if (!load_project_layer_into_session(project_path, std::string())) {
+                if (!load_project_layer_into_session(
+                        project_path, std::string())) {
                     ctx.set_errno(EINVAL);
                     return variant_t(integer_t(0));
                 }
                 return variant_t(integer_t(1));
             };
 
-            fmap["rayrender"] = [](rt_prog_ctx_t& ctx,
-                                    const std::string& name,
+            fmap["rayrender"] = [](rt_prog_ctx_t& ctx, const std::string& name,
                                     const func_args_t& args) {
                 std::vector<variant_t> vargs;
                 get_functor_vargs(ctx, name, args,
-                    { variant_t::type_t::INTEGER,
-                        variant_t::type_t::INTEGER },
+                    { variant_t::type_t::INTEGER, variant_t::type_t::INTEGER },
                     vargs);
 
                 auto* engine = checked_engine(ctx, name);
                 auto* world = checked_world(ctx, name);
-                const auto width =
-                    std::max(16, static_cast<int>(vargs[0].to_int()));
-                const auto height =
-                    std::max(16, static_cast<int>(vargs[1].to_int()));
-                engine->renderToFrameBuffer(
-                    *world,
+                const auto width
+                    = std::max(16, static_cast<int>(vargs[0].to_int()));
+                const auto height
+                    = std::max(16, static_cast<int>(vargs[1].to_int()));
+                engine->renderToFrameBuffer(*world,
                     static_cast<uint32_t>(width),
                     static_cast<uint32_t>(height));
                 return variant_t(integer_t(1));
             };
 
-            fmap["rayframehash"] = [](rt_prog_ctx_t& ctx,
-                                       const std::string& name,
-                                       const func_args_t& args) {
-                check_arg_num(args, 0, name);
-                auto* engine = checked_engine(ctx, name);
-                const auto& frame = engine->frameBuffer();
-                if (frame.empty()) {
-                    return variant_t(integer_t(0));
-                }
+            fmap["rayframehash"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      auto* engine = checked_engine(ctx, name);
+                      const auto& frame = engine->frameBuffer();
+                      if (frame.empty()) {
+                          return variant_t(integer_t(0));
+                      }
 
-                return variant_t(
-                    integer_t(fnv1a_frame_hash(frame) & 0x7fffffffull));
-            };
+                      return variant_t(
+                          integer_t(fnv1a_frame_hash(frame) & 0x7fffffffull));
+                  };
 
-            fmap["rayplayerx"] = [](rt_prog_ctx_t& ctx,
-                                     const std::string& name,
+            fmap["rayplayerx"] = [](rt_prog_ctx_t& ctx, const std::string& name,
                                      const func_args_t& args) {
                 check_arg_num(args, 0, name);
                 return variant_t(
                     double_t(checked_engine(ctx, name)->player().getX()));
             };
 
-            fmap["rayplayery"] = [](rt_prog_ctx_t& ctx,
-                                     const std::string& name,
+            fmap["rayplayery"] = [](rt_prog_ctx_t& ctx, const std::string& name,
                                      const func_args_t& args) {
                 check_arg_num(args, 0, name);
                 return variant_t(
                     double_t(checked_engine(ctx, name)->player().getY()));
             };
 
-            fmap["rayplayerfacing"] = [](rt_prog_ctx_t& ctx,
-                                          const std::string& name,
-                                          const func_args_t& args) {
-                check_arg_num(args, 0, name);
-                return variant_t(double_t(camera_facing_degrees(
-                    checked_engine(ctx, name)->player())));
-            };
+            fmap["rayplayerfacing"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      return variant_t(double_t(camera_facing_degrees(
+                          checked_engine(ctx, name)->player())));
+                  };
 
-            fmap["raycurrentlayer$"] = [](rt_prog_ctx_t&,
-                                           const std::string& name,
-                                           const func_args_t& args) {
-                check_arg_num(args, 0, name);
-                return variant_t(raycast_session().active_layer_id);
-            };
+            fmap["raycurrentlayer$"]
+                = [](rt_prog_ctx_t&, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      return variant_t(raycast_session().active_layer_id);
+                  };
             fmap["raycurrentlayer"] = fmap["raycurrentlayer$"];
+
+            fmap["rayloadweapon"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      std::vector<variant_t> vargs;
+                      get_functor_vargs(ctx, name, args,
+                          { variant_t::type_t::STRING }, vargs);
+
+                      auto* engine = checked_engine(ctx, name);
+                      auto& session = raycast_session();
+                      const auto weapon_path = session.project_dir.empty()
+                          ? resolve_session_path(vargs[0].to_str())
+                          : join_path(session.project_dir, vargs[0].to_str());
+                      auto weapon = load_view_weapon_from_metadata(weapon_path);
+                      if (weapon == nullptr) {
+                          ctx.set_errno(EINVAL);
+                          return variant_t(integer_t(0));
+                      }
+
+                      engine->setViewWeapon(std::move(*weapon));
+                      return variant_t(integer_t(1));
+                  };
 
             fmap["raysetplayer"] = [](rt_prog_ctx_t& ctx,
                                        const std::string& name,
                                        const func_args_t& args) {
                 std::vector<variant_t> vargs;
                 get_functor_vargs(ctx, name, args,
-                    { variant_t::type_t::DOUBLE,
-                        variant_t::type_t::DOUBLE,
+                    { variant_t::type_t::DOUBLE, variant_t::type_t::DOUBLE,
                         variant_t::type_t::DOUBLE },
                     vargs);
 
@@ -1678,13 +1651,11 @@ namespace {
                 auto& player = engine->player();
                 player.setPos({ vargs[0].to_double(), vargs[1].to_double() });
                 player.setAlpha(player_alpha_for_facing_degrees(
-                    player,
-                    vargs[2].to_double()));
+                    player, vargs[2].to_double()));
                 return variant_t(integer_t(1));
             };
 
-            fmap["raymove"] = [](rt_prog_ctx_t& ctx,
-                                  const std::string& name,
+            fmap["raymove"] = [](rt_prog_ctx_t& ctx, const std::string& name,
                                   const func_args_t& args) {
                 std::vector<variant_t> vargs;
                 get_functor_vargs(
@@ -1696,8 +1667,7 @@ namespace {
                     *world)));
             };
 
-            fmap["raystrafe"] = [](rt_prog_ctx_t& ctx,
-                                    const std::string& name,
+            fmap["raystrafe"] = [](rt_prog_ctx_t& ctx, const std::string& name,
                                     const func_args_t& args) {
                 std::vector<variant_t> vargs;
                 get_functor_vargs(
@@ -1709,8 +1679,7 @@ namespace {
                     *world)));
             };
 
-            fmap["rayturn"] = [](rt_prog_ctx_t& ctx,
-                                  const std::string& name,
+            fmap["rayturn"] = [](rt_prog_ctx_t& ctx, const std::string& name,
                                   const func_args_t& args) {
                 std::vector<variant_t> vargs;
                 get_functor_vargs(
@@ -1723,8 +1692,86 @@ namespace {
                 return variant_t(integer_t(1));
             };
 
-            fmap["rayupdate"] = [](rt_prog_ctx_t& ctx,
-                                    const std::string& name,
+            fmap["raymaprows"] = [](rt_prog_ctx_t& ctx, const std::string& name,
+                                     const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                return variant_t(
+                    integer_t(checked_world(ctx, name)->getRowCount()));
+            };
+
+            fmap["raymapcols"] = [](rt_prog_ctx_t& ctx, const std::string& name,
+                                     const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                return variant_t(
+                    integer_t(checked_world(ctx, name)->getColCount()));
+            };
+
+            fmap["raycelldx"] = [](rt_prog_ctx_t& ctx, const std::string& name,
+                                    const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                return variant_t(
+                    integer_t(checked_world(ctx, name)->getCellDx()));
+            };
+
+            fmap["raycelldy"] = [](rt_prog_ctx_t& ctx, const std::string& name,
+                                    const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                return variant_t(
+                    integer_t(checked_world(ctx, name)->getCellDy()));
+            };
+
+            fmap["rayissolidcell"] = [](rt_prog_ctx_t& ctx,
+                                         const std::string& name,
+                                         const func_args_t& args) {
+                std::vector<variant_t> vargs;
+                get_functor_vargs(ctx, name, args,
+                    { variant_t::type_t::INTEGER, variant_t::type_t::INTEGER },
+                    vargs);
+                auto* world = checked_world(ctx, name);
+                const auto row = static_cast<int>(vargs[0].to_int());
+                const auto col = static_cast<int>(vargs[1].to_int());
+                if (row < 0 || col < 0 || row >= world->getRowCount()
+                    || col >= world->getColCount()) {
+                    return variant_t(integer_t(1));
+                }
+
+                const auto x = (static_cast<double>(col) + 0.5)
+                    * static_cast<double>(world->getCellDx());
+                const auto y = (static_cast<double>(row) + 0.5)
+                    * static_cast<double>(world->getCellDy());
+                return variant_t(
+                    integer_t(world->isSolidAtWorld(x, y) ? 1 : 0));
+            };
+
+            fmap["raycellkind"] = [](rt_prog_ctx_t& ctx,
+                                      const std::string& name,
+                                      const func_args_t& args) {
+                std::vector<variant_t> vargs;
+                get_functor_vargs(ctx, name, args,
+                    { variant_t::type_t::INTEGER, variant_t::type_t::INTEGER },
+                    vargs);
+                auto* world = checked_world(ctx, name);
+                const auto row = static_cast<int>(vargs[0].to_int());
+                const auto col = static_cast<int>(vargs[1].to_int());
+                if (row < 0 || col < 0 || row >= world->getRowCount()
+                    || col >= world->getColCount()) {
+                    return variant_t(integer_t(1));
+                }
+
+                const auto* block = world->blockAtCell(row, col);
+                if (block != nullptr && block->door.enabled) {
+                    return variant_t(integer_t(2));
+                }
+
+                const auto x = (static_cast<double>(col) + 0.5)
+                    * static_cast<double>(world->getCellDx());
+                const auto y = (static_cast<double>(row) + 0.5)
+                    * static_cast<double>(world->getCellDy());
+                return variant_t(
+                    integer_t(world->isSolidAtWorld(x, y) ? 1 : 0));
+            };
+
+            fmap["rayupdate"] = [](rt_prog_ctx_t& ctx, const std::string& name,
                                     const func_args_t& args) {
                 std::vector<variant_t> vargs;
                 get_functor_vargs(
@@ -1748,16 +1795,15 @@ namespace {
                 }
                 std::vector<WorldMap::DoorEvent> door_events;
                 world->updateDoors(engine->player().getX(),
-                    engine->player().getY(), actor_positions, dt,
-                    &door_events);
+                    engine->player().getY(), actor_positions, dt, &door_events);
                 for (const auto& event : door_events) {
                     if (event.type
                         != WorldMap::DoorEvent::Type::OpeningStarted) {
                         continue;
                     }
 
-                    const auto* block =
-                        world->blockAtCell(event.row, event.column);
+                    const auto* block
+                        = world->blockAtCell(event.row, event.column);
                     if (block != nullptr && !block->door.openSound.empty()) {
                         play_project_sound(block->door.openSound);
                     }
@@ -1775,21 +1821,18 @@ namespace {
                 return variant_t(integer_t(1));
             };
 
-            fmap["raypresent"] = [](rt_prog_ctx_t& ctx,
-                                     const std::string& name,
+            fmap["raypresent"] = [](rt_prog_ctx_t& ctx, const std::string& name,
                                      const func_args_t& args) {
                 std::vector<variant_t> vargs;
                 get_functor_vargs(ctx, name, args,
-                    { variant_t::type_t::INTEGER,
-                        variant_t::type_t::INTEGER,
+                    { variant_t::type_t::INTEGER, variant_t::type_t::INTEGER,
                         variant_t::type_t::INTEGER,
                         variant_t::type_t::INTEGER },
                     vargs);
 #ifdef _WIN32
                 auto* engine = checked_engine(ctx, name);
                 const auto ok = present_framebuffer_to_gdi(
-                    engine->frameBuffer(),
-                    static_cast<int>(vargs[0].to_int()),
+                    engine->frameBuffer(), static_cast<int>(vargs[0].to_int()),
                     static_cast<int>(vargs[1].to_int()),
                     static_cast<int>(vargs[2].to_int()),
                     static_cast<int>(vargs[3].to_int()));
@@ -1800,12 +1843,11 @@ namespace {
 #endif
             };
 
-            fmap["raykeydown"] = [](rt_prog_ctx_t& ctx,
-                                     const std::string& name,
+            fmap["raykeydown"] = [](rt_prog_ctx_t& ctx, const std::string& name,
                                      const func_args_t& args) {
                 std::vector<variant_t> vargs;
-                get_functor_vargs(ctx, name, args,
-                    { variant_t::type_t::INTEGER }, vargs);
+                get_functor_vargs(
+                    ctx, name, args, { variant_t::type_t::INTEGER }, vargs);
 #ifdef _WIN32
                 return variant_t(integer_t(
                     (GetAsyncKeyState(static_cast<int>(vargs[0].to_int()))
@@ -1822,21 +1864,18 @@ namespace {
                                          const func_args_t& args) {
                 std::vector<variant_t> vargs;
                 get_functor_vargs(ctx, name, args,
-                    { variant_t::type_t::DOUBLE,
-                        variant_t::type_t::DOUBLE,
+                    { variant_t::type_t::DOUBLE, variant_t::type_t::DOUBLE,
                         variant_t::type_t::DOUBLE },
                     vargs);
                 auto& session = raycast_session();
                 auto* engine = checked_engine(ctx, name);
                 auto* world = checked_world(ctx, name);
                 const auto damage = std::max(0.0, vargs[0].to_double());
-                const auto range =
-                    std::max(0.0, vargs[1].to_double())
+                const auto range = std::max(0.0, vargs[1].to_double())
                     * (static_cast<double>(world->getCellDx())
                         + static_cast<double>(world->getCellDy()))
                     * 0.5;
-                const auto half_fov =
-                    std::max(0.0, vargs[2].to_double()) * 0.5;
+                const auto half_fov = std::max(0.0, vargs[2].to_double()) * 0.5;
                 const auto& player = engine->player();
                 const auto player_x = static_cast<double>(player.getX());
                 const auto player_y = static_cast<double>(player.getY());
@@ -1925,33 +1964,35 @@ namespace {
                 }
 
                 if (best_info != nullptr) {
-                    best_info->explosive_health =
-                        std::max(0.0, best_info->explosive_health - damage);
+                    best_info->explosive_health
+                        = std::max(0.0, best_info->explosive_health - damage);
                     if (best_info->explosive_health <= 0.0) {
                         best_info->destroyed = true;
                         if (best_sprite != nullptr) {
-                            const auto effect_sprite_set =
-                                !best_info->damage_response_effect_sprite_set.empty()
+                            const auto effect_sprite_set
+                                = !best_info->damage_response_effect_sprite_set
+                                       .empty()
                                 ? best_info->damage_response_effect_sprite_set
                                 : best_info->explosion_sprite_set;
-                            const auto effect_animation =
-                                !best_info->damage_response_effect_animation.empty()
+                            const auto effect_animation
+                                = !best_info->damage_response_effect_animation
+                                       .empty()
                                 ? best_info->damage_response_effect_animation
                                 : std::string("explode");
-                            const auto effect_scale_cells =
-                                best_info->damage_response_effect_scale_cells > 0.0
+                            const auto effect_scale_cells
+                                = best_info->damage_response_effect_scale_cells
+                                    > 0.0
                                 ? best_info->damage_response_effect_scale_cells
                                 : best_info->explosion_scale_cells;
-                            spawn_runtime_effect(session,
-                                best_sprite->x,
+                            spawn_runtime_effect(session, best_sprite->x,
                                 best_sprite->y,
                                 kDefaultCellSize * effect_scale_cells,
-                                effect_sprite_set,
-                                effect_animation);
+                                effect_sprite_set, effect_animation);
 
                             if (!best_info->destroyed_sprite_set.empty()) {
-                                const auto set_it = session.loaded_sprite_sets.find(
-                                    best_info->destroyed_sprite_set);
+                                const auto set_it
+                                    = session.loaded_sprite_sets.find(
+                                        best_info->destroyed_sprite_set);
                                 if (set_it != session.loaded_sprite_sets.end()
                                     && apply_loaded_sprite_set(
                                         *best_sprite, set_it->second)) {
@@ -1969,16 +2010,19 @@ namespace {
                             }
                         }
                         if (!best_info->damage_response_sound.empty()) {
-                            play_project_sound(best_info->damage_response_sound);
+                            play_project_sound(
+                                best_info->damage_response_sound);
                         } else if (best_info->explosive) {
-                            play_project_sound("effects/explosions/cannon1.mp3");
+                            play_project_sound(
+                                "effects/explosions/cannon1.mp3");
                         }
                         if (best_info->explosion_radius_cells > 0.0
                             && best_info->explosion_damage > 0.0
                             && best_sprite != nullptr) {
                             const auto dx = best_sprite->x - player_x;
                             const auto dy = best_sprite->y - player_y;
-                            const auto radius = best_info->explosion_radius_cells
+                            const auto radius
+                                = best_info->explosion_radius_cells
                                 * (static_cast<double>(world->getCellDx())
                                     + static_cast<double>(world->getCellDy()))
                                 * 0.5;
@@ -1987,8 +2031,8 @@ namespace {
                                 const auto falloff = radius <= 0.0
                                     ? 1.0
                                     : std::max(0.0, 1.0 - dist / radius);
-                                session.pending_player_damage +=
-                                    best_info->explosion_damage * falloff;
+                                session.pending_player_damage
+                                    += best_info->explosion_damage * falloff;
                             }
                         }
                         return variant_t(integer_t(3));
@@ -1997,8 +2041,7 @@ namespace {
                     return variant_t(integer_t(1));
                 }
 
-                best_actor->health =
-                    std::max(0.0, best_actor->health - damage);
+                best_actor->health = std::max(0.0, best_actor->health - damage);
                 best_actor->state = ActorState::Chasing;
                 if (best_actor->health <= 0.0) {
                     start_actor_death(*best_actor, best_sprite);
@@ -2008,18 +2051,27 @@ namespace {
                 return variant_t(integer_t(1));
             };
 
-            fmap["rayconsumeplayerdamage"] = [](rt_prog_ctx_t&,
-                                                 const std::string& name,
-                                                 const func_args_t& args) {
-                check_arg_num(args, 0, name);
-                auto& session = raycast_session();
-                const auto damage = session.pending_player_damage;
-                session.pending_player_damage = 0.0;
-                return variant_t(double_t(damage));
-            };
+            fmap["rayconsumeplayerdamage"]
+                = [](rt_prog_ctx_t&, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      auto& session = raycast_session();
+                      const auto damage = session.pending_player_damage;
+                      session.pending_player_damage = 0.0;
+                      return variant_t(double_t(damage));
+                  };
 
-            fmap["rayitemcount"] = [](rt_prog_ctx_t&,
-                                       const std::string& name,
+            fmap["rayconsumeplayerhealing"]
+                = [](rt_prog_ctx_t&, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      auto& session = raycast_session();
+                      const auto healing = session.pending_player_healing;
+                      session.pending_player_healing = 0.0;
+                      return variant_t(double_t(healing));
+                  };
+
+            fmap["rayitemcount"] = [](rt_prog_ctx_t&, const std::string& name,
                                        const func_args_t& args) {
                 check_arg_num(args, 0, name);
                 integer_t count = 0;
@@ -2063,27 +2115,25 @@ namespace {
                 std::vector<variant_t> vargs;
                 get_functor_vargs(
                     ctx, name, args, { variant_t::type_t::STRING }, vargs);
-                return variant_t(integer_t(
-                    play_project_sound(vargs[0].to_str()) ? 1 : 0));
+                return variant_t(
+                    integer_t(play_project_sound(vargs[0].to_str()) ? 1 : 0));
             };
 
             fmap["rayspritecount"] = [](rt_prog_ctx_t& ctx,
                                          const std::string& name,
                                          const func_args_t& args) {
                 check_arg_num(args, 0, name);
-                return variant_t(integer_t(
-                    checked_engine(ctx, name)->sprites().size()));
+                return variant_t(
+                    integer_t(checked_engine(ctx, name)->sprites().size()));
             };
 
-            fmap["rayactorcount"] = [](rt_prog_ctx_t&,
-                                        const std::string& name,
+            fmap["rayactorcount"] = [](rt_prog_ctx_t&, const std::string& name,
                                         const func_args_t& args) {
                 check_arg_num(args, 0, name);
                 return variant_t(integer_t(raycast_session().actors.size()));
             };
 
-            fmap["rayenemycount"] = [](rt_prog_ctx_t&,
-                                        const std::string& name,
+            fmap["rayenemycount"] = [](rt_prog_ctx_t&, const std::string& name,
                                         const func_args_t& args) {
                 check_arg_num(args, 0, name);
                 integer_t count = 0;
@@ -2095,30 +2145,30 @@ namespace {
                 return variant_t(count);
             };
 
-            fmap["raykilledenemycount"] = [](rt_prog_ctx_t&,
-                                             const std::string& name,
-                                             const func_args_t& args) {
-                check_arg_num(args, 0, name);
-                integer_t count = 0;
-                for (const auto& actor : raycast_session().actors) {
-                    if (actor.maxHealth > 0.0 && actor.chasePlayer
-                        && (actor.dead || actor.health <= 0.0)) {
-                        ++count;
-                    }
-                }
-                return variant_t(count);
-            };
+            fmap["raykilledenemycount"]
+                = [](rt_prog_ctx_t&, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      integer_t count = 0;
+                      for (const auto& actor : raycast_session().actors) {
+                          if (actor.maxHealth > 0.0 && actor.chasePlayer
+                              && (actor.dead || actor.health <= 0.0)) {
+                              ++count;
+                          }
+                      }
+                      return variant_t(count);
+                  };
 
-            fmap["raysetbasedir"] = [](rt_prog_ctx_t& ctx,
-                                        const std::string& name,
-                                        const func_args_t& args) {
-                std::vector<variant_t> vargs;
-                get_functor_vargs(
-                    ctx, name, args, { variant_t::type_t::STRING }, vargs);
-                raycast_session().base_dir =
-                    normalize_base_dir_path(vargs[0].to_str());
-                return variant_t(integer_t(1));
-            };
+            fmap["raysetbasedir"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      std::vector<variant_t> vargs;
+                      get_functor_vargs(ctx, name, args,
+                          { variant_t::type_t::STRING }, vargs);
+                      raycast_session().base_dir
+                          = normalize_base_dir_path(vargs[0].to_str());
+                      return variant_t(integer_t(1));
+                  };
 #else
             for (const auto& function_name : exports()) {
                 if (function_name == "rayavailable") {
@@ -2128,8 +2178,7 @@ namespace {
                 fmap[function_name] = [](rt_prog_ctx_t&,
                                           const std::string& name,
                                           const func_args_t&) {
-                    syntax_error_if(
-                        true,
+                    syntax_error_if(true,
                         "'" + name + "': raycast support is not built in.");
                     return variant_t(integer_t(0));
                 };

@@ -11,6 +11,7 @@ Syntax Modern
 
 Using raycast
 Using graphics
+Using math
 Using String
 Using system
 
@@ -68,6 +69,132 @@ Sub DrawDeathOverlay(viewW As Integer, viewH As Integer, strength As Integer, re
     End If
 End Sub
 
+' Moves a new message into the four-line event log.
+Sub PushLog(ByRef log1 As String, ByRef log2 As String, ByRef log3 As String, ByRef log4 As String, message As String)
+    log4 = log3
+    log3 = log2
+    log2 = log1
+    log1 = message
+End Sub
+
+' Draws a compact weapon selector.
+'
+' The actual first-person weapon is rendered by WinRayCast in the 3D view.
+' A bitmap preview can be added here later by loading the weapon idle frame.
+Sub DrawWeaponPreview(hudX As Integer, y As Integer, selectedWeapon As Integer, weaponName As String)
+    Dim slotW As Integer
+    Dim x1 As Integer
+    Dim activeColor As Integer
+
+    slotW = 68
+
+    TextOut hudX, y, "WEAPON", Rgb(230, 230, 230)
+    TextOut hudX, y + 24, weaponName, Rgb(190, 210, 235)
+
+    ' Draw the three keyboard slots: 1 pistol, 2 shotgun, 3 SMG.
+    x1 = hudX
+    While x1 < hudX + slotW * 3
+        FillRect x1, y + 52, x1 + slotW - 6, y + 86, Rgb(34, 38, 46)
+        Rect x1, y + 52, x1 + slotW - 6, y + 86, Rgb(90, 100, 116)
+        x1 = x1 + slotW
+    Wend
+
+    TextOut hudX + 24, y + 60, "1", Rgb(220, 220, 220)
+    TextOut hudX + slotW + 24, y + 60, "2", Rgb(220, 220, 220)
+    TextOut hudX + slotW * 2 + 24, y + 60, "3", Rgb(220, 220, 220)
+
+    activeColor = Rgb(115, 190, 255)
+    If selectedWeapon = 1 Then Rect hudX - 2, y + 50, hudX + slotW - 4, y + 88, activeColor
+    If selectedWeapon = 2 Then Rect hudX + slotW - 2, y + 50, hudX + slotW * 2 - 4, y + 88, activeColor
+    If selectedWeapon = 3 Then Rect hudX + slotW * 2 - 2, y + 50, hudX + slotW * 3 - 4, y + 88, activeColor
+End Sub
+
+' Draws a local minimap around the player.
+'
+' The engine exposes only map queries; BASIC decides how much of the map to
+' draw and how to style it. This keeps the minimap easy to customize.
+Sub DrawMiniMap(hudX As Integer, y As Integer)
+    Dim cellDx As Integer
+    Dim cellDy As Integer
+    Dim rows As Integer
+    Dim cols As Integer
+    Dim playerCol As Integer
+    Dim playerRow As Integer
+    Dim radius As Integer
+    Dim tile As Integer
+    Dim dx As Integer
+    Dim dy As Integer
+    Dim mapRow As Integer
+    Dim mapCol As Integer
+    Dim x As Integer
+    Dim yy As Integer
+    Dim color As Integer
+    Dim centerX As Integer
+    Dim centerY As Integer
+    Dim gridSize As Integer
+    Dim gridX As Integer
+    Dim gridY As Integer
+    Dim panelX As Integer
+    Dim panelY As Integer
+    Dim cellKind As Integer
+    Dim angleRad As Double
+    Dim facingX As Integer
+    Dim facingY As Integer
+
+    cellDx = RayCellDx()
+    cellDy = RayCellDy()
+    rows = RayMapRows()
+    cols = RayMapCols()
+    If cellDx <= 0 Or cellDy <= 0 Then Exit Sub
+
+    playerCol = RayPlayerX() / cellDx
+    playerRow = RayPlayerY() / cellDy
+    radius = 5
+    tile = 14
+    gridSize = (radius * 2 + 1) * tile
+    panelX = hudX + 25
+    panelY = y + 24
+    gridX = panelX + 8
+    gridY = panelY + 8
+    centerX = gridX + radius * tile + tile / 2
+    centerY = gridY + radius * tile + tile / 2
+
+    TextOut hudX, y, "MAP", Rgb(230, 230, 230)
+    FillRect panelX, panelY, panelX + gridSize + 16, panelY + gridSize + 16, Rgb(12, 14, 18)
+    Rect panelX, panelY, panelX + gridSize + 16, panelY + gridSize + 16, Rgb(78, 88, 105)
+
+    For dy = 0 - radius To radius
+        For dx = 0 - radius To radius
+            mapRow = playerRow + dy
+            mapCol = playerCol + dx
+            x = gridX + (dx + radius) * tile
+            yy = gridY + (dy + radius) * tile
+
+            If mapRow < 0 Or mapCol < 0 Or mapRow >= rows Or mapCol >= cols Then
+                color = Rgb(24, 24, 28)
+            Else
+                cellKind = RayCellKind(mapRow, mapCol)
+                If cellKind = 2 Then
+                    color = Rgb(180, 135, 70)
+                ElseIf cellKind = 1 Then
+                    color = Rgb(80, 88, 100)
+                Else
+                    color = Rgb(30, 52, 46)
+                End If
+            End If
+
+            FillRect x, yy, x + tile, yy + tile, color
+        Next dx
+    Next dy
+
+    ' Player marker and facing vector.
+    FillRect centerX - 3, centerY - 3, centerX + 4, centerY + 4, Rgb(245, 235, 150)
+    angleRad = RayPlayerFacing() * 3.14159265 / 180.0
+    facingX = centerX + Cos(angleRad) * 20.0
+    facingY = centerY + Sin(angleRad) * 20.0
+    Line centerX, centerY, facingX, facingY, Rgb(245, 235, 150)
+End Sub
+
 ' Draws the side HUD panel.
 '
 ' The HUD is mostly BASIC-side logic.
@@ -78,7 +205,7 @@ End Sub
 ' - killed enemies
 ' - collected items
 ' - player position and facing direction
-Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integer, autosaveTimer As Double, autosaveSeconds As Double, saved As Integer, gameDone As Integer)
+Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integer, autosaveTimer As Double, autosaveSeconds As Double, saved As Integer, gameDone As Integer, selectedWeapon As Integer, weaponName As String, log1 As String, log2 As String, log3 As String, log4 As String)
     Dim enemies As Integer
     Dim killed As Integer
     Dim killPct As Integer
@@ -138,7 +265,18 @@ Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integ
     TextOut hudX, 454, "W/S or arrows: move", Rgb(170, 180, 190)
     TextOut hudX, 478, "A/D or arrows: turn", Rgb(170, 180, 190)
     TextOut hudX, 502, "Space/Ctrl: fire", Rgb(170, 180, 190)
-    TextOut hudX, 526, "Q/Esc: quit", Rgb(170, 180, 190)
+    TextOut hudX, 526, "1/2/3: weapon", Rgb(170, 180, 190)
+    TextOut hudX, 550, "Q/Esc: quit", Rgb(170, 180, 190)
+
+    DrawWeaponPreview hudX, 580, selectedWeapon, weaponName
+    DrawMiniMap hudX, 720
+
+    ' Event log. Keeping it in the side panel avoids covering the 3D view.
+    TextOut hudX, 908, "EVENT LOG", Rgb(230, 230, 230)
+    TextOut hudX, 936, log1, Rgb(190, 210, 235)
+    TextOut hudX, 960, log2, Rgb(170, 190, 215)
+    TextOut hudX, 984, log3, Rgb(150, 170, 195)
+    TextOut hudX, 1008, log4, Rgb(130, 150, 175)
 End Sub
 
 Function Main(argc As Integer, argv() As String) As Integer
@@ -161,8 +299,13 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim vkW As Integer
     Dim vkSpace As Integer
     Dim vkCtrl As Integer
+    Dim vk1 As Integer
+    Dim vk2 As Integer
+    Dim vk3 As Integer
     Dim scriptBase As String
     Dim world As String
+    Dim weaponPath As String
+    Dim weaponName As String
     Dim shouldQuit As Integer
     Dim once As Integer
     Dim energy As Double
@@ -182,15 +325,32 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim killed As Integer
     Dim shotCooldown As Double
     Dim incomingDamage As Double
+    Dim incomingHealing As Double
     Dim autosaveSeconds As Double
     Dim respawnSeconds As Double
     Dim deathOverlaySeconds As Double
+    Dim energyIdleCost As Double
     Dim energyMoveCost As Double
     Dim energyShotCost As Double
     Dim fireDamage As Double
     Dim fireRangeCells As Double
     Dim fireFovDegrees As Double
     Dim fireCooldownSeconds As Double
+    Dim log1 As String
+    Dim log2 As String
+    Dim log3 As String
+    Dim log4 As String
+    Dim lastCollectedItems As Integer
+    Dim collectedItems As Integer
+    Dim lastDestroyedObjects As Integer
+    Dim destroyedObjects As Integer
+    Dim lastLayer As String
+    Dim currentLayer As String
+    Dim selectedWeapon As Integer
+    Dim lastWeaponKey1 As Integer
+    Dim lastWeaponKey2 As Integer
+    Dim lastWeaponKey3 As Integer
+    Dim weaponLoaded As Integer
 
     ' ------------------------------------------------------------------
     ' GAME SETTINGS
@@ -214,17 +374,21 @@ Function Main(argc As Integer, argv() As String) As Integer
 
     energy = 100.0             ' Initial player energy.
 
-    energyMoveCost = 0.08      ' Energy cost per frame while moving.
-    energyShotCost = 0.25      ' Energy cost per shot.
+    energyIdleCost = 0.001     ' Minimal idle energy drain per frame.
+    energyMoveCost = 0.001     ' Extra energy cost per frame while moving.
+    energyShotCost = 0.05      ' Energy cost per shot.
 
-    autosaveSeconds = 5.0      ' Time between automatic checkpoints.
+    autosaveSeconds = 60.0     ' Time between automatic checkpoints.
     respawnSeconds = 3.25      ' Delay before restoring from the last autosave.
     deathOverlaySeconds = 2.0  ' Time needed for the red overlay to reach full strength.
 
-    fireDamage = 35.0          ' Base damage dealt by the player shot.
-    fireRangeCells = 12.0      ' Maximum shooting range, expressed in map cells.
-    fireFovDegrees = 28.0      ' Front cone angle used by the shot.
-    fireCooldownSeconds = 0.35 ' Minimum time between two shots.
+    fireDamage = 18.0          ' Base damage dealt by the selected weapon.
+    fireRangeCells = 8.5       ' Maximum shooting range, expressed in map cells.
+    fireFovDegrees = 22.0      ' Front cone angle used by the shot.
+    fireCooldownSeconds = 0.32 ' Minimum time between two shots.
+    selectedWeapon = 1         ' The demo starts with the pistol selected.
+    weaponName = "Pistol"      ' Current weapon label shown in the HUD.
+    weaponPath = "weapons/pistol/pistol.weapon.json"
 
     ' ------------------------------------------------------------------
     ' WINDOWS VIRTUAL KEYS
@@ -246,9 +410,12 @@ Function Main(argc As Integer, argv() As String) As Integer
     vkW = 87                   ' W: move forward.
     vkSpace = 32               ' Space: fire.
     vkCtrl = 17                ' Ctrl: fire.
+    vk1 = 49                   ' 1: pistol.
+    vk2 = 50                   ' 2: super shotgun.
+    vk3 = 51                   ' 3: submachine gun.
 
-    ' Force the first autosave shortly after loading the world.
-    autosaveTimer = autosaveSeconds
+    ' Start counting from zero: the first automatic checkpoint is one minute later.
+    autosaveTimer = 0.0
 
     ' By default, use the current working directory as base path.
     scriptBase = Pwd$()
@@ -297,6 +464,13 @@ Function Main(argc As Integer, argv() As String) As Integer
     checkpointY = RayPlayerY()
     checkpointFacing = RayPlayerFacing()
     checkpointSaved = 1
+    lastCollectedItems = RayCollectedItemCount()
+    lastDestroyedObjects = RayDestroyedObjectCount()
+    lastLayer = RayCurrentLayer$()
+    log1 = "World loaded: " + lastLayer
+    log2 = "Autosave ready"
+    log3 = "Keys 1/2/3 switch weapons"
+    log4 = "Collect medkits to restore energy"
 
     ' ------------------------------------------------------------------
     ' nuBASIC GRAPHICS WINDOW SETUP
@@ -354,6 +528,65 @@ Function Main(argc As Integer, argv() As String) As Integer
                 moving = 1
             End If
 
+            ' Weapon switching is BASIC-side game logic.
+            '
+            ' RayLoadWeapon() swaps the first-person weapon rendered by the
+            ' engine. The BASIC script keeps matching damage, range and timing
+            ' values so the tutorial can show the full gameplay loop.
+            If RayKeyDown(vk1) = 1 Then
+                If lastWeaponKey1 = 0 And selectedWeapon <> 1 Then
+                    selectedWeapon = 1
+                    weaponName = "Pistol"
+                    weaponPath = "weapons/pistol/pistol.weapon.json"
+                    fireDamage = 18.0
+                    fireRangeCells = 8.5
+                    fireFovDegrees = 22.0
+                    fireCooldownSeconds = 0.32
+                    energyShotCost = 0.05
+                    weaponLoaded = RayLoadWeapon(weaponPath)
+                    If weaponLoaded = 1 Then PushLog log1, log2, log3, log4, "Weapon selected: " + weaponName
+                End If
+                lastWeaponKey1 = 1
+            Else
+                lastWeaponKey1 = 0
+            End If
+
+            If RayKeyDown(vk2) = 1 Then
+                If lastWeaponKey2 = 0 And selectedWeapon <> 2 Then
+                    selectedWeapon = 2
+                    weaponName = "Super Shotgun"
+                    weaponPath = "weapons/super_shotgun/super_shotgun.weapon.json"
+                    fireDamage = 45.0
+                    fireRangeCells = 7.5
+                    fireFovDegrees = 34.0
+                    fireCooldownSeconds = 0.72
+                    energyShotCost = 0.16
+                    weaponLoaded = RayLoadWeapon(weaponPath)
+                    If weaponLoaded = 1 Then PushLog log1, log2, log3, log4, "Weapon selected: " + weaponName
+                End If
+                lastWeaponKey2 = 1
+            Else
+                lastWeaponKey2 = 0
+            End If
+
+            If RayKeyDown(vk3) = 1 Then
+                If lastWeaponKey3 = 0 And selectedWeapon <> 3 Then
+                    selectedWeapon = 3
+                    weaponName = "Submachine Gun"
+                    weaponPath = "weapons/submachine_gun/submachine_gun.weapon.json"
+                    fireDamage = 10.0
+                    fireRangeCells = 7.0
+                    fireFovDegrees = 24.0
+                    fireCooldownSeconds = 0.125
+                    energyShotCost = 0.02
+                    weaponLoaded = RayLoadWeapon(weaponPath)
+                    If weaponLoaded = 1 Then PushLog log1, log2, log3, log4, "Weapon selected: " + weaponName
+                End If
+                lastWeaponKey3 = 1
+            Else
+                lastWeaponKey3 = 0
+            End If
+
             ' Fire only if the cooldown has expired.
             If shotCooldown <= 0.0 Then
                 If RayKeyDown(vkSpace) = 1 Or RayKeyDown(vkCtrl) = 1 Then
@@ -365,10 +598,12 @@ Function Main(argc As Integer, argv() As String) As Integer
 
                     shotCooldown = fireCooldownSeconds
                     energy = energy - energyShotCost
+                    PushLog log1, log2, log3, log4, weaponName + " fired"
                 End If
             End If
 
-            ' No passive energy drain: energy is consumed by actions and damage only.
+            ' Energy drains very slowly at rest, then faster while moving.
+            energy = energy - energyIdleCost
             If moving = 1 Then energy = energy - energyMoveCost
 
             ' Enter death state when energy reaches zero.
@@ -376,6 +611,7 @@ Function Main(argc As Integer, argv() As String) As Integer
                 energy = 0.0
                 lifeState = 1
                 deathTimer = 0.0
+                PushLog log1, log2, log3, log4, "Energy depleted"
             End If
 
             ' ----------------------------------------------------------
@@ -394,6 +630,7 @@ Function Main(argc As Integer, argv() As String) As Integer
                 checkpointFacing = RayPlayerFacing()
                 checkpointSaved = 1
                 autosaveTimer = 0.0
+                PushLog log1, log2, log3, log4, "Autosave checkpoint stored"
             End If
         Else
             ' ----------------------------------------------------------
@@ -412,6 +649,7 @@ Function Main(argc As Integer, argv() As String) As Integer
                 lifeState = 0
                 deathTimer = 0.0
                 autosaveTimer = 0.0
+                PushLog log1, log2, log3, log4, "Respawned from autosave"
             End If
         End If
 
@@ -435,7 +673,35 @@ Function Main(argc As Integer, argv() As String) As Integer
         ' to the player energy.
         If lifeState = 0 And gameDone = 0 Then
             incomingDamage = RayConsumePlayerDamage()
-            If incomingDamage > 0.0 Then energy = energy - incomingDamage
+            If incomingDamage > 0.0 Then
+                energy = energy - incomingDamage
+                PushLog log1, log2, log3, log4, "Enemy hit: -" + Str$(incomingDamage)
+            End If
+
+            incomingHealing = RayConsumePlayerHealing()
+            If incomingHealing > 0.0 Then
+                energy = energy + incomingHealing
+                If energy > 100.0 Then energy = 100.0
+                PushLog log1, log2, log3, log4, "Medikit restored +" + Str$(incomingHealing)
+            End If
+        End If
+
+        collectedItems = RayCollectedItemCount()
+        If collectedItems > lastCollectedItems Then
+            PushLog log1, log2, log3, log4, "Item collected"
+            lastCollectedItems = collectedItems
+        End If
+
+        destroyedObjects = RayDestroyedObjectCount()
+        If destroyedObjects > lastDestroyedObjects Then
+            PushLog log1, log2, log3, log4, "Object destroyed"
+            lastDestroyedObjects = destroyedObjects
+        End If
+
+        currentLayer = RayCurrentLayer$()
+        If currentLayer <> lastLayer Then
+            PushLog log1, log2, log3, log4, "Elevator arrived: " + currentLayer
+            lastLayer = currentLayer
         End If
 
         ' --------------------------------------------------------------
@@ -461,7 +727,7 @@ Function Main(argc As Integer, argv() As String) As Integer
 
         ' Draw the BASIC-side HUD over/next to the rendered scene.
         energyInt = energy
-        DrawHud viewW, viewH, hudX, energyInt, autosaveTimer, autosaveSeconds, checkpointSaved, gameDone
+        DrawHud viewW, viewH, hudX, energyInt, autosaveTimer, autosaveSeconds, checkpointSaved, gameDone, selectedWeapon, weaponName, log1, log2, log3, log4
 
         ' Draw death overlay if needed.
         If lifeState <> 0 Then
