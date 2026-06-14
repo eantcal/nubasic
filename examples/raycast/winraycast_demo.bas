@@ -259,6 +259,9 @@ Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integ
     Dim items As Integer
     Dim collected As Integer
     Dim autoRemain As Integer
+    Dim elevatorOptions As Integer
+    Dim elevatorSelected As Integer
+    Dim elevatorTarget As String
 
     ' Query the current game state from the raycast engine.
     enemies = RayEnemyCount()
@@ -309,6 +312,17 @@ Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integ
 
     TextOut hudX, 424, "Difficulty: " + difficultyName, Rgb(190, 195, 205)
 
+    elevatorOptions = RayTransitionOptionCount()
+    If elevatorOptions > 0 Then
+        elevatorSelected = RayTransitionSelected()
+        elevatorTarget = RayTransitionOptionLayer$(elevatorSelected)
+        If RayTransitionActive() = 1 Then
+            TextOut hudX, 448, "Elevator moving to " + elevatorTarget, Rgb(245, 220, 130)
+        Else
+            TextOut hudX, 448, "Elevator target " + elevatorTarget + " < > Enter", Rgb(245, 220, 130)
+        End If
+    End If
+
     ' Controls.
     TextOut hudX, 466, "W/S or arrows: move", Rgb(170, 180, 190)
     TextOut hudX, 490, "A/D or arrows: turn", Rgb(170, 180, 190)
@@ -339,6 +353,7 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim turnStep As Double
     Dim turnLeftStep As Double
     Dim vkEscape As Integer
+    Dim vkEnter As Integer
     Dim vkLeft As Integer
     Dim vkUp As Integer
     Dim vkRight As Integer
@@ -413,6 +428,9 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim lastWeaponKey2 As Integer
     Dim lastWeaponKey3 As Integer
     Dim lastReloadKey As Integer
+    Dim lastElevatorLeftKey As Integer
+    Dim lastElevatorRightKey As Integer
+    Dim lastElevatorEnterKey As Integer
     Dim lastDifficultyKey1 As Integer
     Dim lastDifficultyKey2 As Integer
     Dim weaponLoaded As Integer
@@ -429,6 +447,8 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim hitFlashSeconds As Double
     Dim weaponAmmo As Integer
     Dim weaponReserve As Integer
+    Dim elevatorOptions As Integer
+    Dim elevatorSelected As Integer
 
     ' ------------------------------------------------------------------
     ' GAME SETTINGS
@@ -490,6 +510,7 @@ Function Main(argc As Integer, argv() As String) As Integer
     ' ------------------------------------------------------------------
 
     vkEscape = 27              ' Esc: quit.
+    vkEnter = 13               ' Enter: confirm elevator destination.
     vkLeft = 37                ' Left arrow: turn left.
     vkUp = 38                  ' Up arrow: move forward.
     vkRight = 39               ' Right arrow: turn right.
@@ -555,6 +576,11 @@ Function Main(argc As Integer, argv() As String) As Integer
         End If
     End If
 
+    ' The demo project has elevators with multiple possible destinations.
+    ' Manual selection keeps the player in control instead of always taking
+    ' the first transition declared in the JSON project file.
+    RaySetTransitionManual(1)
+
     ' Store the initial player position as the first checkpoint.
     checkpointX = RayPlayerX()
     checkpointY = RayPlayerY()
@@ -608,22 +634,65 @@ Function Main(argc As Integer, argv() As String) As Integer
             ' Ray* primitive.
             ' ----------------------------------------------------------
 
-            If RayKeyDown(vkLeft) = 1 Or RayKeyDown(vkA) = 1 Then
-                RayTurn(turnLeftStep)
+            elevatorOptions = RayTransitionOptionCount()
+
+            If elevatorOptions > 0 And RayTransitionActive() = 0 Then
+                If RayKeyDown(vkLeft) = 1 Or RayKeyDown(vkA) = 1 Then
+                    If lastElevatorLeftKey = 0 Then
+                        elevatorSelected = RaySelectTransition(RayTransitionSelected() - 1)
+                        PushLog log1, log2, log3, log4, "Elevator target: " + RayTransitionOptionLayer$(elevatorSelected)
+                    End If
+                    lastElevatorLeftKey = 1
+                Else
+                    lastElevatorLeftKey = 0
+                End If
+
+                If RayKeyDown(vkRight) = 1 Or RayKeyDown(vkD) = 1 Then
+                    If lastElevatorRightKey = 0 Then
+                        elevatorSelected = RaySelectTransition(RayTransitionSelected() + 1)
+                        PushLog log1, log2, log3, log4, "Elevator target: " + RayTransitionOptionLayer$(elevatorSelected)
+                    End If
+                    lastElevatorRightKey = 1
+                Else
+                    lastElevatorRightKey = 0
+                End If
+
+                If RayKeyDown(vkEnter) = 1 Then
+                    If lastElevatorEnterKey = 0 Then
+                        If RayConfirmTransition() = 1 Then
+                            PushLog log1, log2, log3, log4, "Elevator moving"
+                        End If
+                    End If
+                    lastElevatorEnterKey = 1
+                Else
+                    lastElevatorEnterKey = 0
+                End If
+            Else
+                lastElevatorLeftKey = 0
+                lastElevatorRightKey = 0
+                lastElevatorEnterKey = 0
+
+                If RayTransitionActive() = 0 Then
+                    If RayKeyDown(vkLeft) = 1 Or RayKeyDown(vkA) = 1 Then
+                        RayTurn(turnLeftStep)
+                    End If
+
+                    If RayKeyDown(vkRight) = 1 Or RayKeyDown(vkD) = 1 Then
+                        RayTurn(turnStep)
+                    End If
+                End If
             End If
 
-            If RayKeyDown(vkRight) = 1 Or RayKeyDown(vkD) = 1 Then
-                RayTurn(turnStep)
-            End If
+            If RayTransitionActive() = 0 Then
+                If RayKeyDown(vkUp) = 1 Or RayKeyDown(vkW) = 1 Then
+                    RayMove(moveStep)
+                    moving = 1
+                End If
 
-            If RayKeyDown(vkUp) = 1 Or RayKeyDown(vkW) = 1 Then
-                RayMove(moveStep)
-                moving = 1
-            End If
-
-            If RayKeyDown(vkDown) = 1 Or RayKeyDown(vkS) = 1 Then
-                RayMove(backStep)
-                moving = 1
+                If RayKeyDown(vkDown) = 1 Or RayKeyDown(vkS) = 1 Then
+                    RayMove(backStep)
+                    moving = 1
+                End If
             End If
 
             ' Difficulty is BASIC-side game balance.
@@ -878,11 +947,17 @@ Function Main(argc As Integer, argv() As String) As Integer
         ' Raise the camera slightly while standing on low props.
         ' This uses the raycaster projection center rather than moving the
         ' player through the map, so collision and pickups remain unchanged.
-        targetViewCenter = 0.5
-        If RayPlayerStandingOn("supply_crate", 0.45) = 1 Then targetViewCenter = 0.5 + viewCenterLift
-        If RayPlayerStandingOn("toolbox", 0.45) = 1 Then targetViewCenter = 0.5 + viewCenterLift
-        playerViewCenter = playerViewCenter + (targetViewCenter - playerViewCenter) * viewCenterEase
-        RaySetPlayerViewCenter(playerViewCenter)
+        If RayTransitionActive() = 1 Then
+            ' During elevator movement the engine shakes the camera directly.
+            ' Keep the BASIC-side smoothing state in sync instead of overriding it.
+            playerViewCenter = RayPlayerViewCenter()
+        Else
+            targetViewCenter = 0.5
+            If RayPlayerStandingOn("supply_crate", 0.45) = 1 Then targetViewCenter = 0.5 + viewCenterLift
+            If RayPlayerStandingOn("toolbox", 0.45) = 1 Then targetViewCenter = 0.5 + viewCenterLift
+            playerViewCenter = playerViewCenter + (targetViewCenter - playerViewCenter) * viewCenterEase
+            RaySetPlayerViewCenter(playerViewCenter)
+        End If
 
         ' --------------------------------------------------------------
         ' RENDERING PIPELINE

@@ -138,6 +138,12 @@ namespace {
         double player_energy = 100.0;
         double player_max_energy = 100.0;
         double transition_cooldown_seconds = 0.0;
+        bool elevator_shake_active = false;
+        double elevator_shake_elapsed_seconds = 0.0;
+        double elevator_shake_total_seconds = 0.0;
+        int elevator_shake_base_slope = 0;
+        double elevator_shake_base_center_proj = 0.5;
+        bool elevator_shake_has_baseline = false;
         int map_unlock_count = 0;
         std::string background_music_alias;
         std::string base_dir;
@@ -145,6 +151,9 @@ namespace {
         std::string project_dir;
         std::string world_path;
         std::string active_layer_id;
+        bool manual_transition_selection = false;
+        std::vector<int> transition_option_indices;
+        int transition_selected_option = 0;
         int pending_transition_index = -1;
         double pending_transition_seconds = 0.0;
     };
@@ -863,9 +872,8 @@ namespace {
             return true;
         }
 
-        const auto cell_size
-            = (static_cast<double>(world.getCellDx())
-                  + static_cast<double>(world.getCellDy()))
+        const auto cell_size = (static_cast<double>(world.getCellDx())
+                                   + static_cast<double>(world.getCellDy()))
             * 0.5;
         const auto step = std::max(8.0, cell_size / 8.0);
         const auto samples
@@ -874,7 +882,8 @@ namespace {
         // Skip the exact endpoints: the actor and the player are allowed to
         // occupy their own cells. Intermediate opaque geometry blocks attacks.
         for (int i = 1; i < samples; ++i) {
-            const auto t = static_cast<double>(i) / static_cast<double>(samples);
+            const auto t
+                = static_cast<double>(i) / static_cast<double>(samples);
             const auto x = sprite.x + dx * t;
             const auto y = sprite.y + dy * t;
             if (world.isSolidAtWorld(x, y)) {
@@ -1381,7 +1390,8 @@ namespace {
 
         if (changed && session.engine && !session.active_weapon_path.empty()) {
             if (auto* weapon = session.engine->viewWeapon()) {
-                const auto it = session.weapon_ammo.find(session.active_weapon_path);
+                const auto it
+                    = session.weapon_ammo.find(session.active_weapon_path);
                 if (it != session.weapon_ammo.end()) {
                     weapon->setAmmoCounts(
                         it->second.ammo_in_magazine, it->second.reserve_ammo);
@@ -1405,8 +1415,8 @@ namespace {
             || contains_ignore_case(info.name, "med");
     }
 
-    bool pickup_is_useful(
-        raycast_session_t& session, const raycast_session_t::RuntimeSpriteInfo& info)
+    bool pickup_is_useful(raycast_session_t& session,
+        const raycast_session_t::RuntimeSpriteInfo& info)
     {
         if (is_ammo_pickup(info)) {
             return any_weapon_needs_ammo(session);
@@ -1650,12 +1660,21 @@ namespace {
         session.player_energy = 100.0;
         session.player_max_energy = 100.0;
         session.transition_cooldown_seconds = 0.0;
+        session.elevator_shake_active = false;
+        session.elevator_shake_elapsed_seconds = 0.0;
+        session.elevator_shake_total_seconds = 0.0;
+        session.elevator_shake_base_slope = 0;
+        session.elevator_shake_base_center_proj = 0.5;
+        session.elevator_shake_has_baseline = false;
         session.map_unlock_count = 0;
         stop_background_music(session);
         session.project_path.clear();
         session.project_dir.clear();
         session.world_path.clear();
         session.active_layer_id.clear();
+        session.manual_transition_selection = false;
+        session.transition_option_indices.clear();
+        session.transition_selected_option = 0;
         session.pending_transition_index = -1;
         session.pending_transition_seconds = 0.0;
         return true;
@@ -1716,9 +1735,17 @@ namespace {
         session.player_energy = 100.0;
         session.player_max_energy = 100.0;
         session.transition_cooldown_seconds = 0.0;
+        session.elevator_shake_active = false;
+        session.elevator_shake_elapsed_seconds = 0.0;
+        session.elevator_shake_total_seconds = 0.0;
+        session.elevator_shake_base_slope = 0;
+        session.elevator_shake_base_center_proj = 0.5;
+        session.elevator_shake_has_baseline = false;
         session.map_unlock_count = 0;
         session.world_path = world_path;
         session.active_layer_id = result.activeLayerId;
+        session.transition_option_indices.clear();
+        session.transition_selected_option = 0;
         session.pending_transition_index = -1;
         session.pending_transition_seconds = 0.0;
         return true;
@@ -1755,6 +1782,19 @@ namespace {
         const auto map_unlock_count = session.map_unlock_count;
         const auto player_energy = session.player_energy;
         const auto player_max_energy = session.player_max_energy;
+        const auto elevator_shake_active = session.elevator_shake_active;
+        const auto elevator_shake_elapsed_seconds
+            = session.elevator_shake_elapsed_seconds;
+        const auto elevator_shake_total_seconds
+            = session.elevator_shake_total_seconds;
+        const auto elevator_shake_base_slope
+            = session.elevator_shake_base_slope;
+        const auto elevator_shake_base_center_proj
+            = session.elevator_shake_base_center_proj;
+        const auto elevator_shake_has_baseline
+            = session.elevator_shake_has_baseline;
+        const auto manual_transition_selection
+            = session.manual_transition_selection;
         const auto had_active_weapon = !session.active_weapon_path.empty();
         const auto stored_project_path = session.project_path.empty()
             ? project_path
@@ -1783,6 +1823,16 @@ namespace {
         session.map_unlock_count = map_unlock_count;
         session.player_energy = player_energy;
         session.player_max_energy = player_max_energy;
+        session.elevator_shake_active = elevator_shake_active;
+        session.elevator_shake_elapsed_seconds = elevator_shake_elapsed_seconds;
+        session.elevator_shake_total_seconds = elevator_shake_total_seconds;
+        session.elevator_shake_base_slope = elevator_shake_base_slope;
+        session.elevator_shake_base_center_proj
+            = elevator_shake_base_center_proj;
+        session.elevator_shake_has_baseline = elevator_shake_has_baseline;
+        session.manual_transition_selection = manual_transition_selection;
+        session.transition_option_indices.clear();
+        session.transition_selected_option = 0;
         if (session.world) {
             session.world->setDoorKeyring(session.keyring);
         }
@@ -1838,8 +1888,116 @@ namespace {
         return true;
     }
 
+    void begin_elevator_shake(raycast_session_t& session, double total_seconds)
+    {
+        session.elevator_shake_active = true;
+        session.elevator_shake_elapsed_seconds = 0.0;
+        session.elevator_shake_total_seconds = std::max(0.01, total_seconds);
+        session.elevator_shake_has_baseline = false;
+    }
+
+    void update_elevator_shake(raycast_session_t& session, double dt)
+    {
+        if (!session.elevator_shake_active || !session.engine) {
+            return;
+        }
+
+        auto& player = session.engine->player();
+        if (!session.elevator_shake_has_baseline) {
+            session.elevator_shake_base_slope = player.getSlope();
+            session.elevator_shake_base_center_proj = player.getCenterProj();
+            session.elevator_shake_has_baseline = true;
+        }
+
+        session.elevator_shake_elapsed_seconds += dt;
+        const auto total = session.elevator_shake_total_seconds > 0.01
+            ? session.elevator_shake_total_seconds
+            : 0.01;
+        const auto progress = session.elevator_shake_elapsed_seconds / total;
+
+        if (progress >= 1.0) {
+            player.setSlope(session.elevator_shake_base_slope);
+            player.setCenterProj(session.elevator_shake_base_center_proj);
+            session.elevator_shake_active = false;
+            session.elevator_shake_elapsed_seconds = 0.0;
+            session.elevator_shake_total_seconds = 0.0;
+            session.elevator_shake_has_baseline = false;
+            return;
+        }
+
+        const auto easing = 1.0 - progress;
+        const auto t = session.elevator_shake_elapsed_seconds;
+        const auto vertical_amp = 14.0 * easing;
+        const auto horizontal_amp = 0.06 * easing;
+        const auto slope_offset = std::sin(t * 36.0) * vertical_amp
+            + std::sin(t * 22.0 + 0.7) * vertical_amp * 0.45;
+        const auto center_offset = std::sin(t * 19.0 + 0.3) * horizontal_amp;
+        player.setSlope(session.elevator_shake_base_slope
+            + static_cast<int>(std::round(slope_offset)));
+        player.setCenterProj(
+            std::clamp(session.elevator_shake_base_center_proj + center_offset,
+                0.35, 0.65));
+    }
+
+    std::vector<int> matching_transition_indices(raycast_session_t& session)
+    {
+        std::vector<int> matches;
+        if (!session.engine || !session.world
+            || session.active_layer_id.empty()) {
+            return matches;
+        }
+
+        const auto& player = session.engine->player();
+        const auto player_column
+            = static_cast<int>(player.getX() / session.world->getCellDx());
+        const auto player_row
+            = static_cast<int>(player.getY() / session.world->getCellDy());
+
+        for (int i = 0; i < static_cast<int>(session.transitions.size()); ++i) {
+            const auto& transition = session.transitions[i];
+            if (transition.from_layer == session.active_layer_id
+                && transition.trigger_row == player_row
+                && transition.trigger_column == player_column) {
+                matches.push_back(i);
+            }
+        }
+
+        return matches;
+    }
+
+    void refresh_transition_options(raycast_session_t& session)
+    {
+        const auto matches = matching_transition_indices(session);
+        if (matches != session.transition_option_indices) {
+            session.transition_option_indices = matches;
+            session.transition_selected_option = 0;
+        }
+
+        if (session.transition_selected_option
+            >= static_cast<int>(session.transition_option_indices.size())) {
+            session.transition_selected_option = 0;
+        }
+    }
+
+    void arm_layer_transition(raycast_session_t& session, int transition_index)
+    {
+        if (transition_index < 0
+            || transition_index
+                >= static_cast<int>(session.transitions.size())) {
+            return;
+        }
+
+        session.pending_transition_index = transition_index;
+        session.pending_transition_seconds = 0.0;
+        begin_elevator_shake(
+            session, session.transitions[transition_index].wait_seconds + 1.1);
+        play_project_sound("effects/Elevator_Entrance.mp3");
+    }
+
     bool update_layer_transition(raycast_session_t& session, double dt)
     {
+        update_elevator_shake(session, dt);
+
         if (!session.engine || !session.world || session.project_path.empty()
             || session.active_layer_id.empty() || session.transitions.empty()) {
             return false;
@@ -1851,22 +2009,13 @@ namespace {
             return false;
         }
 
-        const auto& player = session.engine->player();
-        const auto player_column
-            = static_cast<int>(player.getX() / session.world->getCellDx());
-        const auto player_row
-            = static_cast<int>(player.getY() / session.world->getCellDy());
-
-        int matching_index = -1;
-        for (int i = 0; i < static_cast<int>(session.transitions.size()); ++i) {
-            const auto& transition = session.transitions[i];
-            if (transition.from_layer == session.active_layer_id
-                && transition.trigger_row == player_row
-                && transition.trigger_column == player_column) {
-                matching_index = i;
-                break;
-            }
-        }
+        refresh_transition_options(session);
+        const auto matching_index = session.transition_option_indices.empty()
+            ? -1
+            : session.transition_option_indices[std::clamp(
+                  session.transition_selected_option, 0,
+                  static_cast<int>(session.transition_option_indices.size())
+                      - 1)];
 
         if (matching_index < 0) {
             session.pending_transition_index = -1;
@@ -1874,10 +2023,13 @@ namespace {
             return false;
         }
 
+        if (session.manual_transition_selection
+            && session.pending_transition_index < 0) {
+            return false;
+        }
+
         if (session.pending_transition_index != matching_index) {
-            session.pending_transition_index = matching_index;
-            session.pending_transition_seconds = 0.0;
-            play_project_sound("effects/Elevator_Entrance.mp3");
+            arm_layer_transition(session, matching_index);
         }
 
         auto& transition = session.transitions[matching_index];
@@ -2001,7 +2153,11 @@ namespace {
                 "raysetplayerslope", "rayplayerslope", "raysetplayerviewcenter",
                 "rayplayerviewcenter", "rayplayerstandingon", "rayweaponammo",
                 "rayweaponreserveammo", "rayweaponmaxammo", "rayreloadweapon",
-                "raysetplayerenergy"
+                "raysetplayerenergy", "raytransitionactive",
+                "raysettransitionmanual", "raytransitionoptioncount",
+                "raytransitionoptionlayer$", "raytransitionoptionlayer",
+                "raytransitionselected", "rayselecttransition",
+                "rayconfirmtransition"
             };
             return module_exports;
         }
@@ -2203,7 +2359,7 @@ namespace {
                           integer_t(has_weapon_in_inventory(
                                         raycast_session(), vargs[0].to_str())
                                   ? 1
-                              : 0));
+                                  : 0));
                   };
 
             fmap["rayweaponammo"]
@@ -2215,22 +2371,22 @@ namespace {
                           weapon != nullptr ? weapon->ammoInMagazine() : 0));
                   };
 
-            fmap["rayweaponreserveammo"]
-                = [](rt_prog_ctx_t& ctx, const std::string& name,
-                      const func_args_t& args) {
-                      check_arg_num(args, 0, name);
-                      auto* weapon = checked_engine(ctx, name)->viewWeapon();
-                      return variant_t(integer_t(
-                          weapon != nullptr ? weapon->reserveAmmo() : 0));
-                  };
+            fmap["rayweaponreserveammo"] = [](rt_prog_ctx_t& ctx,
+                                               const std::string& name,
+                                               const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                auto* weapon = checked_engine(ctx, name)->viewWeapon();
+                return variant_t(
+                    integer_t(weapon != nullptr ? weapon->reserveAmmo() : 0));
+            };
 
             fmap["rayweaponmaxammo"]
                 = [](rt_prog_ctx_t& ctx, const std::string& name,
                       const func_args_t& args) {
                       check_arg_num(args, 0, name);
                       auto* weapon = checked_engine(ctx, name)->viewWeapon();
-                      return variant_t(integer_t(
-                          weapon != nullptr ? weapon->maxAmmo() : 0));
+                      return variant_t(
+                          integer_t(weapon != nullptr ? weapon->maxAmmo() : 0));
                   };
 
             fmap["rayreloadweapon"]
@@ -2250,21 +2406,149 @@ namespace {
                       return variant_t(integer_t(reloaded ? 1 : 0));
                   };
 
-            fmap["raysetplayerenergy"]
+            fmap["raysetplayerenergy"] = [](rt_prog_ctx_t& ctx,
+                                             const std::string& name,
+                                             const func_args_t& args) {
+                std::vector<variant_t> vargs;
+                get_functor_vargs(ctx, name, args,
+                    { variant_t::type_t::DOUBLE, variant_t::type_t::DOUBLE },
+                    vargs);
+                checked_engine(ctx, name);
+                auto& session = raycast_session();
+                session.player_energy = std::max(0.0, vargs[0].to_double());
+                session.player_max_energy = std::max(1.0, vargs[1].to_double());
+                return variant_t(integer_t(1));
+            };
+
+            fmap["raytransitionactive"] = [](rt_prog_ctx_t& ctx,
+                                              const std::string& name,
+                                              const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                checked_engine(ctx, name);
+                const auto& session = raycast_session();
+                return variant_t(integer_t(session.pending_transition_index >= 0
+                            || session.elevator_shake_active
+                        ? 1
+                        : 0));
+            };
+
+            fmap["raysettransitionmanual"] = [](rt_prog_ctx_t& ctx,
+                                                 const std::string& name,
+                                                 const func_args_t& args) {
+                std::vector<variant_t> vargs;
+                get_functor_vargs(
+                    ctx, name, args, { variant_t::type_t::INTEGER }, vargs);
+                checked_engine(ctx, name);
+                auto& session = raycast_session();
+                session.manual_transition_selection = vargs[0].to_int() != 0;
+                if (!session.manual_transition_selection) {
+                    session.transition_option_indices.clear();
+                    session.transition_selected_option = 0;
+                }
+                return variant_t(integer_t(1));
+            };
+
+            fmap["raytransitionoptioncount"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      checked_engine(ctx, name);
+                      auto& session = raycast_session();
+                      refresh_transition_options(session);
+                      return variant_t(
+                          integer_t(session.transition_option_indices.size()));
+                  };
+
+            fmap["raytransitionoptionlayer$"]
                 = [](rt_prog_ctx_t& ctx, const std::string& name,
                       const func_args_t& args) {
                       std::vector<variant_t> vargs;
                       get_functor_vargs(ctx, name, args,
-                          { variant_t::type_t::DOUBLE,
-                              variant_t::type_t::DOUBLE },
-                          vargs);
+                          { variant_t::type_t::INTEGER }, vargs);
                       checked_engine(ctx, name);
                       auto& session = raycast_session();
-                      session.player_energy = std::max(0.0, vargs[0].to_double());
-                      session.player_max_energy
-                          = std::max(1.0, vargs[1].to_double());
-                      return variant_t(integer_t(1));
+                      refresh_transition_options(session);
+                      const auto option = static_cast<int>(vargs[0].to_int());
+                      if (option <= 0
+                          || option > static_cast<int>(
+                                 session.transition_option_indices.size())) {
+                          return variant_t(std::string());
+                      }
+
+                      const auto transition_index
+                          = session.transition_option_indices[option - 1];
+                      if (transition_index < 0
+                          || transition_index
+                              >= static_cast<int>(session.transitions.size())) {
+                          return variant_t(std::string());
+                      }
+
+                      return variant_t(
+                          session.transitions[transition_index].to_layer);
                   };
+            fmap["raytransitionoptionlayer"]
+                = fmap["raytransitionoptionlayer$"];
+
+            fmap["raytransitionselected"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      checked_engine(ctx, name);
+                      auto& session = raycast_session();
+                      refresh_transition_options(session);
+                      if (session.transition_option_indices.empty()) {
+                          return variant_t(integer_t(0));
+                      }
+
+                      return variant_t(
+                          integer_t(session.transition_selected_option + 1));
+                  };
+
+            fmap["rayselecttransition"] = [](rt_prog_ctx_t& ctx,
+                                              const std::string& name,
+                                              const func_args_t& args) {
+                std::vector<variant_t> vargs;
+                get_functor_vargs(
+                    ctx, name, args, { variant_t::type_t::INTEGER }, vargs);
+                checked_engine(ctx, name);
+                auto& session = raycast_session();
+                refresh_transition_options(session);
+                if (session.transition_option_indices.empty()) {
+                    return variant_t(integer_t(0));
+                }
+
+                auto option = static_cast<int>(vargs[0].to_int());
+                if (option <= 0) {
+                    option = static_cast<int>(
+                        session.transition_option_indices.size());
+                } else if (option > static_cast<int>(
+                               session.transition_option_indices.size())) {
+                    option = 1;
+                }
+                session.transition_selected_option = option - 1;
+                return variant_t(integer_t(option));
+            };
+
+            fmap["rayconfirmtransition"] = [](rt_prog_ctx_t& ctx,
+                                               const std::string& name,
+                                               const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                checked_engine(ctx, name);
+                auto& session = raycast_session();
+                refresh_transition_options(session);
+                if (session.transition_option_indices.empty()
+                    || session.pending_transition_index >= 0) {
+                    return variant_t(integer_t(0));
+                }
+
+                const auto selected = std::clamp(
+                    session.transition_selected_option, 0,
+                    static_cast<int>(session.transition_option_indices.size())
+                        - 1);
+                arm_layer_transition(
+                    session, session.transition_option_indices[selected]);
+                return variant_t(integer_t(1));
+            };
 
             fmap["raysetplayer"] = [](rt_prog_ctx_t& ctx,
                                        const std::string& name,
@@ -2746,20 +3030,62 @@ namespace {
                         if (best_info->explosion_radius_cells > 0.0
                             && best_info->explosion_damage > 0.0
                             && best_sprite != nullptr) {
-                            const auto dx = best_sprite->x - player_x;
-                            const auto dy = best_sprite->y - player_y;
+                            const auto origin_x = best_sprite->x;
+                            const auto origin_y = best_sprite->y;
                             const auto radius
                                 = best_info->explosion_radius_cells
                                 * (static_cast<double>(world->getCellDx())
                                     + static_cast<double>(world->getCellDy()))
                                 * 0.5;
-                            const auto dist = std::sqrt(dx * dx + dy * dy);
-                            if (dist <= radius) {
+                            auto damage_at_distance = [&](double distance) {
                                 const auto falloff = radius <= 0.0
                                     ? 1.0
-                                    : std::max(0.0, 1.0 - dist / radius);
+                                    : std::max(0.0, 1.0 - distance / radius);
+                                return best_info->explosion_damage * falloff;
+                            };
+
+                            for (auto& actor : session.actors) {
+                                if (!is_completion_enemy(actor) || actor.dead
+                                    || actor.health <= 0.0) {
+                                    continue;
+                                }
+
+                                auto* actor_sprite
+                                    = engine->sprite(actor.spriteIndex);
+                                if (actor_sprite == nullptr
+                                    || !actor_sprite->visible) {
+                                    continue;
+                                }
+
+                                const auto dx = actor_sprite->x - origin_x;
+                                const auto dy = actor_sprite->y - origin_y;
+                                const auto dist = std::sqrt(dx * dx + dy * dy);
+                                if (dist > radius) {
+                                    continue;
+                                }
+
+                                const auto explosion_damage
+                                    = damage_at_distance(dist);
+                                if (explosion_damage <= 0.0) {
+                                    continue;
+                                }
+
+                                actor.health = std::max(
+                                    0.0, actor.health - explosion_damage);
+                                actor.state = ActorState::Chasing;
+                                if (actor.health <= 0.0) {
+                                    start_actor_death(actor, actor_sprite);
+                                    session.killed_enemy_keys.insert(
+                                        actor.persistenceKey);
+                                }
+                            }
+
+                            const auto dx = origin_x - player_x;
+                            const auto dy = origin_y - player_y;
+                            const auto dist = std::sqrt(dx * dx + dy * dy);
+                            if (dist <= radius) {
                                 session.pending_player_damage
-                                    += best_info->explosion_damage * falloff;
+                                    += damage_at_distance(dist);
                             }
                         }
                         return variant_t(integer_t(3));
