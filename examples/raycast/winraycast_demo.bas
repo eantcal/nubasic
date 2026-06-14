@@ -240,7 +240,7 @@ End Sub
 ' - killed enemies
 ' - collected items
 ' - player position and facing direction
-Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integer, autosaveTimer As Double, autosaveSeconds As Double, saved As Integer, gameDone As Integer, selectedWeapon As Integer, weaponName As String, mapUnlocks As Integer, log1 As String, log2 As String, log3 As String, log4 As String)
+Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integer, autosaveTimer As Double, autosaveSeconds As Double, saved As Integer, gameDone As Integer, selectedWeapon As Integer, weaponName As String, mapUnlocks As Integer, difficultyName As String, log1 As String, log2 As String, log3 As String, log4 As String)
     Dim enemies As Integer
     Dim killed As Integer
     Dim killPct As Integer
@@ -296,22 +296,26 @@ Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integ
         TextOut hudX, 392, "Goal: kill 100% enemies", Rgb(190, 195, 205)
     End If
 
-    ' Controls.
-    TextOut hudX, 454, "W/S or arrows: move", Rgb(170, 180, 190)
-    TextOut hudX, 478, "A/D or arrows: turn", Rgb(170, 180, 190)
-    TextOut hudX, 502, "Space/Ctrl: fire", Rgb(170, 180, 190)
-    TextOut hudX, 526, "1/2/3: weapon", Rgb(170, 180, 190)
-    TextOut hudX, 550, "Q/Esc: quit", Rgb(170, 180, 190)
+    TextOut hudX, 424, "Difficulty: " + difficultyName, Rgb(190, 195, 205)
 
-    DrawWeaponPreview hudX, 580, selectedWeapon, weaponName
-    DrawMiniMap hudX, 720, mapUnlocks
+    ' Controls.
+    TextOut hudX, 466, "W/S or arrows: move", Rgb(170, 180, 190)
+    TextOut hudX, 490, "A/D or arrows: turn", Rgb(170, 180, 190)
+    TextOut hudX, 514, "PgUp/PgDn: look", Rgb(170, 180, 190)
+    TextOut hudX, 538, "Space/Ctrl: fire", Rgb(170, 180, 190)
+    TextOut hudX, 562, "1/2/3: weapon", Rgb(170, 180, 190)
+    TextOut hudX, 586, "F1/F2: difficulty", Rgb(170, 180, 190)
+    TextOut hudX, 610, "Q/Esc: quit", Rgb(170, 180, 190)
+
+    DrawWeaponPreview hudX, 626, selectedWeapon, weaponName
+    DrawMiniMap hudX, 724, mapUnlocks
 
     ' Event log. Keeping it in the side panel avoids covering the 3D view.
-    TextOut hudX, 908, "EVENT LOG", Rgb(230, 230, 230)
-    TextOut hudX, 936, log1, Rgb(190, 210, 235)
-    TextOut hudX, 960, log2, Rgb(170, 190, 215)
-    TextOut hudX, 984, log3, Rgb(150, 170, 195)
-    TextOut hudX, 1008, log4, Rgb(130, 150, 175)
+    TextOut hudX, 920, "EVENT LOG", Rgb(230, 230, 230)
+    TextOut hudX, 946, log1, Rgb(190, 210, 235)
+    TextOut hudX, 968, log2, Rgb(170, 190, 215)
+    TextOut hudX, 990, log3, Rgb(150, 170, 195)
+    TextOut hudX, 1012, log4, Rgb(130, 150, 175)
 End Sub
 
 Function Main(argc As Integer, argv() As String) As Integer
@@ -337,6 +341,10 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim vk1 As Integer
     Dim vk2 As Integer
     Dim vk3 As Integer
+    Dim vkF1 As Integer
+    Dim vkF2 As Integer
+    Dim vkPageUp As Integer
+    Dim vkPageDown As Integer
     Dim scriptBase As String
     Dim world As String
     Dim weaponPath As String
@@ -346,6 +354,10 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim energy As Double
     Dim energyInt As Integer
     Dim delta As Double
+    Dim frameBudgetMs As Integer
+    Dim frameStartMs As Integer
+    Dim frameElapsedMs As Integer
+    Dim frameDelayMs As Integer
     Dim moving As Integer
     Dim autosaveTimer As Double
     Dim checkpointSaved As Integer
@@ -386,7 +398,18 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim lastWeaponKey1 As Integer
     Dim lastWeaponKey2 As Integer
     Dim lastWeaponKey3 As Integer
+    Dim lastDifficultyKey1 As Integer
+    Dim lastDifficultyKey2 As Integer
     Dim weaponLoaded As Integer
+    Dim difficultyMode As Integer
+    Dim difficultyName As String
+    Dim enemyDamageScale As Double
+    Dim playerSlope As Integer
+    Dim slopeStep As Integer
+    Dim playerViewCenter As Double
+    Dim targetViewCenter As Double
+    Dim viewCenterLift As Double
+    Dim viewCenterEase As Double
 
     ' ------------------------------------------------------------------
     ' GAME SETTINGS
@@ -401,6 +424,7 @@ Function Main(argc As Integer, argv() As String) As Integer
 
     delta = 0.016              ' Simulated frame delta, roughly 60 FPS.
     ' Used by animations, doors, enemies and timers.
+    frameBudgetMs = 16         ' Target frame duration for the 60 FPS cap.
 
     moveStep = 28              ' Forward movement step per frame.
     backStep = 0 - moveStep    ' Negative movement step for walking backwards.
@@ -413,6 +437,17 @@ Function Main(argc As Integer, argv() As String) As Integer
     energyIdleCost = 0.001     ' Minimal idle energy drain per frame.
     energyMoveCost = 0.001     ' Extra energy cost per frame while moving.
     energyShotCost = 0.05      ' Energy cost per shot.
+
+    difficultyMode = 0         ' 0 = easy, 1 = hard.
+    difficultyName = "Easy"
+    enemyDamageScale = 0.6    ' Easy mode reduces enemy weapon damage.
+
+    playerSlope = 0            ' Vertical look offset controlled with PageUp/PageDown.
+    slopeStep = 8              ' Slope pixels added or removed for each pressed frame.
+    playerViewCenter = 0.5    ' Normal camera height ratio used by the raycaster.
+    targetViewCenter = 0.5
+    viewCenterLift = 0.055     ' Camera lift while standing over supply/toolbox items.
+    viewCenterEase = 0.2      ' Smooth interpolation amount per frame.
 
     autosaveSeconds = 60.0     ' Time between automatic checkpoints.
     respawnSeconds = 3.25      ' Delay before restoring from the last autosave.
@@ -449,6 +484,10 @@ Function Main(argc As Integer, argv() As String) As Integer
     vk1 = 49                   ' 1: pistol.
     vk2 = 50                   ' 2: super shotgun.
     vk3 = 51                   ' 3: submachine gun.
+    vkF1 = 112                 ' F1: easy mode.
+    vkF2 = 113                 ' F2: hard mode.
+    vkPageUp = 33              ' PageUp: look up.
+    vkPageDown = 34            ' PageDown: look down.
 
     ' Start counting from zero: the first automatic checkpoint is one minute later.
     autosaveTimer = 0.0
@@ -528,6 +567,8 @@ Function Main(argc As Integer, argv() As String) As Integer
     shouldQuit = 0
 
     While shouldQuit = 0
+        frameStartMs = Millis()
+
         ' Global quit shortcuts.
         If RayKeyDown(vkEscape) = 1 Or RayKeyDown(vkQ) = 1 Then shouldQuit = 1
 
@@ -563,6 +604,40 @@ Function Main(argc As Integer, argv() As String) As Integer
                 RayMove(backStep)
                 moving = 1
             End If
+
+            ' Difficulty is BASIC-side game balance.
+            ' The engine reports raw enemy damage; the script scales it below
+            ' before applying it to the player energy.
+            If RayKeyDown(vkF1) = 1 Then
+                If lastDifficultyKey1 = 0 Then
+                    difficultyMode = 0
+                    difficultyName = "Easy"
+                    enemyDamageScale = 0.6
+                    PushLog log1, log2, log3, log4, "Difficulty: Easy"
+                End If
+                lastDifficultyKey1 = 1
+            Else
+                lastDifficultyKey1 = 0
+            End If
+
+            If RayKeyDown(vkF2) = 1 Then
+                If lastDifficultyKey2 = 0 Then
+                    difficultyMode = 1
+                    difficultyName = "Hard"
+                    enemyDamageScale = 1.35
+                    PushLog log1, log2, log3, log4, "Difficulty: Hard"
+                End If
+                lastDifficultyKey2 = 1
+            Else
+                lastDifficultyKey2 = 0
+            End If
+
+            ' The raycast engine exposes the vertical view slope directly.
+            ' Positive values look lower, negative values look higher.
+            If RayKeyDown(vkPageUp) = 1 Then playerSlope = playerSlope - slopeStep
+            If RayKeyDown(vkPageDown) = 1 Then playerSlope = playerSlope + slopeStep
+            RaySetPlayerSlope(playerSlope)
+            playerSlope = RayPlayerSlope()
 
             ' Weapon switching is BASIC-side game logic.
             '
@@ -722,6 +797,7 @@ Function Main(argc As Integer, argv() As String) As Integer
         If lifeState = 0 And gameDone = 0 Then
             incomingDamage = RayConsumePlayerDamage()
             If incomingDamage > 0.0 Then
+                incomingDamage = incomingDamage * enemyDamageScale
                 energy = energy - incomingDamage
                 PushLog log1, log2, log3, log4, "Enemy hit: -" + Str$(incomingDamage)
             End If
@@ -754,6 +830,15 @@ Function Main(argc As Integer, argv() As String) As Integer
 
         mapUnlocks = RayMapUnlockCount()
 
+        ' Raise the camera slightly while standing on low props.
+        ' This uses the raycaster projection center rather than moving the
+        ' player through the map, so collision and pickups remain unchanged.
+        targetViewCenter = 0.5
+        If RayPlayerStandingOn("supply_crate", 0.45) = 1 Then targetViewCenter = 0.5 + viewCenterLift
+        If RayPlayerStandingOn("toolbox", 0.45) = 1 Then targetViewCenter = 0.5 + viewCenterLift
+        playerViewCenter = playerViewCenter + (targetViewCenter - playerViewCenter) * viewCenterEase
+        RaySetPlayerViewCenter(playerViewCenter)
+
         ' --------------------------------------------------------------
         ' RENDERING PIPELINE
         '
@@ -777,7 +862,7 @@ Function Main(argc As Integer, argv() As String) As Integer
 
         ' Draw the BASIC-side HUD over/next to the rendered scene.
         energyInt = energy
-        DrawHud viewW, viewH, hudX, energyInt, autosaveTimer, autosaveSeconds, checkpointSaved, gameDone, selectedWeapon, weaponName, mapUnlocks, log1, log2, log3, log4
+        DrawHud viewW, viewH, hudX, energyInt, autosaveTimer, autosaveSeconds, checkpointSaved, gameDone, selectedWeapon, weaponName, mapUnlocks, difficultyName, log1, log2, log3, log4
 
         ' Draw death overlay if needed.
         If lifeState <> 0 Then
@@ -796,8 +881,12 @@ Function Main(argc As Integer, argv() As String) As Integer
         ' One-frame mode, useful for smoke tests or screenshots.
         If once = 1 Then shouldQuit = 1
 
-        ' Small delay to keep the loop close to 60 FPS.
-        MDelay(16)
+        ' Sleep only the remaining frame budget.
+        ' If rendering already took longer than 16 ms, skip the delay so the
+        ' game does not add extra slowdown on top of an expensive frame.
+        frameElapsedMs = Millis() - frameStartMs
+        frameDelayMs = frameBudgetMs - frameElapsedMs
+        If frameDelayMs > 0 Then MDelay(frameDelayMs)
     Wend
 
     ' Restore standard nuBASIC graphics behaviour.

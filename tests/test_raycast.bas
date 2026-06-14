@@ -1,6 +1,6 @@
 ' test_raycast.bas
 ' PLATFORM: windows
-' EXPECT_OUTPUT: available=1|loaded=1|project=1|layer=level_1|rows=16|cols=16|celldx=512|celldy=512|solid=1|door=2|map=0|key=1|pistol=1|weapon=0|sprites=32|actors=4|enemies=4|killed=0|items=16|collected=0|destroyed=0|shot=0|objectshot=3|destroyed2=1|collected2=1|healing=35|damage=36|killshot=2|killed2=1|layer2=level_0|x=2304|y=5376|facing=90|x2=2303|y2=5408|hash=2095660438|map2=1|weapon2=1
+' EXPECT_OUTPUT: available=1|loaded=1|project=1|layer=level_1|rows=16|cols=16|celldx=512|celldy=512|solid=1|door=2|map=0|key=1|pistol=1|weapon=0|slope=24|center=0.56|standing=1|sprites=32|actors=4|enemies=12|killed=0|items=39|collected=0|destroyed=0|shot=0|objectshot=3|destroyed2=1|collected2=1|healing=35|damage=36|killshot=2|killed2=1|layer2=level_0|killed3=1|collected3=4|destroyed3=1|x=2304|y=5376|facing=90|x2=2303|y2=5408|hash=2095660438|map2=1|weapon2=1
 
 Using raycast
 
@@ -28,6 +28,14 @@ Print "map="; RayMapUnlockCount()
 Print "key="; RayKeyAtCell(10, 5)
 Print "pistol="; RayHasWeapon("weapons/pistol/pistol.weapon.json")
 Print "weapon="; RayLoadWeapon("weapons/super_shotgun/super_shotgun.weapon.json")
+RaySetPlayerSlope(24)
+Print "slope="; RayPlayerSlope()
+RaySetPlayerViewCenter(0.56)
+Print "center="; RayPlayerViewCenter()
+RaySetPlayer(2304, 5888, 0)
+Print "standing="; RayPlayerStandingOn("supply_crate", 0.45)
+RaySetPlayerSlope(0)
+RaySetPlayerViewCenter(0.5)
 Print "sprites="; RaySpriteCount()
 Print "actors="; RayActorCount()
 Print "enemies="; RayEnemyCount()
@@ -80,3 +88,6 @@ For i% = 1 To 100
     RayUpdate 0.016
 Next i%
 Print "layer2="; RayCurrentLayer$()
+Print "killed3="; RayKilledEnemyCount()
+Print "collected3="; RayCollectedItemCount()
+Print "destroyed3="; RayDestroyedObjectCount()

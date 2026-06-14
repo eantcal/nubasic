@@ -30,6 +30,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -66,6 +67,7 @@ namespace {
     struct raycast_session_t {
         struct RuntimeSpriteInfo {
             size_t sprite_index = 0;
+            std::string persistence_key;
             std::string name;
             std::string sprite_set;
             std::string pickup_weapon;
@@ -112,8 +114,15 @@ namespace {
         std::vector<RuntimeEffect> runtime_effects;
         std::vector<std::string> keyring;
         std::vector<std::string> weapon_inventory;
+        std::string active_weapon_path;
         std::vector<LayerTransition> transitions;
         std::map<std::string, loaded_sprite_set_t> loaded_sprite_sets;
+        std::set<std::string> collected_item_keys;
+        std::set<std::string> destroyed_object_keys;
+        std::set<std::string> killed_enemy_keys;
+        int total_completion_items = 0;
+        int total_completion_enemies = 0;
+        int total_damage_reactive_objects = 0;
         int projection_width = kDefaultProjectionWidth;
         int projection_height = kDefaultProjectionHeight;
         double pending_player_damage = 0.0;
@@ -166,8 +175,10 @@ namespace {
     std::string normalized_weapon_id(std::string path)
     {
         std::replace(path.begin(), path.end(), '\\', '/');
-        std::transform(path.begin(), path.end(), path.begin(),
-            [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+        std::transform(
+            path.begin(), path.end(), path.begin(), [](unsigned char ch) {
+                return static_cast<char>(std::tolower(ch));
+            });
         return path;
     }
 
@@ -189,6 +200,50 @@ namespace {
         }
 
         session.weapon_inventory.push_back(id);
+    }
+
+    std::string persistence_key_for(const std::string& layer_id,
+        const std::string& name, const std::string& sprite_set, size_t index)
+    {
+        auto id
+            = name.empty() ? sprite_set + "#" + std::to_string(index) : name;
+        return layer_id + ":" + id;
+    }
+
+    std::vector<std::string> project_layer_ids(const std::string& project_path)
+    {
+        std::ifstream input(project_path);
+        if (!input.is_open()) {
+            return {};
+        }
+
+        nlohmann::json document;
+        try {
+            input >> document;
+        } catch (...) {
+            return {};
+        }
+
+        std::vector<std::string> ids;
+        if (!document.is_object() || !document.contains("layers")
+            || !document["layers"].is_array()) {
+            return ids;
+        }
+
+        for (const auto& layer : document["layers"]) {
+            if (!layer.is_object()) {
+                continue;
+            }
+
+            if (layer.contains("id") && layer["id"].is_string()) {
+                auto id = layer["id"].get<std::string>();
+                if (!id.empty()) {
+                    ids.push_back(std::move(id));
+                }
+            }
+        }
+
+        return ids;
     }
 
     std::string parent_path_string(const std::string& path)
@@ -305,6 +360,77 @@ namespace {
     bool is_completion_item(const raycast_session_t::RuntimeSpriteInfo& info)
     {
         return is_pickup_item(info);
+    }
+
+    raycast_session_t::RuntimeSpriteInfo runtime_info_for_counting(
+        const SceneLoader::SpriteInstance& instance)
+    {
+        raycast_session_t::RuntimeSpriteInfo info;
+        info.name = instance.name;
+        info.sprite_set = instance.spriteSet;
+        info.pickup_weapon = instance.pickupWeapon;
+        info.pickup_health = std::max(0.0, instance.pickupHealth);
+        info.unlocks_map = instance.unlocksMap;
+        info.explosive = instance.explosive;
+        const auto has_damage_response = !instance.damageResponseType.empty()
+            || !instance.damageResponseEffectSpriteSet.empty()
+            || !instance.damageResponseDestroyedSpriteSet.empty()
+            || !instance.damageResponseSound.empty()
+            || instance.damageResponseHitPoints > 0.0;
+        if (instance.explosive || has_damage_response) {
+            info.explosive_health = std::max(1.0,
+                instance.damageResponseHitPoints > 0.0
+                    ? instance.damageResponseHitPoints
+                    : instance.explosiveHitPoints);
+        }
+        info.damage_response_type = has_damage_response
+                && instance.damageResponseType.empty()
+                && (!instance.damageResponseEffectSpriteSet.empty()
+                    || !instance.damageResponseDestroyedSpriteSet.empty()
+                    || instance.damageResponseHitPoints > 0.0)
+            ? std::string("break")
+            : instance.damageResponseType;
+        return info;
+    }
+
+    void refresh_project_progress_totals(
+        raycast_session_t& session, const std::string& project_path)
+    {
+        session.total_completion_items = 0;
+        session.total_completion_enemies = 0;
+        session.total_damage_reactive_objects = 0;
+
+        const auto layer_ids = project_layer_ids(project_path);
+        if (layer_ids.empty()) {
+            return;
+        }
+
+        SceneLoader loader;
+        for (const auto& layer_id : layer_ids) {
+            const auto result = loader.loadFromFile(project_path, layer_id);
+            if (!result.success) {
+                continue;
+            }
+
+            for (const auto& instance : result.scene.spriteInstances) {
+                if (!instance.visible) {
+                    continue;
+                }
+
+                auto info = runtime_info_for_counting(instance);
+                if (is_completion_item(info)) {
+                    ++session.total_completion_items;
+                }
+
+                if (is_damage_reactive(info)) {
+                    ++session.total_damage_reactive_objects;
+                }
+
+                if (instance.maxHealth > 0.0 && instance.chasePlayer) {
+                    ++session.total_completion_enemies;
+                }
+            }
+        }
     }
 
     std::string inferred_key_id(
@@ -656,8 +782,40 @@ namespace {
             session.runtime_effects.end());
     }
 
-    bool actor_has_line_of_fire(const SpriteActor& actor, const Sprite& sprite,
+    bool has_clear_line_to_player(const WorldMap& world, const Sprite& sprite,
         double player_x, double player_y) noexcept
+    {
+        const auto dx = player_x - sprite.x;
+        const auto dy = player_y - sprite.y;
+        const auto distance = std::sqrt(dx * dx + dy * dy);
+        if (distance <= 0.000001) {
+            return true;
+        }
+
+        const auto cell_size
+            = (static_cast<double>(world.getCellDx())
+                  + static_cast<double>(world.getCellDy()))
+            * 0.5;
+        const auto step = std::max(8.0, cell_size / 8.0);
+        const auto samples
+            = std::max(1, static_cast<int>(std::ceil(distance / step)));
+
+        // Skip the exact endpoints: the actor and the player are allowed to
+        // occupy their own cells. Intermediate opaque geometry blocks attacks.
+        for (int i = 1; i < samples; ++i) {
+            const auto t = static_cast<double>(i) / static_cast<double>(samples);
+            const auto x = sprite.x + dx * t;
+            const auto y = sprite.y + dy * t;
+            if (world.isSolidAtWorld(x, y)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool actor_has_line_of_fire(const WorldMap& world, const SpriteActor& actor,
+        const Sprite& sprite, double player_x, double player_y) noexcept
     {
         const auto dx = player_x - sprite.x;
         const auto dy = player_y - sprite.y;
@@ -672,7 +830,8 @@ namespace {
         }
 
         return absolute_angle_delta_degrees(angle, facing)
-            <= std::max(1.0, actor.attackFovDegrees) * 0.5;
+            <= std::max(1.0, actor.attackFovDegrees) * 0.5
+            && has_clear_line_to_player(world, sprite, player_x, player_y);
     }
 
     void update_enemy_attacks(raycast_session_t& session)
@@ -712,7 +871,8 @@ namespace {
                 continue;
             }
 
-            if (!actor_has_line_of_fire(actor, *sprite, player_x, player_y)) {
+            if (!actor_has_line_of_fire(
+                    *session.world, actor, *sprite, player_x, player_y)) {
                 continue;
             }
 
@@ -880,7 +1040,9 @@ namespace {
         }
         session.loaded_sprite_sets = sprite_sets;
 
-        for (const auto& instance : scene.spriteInstances) {
+        for (size_t instance_index = 0;
+            instance_index < scene.spriteInstances.size(); ++instance_index) {
+            const auto& instance = scene.spriteInstances[instance_index];
             if (!instance.visible) {
                 continue;
             }
@@ -909,6 +1071,9 @@ namespace {
 
             raycast_session_t::RuntimeSpriteInfo runtime_info;
             runtime_info.sprite_index = sprite_index;
+            runtime_info.persistence_key
+                = persistence_key_for(scene.activeLayerId, instance.name,
+                    instance.spriteSet, instance_index);
             runtime_info.name = instance.name;
             runtime_info.sprite_set = instance.spriteSet;
             runtime_info.pickup_weapon = instance.pickupWeapon;
@@ -941,8 +1106,10 @@ namespace {
                     = !instance.damageResponseDestroyedSpriteSet.empty()
                     ? instance.damageResponseDestroyedSpriteSet
                     : instance.destroyedSpriteSet;
-                runtime_info.destroyed_scale_cells
-                    = std::max(0.0, instance.damageResponseDestroyedScaleCells);
+                runtime_info.destroyed_scale_cells = std::max(0.0,
+                    instance.damageResponseDestroyedScaleCells > 0.0
+                        ? instance.damageResponseDestroyedScaleCells
+                        : instance.destroyedScaleCells);
             }
             runtime_info.damage_response_type = has_damage_response
                     && instance.damageResponseType.empty()
@@ -958,13 +1125,49 @@ namespace {
                 = instance.damageResponseEffectAnimation;
             runtime_info.damage_response_effect_scale_cells
                 = std::max(0.0, instance.damageResponseEffectScaleCells);
+
+            auto* added_sprite = session.engine->sprite(sprite_index);
+            if (session.collected_item_keys.count(runtime_info.persistence_key)
+                > 0) {
+                runtime_info.consumed = true;
+                if (added_sprite != nullptr) {
+                    added_sprite->visible = false;
+                }
+            }
+            if (session.destroyed_object_keys.count(
+                    runtime_info.persistence_key)
+                > 0) {
+                runtime_info.destroyed = true;
+                if (added_sprite != nullptr) {
+                    if (!runtime_info.destroyed_sprite_set.empty()) {
+                        const auto destroyed_it
+                            = session.loaded_sprite_sets.find(
+                                runtime_info.destroyed_sprite_set);
+                        if (destroyed_it != session.loaded_sprite_sets.end()
+                            && apply_loaded_sprite_set(
+                                *added_sprite, destroyed_it->second)) {
+                            added_sprite->scale = kDefaultCellSize
+                                * std::max(
+                                    0.1, runtime_info.destroyed_scale_cells);
+                            added_sprite->collisionRadius = 0.0;
+                            added_sprite->visible = true;
+                            added_sprite->setAnimationOrFallback("idle", "");
+                        } else {
+                            added_sprite->visible = false;
+                        }
+                    } else {
+                        added_sprite->visible = false;
+                    }
+                }
+            }
             session.runtime_sprites.push_back(std::move(runtime_info));
 
             if (instance.chasePlayer || instance.patrolCircuit
                 || instance.maxHealth > 0.0) {
                 SpriteActor actor;
                 actor.spriteIndex = sprite_index;
-                actor.persistenceKey = instance.name;
+                actor.persistenceKey = persistence_key_for(scene.activeLayerId,
+                    instance.name, instance.spriteSet, instance_index);
                 actor.homeX = kDefaultCellSize * instance.xCell;
                 actor.homeY = kDefaultCellSize * instance.yCell;
                 actor.hasHomePosition = true;
@@ -992,6 +1195,13 @@ namespace {
                 actor.attackBurstShots = std::max(1, instance.attackBurstShots);
                 actor.attackBurstPauseSeconds
                     = std::max(0.1, instance.attackBurstPauseSeconds);
+                if (session.killed_enemy_keys.count(actor.persistenceKey) > 0) {
+                    actor.dead = true;
+                    actor.health = 0.0;
+                    if (added_sprite != nullptr) {
+                        added_sprite->visible = false;
+                    }
+                }
                 session.actors.push_back(actor);
             }
         }
@@ -1007,6 +1217,33 @@ namespace {
 
     std::unique_ptr<ViewWeapon> load_view_weapon_from_metadata(
         const std::string& metadata_path);
+
+    bool load_session_weapon(raycast_session_t& session,
+        const std::string& requested_weapon, rt_prog_ctx_t* ctx = nullptr)
+    {
+        if (!session.engine) {
+            return false;
+        }
+
+        if (!has_weapon_in_inventory(session, requested_weapon)) {
+            return false;
+        }
+
+        const auto weapon_path = session.project_dir.empty()
+            ? resolve_session_path(requested_weapon)
+            : join_path(session.project_dir, requested_weapon);
+        auto weapon = load_view_weapon_from_metadata(weapon_path);
+        if (weapon == nullptr) {
+            if (ctx != nullptr) {
+                ctx->set_errno(EINVAL);
+            }
+            return false;
+        }
+
+        session.engine->setViewWeapon(std::move(*weapon));
+        session.active_weapon_path = normalized_weapon_id(requested_weapon);
+        return true;
+    }
 
     int update_player_pickups(raycast_session_t& session)
     {
@@ -1041,6 +1278,9 @@ namespace {
 
             info.consumed = true;
             sprite->visible = false;
+            if (is_completion_item(info)) {
+                session.collected_item_keys.insert(info.persistence_key);
+            }
             ++collected;
 
             if (info.pickup_health > 0.0) {
@@ -1059,13 +1299,7 @@ namespace {
 
             if (!info.pickup_weapon.empty()) {
                 add_weapon_to_inventory(session, info.pickup_weapon);
-                const auto weapon_path = session.project_dir.empty()
-                    ? resolve_session_path(info.pickup_weapon)
-                    : join_path(session.project_dir, info.pickup_weapon);
-                auto weapon = load_view_weapon_from_metadata(weapon_path);
-                if (weapon != nullptr && session.engine) {
-                    session.engine->setViewWeapon(std::move(*weapon));
-                }
+                load_session_weapon(session, info.pickup_weapon);
             }
 
             play_pickup_sound(info);
@@ -1217,6 +1451,13 @@ namespace {
         session.runtime_effects.clear();
         session.keyring.clear();
         session.weapon_inventory.clear();
+        session.active_weapon_path.clear();
+        session.collected_item_keys.clear();
+        session.destroyed_object_keys.clear();
+        session.killed_enemy_keys.clear();
+        session.total_completion_items = 0;
+        session.total_completion_enemies = 0;
+        session.total_damage_reactive_objects = 0;
         session.transitions.clear();
         session.loaded_sprite_sets.clear();
         session.pending_player_damage = 0.0;
@@ -1274,6 +1515,13 @@ namespace {
         session.runtime_effects.clear();
         session.keyring.clear();
         session.weapon_inventory.clear();
+        session.active_weapon_path.clear();
+        session.collected_item_keys.clear();
+        session.destroyed_object_keys.clear();
+        session.killed_enemy_keys.clear();
+        session.total_completion_items = 0;
+        session.total_completion_enemies = 0;
+        session.total_damage_reactive_objects = 0;
         session.loaded_sprite_sets.clear();
         session.pending_player_damage = 0.0;
         session.pending_player_healing = 0.0;
@@ -1304,11 +1552,22 @@ namespace {
         auto& session = raycast_session();
         auto keyring = session.keyring;
         auto weapon_inventory = session.weapon_inventory;
+        auto active_weapon_path = session.active_weapon_path;
+        auto collected_item_keys = session.collected_item_keys;
+        auto destroyed_object_keys = session.destroyed_object_keys;
+        auto killed_enemy_keys = session.killed_enemy_keys;
+        const auto total_completion_items = session.total_completion_items;
+        const auto total_completion_enemies = session.total_completion_enemies;
+        const auto total_damage_reactive_objects
+            = session.total_damage_reactive_objects;
         auto transitions = session.transitions;
         const auto map_unlock_count = session.map_unlock_count;
+        const auto had_active_weapon = !session.active_weapon_path.empty();
         const auto stored_project_path = session.project_path.empty()
             ? project_path
             : session.project_path;
+
+        stop_background_music(session);
 
         if (!load_world_into_session(
                 world_path, result.scene.activeLayerId, &result.scene)) {
@@ -1320,6 +1579,13 @@ namespace {
         session.transitions = std::move(transitions);
         session.keyring = std::move(keyring);
         session.weapon_inventory = std::move(weapon_inventory);
+        session.active_weapon_path = std::move(active_weapon_path);
+        session.collected_item_keys = std::move(collected_item_keys);
+        session.destroyed_object_keys = std::move(destroyed_object_keys);
+        session.killed_enemy_keys = std::move(killed_enemy_keys);
+        session.total_completion_items = total_completion_items;
+        session.total_completion_enemies = total_completion_enemies;
+        session.total_damage_reactive_objects = total_damage_reactive_objects;
         session.map_unlock_count = map_unlock_count;
         if (session.world) {
             session.world->setDoorKeyring(session.keyring);
@@ -1330,13 +1596,20 @@ namespace {
             add_weapon_to_inventory(session, result.scene.playerWeapon.file);
             auto weapon = load_view_weapon_from_metadata(
                 join_path(project_dir, result.scene.playerWeapon.file));
-            if (weapon && result.scene.playerWeapon.visible) {
+            if (weapon && result.scene.playerWeapon.visible
+                && session.active_weapon_path.empty()) {
                 if (result.scene.playerWeapon.screenHeightFraction > 0.0) {
                     weapon->setScreenHeightFraction(
                         result.scene.playerWeapon.screenHeightFraction);
                 }
                 session.engine->setViewWeapon(std::move(*weapon));
+                session.active_weapon_path
+                    = normalized_weapon_id(result.scene.playerWeapon.file);
             }
+        }
+
+        if (had_active_weapon && !session.active_weapon_path.empty()) {
+            load_session_weapon(session, session.active_weapon_path);
         }
 
         if (result.scene.backgroundMusic.enabled
@@ -1513,20 +1786,22 @@ namespace {
 
         const builtin_export_list_t& exports() const noexcept override
         {
-            static const builtin_export_list_t module_exports
-                = { "rayavailable", "rayinit", "rayloadworld", "rayrender",
-                      "rayframehash", "rayplayerx", "rayplayery",
-                      "rayplayerfacing", "raycurrentlayer$", "raycurrentlayer",
-                      "rayloadweapon", "rayhasweapon", "raysetplayer",
-                      "raymove", "raystrafe", "rayturn", "raymaprows",
-                      "raymapcols", "raycelldx", "raycelldy", "rayissolidcell",
-                      "raycellkind", "raymapunlockcount", "raykeyatcell",
-                      "rayloadproject", "raypresent", "raykeydown",
-                      "rayupdate", "raydamageenemy", "rayconsumeplayerdamage",
-                      "rayconsumeplayerhealing", "rayitemcount",
-                      "raycollecteditemcount", "raydestroyedobjectcount",
-                      "rayplaysound", "rayspritecount", "rayactorcount",
-                      "rayenemycount", "raykilledenemycount", "raysetbasedir" };
+            static const builtin_export_list_t module_exports = {
+                "rayavailable", "rayinit", "rayloadworld", "rayrender",
+                "rayframehash", "rayplayerx", "rayplayery", "rayplayerfacing",
+                "raycurrentlayer$", "raycurrentlayer", "rayloadweapon",
+                "rayhasweapon", "raysetplayer", "raymove", "raystrafe",
+                "rayturn", "raymaprows", "raymapcols", "raycelldx", "raycelldy",
+                "rayissolidcell", "raycellkind", "raymapunlockcount",
+                "raykeyatcell", "rayloadproject", "raypresent", "raykeydown",
+                "rayupdate", "raydamageenemy", "rayconsumeplayerdamage",
+                "rayconsumeplayerhealing", "rayitemcount",
+                "raycollecteditemcount", "raydestroyedobjectcount",
+                "rayplaysound", "rayspritecount", "rayactorcount",
+                "rayenemycount", "raykilledenemycount", "raysetbasedir",
+                "raysetplayerslope", "rayplayerslope", "raysetplayerviewcenter",
+                "rayplayerviewcenter", "rayplayerstandingon"
+            };
             return module_exports;
         }
 
@@ -1595,6 +1870,7 @@ namespace {
                     ctx.set_errno(EINVAL);
                     return variant_t(integer_t(0));
                 }
+                refresh_project_progress_totals(session, project_path);
                 return variant_t(integer_t(1));
             };
 
@@ -1653,6 +1929,45 @@ namespace {
                           checked_engine(ctx, name)->player())));
                   };
 
+            fmap["rayplayerslope"] = [](rt_prog_ctx_t& ctx,
+                                         const std::string& name,
+                                         const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                return variant_t(
+                    integer_t(checked_engine(ctx, name)->player().getSlope()));
+            };
+
+            fmap["raysetplayerslope"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      std::vector<variant_t> vargs;
+                      get_functor_vargs(ctx, name, args,
+                          { variant_t::type_t::INTEGER }, vargs);
+                      checked_engine(ctx, name)->player().setSlope(
+                          static_cast<int>(vargs[0].to_int()));
+                      return variant_t(integer_t(1));
+                  };
+
+            fmap["rayplayerviewcenter"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      return variant_t(double_t(
+                          checked_engine(ctx, name)->player().getCenterProj()));
+                  };
+
+            fmap["raysetplayerviewcenter"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      std::vector<variant_t> vargs;
+                      get_functor_vargs(ctx, name, args,
+                          { variant_t::type_t::DOUBLE }, vargs);
+                      auto center = vargs[0].to_double();
+                      center = std::clamp(center, 0.35, 0.65);
+                      checked_engine(ctx, name)->player().setCenterProj(center);
+                      return variant_t(integer_t(1));
+                  };
+
             fmap["raycurrentlayer$"]
                 = [](rt_prog_ctx_t&, const std::string& name,
                       const func_args_t& args) {
@@ -1661,32 +1976,20 @@ namespace {
                   };
             fmap["raycurrentlayer"] = fmap["raycurrentlayer$"];
 
-            fmap["rayloadweapon"]
-                = [](rt_prog_ctx_t& ctx, const std::string& name,
-                      const func_args_t& args) {
-                      std::vector<variant_t> vargs;
-                      get_functor_vargs(ctx, name, args,
-                          { variant_t::type_t::STRING }, vargs);
+            fmap["rayloadweapon"] = [](rt_prog_ctx_t& ctx,
+                                        const std::string& name,
+                                        const func_args_t& args) {
+                std::vector<variant_t> vargs;
+                get_functor_vargs(
+                    ctx, name, args, { variant_t::type_t::STRING }, vargs);
 
-                      auto* engine = checked_engine(ctx, name);
-                      auto& session = raycast_session();
-                      const auto requested_weapon = vargs[0].to_str();
-                      if (!has_weapon_in_inventory(session, requested_weapon)) {
-                          return variant_t(integer_t(0));
-                      }
-
-                      const auto weapon_path = session.project_dir.empty()
-                          ? resolve_session_path(requested_weapon)
-                          : join_path(session.project_dir, requested_weapon);
-                      auto weapon = load_view_weapon_from_metadata(weapon_path);
-                      if (weapon == nullptr) {
-                          ctx.set_errno(EINVAL);
-                          return variant_t(integer_t(0));
-                      }
-
-                      engine->setViewWeapon(std::move(*weapon));
-                      return variant_t(integer_t(1));
-                  };
+                checked_engine(ctx, name);
+                auto& session = raycast_session();
+                const auto requested_weapon = vargs[0].to_str();
+                return variant_t(integer_t(
+                    load_session_weapon(session, requested_weapon, &ctx) ? 1
+                                                                         : 0));
+            };
 
             fmap["rayhasweapon"]
                 = [](rt_prog_ctx_t& ctx, const std::string& name,
@@ -1695,10 +1998,11 @@ namespace {
                       get_functor_vargs(ctx, name, args,
                           { variant_t::type_t::STRING }, vargs);
                       checked_engine(ctx, name);
-                      return variant_t(integer_t(has_weapon_in_inventory(
-                          raycast_session(), vargs[0].to_str())
-                              ? 1
-                              : 0));
+                      return variant_t(
+                          integer_t(has_weapon_in_inventory(
+                                        raycast_session(), vargs[0].to_str())
+                                  ? 1
+                                  : 0));
                   };
 
             fmap["raysetplayer"] = [](rt_prog_ctx_t& ctx,
@@ -1854,7 +2158,8 @@ namespace {
                 const auto col = static_cast<int>(vargs[1].to_int());
 
                 for (const auto& info : raycast_session().runtime_sprites) {
-                    if (info.consumed || !contains_ignore_case(info.sprite_set, "key")) {
+                    if (info.consumed
+                        || !contains_ignore_case(info.sprite_set, "key")) {
                         continue;
                     }
 
@@ -1863,10 +2168,10 @@ namespace {
                         continue;
                     }
 
-                    const auto sprite_col =
-                        static_cast<int>(sprite->x / world->getCellDx());
-                    const auto sprite_row =
-                        static_cast<int>(sprite->y / world->getCellDy());
+                    const auto sprite_col
+                        = static_cast<int>(sprite->x / world->getCellDx());
+                    const auto sprite_row
+                        = static_cast<int>(sprite->y / world->getCellDy());
                     if (sprite_row != row || sprite_col != col) {
                         continue;
                     }
@@ -1879,6 +2184,47 @@ namespace {
                     }
                     if (contains_ignore_case(info.sprite_set, "blue")) {
                         return variant_t(integer_t(3));
+                    }
+                }
+
+                return variant_t(integer_t(0));
+            };
+
+            fmap["rayplayerstandingon"] = [](rt_prog_ctx_t& ctx,
+                                              const std::string& name,
+                                              const func_args_t& args) {
+                std::vector<variant_t> vargs;
+                get_functor_vargs(ctx, name, args,
+                    { variant_t::type_t::STRING, variant_t::type_t::DOUBLE },
+                    vargs);
+                auto* engine = checked_engine(ctx, name);
+                auto* world = checked_world(ctx, name);
+                const auto fragment = vargs[0].to_str();
+                const auto radius_cells = std::max(0.0, vargs[1].to_double());
+                const auto radius = radius_cells
+                    * (static_cast<double>(world->getCellDx())
+                        + static_cast<double>(world->getCellDy()))
+                    * 0.5;
+                const auto player_x
+                    = static_cast<double>(engine->player().getX());
+                const auto player_y
+                    = static_cast<double>(engine->player().getY());
+
+                for (const auto& info : raycast_session().runtime_sprites) {
+                    if (info.consumed || info.destroyed
+                        || !contains_ignore_case(info.sprite_set, fragment)) {
+                        continue;
+                    }
+
+                    const auto* sprite = engine->sprite(info.sprite_index);
+                    if (sprite == nullptr || !sprite->visible) {
+                        continue;
+                    }
+
+                    const auto dx = sprite->x - player_x;
+                    const auto dy = sprite->y - player_y;
+                    if (std::sqrt(dx * dx + dy * dy) <= radius) {
+                        return variant_t(integer_t(1));
                     }
                 }
 
@@ -2082,6 +2428,8 @@ namespace {
                         = std::max(0.0, best_info->explosive_health - damage);
                     if (best_info->explosive_health <= 0.0) {
                         best_info->destroyed = true;
+                        session.destroyed_object_keys.insert(
+                            best_info->persistence_key);
                         if (best_sprite != nullptr) {
                             const auto effect_sprite_set
                                 = !best_info->damage_response_effect_sprite_set
@@ -2159,6 +2507,8 @@ namespace {
                 best_actor->state = ActorState::Chasing;
                 if (best_actor->health <= 0.0) {
                     start_actor_death(*best_actor, best_sprite);
+                    session.killed_enemy_keys.insert(
+                        best_actor->persistenceKey);
                     return variant_t(integer_t(2));
                 }
 
@@ -2188,8 +2538,13 @@ namespace {
             fmap["rayitemcount"] = [](rt_prog_ctx_t&, const std::string& name,
                                        const func_args_t& args) {
                 check_arg_num(args, 0, name);
+                const auto& session = raycast_session();
+                if (session.total_completion_items > 0) {
+                    return variant_t(integer_t(session.total_completion_items));
+                }
+
                 integer_t count = 0;
-                for (const auto& info : raycast_session().runtime_sprites) {
+                for (const auto& info : session.runtime_sprites) {
                     if (is_completion_item(info)) {
                         ++count;
                     }
@@ -2197,31 +2552,43 @@ namespace {
                 return variant_t(count);
             };
 
-            fmap["raycollecteditemcount"] = [](rt_prog_ctx_t&,
-                                                const std::string& name,
-                                                const func_args_t& args) {
-                check_arg_num(args, 0, name);
-                integer_t count = 0;
-                for (const auto& info : raycast_session().runtime_sprites) {
-                    if (is_completion_item(info) && info.consumed) {
-                        ++count;
-                    }
-                }
-                return variant_t(count);
-            };
+            fmap["raycollecteditemcount"]
+                = [](rt_prog_ctx_t&, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      const auto& session = raycast_session();
+                      if (session.total_completion_items > 0) {
+                          return variant_t(
+                              integer_t(session.collected_item_keys.size()));
+                      }
 
-            fmap["raydestroyedobjectcount"] = [](rt_prog_ctx_t&,
-                                                  const std::string& name,
-                                                  const func_args_t& args) {
-                check_arg_num(args, 0, name);
-                integer_t count = 0;
-                for (const auto& info : raycast_session().runtime_sprites) {
-                    if (is_damage_reactive(info) && info.destroyed) {
-                        ++count;
-                    }
-                }
-                return variant_t(count);
-            };
+                      integer_t count = 0;
+                      for (const auto& info : session.runtime_sprites) {
+                          if (is_completion_item(info) && info.consumed) {
+                              ++count;
+                          }
+                      }
+                      return variant_t(count);
+                  };
+
+            fmap["raydestroyedobjectcount"]
+                = [](rt_prog_ctx_t&, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      const auto& session = raycast_session();
+                      if (session.total_damage_reactive_objects > 0) {
+                          return variant_t(
+                              integer_t(session.destroyed_object_keys.size()));
+                      }
+
+                      integer_t count = 0;
+                      for (const auto& info : session.runtime_sprites) {
+                          if (is_damage_reactive(info) && info.destroyed) {
+                              ++count;
+                          }
+                      }
+                      return variant_t(count);
+                  };
 
             fmap["rayplaysound"] = [](rt_prog_ctx_t& ctx,
                                        const std::string& name,
@@ -2250,8 +2617,14 @@ namespace {
             fmap["rayenemycount"] = [](rt_prog_ctx_t&, const std::string& name,
                                         const func_args_t& args) {
                 check_arg_num(args, 0, name);
+                const auto& session = raycast_session();
+                if (session.total_completion_enemies > 0) {
+                    return variant_t(
+                        integer_t(session.total_completion_enemies));
+                }
+
                 integer_t count = 0;
-                for (const auto& actor : raycast_session().actors) {
+                for (const auto& actor : session.actors) {
                     if (actor.maxHealth > 0.0 && actor.chasePlayer) {
                         ++count;
                     }
@@ -2263,8 +2636,14 @@ namespace {
                 = [](rt_prog_ctx_t&, const std::string& name,
                       const func_args_t& args) {
                       check_arg_num(args, 0, name);
+                      const auto& session = raycast_session();
+                      if (session.total_completion_enemies > 0) {
+                          return variant_t(
+                              integer_t(session.killed_enemy_keys.size()));
+                      }
+
                       integer_t count = 0;
-                      for (const auto& actor : raycast_session().actors) {
+                      for (const auto& actor : session.actors) {
                           if (actor.maxHealth > 0.0 && actor.chasePlayer
                               && (actor.dead || actor.health <= 0.0)) {
                               ++count;

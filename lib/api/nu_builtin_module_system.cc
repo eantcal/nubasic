@@ -12,6 +12,7 @@
 #include "nu_os_console.h"
 #include "nu_os_std.h"
 
+#include <chrono>
 #include <cstdlib>
 
 namespace nu {
@@ -31,7 +32,7 @@ namespace {
                 = { "inkey$", "inkey", "getvkey", "pwd$", "getenv$", "getenv",
                       "setenv", "unsetenv", "erase", "rmdir", "mkdir", "pi",
                       "getplatid", "getapppath", "ver$", "time", "systime$",
-                      "systime", "getdatetime", "quit" };
+                      "systime", "millis", "getdatetime", "quit" };
             return module_exports;
         }
 
@@ -162,6 +163,18 @@ namespace {
                 return variant_t(integer_t(nu::_os_get_time()));
             };
             fmap["time"] = functor_get_time;
+
+            auto functor_get_millis = [](rt_prog_ctx_t&,
+                                          const std::string& name,
+                                          const func_args_t& args) {
+                check_arg_num(args, 0, name);
+                const auto now
+                    = std::chrono::steady_clock::now().time_since_epoch();
+                return variant_t(integer_t(
+                    std::chrono::duration_cast<std::chrono::milliseconds>(now)
+                        .count()));
+            };
+            fmap["millis"] = functor_get_millis;
 
             auto functor_sys_time = [](rt_prog_ctx_t&, const std::string& name,
                                         const func_args_t& args) {

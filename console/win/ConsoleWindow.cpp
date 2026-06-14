@@ -378,6 +378,7 @@ void console_window_t::on_paint()
 {
     PAINTSTRUCT ps;
     HDC hdc = BeginPaint(_hwnd, &ps);
+    bool painted = false;
 
     // Always use the actual client area size rather than the cached
     // _config.window_width/height, which may lag the first WM_SIZE.
@@ -469,12 +470,18 @@ void console_window_t::on_paint()
                         render_cursor(_mem_dc);
                 }
                 BitBlt(hdc, 0, 0, w, h, _mem_dc, 0, 0, SRCCOPY);
+                painted = true;
             }
         }
-        // If try_lock failed (interpreter thread is drawing), leave the
-        // existing screen content — BeginPaint/EndPaint validates the update
-        // region. A new WM_PAINT will arrive when the interpreter's next
-        // release_offscreen_dc triggers InvalidateRect.
+        // If try_lock failed while a BASIC frame is being drawn, keep the UI
+        // responsive and at least clear the invalid area. This matters during
+        // IDE resize: newly exposed pixels must become black immediately
+        // instead of showing stale parent/editor content.
+        if (!painted) {
+            HBRUSH bg = CreateSolidBrush(_config.background_color);
+            FillRect(hdc, &ps.rcPaint, bg);
+            DeleteObject(bg);
+        }
     }
 
     EndPaint(_hwnd, &ps);
@@ -743,7 +750,8 @@ void console_window_t::on_size(int width, int height)
     }
 
     update_scrollbar();
-    InvalidateRect(_hwnd, nullptr, FALSE);
+    RedrawWindow(
+        _hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_UPDATENOW | RDW_NOERASE);
 }
 
 /* -------------------------------------------------------------------------- */
