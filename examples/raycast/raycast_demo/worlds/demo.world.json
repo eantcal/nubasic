@@ -6938,7 +6938,7 @@
       "targetPlayerStart": {
         "xCell": 2.5,
         "yCell": 14.5,
-        "facingDegrees": 0
+        "facingDegrees": 270
       }
     },
     {
@@ -6953,7 +6953,7 @@
       "targetPlayerStart": {
         "xCell": 2.5,
         "yCell": 14.5,
-        "facingDegrees": 0
+        "facingDegrees": 270
       }
     },
     {
@@ -6968,7 +6968,7 @@
       "targetPlayerStart": {
         "xCell": 9.5,
         "yCell": 14.5,
-        "facingDegrees": 0
+        "facingDegrees": 270
       }
     },
     {
@@ -6983,7 +6983,7 @@
       "targetPlayerStart": {
         "xCell": 9.5,
         "yCell": 14.5,
-        "facingDegrees": 0
+        "facingDegrees": 270
       }
     },
     {
@@ -6998,7 +6998,7 @@
       "targetPlayerStart": {
         "xCell": 2.5,
         "yCell": 14.5,
-        "facingDegrees": 0
+        "facingDegrees": 270
       }
     },
     {
@@ -7013,7 +7013,7 @@
       "targetPlayerStart": {
         "xCell": 2.5,
         "yCell": 14.5,
-        "facingDegrees": 0
+        "facingDegrees": 270
       }
     },
     {
@@ -7028,7 +7028,7 @@
       "targetPlayerStart": {
         "xCell": 9.5,
         "yCell": 14.5,
-        "facingDegrees": 0
+        "facingDegrees": 270
       }
     },
     {
@@ -7043,7 +7043,7 @@
       "targetPlayerStart": {
         "xCell": 9.5,
         "yCell": 14.5,
-        "facingDegrees": 0
+        "facingDegrees": 270
       }
     },
     {
@@ -7058,7 +7058,7 @@
       "targetPlayerStart": {
         "xCell": 2.5,
         "yCell": 14.5,
-        "facingDegrees": 0
+        "facingDegrees": 270
       }
     },
     {
@@ -7073,7 +7073,7 @@
       "targetPlayerStart": {
         "xCell": 2.5,
         "yCell": 14.5,
-        "facingDegrees": 0
+        "facingDegrees": 270
       }
     },
     {
@@ -7088,7 +7088,7 @@
       "targetPlayerStart": {
         "xCell": 9.5,
         "yCell": 14.5,
-        "facingDegrees": 0
+        "facingDegrees": 270
       }
     },
     {
@@ -7103,7 +7103,7 @@
       "targetPlayerStart": {
         "xCell": 9.5,
         "yCell": 14.5,
-        "facingDegrees": 0
+        "facingDegrees": 270
       }
     }
   ],

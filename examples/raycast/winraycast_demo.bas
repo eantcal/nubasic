@@ -68,6 +68,17 @@ Sub DrawDeathOverlay(viewW As Integer, viewH As Integer, strength As Integer, re
     End If
 End Sub
 
+' Draws a short red border when an enemy successfully hits the player.
+Sub DrawHitOverlay(viewW As Integer, viewH As Integer)
+    Dim edgeSize As Integer
+
+    edgeSize = 26
+    FillRect 0, 0, viewW, edgeSize, Rgb(190, 0, 0)
+    FillRect 0, viewH - edgeSize, viewW, viewH, Rgb(190, 0, 0)
+    FillRect 0, 0, edgeSize, viewH, Rgb(190, 0, 0)
+    FillRect viewW - edgeSize, 0, viewW, viewH, Rgb(190, 0, 0)
+End Sub
+
 ' Moves a new message into the four-line event log.
 Sub PushLog(ByRef log1 As String, ByRef log2 As String, ByRef log3 As String, ByRef log4 As String, message As String)
     log4 = log3
@@ -240,7 +251,7 @@ End Sub
 ' - killed enemies
 ' - collected items
 ' - player position and facing direction
-Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integer, autosaveTimer As Double, autosaveSeconds As Double, saved As Integer, gameDone As Integer, selectedWeapon As Integer, weaponName As String, mapUnlocks As Integer, difficultyName As String, log1 As String, log2 As String, log3 As String, log4 As String)
+Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integer, autosaveTimer As Double, autosaveSeconds As Double, saved As Integer, gameDone As Integer, selectedWeapon As Integer, weaponName As String, weaponAmmo As Integer, weaponReserve As Integer, mapUnlocks As Integer, difficultyName As String, log1 As String, log2 As String, log3 As String, log4 As String)
     Dim enemies As Integer
     Dim killed As Integer
     Dim killPct As Integer
@@ -303,19 +314,20 @@ Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integ
     TextOut hudX, 490, "A/D or arrows: turn", Rgb(170, 180, 190)
     TextOut hudX, 514, "PgUp/PgDn: look", Rgb(170, 180, 190)
     TextOut hudX, 538, "Space/Ctrl: fire", Rgb(170, 180, 190)
-    TextOut hudX, 562, "1/2/3: weapon", Rgb(170, 180, 190)
-    TextOut hudX, 586, "F1/F2: difficulty", Rgb(170, 180, 190)
-    TextOut hudX, 610, "Q/Esc: quit", Rgb(170, 180, 190)
+    TextOut hudX, 562, "R: reload", Rgb(170, 180, 190)
+    TextOut hudX, 586, "1/2/3: weapon", Rgb(170, 180, 190)
+    TextOut hudX, 610, "F1/F2: difficulty", Rgb(170, 180, 190)
 
     DrawWeaponPreview hudX, 626, selectedWeapon, weaponName
-    DrawMiniMap hudX, 724, mapUnlocks
+    TextOut hudX, 716, "Ammo " + Str$(weaponAmmo) + " / " + Str$(weaponReserve), Rgb(190, 210, 235)
+    DrawMiniMap hudX, 744, mapUnlocks
 
     ' Event log. Keeping it in the side panel avoids covering the 3D view.
-    TextOut hudX, 920, "EVENT LOG", Rgb(230, 230, 230)
-    TextOut hudX, 946, log1, Rgb(190, 210, 235)
-    TextOut hudX, 968, log2, Rgb(170, 190, 215)
-    TextOut hudX, 990, log3, Rgb(150, 170, 195)
-    TextOut hudX, 1012, log4, Rgb(130, 150, 175)
+    TextOut hudX, 944, "EVENT LOG", Rgb(230, 230, 230)
+    TextOut hudX, 966, log1, Rgb(190, 210, 235)
+    TextOut hudX, 984, log2, Rgb(170, 190, 215)
+    TextOut hudX, 1002, log3, Rgb(150, 170, 195)
+    TextOut hudX, 1020, log4, Rgb(130, 150, 175)
 End Sub
 
 Function Main(argc As Integer, argv() As String) As Integer
@@ -334,6 +346,7 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim vkA As Integer
     Dim vkD As Integer
     Dim vkQ As Integer
+    Dim vkR As Integer
     Dim vkS As Integer
     Dim vkW As Integer
     Dim vkSpace As Integer
@@ -371,6 +384,7 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim enemies As Integer
     Dim killed As Integer
     Dim shotCooldown As Double
+    Dim shotResult As Integer
     Dim incomingDamage As Double
     Dim incomingHealing As Double
     Dim autosaveSeconds As Double
@@ -398,6 +412,7 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim lastWeaponKey1 As Integer
     Dim lastWeaponKey2 As Integer
     Dim lastWeaponKey3 As Integer
+    Dim lastReloadKey As Integer
     Dim lastDifficultyKey1 As Integer
     Dim lastDifficultyKey2 As Integer
     Dim weaponLoaded As Integer
@@ -410,6 +425,10 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim targetViewCenter As Double
     Dim viewCenterLift As Double
     Dim viewCenterEase As Double
+    Dim hitFlashTimer As Double
+    Dim hitFlashSeconds As Double
+    Dim weaponAmmo As Integer
+    Dim weaponReserve As Integer
 
     ' ------------------------------------------------------------------
     ' GAME SETTINGS
@@ -452,6 +471,7 @@ Function Main(argc As Integer, argv() As String) As Integer
     autosaveSeconds = 60.0     ' Time between automatic checkpoints.
     respawnSeconds = 3.25      ' Delay before restoring from the last autosave.
     deathOverlaySeconds = 2.0  ' Time needed for the red overlay to reach full strength.
+    hitFlashSeconds = 0.18     ' Short red viewport flash after taking damage.
 
     fireDamage = 18.0          ' Base damage dealt by the selected weapon.
     fireRangeCells = 8.5       ' Maximum shooting range, expressed in map cells.
@@ -477,6 +497,7 @@ Function Main(argc As Integer, argv() As String) As Integer
     vkA = 65                   ' A: turn left.
     vkD = 68                   ' D: turn right.
     vkQ = 81                   ' Q: quit.
+    vkR = 82                   ' R: reload current weapon.
     vkS = 83                   ' S: move backward.
     vkW = 87                   ' W: move forward.
     vkSpace = 32               ' Space: fire.
@@ -639,6 +660,19 @@ Function Main(argc As Integer, argv() As String) As Integer
             RaySetPlayerSlope(playerSlope)
             playerSlope = RayPlayerSlope()
 
+            If RayKeyDown(vkR) = 1 Then
+                If lastReloadKey = 0 Then
+                    If RayReloadWeapon() = 1 Then
+                        PushLog log1, log2, log3, log4, "Reloading " + weaponName
+                    Else
+                        PushLog log1, log2, log3, log4, "No reload needed"
+                    End If
+                End If
+                lastReloadKey = 1
+            Else
+                lastReloadKey = 0
+            End If
+
             ' Weapon switching is BASIC-side game logic.
             '
             ' RayLoadWeapon() swaps the first-person weapon rendered by the
@@ -717,11 +751,19 @@ Function Main(argc As Integer, argv() As String) As Integer
                     '
                     ' WinRayCast performs the spatial/raycast check internally.
                     ' BASIC only provides damage, range and field-of-view values.
-                    RayDamageEnemy(fireDamage, fireRangeCells, fireFovDegrees)
-
-                    shotCooldown = fireCooldownSeconds
-                    energy = energy - energyShotCost
-                    PushLog log1, log2, log3, log4, weaponName + " fired"
+                    If RayWeaponAmmo() > 0 Or RayWeaponMaxAmmo() = 0 Then
+                        shotResult = RayDamageEnemy(fireDamage, fireRangeCells, fireFovDegrees)
+                        shotCooldown = fireCooldownSeconds
+                        energy = energy - energyShotCost
+                        PushLog log1, log2, log3, log4, weaponName + " fired"
+                    Else
+                        If RayReloadWeapon() = 1 Then
+                            PushLog log1, log2, log3, log4, "Reloading " + weaponName
+                        Else
+                            PushLog log1, log2, log3, log4, "No ammo"
+                        End If
+                        shotCooldown = fireCooldownSeconds
+                    End If
                 End If
             End If
 
@@ -789,6 +831,7 @@ Function Main(argc As Integer, argv() As String) As Integer
         ' - damage events
         ' --------------------------------------------------------------
 
+        RaySetPlayerEnergy(energy, 100.0)
         RayUpdate(delta)
 
         ' Enemy attacks are accumulated inside the engine.
@@ -799,6 +842,7 @@ Function Main(argc As Integer, argv() As String) As Integer
             If incomingDamage > 0.0 Then
                 incomingDamage = incomingDamage * enemyDamageScale
                 energy = energy - incomingDamage
+                hitFlashTimer = hitFlashSeconds
                 PushLog log1, log2, log3, log4, "Enemy hit: -" + Str$(incomingDamage)
             End If
 
@@ -829,6 +873,7 @@ Function Main(argc As Integer, argv() As String) As Integer
         End If
 
         mapUnlocks = RayMapUnlockCount()
+        If hitFlashTimer > 0.0 Then hitFlashTimer = hitFlashTimer - delta
 
         ' Raise the camera slightly while standing on low props.
         ' This uses the raycaster projection center rather than moving the
@@ -862,7 +907,13 @@ Function Main(argc As Integer, argv() As String) As Integer
 
         ' Draw the BASIC-side HUD over/next to the rendered scene.
         energyInt = energy
-        DrawHud viewW, viewH, hudX, energyInt, autosaveTimer, autosaveSeconds, checkpointSaved, gameDone, selectedWeapon, weaponName, mapUnlocks, difficultyName, log1, log2, log3, log4
+        weaponAmmo = RayWeaponAmmo()
+        weaponReserve = RayWeaponReserveAmmo()
+        DrawHud viewW, viewH, hudX, energyInt, autosaveTimer, autosaveSeconds, checkpointSaved, gameDone, selectedWeapon, weaponName, weaponAmmo, weaponReserve, mapUnlocks, difficultyName, log1, log2, log3, log4
+
+        If hitFlashTimer > 0.0 And lifeState = 0 Then
+            DrawHitOverlay viewW, viewH
+        End If
 
         ' Draw death overlay if needed.
         If lifeState <> 0 Then

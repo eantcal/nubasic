@@ -106,6 +106,13 @@ namespace {
             double target_facing_degrees = 0.0;
         };
 
+        struct WeaponAmmoState {
+            int magazine_size = 0;
+            int max_ammo = 0;
+            int ammo_in_magazine = 0;
+            int reserve_ammo = 0;
+        };
+
         std::unique_ptr<WorldMap> world;
         std::unique_ptr<RaycastEngine> engine;
         ActorSystem actor_system;
@@ -115,6 +122,7 @@ namespace {
         std::vector<std::string> keyring;
         std::vector<std::string> weapon_inventory;
         std::string active_weapon_path;
+        std::map<std::string, WeaponAmmoState> weapon_ammo;
         std::vector<LayerTransition> transitions;
         std::map<std::string, loaded_sprite_set_t> loaded_sprite_sets;
         std::set<std::string> collected_item_keys;
@@ -127,6 +135,8 @@ namespace {
         int projection_height = kDefaultProjectionHeight;
         double pending_player_damage = 0.0;
         double pending_player_healing = 0.0;
+        double player_energy = 100.0;
+        double player_max_energy = 100.0;
         double transition_cooldown_seconds = 0.0;
         int map_unlock_count = 0;
         std::string background_music_alias;
@@ -200,6 +210,50 @@ namespace {
         }
 
         session.weapon_inventory.push_back(id);
+    }
+
+    void remember_weapon_ammo(raycast_session_t& session,
+        const std::string& weapon_id, const ViewWeapon& weapon)
+    {
+        if (weapon_id.empty() || !weapon.usesAmmo()) {
+            return;
+        }
+
+        session.weapon_ammo[weapon_id] = {
+            weapon.magazineSize(),
+            weapon.maxAmmo(),
+            weapon.ammoInMagazine(),
+            weapon.reserveAmmo(),
+        };
+    }
+
+    void remember_active_weapon_ammo(raycast_session_t& session)
+    {
+        if (!session.engine || session.active_weapon_path.empty()) {
+            return;
+        }
+
+        const auto* weapon = session.engine->viewWeapon();
+        if (weapon != nullptr) {
+            remember_weapon_ammo(session, session.active_weapon_path, *weapon);
+        }
+    }
+
+    void restore_or_remember_weapon_ammo(raycast_session_t& session,
+        const std::string& weapon_id, ViewWeapon& weapon)
+    {
+        if (weapon_id.empty() || !weapon.usesAmmo()) {
+            return;
+        }
+
+        const auto it = session.weapon_ammo.find(weapon_id);
+        if (it != session.weapon_ammo.end()) {
+            weapon.setAmmoCounts(
+                it->second.ammo_in_magazine, it->second.reserve_ammo);
+            return;
+        }
+
+        remember_weapon_ammo(session, weapon_id, weapon);
     }
 
     std::string persistence_key_for(const std::string& layer_id,
@@ -686,11 +740,22 @@ namespace {
         return transitions;
     }
 
-    void trigger_weapon_fire(RaycastEngine& engine)
+    bool trigger_weapon_fire(RaycastEngine& engine)
     {
         auto* weapon = engine.viewWeapon();
         if (weapon == nullptr) {
-            return;
+            return false;
+        }
+
+        if (!weapon->canFire()) {
+            if (weapon->needsReload() && weapon->reload()) {
+                weapon->restartAnimationOrFallback("reload", "idle");
+            }
+            return false;
+        }
+
+        if (!weapon->consumeRound()) {
+            return false;
         }
 
         weapon->restartAnimationOrFallback("fire", "idle");
@@ -698,6 +763,12 @@ namespace {
             play_sound_file(weapon->fireSoundPath());
             weapon->markFireSoundStarted();
         }
+
+        if (weapon->needsReload() && weapon->reload()) {
+            weapon->restartAnimationOrFallback("reload", "idle");
+        }
+
+        return true;
     }
 
     double animation_duration_seconds(
@@ -1229,6 +1300,9 @@ namespace {
             return false;
         }
 
+        remember_active_weapon_ammo(session);
+
+        const auto weapon_id = normalized_weapon_id(requested_weapon);
         const auto weapon_path = session.project_dir.empty()
             ? resolve_session_path(requested_weapon)
             : join_path(session.project_dir, requested_weapon);
@@ -1240,8 +1314,108 @@ namespace {
             return false;
         }
 
+        restore_or_remember_weapon_ammo(session, weapon_id, *weapon);
         session.engine->setViewWeapon(std::move(*weapon));
-        session.active_weapon_path = normalized_weapon_id(requested_weapon);
+        session.active_weapon_path = weapon_id;
+        return true;
+    }
+
+    bool ensure_weapon_ammo_state(
+        raycast_session_t& session, const std::string& weapon_id)
+    {
+        if (weapon_id.empty()) {
+            return false;
+        }
+
+        if (session.weapon_ammo.find(weapon_id) != session.weapon_ammo.end()) {
+            return true;
+        }
+
+        const auto weapon_path = session.project_dir.empty()
+            ? resolve_session_path(weapon_id)
+            : join_path(session.project_dir, weapon_id);
+        auto weapon = load_view_weapon_from_metadata(weapon_path);
+        if (weapon == nullptr || !weapon->usesAmmo()) {
+            return false;
+        }
+
+        remember_weapon_ammo(session, weapon_id, *weapon);
+        return true;
+    }
+
+    bool any_weapon_needs_ammo(raycast_session_t& session)
+    {
+        remember_active_weapon_ammo(session);
+        for (const auto& weapon_id : session.weapon_inventory) {
+            if (!ensure_weapon_ammo_state(session, weapon_id)) {
+                continue;
+            }
+
+            const auto& ammo = session.weapon_ammo[weapon_id];
+            if (ammo.ammo_in_magazine + ammo.reserve_ammo < ammo.max_ammo) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool refill_all_weapon_ammo(raycast_session_t& session)
+    {
+        remember_active_weapon_ammo(session);
+        auto changed = false;
+        for (const auto& weapon_id : session.weapon_inventory) {
+            if (!ensure_weapon_ammo_state(session, weapon_id)) {
+                continue;
+            }
+
+            auto& ammo = session.weapon_ammo[weapon_id];
+            const auto old_magazine = ammo.ammo_in_magazine;
+            const auto old_reserve = ammo.reserve_ammo;
+            ammo.ammo_in_magazine = std::min(ammo.magazine_size, ammo.max_ammo);
+            ammo.reserve_ammo
+                = std::max(0, ammo.max_ammo - ammo.ammo_in_magazine);
+            changed = changed || old_magazine != ammo.ammo_in_magazine
+                || old_reserve != ammo.reserve_ammo;
+        }
+
+        if (changed && session.engine && !session.active_weapon_path.empty()) {
+            if (auto* weapon = session.engine->viewWeapon()) {
+                const auto it = session.weapon_ammo.find(session.active_weapon_path);
+                if (it != session.weapon_ammo.end()) {
+                    weapon->setAmmoCounts(
+                        it->second.ammo_in_magazine, it->second.reserve_ammo);
+                }
+            }
+        }
+
+        return changed;
+    }
+
+    bool is_ammo_pickup(const raycast_session_t::RuntimeSpriteInfo& info)
+    {
+        return contains_ignore_case(info.sprite_set, "ammo")
+            || contains_ignore_case(info.name, "ammo");
+    }
+
+    bool is_health_pickup(const raycast_session_t::RuntimeSpriteInfo& info)
+    {
+        return info.pickup_health > 0.0
+            || contains_ignore_case(info.sprite_set, "med")
+            || contains_ignore_case(info.name, "med");
+    }
+
+    bool pickup_is_useful(
+        raycast_session_t& session, const raycast_session_t::RuntimeSpriteInfo& info)
+    {
+        if (is_ammo_pickup(info)) {
+            return any_weapon_needs_ammo(session);
+        }
+
+        if (is_health_pickup(info)) {
+            return session.player_energy < session.player_max_energy - 0.001;
+        }
+
         return true;
     }
 
@@ -1266,7 +1440,13 @@ namespace {
             }
 
             auto* sprite = session.engine->sprite(info.sprite_index);
-            if (sprite == nullptr || !sprite->visible) {
+            if (sprite == nullptr) {
+                continue;
+            }
+
+            const auto useful = pickup_is_useful(session, info);
+            sprite->visible = useful;
+            if (!useful) {
                 continue;
             }
 
@@ -1285,6 +1465,10 @@ namespace {
 
             if (info.pickup_health > 0.0) {
                 session.pending_player_healing += info.pickup_health;
+            }
+
+            if (is_ammo_pickup(info)) {
+                refill_all_weapon_ammo(session);
             }
 
             if (info.unlocks_map) {
@@ -1452,6 +1636,7 @@ namespace {
         session.keyring.clear();
         session.weapon_inventory.clear();
         session.active_weapon_path.clear();
+        session.weapon_ammo.clear();
         session.collected_item_keys.clear();
         session.destroyed_object_keys.clear();
         session.killed_enemy_keys.clear();
@@ -1462,6 +1647,8 @@ namespace {
         session.loaded_sprite_sets.clear();
         session.pending_player_damage = 0.0;
         session.pending_player_healing = 0.0;
+        session.player_energy = 100.0;
+        session.player_max_energy = 100.0;
         session.transition_cooldown_seconds = 0.0;
         session.map_unlock_count = 0;
         stop_background_music(session);
@@ -1516,6 +1703,7 @@ namespace {
         session.keyring.clear();
         session.weapon_inventory.clear();
         session.active_weapon_path.clear();
+        session.weapon_ammo.clear();
         session.collected_item_keys.clear();
         session.destroyed_object_keys.clear();
         session.killed_enemy_keys.clear();
@@ -1525,6 +1713,8 @@ namespace {
         session.loaded_sprite_sets.clear();
         session.pending_player_damage = 0.0;
         session.pending_player_healing = 0.0;
+        session.player_energy = 100.0;
+        session.player_max_energy = 100.0;
         session.transition_cooldown_seconds = 0.0;
         session.map_unlock_count = 0;
         session.world_path = world_path;
@@ -1553,6 +1743,7 @@ namespace {
         auto keyring = session.keyring;
         auto weapon_inventory = session.weapon_inventory;
         auto active_weapon_path = session.active_weapon_path;
+        auto weapon_ammo = session.weapon_ammo;
         auto collected_item_keys = session.collected_item_keys;
         auto destroyed_object_keys = session.destroyed_object_keys;
         auto killed_enemy_keys = session.killed_enemy_keys;
@@ -1562,6 +1753,8 @@ namespace {
             = session.total_damage_reactive_objects;
         auto transitions = session.transitions;
         const auto map_unlock_count = session.map_unlock_count;
+        const auto player_energy = session.player_energy;
+        const auto player_max_energy = session.player_max_energy;
         const auto had_active_weapon = !session.active_weapon_path.empty();
         const auto stored_project_path = session.project_path.empty()
             ? project_path
@@ -1580,6 +1773,7 @@ namespace {
         session.keyring = std::move(keyring);
         session.weapon_inventory = std::move(weapon_inventory);
         session.active_weapon_path = std::move(active_weapon_path);
+        session.weapon_ammo = std::move(weapon_ammo);
         session.collected_item_keys = std::move(collected_item_keys);
         session.destroyed_object_keys = std::move(destroyed_object_keys);
         session.killed_enemy_keys = std::move(killed_enemy_keys);
@@ -1587,6 +1781,8 @@ namespace {
         session.total_completion_enemies = total_completion_enemies;
         session.total_damage_reactive_objects = total_damage_reactive_objects;
         session.map_unlock_count = map_unlock_count;
+        session.player_energy = player_energy;
+        session.player_max_energy = player_max_energy;
         if (session.world) {
             session.world->setDoorKeyring(session.keyring);
         }
@@ -1602,6 +1798,9 @@ namespace {
                     weapon->setScreenHeightFraction(
                         result.scene.playerWeapon.screenHeightFraction);
                 }
+                restore_or_remember_weapon_ammo(session,
+                    normalized_weapon_id(result.scene.playerWeapon.file),
+                    *weapon);
                 session.engine->setViewWeapon(std::move(*weapon));
                 session.active_weapon_path
                     = normalized_weapon_id(result.scene.playerWeapon.file);
@@ -1800,7 +1999,9 @@ namespace {
                 "rayplaysound", "rayspritecount", "rayactorcount",
                 "rayenemycount", "raykilledenemycount", "raysetbasedir",
                 "raysetplayerslope", "rayplayerslope", "raysetplayerviewcenter",
-                "rayplayerviewcenter", "rayplayerstandingon"
+                "rayplayerviewcenter", "rayplayerstandingon", "rayweaponammo",
+                "rayweaponreserveammo", "rayweaponmaxammo", "rayreloadweapon",
+                "raysetplayerenergy"
             };
             return module_exports;
         }
@@ -2002,7 +2203,67 @@ namespace {
                           integer_t(has_weapon_in_inventory(
                                         raycast_session(), vargs[0].to_str())
                                   ? 1
-                                  : 0));
+                              : 0));
+                  };
+
+            fmap["rayweaponammo"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      auto* weapon = checked_engine(ctx, name)->viewWeapon();
+                      return variant_t(integer_t(
+                          weapon != nullptr ? weapon->ammoInMagazine() : 0));
+                  };
+
+            fmap["rayweaponreserveammo"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      auto* weapon = checked_engine(ctx, name)->viewWeapon();
+                      return variant_t(integer_t(
+                          weapon != nullptr ? weapon->reserveAmmo() : 0));
+                  };
+
+            fmap["rayweaponmaxammo"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      auto* weapon = checked_engine(ctx, name)->viewWeapon();
+                      return variant_t(integer_t(
+                          weapon != nullptr ? weapon->maxAmmo() : 0));
+                  };
+
+            fmap["rayreloadweapon"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      auto* weapon = checked_engine(ctx, name)->viewWeapon();
+                      if (weapon == nullptr) {
+                          return variant_t(integer_t(0));
+                      }
+
+                      const auto reloaded = weapon->reload();
+                      if (reloaded) {
+                          weapon->restartAnimationOrFallback("reload", "idle");
+                          remember_active_weapon_ammo(raycast_session());
+                      }
+                      return variant_t(integer_t(reloaded ? 1 : 0));
+                  };
+
+            fmap["raysetplayerenergy"]
+                = [](rt_prog_ctx_t& ctx, const std::string& name,
+                      const func_args_t& args) {
+                      std::vector<variant_t> vargs;
+                      get_functor_vargs(ctx, name, args,
+                          { variant_t::type_t::DOUBLE,
+                              variant_t::type_t::DOUBLE },
+                          vargs);
+                      checked_engine(ctx, name);
+                      auto& session = raycast_session();
+                      session.player_energy = std::max(0.0, vargs[0].to_double());
+                      session.player_max_energy
+                          = std::max(1.0, vargs[1].to_double());
+                      return variant_t(integer_t(1));
                   };
 
             fmap["raysetplayer"] = [](rt_prog_ctx_t& ctx,
@@ -2417,7 +2678,11 @@ namespace {
                     }
                 }
 
-                trigger_weapon_fire(*engine);
+                if (!trigger_weapon_fire(*engine)) {
+                    remember_active_weapon_ammo(session);
+                    return variant_t(integer_t(0));
+                }
+                remember_active_weapon_ammo(session);
 
                 if (best_actor == nullptr && best_info == nullptr) {
                     return variant_t(integer_t(0));

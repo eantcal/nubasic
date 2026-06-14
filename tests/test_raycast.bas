@@ -51,6 +51,7 @@ RaySetPlayer 2816, 5376, 0
 RayUpdate 0.016
 Print "collected2="; RayCollectedItemCount()
 RaySetPlayer 5888, 5888, 0
+RaySetPlayerEnergy(65, 100)
 RayUpdate 0.016
 Print "healing="; RayConsumePlayerHealing()
 RaySetPlayer 2304, 5376, 90
