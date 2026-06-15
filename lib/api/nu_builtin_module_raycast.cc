@@ -2786,13 +2786,27 @@ namespace {
 
             fmap["rayupdate"] = [](rt_prog_ctx_t& ctx, const std::string& name,
                                     const func_args_t& args) {
-                std::vector<variant_t> vargs;
-                get_functor_vargs(
-                    ctx, name, args, { variant_t::type_t::DOUBLE }, vargs);
+                syntax_error_if(args.size() != 1 && args.size() != 2,
+                    "'" + name
+                        + "': expects delta seconds and optional moving flag");
+
+                auto delta_arg = args[0]->eval(ctx);
+                syntax_error_if(!variable_t::is_number(delta_arg.get_type()),
+                    "'" + name + "': expects argument 1 as number");
+
+                bool player_is_moving = false;
+                if (args.size() == 2) {
+                    auto moving_arg = args[1]->eval(ctx);
+                    syntax_error_if(
+                        !variable_t::is_number(moving_arg.get_type()),
+                        "'" + name + "': expects argument 2 as number");
+                    player_is_moving = moving_arg.to_int() != 0;
+                }
+
                 auto& session = raycast_session();
                 auto* engine = checked_engine(ctx, name);
                 auto* world = checked_world(ctx, name);
-                const auto dt = std::clamp(vargs[0].to_double(), 0.0, 0.1);
+                const auto dt = std::clamp(delta_arg.to_double(), 0.0, 0.1);
                 world->advanceDynamicTextures(dt);
                 std::vector<Point2d> actor_positions;
                 actor_positions.reserve(session.actors.size());
@@ -2830,7 +2844,7 @@ namespace {
                 update_enemy_attacks(session);
                 update_runtime_effects(session, dt);
                 engine->advanceSpriteAnimations(dt);
-                engine->advanceViewWeapon(dt, false);
+                engine->advanceViewWeapon(dt, player_is_moving);
                 return variant_t(integer_t(1));
             };
 

@@ -996,10 +996,11 @@ Function Main(argc As Integer, argv() As String) As Integer
         ' - elevators
         ' - music
         ' - damage events
+        ' - first-person weapon bobbing while the player is moving
         ' --------------------------------------------------------------
 
         RaySetPlayerEnergy(energy, 100.0)
-        RayUpdate(delta)
+        RayUpdate(delta, moving)
 
         ' Enemy attacks are accumulated inside the engine.
         ' BASIC consumes the accumulated damage once per frame and applies it
