@@ -484,6 +484,7 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
             if (!using_debug_function_checkpoint) {
                 rt_prog_ctx_t::debug_function_checkpoint_t checkpoint;
                 checkpoint.function_name = function_name;
+                checkpoint.expression_call = debug_function_call_site_line > 0;
                 checkpoint.caller_flag = cp_data.flag;
                 checkpoint.caller_runtime_pc = cp_data.runtime_pc;
                 if (debug_function_call_site_line > 0) {
@@ -509,6 +510,15 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
         }
 
         if (using_debug_function_checkpoint && !debug_checkpoint_completed) {
+            _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, end_flg);
+            return prog_ptr != _prog_line.end();
+        }
+
+        if (using_debug_function_checkpoint
+            && !_ctx.debug_function_checkpoints.empty()
+            && !_ctx.debug_function_checkpoints.front().expression_call) {
+            _ctx.debug_function_checkpoints.pop_front();
+            _ctx.last_break_line = 0;
             _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, end_flg);
             return prog_ptr != _prog_line.end();
         }

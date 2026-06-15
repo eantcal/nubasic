@@ -2157,7 +2157,7 @@ namespace {
                 "raysettransitionmanual", "raytransitionoptioncount",
                 "raytransitionoptionlayer$", "raytransitionoptionlayer",
                 "raytransitionselected", "rayselecttransition",
-                "rayconfirmtransition"
+                "rayconfirmtransition", "rayshutdown"
             };
             return module_exports;
         }
@@ -2175,6 +2175,14 @@ namespace {
             };
 
 #ifdef NUBASIC_HAS_RAYCAST
+            fmap["rayshutdown"]
+                = [](rt_prog_ctx_t&, const std::string& name,
+                      const func_args_t& args) {
+                      check_arg_num(args, 0, name);
+                      stop_background_music(raycast_session());
+                      return variant_t(integer_t(1));
+                  };
+
             fmap["rayinit"] = [](rt_prog_ctx_t& ctx, const std::string& name,
                                   const func_args_t& args) {
                 std::vector<variant_t> vargs;

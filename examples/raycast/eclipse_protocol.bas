@@ -1,4 +1,4 @@
-' WinRayCast demo in nuBASIC.
+' Eclipse Protocol.
 '
 ' This file is intentionally written as a tutorial.
 ' The GAME SETTINGS section contains the parameters that are meant to be changed,
@@ -13,6 +13,106 @@ Using graphics
 Using math
 Using String
 Using system
+
+Struct GameSettings
+    ViewW As Integer
+    ViewH As Integer
+    HudX As Integer
+    FrameBudgetMs As Integer
+    MoveStep As Integer
+    TurnStep As Double
+    EnergyIdleCost As Double
+    EnergyMoveCost As Double
+    EnergyShotCost As Double
+    AutosaveSeconds As Double
+    RespawnSeconds As Double
+    DeathOverlaySeconds As Double
+    HitFlashSeconds As Double
+    ViewCenterLift As Double
+    ViewCenterEase As Double
+End Struct
+
+Struct KeyBindings
+    Escape As Integer
+    Enter As Integer
+    LeftKey As Integer
+    UpKey As Integer
+    RightKey As Integer
+    DownKey As Integer
+    A As Integer
+    D As Integer
+    Q As Integer
+    R As Integer
+    S As Integer
+    W As Integer
+    SpaceKey As Integer
+    Ctrl As Integer
+    Weapon1 As Integer
+    Weapon2 As Integer
+    Weapon3 As Integer
+    EasyMode As Integer
+    HardMode As Integer
+    LookUp As Integer
+    LookDown As Integer
+End Struct
+
+Class EventLog
+    Public Line1 As String
+    Public Line2 As String
+    Public Line3 As String
+    Public Line4 As String
+
+    Public Sub Push(message As String)
+        Me.Line4 = Me.Line3
+        Me.Line3 = Me.Line2
+        Me.Line2 = Me.Line1
+        Me.Line1 = message
+    End Sub
+End Class
+
+' Keeps all tweakable game settings in one visible place.
+Sub ConfigureGame(ByRef settings As GameSettings)
+    settings.ViewW = 1024              ' 3D viewport width.
+    settings.ViewH = 1024              ' 3D viewport height.
+    settings.HudX = settings.ViewW + 16 ' Initial X position of the side HUD.
+    settings.FrameBudgetMs = 16        ' Target frame duration for the 60 FPS cap.
+    settings.MoveStep = 28             ' Forward movement step per frame.
+    settings.TurnStep = 3.0            ' Rotation step in degrees per frame.
+    settings.EnergyIdleCost = 0.001    ' Minimal idle energy drain per frame.
+    settings.EnergyMoveCost = 0.001    ' Extra energy cost per frame while moving.
+    settings.EnergyShotCost = 0.05     ' Energy cost per pistol shot.
+    settings.AutosaveSeconds = 60.0    ' Time between automatic checkpoints.
+    settings.RespawnSeconds = 3.25     ' Delay before restoring from autosave.
+    settings.DeathOverlaySeconds = 2.0 ' Red overlay ramp-up duration.
+    settings.HitFlashSeconds = 0.18    ' Short red viewport flash after damage.
+    settings.ViewCenterLift = 0.055    ' Camera lift on supply/toolbox items.
+    settings.ViewCenterEase = 0.2      ' Smooth camera interpolation amount.
+End Sub
+
+' Windows virtual-key codes used by RayKeyDown().
+Sub ConfigureKeys(ByRef keys As KeyBindings)
+    keys.Escape = 27
+    keys.Enter = 13
+    keys.LeftKey = 37
+    keys.UpKey = 38
+    keys.RightKey = 39
+    keys.DownKey = 40
+    keys.A = 65
+    keys.D = 68
+    keys.Q = 81
+    keys.R = 82
+    keys.S = 83
+    keys.W = 87
+    keys.SpaceKey = 32
+    keys.Ctrl = 17
+    keys.Weapon1 = 49
+    keys.Weapon2 = 50
+    keys.Weapon3 = 51
+    keys.EasyMode = 112
+    keys.HardMode = 113
+    keys.LookUp = 33
+    keys.LookDown = 34
+End Sub
 
 ' Calculates an integer percentage used by the Doom-style HUD.
 Function Percent(done As Integer, total As Integer) As Integer
@@ -77,14 +177,6 @@ Sub DrawHitOverlay(viewW As Integer, viewH As Integer)
     FillRect 0, viewH - edgeSize, viewW, viewH, Rgb(190, 0, 0)
     FillRect 0, 0, edgeSize, viewH, Rgb(190, 0, 0)
     FillRect viewW - edgeSize, 0, viewW, viewH, Rgb(190, 0, 0)
-End Sub
-
-' Moves a new message into the four-line event log.
-Sub PushLog(ByRef log1 As String, ByRef log2 As String, ByRef log3 As String, ByRef log4 As String, message As String)
-    log4 = log3
-    log3 = log2
-    log2 = log1
-    log1 = message
 End Sub
 
 ' Draws a compact weapon selector.
@@ -251,7 +343,21 @@ End Sub
 ' - killed enemies
 ' - collected items
 ' - player position and facing direction
-Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integer, autosaveTimer As Double, autosaveSeconds As Double, saved As Integer, gameDone As Integer, selectedWeapon As Integer, weaponName As String, weaponAmmo As Integer, weaponReserve As Integer, mapUnlocks As Integer, difficultyName As String, log1 As String, log2 As String, log3 As String, log4 As String)
+Sub DrawHud(viewW As Integer, _
+            viewH As Integer, _
+            hudX As Integer, _
+            energy As Integer, _
+            autosaveTimer As Double, _
+            autosaveSeconds As Double, _
+            saved As Integer, _
+            gameDone As Integer, _
+            selectedWeapon As Integer, _
+            weaponName As String, _
+            weaponAmmo As Integer, _
+            weaponReserve As Integer, _
+            mapUnlocks As Integer, _
+            difficultyName As String, _
+            eventLog As EventLog)
     Dim enemies As Integer
     Dim killed As Integer
     Dim killPct As Integer
@@ -275,7 +381,7 @@ Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integ
     ' HUD background.
     FillRect viewW, 0, viewW + 320, viewH, Rgb(16, 18, 22)
 
-    TextOut hudX, 24, "nuBASIC WinRayCast", Rgb(235, 235, 235)
+    TextOut hudX, 24, "Eclipse Protocol", Rgb(235, 235, 235)
 
     ' Debug/engine information.
     TextOut hudX, 58, "Sprites: " + Str$(RaySpriteCount()), Rgb(185, 205, 230)
@@ -338,10 +444,10 @@ Sub DrawHud(viewW As Integer, viewH As Integer, hudX As Integer, energy As Integ
 
     ' Event log. Keeping it in the side panel avoids covering the 3D view.
     TextOut hudX, 944, "EVENT LOG", Rgb(230, 230, 230)
-    TextOut hudX, 966, log1, Rgb(190, 210, 235)
-    TextOut hudX, 984, log2, Rgb(170, 190, 215)
-    TextOut hudX, 1002, log3, Rgb(150, 170, 195)
-    TextOut hudX, 1020, log4, Rgb(130, 150, 175)
+    TextOut hudX, 966, eventLog.Line1, Rgb(190, 210, 235)
+    TextOut hudX, 984, eventLog.Line2, Rgb(170, 190, 215)
+    TextOut hudX, 1002, eventLog.Line3, Rgb(150, 170, 195)
+    TextOut hudX, 1020, eventLog.Line4, Rgb(130, 150, 175)
 End Sub
 
 Function Main(argc As Integer, argv() As String) As Integer
@@ -352,27 +458,9 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim backStep As Integer
     Dim turnStep As Double
     Dim turnLeftStep As Double
-    Dim vkEscape As Integer
-    Dim vkEnter As Integer
-    Dim vkLeft As Integer
-    Dim vkUp As Integer
-    Dim vkRight As Integer
-    Dim vkDown As Integer
-    Dim vkA As Integer
-    Dim vkD As Integer
-    Dim vkQ As Integer
-    Dim vkR As Integer
-    Dim vkS As Integer
-    Dim vkW As Integer
-    Dim vkSpace As Integer
-    Dim vkCtrl As Integer
-    Dim vk1 As Integer
-    Dim vk2 As Integer
-    Dim vk3 As Integer
-    Dim vkF1 As Integer
-    Dim vkF2 As Integer
-    Dim vkPageUp As Integer
-    Dim vkPageDown As Integer
+    Dim settings As GameSettings
+    Dim keys As KeyBindings
+    Dim eventLog As New EventLog()
     Dim scriptBase As String
     Dim world As String
     Dim weaponPath As String
@@ -412,10 +500,6 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim fireRangeCells As Double
     Dim fireFovDegrees As Double
     Dim fireCooldownSeconds As Double
-    Dim log1 As String
-    Dim log2 As String
-    Dim log3 As String
-    Dim log4 As String
     Dim lastCollectedItems As Integer
     Dim collectedItems As Integer
     Dim lastDestroyedObjects As Integer
@@ -431,6 +515,7 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim lastElevatorLeftKey As Integer
     Dim lastElevatorRightKey As Integer
     Dim lastElevatorEnterKey As Integer
+    Dim lastRestartKey As Integer
     Dim lastDifficultyKey1 As Integer
     Dim lastDifficultyKey2 As Integer
     Dim weaponLoaded As Integer
@@ -457,25 +542,28 @@ Function Main(argc As Integer, argv() As String) As Integer
     ' touching the rest of the program.
     ' ------------------------------------------------------------------
 
-    viewW = 1024               ' 3D viewport width, aligned with the C++ demo.
-    viewH = 1024               ' 3D viewport height; square viewport avoids 4:3 distortion.
-    hudX = viewW + 16          ' Initial X position of the side HUD panel.
+    ConfigureGame(settings)
+    ConfigureKeys(keys)
 
     delta = 0.016              ' Simulated frame delta, roughly 60 FPS.
     ' Used by animations, doors, enemies and timers.
-    frameBudgetMs = 16         ' Target frame duration for the 60 FPS cap.
+    frameBudgetMs = settings.FrameBudgetMs
 
-    moveStep = 28              ' Forward movement step per frame.
+    viewW = settings.ViewW
+    viewH = settings.ViewH
+    hudX = settings.HudX
+
+    moveStep = settings.MoveStep
     backStep = 0 - moveStep    ' Negative movement step for walking backwards.
 
-    turnStep = 3.0             ' Rotation step in degrees per frame.
+    turnStep = settings.TurnStep
     turnLeftStep = 0.0 - turnStep
 
     energy = 100.0             ' Initial player energy.
 
-    energyIdleCost = 0.001     ' Minimal idle energy drain per frame.
-    energyMoveCost = 0.001     ' Extra energy cost per frame while moving.
-    energyShotCost = 0.05      ' Energy cost per shot.
+    energyIdleCost = settings.EnergyIdleCost
+    energyMoveCost = settings.EnergyMoveCost
+    energyShotCost = settings.EnergyShotCost
 
     difficultyMode = 0         ' 0 = easy, 1 = hard.
     difficultyName = "Easy"
@@ -485,13 +573,13 @@ Function Main(argc As Integer, argv() As String) As Integer
     slopeStep = 8              ' Slope pixels added or removed for each pressed frame.
     playerViewCenter = 0.5    ' Normal camera height ratio used by the raycaster.
     targetViewCenter = 0.5
-    viewCenterLift = 0.055     ' Camera lift while standing over supply/toolbox items.
-    viewCenterEase = 0.2      ' Smooth interpolation amount per frame.
+    viewCenterLift = settings.ViewCenterLift
+    viewCenterEase = settings.ViewCenterEase
 
-    autosaveSeconds = 60.0     ' Time between automatic checkpoints.
-    respawnSeconds = 3.25      ' Delay before restoring from the last autosave.
-    deathOverlaySeconds = 2.0  ' Time needed for the red overlay to reach full strength.
-    hitFlashSeconds = 0.18     ' Short red viewport flash after taking damage.
+    autosaveSeconds = settings.AutosaveSeconds
+    respawnSeconds = settings.RespawnSeconds
+    deathOverlaySeconds = settings.DeathOverlaySeconds
+    hitFlashSeconds = settings.HitFlashSeconds
 
     fireDamage = 18.0          ' Base damage dealt by the selected weapon.
     fireRangeCells = 8.5       ' Maximum shooting range, expressed in map cells.
@@ -500,36 +588,6 @@ Function Main(argc As Integer, argv() As String) As Integer
     selectedWeapon = 1         ' The demo starts with the pistol selected.
     weaponName = "Pistol"      ' Current weapon label shown in the HUD.
     weaponPath = "weapons/pistol/pistol.weapon.json"
-
-    ' ------------------------------------------------------------------
-    ' WINDOWS VIRTUAL KEYS
-    '
-    ' RayKeyDown() uses Windows virtual-key codes.
-    ' This keeps the BASIC demo simple and avoids implementing a custom
-    ' keyboard input layer.
-    ' ------------------------------------------------------------------
-
-    vkEscape = 27              ' Esc: quit.
-    vkEnter = 13               ' Enter: confirm elevator destination.
-    vkLeft = 37                ' Left arrow: turn left.
-    vkUp = 38                  ' Up arrow: move forward.
-    vkRight = 39               ' Right arrow: turn right.
-    vkDown = 40                ' Down arrow: move backward.
-    vkA = 65                   ' A: turn left.
-    vkD = 68                   ' D: turn right.
-    vkQ = 81                   ' Q: quit.
-    vkR = 82                   ' R: reload current weapon.
-    vkS = 83                   ' S: move backward.
-    vkW = 87                   ' W: move forward.
-    vkSpace = 32               ' Space: fire.
-    vkCtrl = 17                ' Ctrl: fire.
-    vk1 = 49                   ' 1: pistol.
-    vk2 = 50                   ' 2: super shotgun.
-    vk3 = 51                   ' 3: submachine gun.
-    vkF1 = 112                 ' F1: easy mode.
-    vkF2 = 113                 ' F2: hard mode.
-    vkPageUp = 33              ' PageUp: look up.
-    vkPageDown = 34            ' PageDown: look down.
 
     ' Start counting from zero: the first automatic checkpoint is one minute later.
     autosaveTimer = 0.0
@@ -589,10 +647,10 @@ Function Main(argc As Integer, argv() As String) As Integer
     lastCollectedItems = RayCollectedItemCount()
     lastDestroyedObjects = RayDestroyedObjectCount()
     lastLayer = RayCurrentLayer$()
-    log1 = "World loaded: " + lastLayer
-    log2 = "Autosave ready"
-    log3 = "Keys 1/2/3 switch weapons"
-    log4 = "Find computers to unlock the map"
+    eventLog.Line1 = "World loaded: " + lastLayer
+    eventLog.Line2 = "Autosave ready"
+    eventLog.Line3 = "Keys 1/2/3 switch weapons"
+    eventLog.Line4 = "Find computers to unlock the map"
 
     ' ------------------------------------------------------------------
     ' nuBASIC GRAPHICS WINDOW SETUP
@@ -617,7 +675,48 @@ Function Main(argc As Integer, argv() As String) As Integer
         frameStartMs = Millis()
 
         ' Global quit shortcuts.
-        If RayKeyDown(vkEscape) = 1 Or RayKeyDown(vkQ) = 1 Then shouldQuit = 1
+        If RayKeyDown(keys.Escape) = 1 Or RayKeyDown(keys.Q) = 1 Then shouldQuit = 1
+
+        ' Mission-complete menu.
+        ' Press R to replay the mission without closing the graphics window.
+        If gameDone = 1 Then
+            If RayKeyDown(keys.R) = 1 Then
+                If lastRestartKey = 0 Then
+                    If RayLoadProject(world) = 1 Then
+                        RaySetTransitionManual(1)
+                        energy = 100.0
+                        lifeState = 0
+                        deathTimer = 0.0
+                        autosaveTimer = 0.0
+                        gameDone = 0
+                        selectedWeapon = 1
+                        weaponName = "Pistol"
+                        weaponPath = "weapons/pistol/pistol.weapon.json"
+                        fireDamage = 18.0
+                        fireRangeCells = 8.5
+                        fireFovDegrees = 22.0
+                        fireCooldownSeconds = 0.32
+                        energyShotCost = settings.EnergyShotCost
+                        checkpointX = RayPlayerX()
+                        checkpointY = RayPlayerY()
+                        checkpointFacing = RayPlayerFacing()
+                        checkpointSaved = 1
+                        lastCollectedItems = RayCollectedItemCount()
+                        lastDestroyedObjects = RayDestroyedObjectCount()
+                        lastLayer = RayCurrentLayer$()
+                        eventLog.Line1 = "Mission restarted"
+                        eventLog.Line2 = "World loaded: " + lastLayer
+                        eventLog.Line3 = "Autosave ready"
+                        eventLog.Line4 = "Find computers to unlock the map"
+                    Else
+                        eventLog.Push("Cannot restart mission")
+                    End If
+                End If
+                lastRestartKey = 1
+            Else
+                lastRestartKey = 0
+            End If
+        End If
 
         ' Used to charge movement energy only when the player actually moves.
         moving = 0
@@ -637,30 +736,30 @@ Function Main(argc As Integer, argv() As String) As Integer
             elevatorOptions = RayTransitionOptionCount()
 
             If elevatorOptions > 0 And RayTransitionActive() = 0 Then
-                If RayKeyDown(vkLeft) = 1 Or RayKeyDown(vkA) = 1 Then
+                If RayKeyDown(keys.LeftKey) = 1 Or RayKeyDown(keys.A) = 1 Then
                     If lastElevatorLeftKey = 0 Then
                         elevatorSelected = RaySelectTransition(RayTransitionSelected() - 1)
-                        PushLog log1, log2, log3, log4, "Elevator target: " + RayTransitionOptionLayer$(elevatorSelected)
+                        eventLog.Push("Elevator target: " + RayTransitionOptionLayer$(elevatorSelected))
                     End If
                     lastElevatorLeftKey = 1
                 Else
                     lastElevatorLeftKey = 0
                 End If
 
-                If RayKeyDown(vkRight) = 1 Or RayKeyDown(vkD) = 1 Then
+                If RayKeyDown(keys.RightKey) = 1 Or RayKeyDown(keys.D) = 1 Then
                     If lastElevatorRightKey = 0 Then
                         elevatorSelected = RaySelectTransition(RayTransitionSelected() + 1)
-                        PushLog log1, log2, log3, log4, "Elevator target: " + RayTransitionOptionLayer$(elevatorSelected)
+                        eventLog.Push("Elevator target: " + RayTransitionOptionLayer$(elevatorSelected))
                     End If
                     lastElevatorRightKey = 1
                 Else
                     lastElevatorRightKey = 0
                 End If
 
-                If RayKeyDown(vkEnter) = 1 Then
+                If RayKeyDown(keys.Enter) = 1 Then
                     If lastElevatorEnterKey = 0 Then
                         If RayConfirmTransition() = 1 Then
-                            PushLog log1, log2, log3, log4, "Elevator moving"
+                            eventLog.Push("Elevator moving")
                         End If
                     End If
                     lastElevatorEnterKey = 1
@@ -673,23 +772,23 @@ Function Main(argc As Integer, argv() As String) As Integer
                 lastElevatorEnterKey = 0
 
                 If RayTransitionActive() = 0 Then
-                    If RayKeyDown(vkLeft) = 1 Or RayKeyDown(vkA) = 1 Then
+                    If RayKeyDown(keys.LeftKey) = 1 Or RayKeyDown(keys.A) = 1 Then
                         RayTurn(turnLeftStep)
                     End If
 
-                    If RayKeyDown(vkRight) = 1 Or RayKeyDown(vkD) = 1 Then
+                    If RayKeyDown(keys.RightKey) = 1 Or RayKeyDown(keys.D) = 1 Then
                         RayTurn(turnStep)
                     End If
                 End If
             End If
 
             If RayTransitionActive() = 0 Then
-                If RayKeyDown(vkUp) = 1 Or RayKeyDown(vkW) = 1 Then
+                If RayKeyDown(keys.UpKey) = 1 Or RayKeyDown(keys.W) = 1 Then
                     RayMove(moveStep)
                     moving = 1
                 End If
 
-                If RayKeyDown(vkDown) = 1 Or RayKeyDown(vkS) = 1 Then
+                If RayKeyDown(keys.DownKey) = 1 Or RayKeyDown(keys.S) = 1 Then
                     RayMove(backStep)
                     moving = 1
                 End If
@@ -698,24 +797,24 @@ Function Main(argc As Integer, argv() As String) As Integer
             ' Difficulty is BASIC-side game balance.
             ' The engine reports raw enemy damage; the script scales it below
             ' before applying it to the player energy.
-            If RayKeyDown(vkF1) = 1 Then
+            If RayKeyDown(keys.EasyMode) = 1 Then
                 If lastDifficultyKey1 = 0 Then
                     difficultyMode = 0
                     difficultyName = "Easy"
                     enemyDamageScale = 0.6
-                    PushLog log1, log2, log3, log4, "Difficulty: Easy"
+                    eventLog.Push("Difficulty: Easy")
                 End If
                 lastDifficultyKey1 = 1
             Else
                 lastDifficultyKey1 = 0
             End If
 
-            If RayKeyDown(vkF2) = 1 Then
+            If RayKeyDown(keys.HardMode) = 1 Then
                 If lastDifficultyKey2 = 0 Then
                     difficultyMode = 1
                     difficultyName = "Hard"
                     enemyDamageScale = 1.35
-                    PushLog log1, log2, log3, log4, "Difficulty: Hard"
+                    eventLog.Push("Difficulty: Hard")
                 End If
                 lastDifficultyKey2 = 1
             Else
@@ -724,17 +823,17 @@ Function Main(argc As Integer, argv() As String) As Integer
 
             ' The raycast engine exposes the vertical view slope directly.
             ' Positive values look lower, negative values look higher.
-            If RayKeyDown(vkPageUp) = 1 Then playerSlope = playerSlope - slopeStep
-            If RayKeyDown(vkPageDown) = 1 Then playerSlope = playerSlope + slopeStep
+            If RayKeyDown(keys.LookUp) = 1 Then playerSlope = playerSlope - slopeStep
+            If RayKeyDown(keys.LookDown) = 1 Then playerSlope = playerSlope + slopeStep
             RaySetPlayerSlope(playerSlope)
             playerSlope = RayPlayerSlope()
 
-            If RayKeyDown(vkR) = 1 Then
+            If RayKeyDown(keys.R) = 1 Then
                 If lastReloadKey = 0 Then
                     If RayReloadWeapon() = 1 Then
-                        PushLog log1, log2, log3, log4, "Reloading " + weaponName
+                        eventLog.Push("Reloading " + weaponName)
                     Else
-                        PushLog log1, log2, log3, log4, "No reload needed"
+                        eventLog.Push("No reload needed")
                     End If
                 End If
                 lastReloadKey = 1
@@ -747,7 +846,7 @@ Function Main(argc As Integer, argv() As String) As Integer
             ' RayLoadWeapon() swaps the first-person weapon rendered by the
             ' engine. The BASIC script keeps matching damage, range and timing
             ' values so the tutorial can show the full gameplay loop.
-            If RayKeyDown(vk1) = 1 Then
+            If RayKeyDown(keys.Weapon1) = 1 Then
                 If lastWeaponKey1 = 0 And selectedWeapon <> 1 Then
                     weaponPath = "weapons/pistol/pistol.weapon.json"
                     weaponLoaded = RayLoadWeapon(weaponPath)
@@ -759,9 +858,9 @@ Function Main(argc As Integer, argv() As String) As Integer
                         fireFovDegrees = 22.0
                         fireCooldownSeconds = 0.32
                         energyShotCost = 0.05
-                        PushLog log1, log2, log3, log4, "Weapon selected: " + weaponName
+                        eventLog.Push("Weapon selected: " + weaponName)
                     Else
-                        PushLog log1, log2, log3, log4, "Weapon locked: Pistol"
+                        eventLog.Push("Weapon locked: Pistol")
                     End If
                 End If
                 lastWeaponKey1 = 1
@@ -769,7 +868,7 @@ Function Main(argc As Integer, argv() As String) As Integer
                 lastWeaponKey1 = 0
             End If
 
-            If RayKeyDown(vk2) = 1 Then
+            If RayKeyDown(keys.Weapon2) = 1 Then
                 If lastWeaponKey2 = 0 And selectedWeapon <> 2 Then
                     weaponPath = "weapons/super_shotgun/super_shotgun.weapon.json"
                     weaponLoaded = RayLoadWeapon(weaponPath)
@@ -781,9 +880,9 @@ Function Main(argc As Integer, argv() As String) As Integer
                         fireFovDegrees = 34.0
                         fireCooldownSeconds = 0.72
                         energyShotCost = 0.16
-                        PushLog log1, log2, log3, log4, "Weapon selected: " + weaponName
+                        eventLog.Push("Weapon selected: " + weaponName)
                     Else
-                        PushLog log1, log2, log3, log4, "Weapon locked: Super Shotgun"
+                        eventLog.Push("Weapon locked: Super Shotgun")
                     End If
                 End If
                 lastWeaponKey2 = 1
@@ -791,7 +890,7 @@ Function Main(argc As Integer, argv() As String) As Integer
                 lastWeaponKey2 = 0
             End If
 
-            If RayKeyDown(vk3) = 1 Then
+            If RayKeyDown(keys.Weapon3) = 1 Then
                 If lastWeaponKey3 = 0 And selectedWeapon <> 3 Then
                     weaponPath = "weapons/submachine_gun/submachine_gun.weapon.json"
                     weaponLoaded = RayLoadWeapon(weaponPath)
@@ -803,9 +902,9 @@ Function Main(argc As Integer, argv() As String) As Integer
                         fireFovDegrees = 24.0
                         fireCooldownSeconds = 0.125
                         energyShotCost = 0.02
-                        PushLog log1, log2, log3, log4, "Weapon selected: " + weaponName
+                        eventLog.Push("Weapon selected: " + weaponName)
                     Else
-                        PushLog log1, log2, log3, log4, "Weapon locked: Submachine Gun"
+                        eventLog.Push("Weapon locked: Submachine Gun")
                     End If
                 End If
                 lastWeaponKey3 = 1
@@ -815,7 +914,7 @@ Function Main(argc As Integer, argv() As String) As Integer
 
             ' Fire only if the cooldown has expired.
             If shotCooldown <= 0.0 Then
-                If RayKeyDown(vkSpace) = 1 Or RayKeyDown(vkCtrl) = 1 Then
+                If RayKeyDown(keys.SpaceKey) = 1 Or RayKeyDown(keys.Ctrl) = 1 Then
                     ' Damage enemies or shootable objects inside the frontal cone.
                     '
                     ' WinRayCast performs the spatial/raycast check internally.
@@ -824,12 +923,12 @@ Function Main(argc As Integer, argv() As String) As Integer
                         shotResult = RayDamageEnemy(fireDamage, fireRangeCells, fireFovDegrees)
                         shotCooldown = fireCooldownSeconds
                         energy = energy - energyShotCost
-                        PushLog log1, log2, log3, log4, weaponName + " fired"
+                        eventLog.Push(weaponName + " fired")
                     Else
                         If RayReloadWeapon() = 1 Then
-                            PushLog log1, log2, log3, log4, "Reloading " + weaponName
+                            eventLog.Push("Reloading " + weaponName)
                         Else
-                            PushLog log1, log2, log3, log4, "No ammo"
+                            eventLog.Push("No ammo")
                         End If
                         shotCooldown = fireCooldownSeconds
                     End If
@@ -845,7 +944,7 @@ Function Main(argc As Integer, argv() As String) As Integer
                 energy = 0.0
                 lifeState = 1
                 deathTimer = 0.0
-                PushLog log1, log2, log3, log4, "Energy depleted"
+                eventLog.Push("Energy depleted")
             End If
 
             ' ----------------------------------------------------------
@@ -864,7 +963,7 @@ Function Main(argc As Integer, argv() As String) As Integer
                 checkpointFacing = RayPlayerFacing()
                 checkpointSaved = 1
                 autosaveTimer = 0.0
-                PushLog log1, log2, log3, log4, "Autosave checkpoint stored"
+                eventLog.Push("Autosave checkpoint stored")
             End If
         Else
             ' ----------------------------------------------------------
@@ -883,7 +982,7 @@ Function Main(argc As Integer, argv() As String) As Integer
                 lifeState = 0
                 deathTimer = 0.0
                 autosaveTimer = 0.0
-                PushLog log1, log2, log3, log4, "Respawned from autosave"
+                eventLog.Push("Respawned from autosave")
             End If
         End If
 
@@ -912,32 +1011,32 @@ Function Main(argc As Integer, argv() As String) As Integer
                 incomingDamage = incomingDamage * enemyDamageScale
                 energy = energy - incomingDamage
                 hitFlashTimer = hitFlashSeconds
-                PushLog log1, log2, log3, log4, "Enemy hit: -" + Str$(incomingDamage)
+                eventLog.Push("Enemy hit: -" + Str$(incomingDamage))
             End If
 
             incomingHealing = RayConsumePlayerHealing()
             If incomingHealing > 0.0 Then
                 energy = energy + incomingHealing
                 If energy > 100.0 Then energy = 100.0
-                PushLog log1, log2, log3, log4, "Medikit restored +" + Str$(incomingHealing)
+                eventLog.Push("Medikit restored +" + Str$(incomingHealing))
             End If
         End If
 
         collectedItems = RayCollectedItemCount()
         If collectedItems > lastCollectedItems Then
-            PushLog log1, log2, log3, log4, "Item collected"
+            eventLog.Push("Item collected")
             lastCollectedItems = collectedItems
         End If
 
         destroyedObjects = RayDestroyedObjectCount()
         If destroyedObjects > lastDestroyedObjects Then
-            PushLog log1, log2, log3, log4, "Object destroyed"
+            eventLog.Push("Object destroyed")
             lastDestroyedObjects = destroyedObjects
         End If
 
         currentLayer = RayCurrentLayer$()
         If currentLayer <> lastLayer Then
-            PushLog log1, log2, log3, log4, "Elevator arrived: " + currentLayer
+            eventLog.Push("Elevator arrived: " + currentLayer)
             lastLayer = currentLayer
         End If
 
@@ -978,13 +1077,31 @@ Function Main(argc As Integer, argv() As String) As Integer
         enemies = RayEnemyCount()
         killed = RayKilledEnemyCount()
 
-        If enemies > 0 And killed >= enemies Then gameDone = 1
+        If enemies > 0 And killed >= enemies And gameDone = 0 Then
+            gameDone = 1
+            eventLog.Push("Congratulations, commander")
+            eventLog.Push("R replay / Q exit")
+        End If
 
         ' Draw the BASIC-side HUD over/next to the rendered scene.
         energyInt = energy
         weaponAmmo = RayWeaponAmmo()
         weaponReserve = RayWeaponReserveAmmo()
-        DrawHud viewW, viewH, hudX, energyInt, autosaveTimer, autosaveSeconds, checkpointSaved, gameDone, selectedWeapon, weaponName, weaponAmmo, weaponReserve, mapUnlocks, difficultyName, log1, log2, log3, log4
+        DrawHud viewW, _
+            viewH, _
+            hudX, _
+            energyInt, _
+            autosaveTimer, _
+            autosaveSeconds, _
+            checkpointSaved, _
+            gameDone, _
+            selectedWeapon, _
+            weaponName, _
+            weaponAmmo, _
+            weaponReserve, _
+            mapUnlocks, _
+            difficultyName, _
+            eventLog
 
         If hitFlashTimer > 0.0 And lifeState = 0 Then
             DrawHitOverlay viewW, viewH
@@ -998,7 +1115,11 @@ Function Main(argc As Integer, argv() As String) As Integer
 
         ' Draw mission-complete message.
         If gameDone = 1 Then
-            TextOut 410, 350, "MISSION COMPLETE", Rgb(160, 255, 160)
+            FillRect 255, 330, 770, 440, Rgb(14, 20, 18)
+            Rect 255, 330, 770, 440, Rgb(100, 220, 145)
+            TextOut 360, 358, "ECLIPSE PROTOCOL COMPLETE", Rgb(170, 255, 185)
+            TextOut 315, 392, "Congratulations. All hostile forces are down.", Rgb(230, 240, 230)
+            TextOut 348, 418, "Press R to replay or Q/Esc to exit.", Rgb(190, 220, 200)
         End If
 
         ' Show the complete frame.
@@ -1017,6 +1138,7 @@ Function Main(argc As Integer, argv() As String) As Integer
 
     ' Restore standard nuBASIC graphics behaviour.
     ScreenUnlock
+    RayShutdown()
 
     Main = 0
 End Function

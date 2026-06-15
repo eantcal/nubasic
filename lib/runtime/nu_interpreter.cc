@@ -1532,7 +1532,8 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
 
     auto should_resume_expression_function = [&]() {
         return get_last_debug_stop_reason() == debug_stop_reason_t::Step
-            && !ctx.debug_function_checkpoints.empty();
+            && !ctx.debug_function_checkpoints.empty()
+            && ctx.debug_function_checkpoints.front().expression_call;
     };
 
     auto should_complete_pending_expression_return = [&]() {
