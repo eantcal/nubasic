@@ -191,6 +191,7 @@ public:
     // that was already produced.
     struct debug_function_checkpoint_t {
         std::string function_name;
+        bool expression_call = false;
         flag_map_t caller_flag;
         prog_pointer_t caller_runtime_pc;
         prog_pointer_t caller_goingto_pc;

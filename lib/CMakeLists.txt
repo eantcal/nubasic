@@ -35,6 +35,17 @@ if(NOT WIN32)
   target_link_libraries(nuBasicInterpreter PUBLIC ${CMAKE_DL_LIBS})
 endif()
 
+if(NUBASIC_WITH_RAYCAST AND TARGET nuRaycastEngine)
+  target_link_libraries(nuBasicInterpreter PUBLIC nuRaycastEngine)
+  if(TARGET nuRaycastTextureLoader)
+    target_link_libraries(nuBasicInterpreter PUBLIC nuRaycastTextureLoader)
+  endif()
+  if(WIN32)
+    target_link_libraries(nuBasicInterpreter PUBLIC winmm)
+  endif()
+  target_compile_definitions(nuBasicInterpreter PUBLIC NUBASIC_HAS_RAYCAST=1)
+endif()
+
 if(MSVC)
   set_target_properties(nuBasicInterpreter PROPERTIES
     VS_GLOBAL_IntDir "$(SolutionDir)$(ProjectName).dir\\$(Platform)\\$(Configuration)\\"

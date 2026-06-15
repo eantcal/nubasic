@@ -1,0 +1,4 @@
+Sound-Origin:    https://freesound.org/s/387532/
+Sound-Copyright: Soundwarf @ FreeSound (2017)
+License-Name:    Creative Commons 0 (CC-0)
+License-URL:     https://creativecommons.org/publicdomain/zero/1.0/

@@ -36,5 +36,6 @@ const builtin_module_t& get_file_builtin_module();
 const builtin_module_t& get_system_builtin_module();
 const builtin_module_t& get_graphics_builtin_module();
 const builtin_module_t& get_hash_builtin_module();
+const builtin_module_t& get_raycast_builtin_module();
 
 } // namespace nu

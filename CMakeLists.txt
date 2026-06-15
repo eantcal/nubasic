@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.14)  # 3.14+ required for FetchContent_MakeAvai
 
 project(nuBASIC)
 
+include(FetchContent)
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -145,6 +147,12 @@ set(_nubasic_tiny ${_nubasic_console})
 # On Linux/macOS it is located via pkg-config first, then bare
 # find_path/find_library as a fallback for distros without a .pc file.
 option(NUBASIC_WITH_LIBFFI "Enable libffi-backed native DLL calls" ON)
+if(WIN32)
+  set(NUBASIC_WITH_RAYCAST_DEFAULT ON)
+else()
+  set(NUBASIC_WITH_RAYCAST_DEFAULT OFF)
+endif()
+option(NUBASIC_WITH_RAYCAST "Enable integrated WinRayCast engine support" ${NUBASIC_WITH_RAYCAST_DEFAULT})
 
 if(NUBASIC_WITH_LIBFFI)
   if(WIN32)
@@ -199,6 +207,16 @@ if(NUBASIC_WITH_LIBFFI)
         "Native declarations will be parsed but invocation will be disabled.")
     endif()
   endif()
+endif()
+
+if(NUBASIC_WITH_RAYCAST)
+  set(JSON_Install OFF CACHE BOOL "" FORCE)
+  FetchContent_Declare(
+    nlohmann_json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+  FetchContent_MakeAvailable(nlohmann_json)
+  add_subdirectory(raycast)
 endif()
 
 # Windows: console/win must be added BEFORE add_subdirectory(lib) so the

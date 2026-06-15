@@ -1,0 +1,88 @@
+{
+  "spriteSet": "ash_pile",
+  "format": "PNG",
+  "transparentColor": [
+    0,
+    0,
+    0
+  ],
+  "supportedResolutions": [
+    512
+  ],
+  "defaultResolution": 512,
+  "maxResolution": 512,
+  "animations": {
+    "idle": {
+      "frameDurationMs": 250,
+      "loop": true,
+      "frames": [
+        {
+          "directions": [
+            {
+              "name": "front",
+              "files": {
+                "512": "512/ash.png"
+              },
+              "angle": 0
+            },
+            {
+              "name": "front_right",
+              "files": {
+                "512": "512/ash.png"
+              },
+              "angle": 45
+            },
+            {
+              "name": "right",
+              "files": {
+                "512": "512/ash.png"
+              },
+              "angle": 90
+            },
+            {
+              "name": "back_right",
+              "files": {
+                "512": "512/ash.png"
+              },
+              "angle": 135
+            },
+            {
+              "name": "back",
+              "files": {
+                "512": "512/ash.png"
+              },
+              "angle": 180
+            },
+            {
+              "name": "back_left",
+              "files": {
+                "512": "512/ash.png"
+              },
+              "angle": 225
+            },
+            {
+              "name": "left",
+              "files": {
+                "512": "512/ash.png"
+              },
+              "angle": 270
+            },
+            {
+              "name": "front_left",
+              "files": {
+                "512": "512/ash.png"
+              },
+              "angle": 315
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "lod": [
+    {
+      "resolution": 512,
+      "maxDistance": 9999
+    }
+  ]
+}

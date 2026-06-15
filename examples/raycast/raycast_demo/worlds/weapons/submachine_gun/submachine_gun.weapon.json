@@ -1,0 +1,66 @@
+{
+  "weapon": "submachine_gun",
+  "format": "PNG",
+  "frameWidth": 640,
+  "frameHeight": 440,
+  "screenHeightFraction": 0.31,
+  "damage": 10,
+  "rangeCells": 7,
+  "fireBehavior": {
+    "automatic": true,
+    "intervalMs": 125,
+    "soundIntervalMs": 900
+  },
+  "anchor": {
+    "x": 0.5,
+    "y": 1
+  },
+  "baseOffset": {
+    "x": 0,
+    "y": 12
+  },
+  "bob": {
+    "enabled": true,
+    "amount": 0.3,
+    "amplitudeX": 5,
+    "amplitudeY": 3,
+    "frequencyHz": 3.2
+  },
+  "sounds": {
+    "fire": "sounds/machine_gun_burst_dry_close.wav"
+  },
+  "animations": {
+    "idle": {
+      "frameDurationMs": 110,
+      "loop": true,
+      "files": [
+        "idle/idle_00.png"
+      ]
+    },
+    "fire": {
+      "frameDurationMs": 70,
+      "loop": false,
+      "files": [
+        "fire/fire_00.png",
+        "fire/fire_01.png",
+        "fire/fire_02.png"
+      ]
+    },
+    "reload": {
+      "frameDurationMs": 75,
+      "loop": false,
+      "files": [
+        "reload/reload_00.png",
+        "reload/reload_01.png",
+        "reload/reload_02.png",
+        "reload/reload_03.png",
+        "reload/reload_04.png"
+      ]
+    }
+  },
+  "ammo": {
+    "magazineSize": 40,
+    "maxAmmo": 240,
+    "initialAmmo": 240
+  }
+}

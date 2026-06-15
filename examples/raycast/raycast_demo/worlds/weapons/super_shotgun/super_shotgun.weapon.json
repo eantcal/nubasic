@@ -1,0 +1,67 @@
+{
+  "weapon": "super_shotgun",
+  "format": "PNG",
+  "frameWidth": 640,
+  "frameHeight": 440,
+  "screenHeightFraction": 0.34,
+  "damage": 45,
+  "rangeCells": 7.5,
+  "anchor": {
+    "x": 0.5,
+    "y": 1
+  },
+  "baseOffset": {
+    "x": 0,
+    "y": 18
+  },
+  "bob": {
+    "enabled": true,
+    "amount": 0.45,
+    "amplitudeX": 7,
+    "amplitudeY": 4,
+    "frequencyHz": 2.6
+  },
+  "animations": {
+    "idle": {
+      "frameDurationMs": 160,
+      "loop": true,
+      "files": [
+        "idle/idle_00.png"
+      ]
+    },
+    "fire": {
+      "frameDurationMs": 70,
+      "loop": false,
+      "files": [
+        "fire/fire_00.png",
+        "fire/fire_01.png",
+        "fire/fire_02.png"
+      ]
+    },
+    "reload": {
+      "frameDurationMs": 95,
+      "loop": false,
+      "files": [
+        "reload/reload_00.png",
+        "reload/reload_01.png",
+        "reload/reload_02.png",
+        "reload/reload_03.png",
+        "reload/reload_04.png",
+        "reload/reload_05.png",
+        "reload/reload_06.png",
+        "reload/reload_07.png",
+        "reload/reload_08.png",
+        "reload/reload_09.png",
+        "reload/reload_10.png"
+      ]
+    }
+  },
+  "sounds": {
+    "fire": "sounds/cannon2.mp3"
+  },
+  "ammo": {
+    "magazineSize": 2,
+    "maxAmmo": 14,
+    "initialAmmo": 14
+  }
+}

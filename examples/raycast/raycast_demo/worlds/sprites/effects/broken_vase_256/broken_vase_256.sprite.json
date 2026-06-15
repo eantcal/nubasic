@@ -1,0 +1,88 @@
+﻿{
+    "spriteSet":  "broken_vase_256",
+    "format":  "PNG",
+    "transparentColor":  [
+                             0,
+                             0,
+                             0
+                         ],
+    "supportedResolutions":  [
+                                 256
+                             ],
+    "defaultResolution":  256,
+    "maxResolution":  256,
+    "animations":  {
+                       "idle":  {
+                                    "frameDurationMs":  250,
+                                    "loop":  true,
+                                    "frames":  [
+                                                   {
+                                                       "directions":  [
+                                                                          {
+                                                                              "name":  "front",
+                                                                              "files":  {
+                                                                                            "256":  "256/broken.png"
+                                                                                        },
+                                                                              "angle":  0
+                                                                          },
+                                                                          {
+                                                                              "name":  "front_right",
+                                                                              "files":  {
+                                                                                            "256":  "256/broken.png"
+                                                                                        },
+                                                                              "angle":  45
+                                                                          },
+                                                                          {
+                                                                              "name":  "right",
+                                                                              "files":  {
+                                                                                            "256":  "256/broken.png"
+                                                                                        },
+                                                                              "angle":  90
+                                                                          },
+                                                                          {
+                                                                              "name":  "back_right",
+                                                                              "files":  {
+                                                                                            "256":  "256/broken.png"
+                                                                                        },
+                                                                              "angle":  135
+                                                                          },
+                                                                          {
+                                                                              "name":  "back",
+                                                                              "files":  {
+                                                                                            "256":  "256/broken.png"
+                                                                                        },
+                                                                              "angle":  180
+                                                                          },
+                                                                          {
+                                                                              "name":  "back_left",
+                                                                              "files":  {
+                                                                                            "256":  "256/broken.png"
+                                                                                        },
+                                                                              "angle":  225
+                                                                          },
+                                                                          {
+                                                                              "name":  "left",
+                                                                              "files":  {
+                                                                                            "256":  "256/broken.png"
+                                                                                        },
+                                                                              "angle":  270
+                                                                          },
+                                                                          {
+                                                                              "name":  "front_left",
+                                                                              "files":  {
+                                                                                            "256":  "256/broken.png"
+                                                                                        },
+                                                                              "angle":  315
+                                                                          }
+                                                                      ]
+                                                   }
+                                               ]
+                                }
+                   },
+    "lod":  [
+                {
+                    "resolution":  256,
+                    "maxDistance":  9999
+                }
+            ]
+}

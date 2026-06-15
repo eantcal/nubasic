@@ -18,7 +18,7 @@ namespace {
             = { &get_math_builtin_module(), &get_string_builtin_module(),
                   &get_runtime_builtin_module(), &get_file_builtin_module(),
                   &get_system_builtin_module(), &get_graphics_builtin_module(),
-                  &get_hash_builtin_module() };
+                  &get_hash_builtin_module(), &get_raycast_builtin_module() };
 
         return modules;
     }

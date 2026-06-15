@@ -1,0 +1,2 @@
+LOAD "main_entry_upper_run_fixture.bas"
+RUN

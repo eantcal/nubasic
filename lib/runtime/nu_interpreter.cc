@@ -1532,7 +1532,8 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
 
     auto should_resume_expression_function = [&]() {
         return get_last_debug_stop_reason() == debug_stop_reason_t::Step
-            && !ctx.debug_function_checkpoints.empty();
+            && !ctx.debug_function_checkpoints.empty()
+            && ctx.debug_function_checkpoints.front().expression_call;
     };
 
     auto should_complete_pending_expression_return = [&]() {
@@ -2178,7 +2179,7 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
 
             if (tknzr.eol()) {
                 rebuild();
-                run(0);
+                run_main_or_default();
                 return check_break_and_stop();
             }
 
@@ -2452,9 +2453,22 @@ bool interpreter_t::run(runnable_t::line_num_t line)
 
 bool interpreter_t::run_main_or_default()
 {
+    if (_prog_ctx.get_syntax_mode() != prog_ctx_t::syntax_mode_t::MODERN) {
+        return run(0);
+    }
+
     // If the loaded program defines a top-level "main" function/sub,
     // use it as the entry point and pass the stored CLI arguments.
-    auto main_it = _prog_ctx.proc_prototypes.data.find("main");
+    auto main_it = _prog_ctx.proc_prototypes.data.end();
+    std::string main_name;
+    for (auto it = _prog_ctx.proc_prototypes.data.begin();
+         it != _prog_ctx.proc_prototypes.data.end(); ++it) {
+        if (to_lower_ascii(it->first) == "main") {
+            main_it = it;
+            main_name = it->first;
+            break;
+        }
+    }
 
     if (main_it != _prog_ctx.proc_prototypes.data.end()) {
         const auto& params = main_it->second.second.parameters;
@@ -2490,7 +2504,7 @@ bool interpreter_t::run_main_or_default()
         if (_yield_cbk)
             prog.set_yield_cbk(_yield_cbk, _yield_data);
 
-        return prog.run("main", args);
+        return prog.run(main_name, args);
     }
 
     return run(0);

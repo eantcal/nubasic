@@ -1,0 +1,7 @@
+load "test_debug_main_local_step.bas"
+break 10
+run
+stepover
+vars
+cont
+exit

@@ -1,0 +1,88 @@
+{
+  "spriteSet": "item_office_copier",
+  "format": "PNG",
+  "transparentColor": [
+    0,
+    0,
+    0
+  ],
+  "supportedResolutions": [
+    256
+  ],
+  "defaultResolution": 256,
+  "maxResolution": 256,
+  "animations": {
+    "idle": {
+      "frameDurationMs": 250,
+      "loop": true,
+      "frames": [
+        {
+          "directions": [
+            {
+              "name": "front",
+              "angle": 0,
+              "files": {
+                "256": "256/front.png"
+              }
+            },
+            {
+              "name": "front_right",
+              "angle": 45,
+              "files": {
+                "256": "256/front_right.png"
+              }
+            },
+            {
+              "name": "right",
+              "angle": 90,
+              "files": {
+                "256": "256/right.png"
+              }
+            },
+            {
+              "name": "back_right",
+              "angle": 135,
+              "files": {
+                "256": "256/back_right.png"
+              }
+            },
+            {
+              "name": "back",
+              "angle": 180,
+              "files": {
+                "256": "256/back.png"
+              }
+            },
+            {
+              "name": "back_left",
+              "angle": 225,
+              "files": {
+                "256": "256/back_left.png"
+              }
+            },
+            {
+              "name": "left",
+              "angle": 270,
+              "files": {
+                "256": "256/left.png"
+              }
+            },
+            {
+              "name": "front_left",
+              "angle": 315,
+              "files": {
+                "256": "256/front_left.png"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "lod": [
+    {
+      "maxDistance": 9999,
+      "resolution": 256
+    }
+  ]
+}
