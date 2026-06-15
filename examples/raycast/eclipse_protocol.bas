@@ -122,7 +122,6 @@ Function Percent(done As Integer, total As Integer) As Integer
         Percent = (done * 100) / total
     End If
 End Function
-
 ' Draws a percentage meter, for example the player energy bar.
 Sub DrawMeter(x As Integer, y As Integer, w As Integer, h As Integer, value As Integer, color As Integer)
     Dim fillW As Integer
@@ -1142,4 +1141,3 @@ Function Main(argc As Integer, argv() As String) As Integer
 
     Main = 0
 End Function
-
