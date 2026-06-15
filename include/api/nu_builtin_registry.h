@@ -22,12 +22,14 @@ public:
     virtual const std::string& name() const noexcept = 0;
     virtual const builtin_export_list_t& exports() const noexcept = 0;
     virtual void register_functions(global_function_tbl_t& fmap) const = 0;
+    virtual void cleanup_runtime_state() const noexcept {}
 };
 
 const std::vector<const builtin_module_t*>& get_builtin_modules();
 const builtin_module_t* find_builtin_module(const std::string& name) noexcept;
 
 void register_builtin_modules(global_function_tbl_t& fmap);
+void cleanup_builtin_modules_runtime_state() noexcept;
 
 const builtin_module_t& get_math_builtin_module();
 const builtin_module_t& get_string_builtin_module();

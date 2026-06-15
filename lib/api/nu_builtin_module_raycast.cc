@@ -3291,6 +3291,13 @@ namespace {
             }
 #endif
         }
+
+        void cleanup_runtime_state() const noexcept override
+        {
+#ifdef NUBASIC_HAS_RAYCAST
+            stop_background_music(raycast_session());
+#endif
+        }
     };
 
 } // namespace

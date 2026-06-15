@@ -426,7 +426,7 @@ if(WIN32)
     set(CPACK_COMPONENTS_ALL "Core;IDE;VSCodeExtension;Examples")
 
     set(CPACK_COMPONENT_CORE_DISPLAY_NAME   "nuBASIC Runtime")
-    set(CPACK_COMPONENT_CORE_DESCRIPTION    "CLI interpreter (nubasic.exe / nubasic_t.exe)")
+    set(CPACK_COMPONENT_CORE_DESCRIPTION    "CLI interpreters (nubasic.exe, nubasicgdi.exe, nubasicdebug.exe)")
     set(CPACK_COMPONENT_CORE_REQUIRED       TRUE)
 
     set(CPACK_COMPONENT_IDE_DISPLAY_NAME    "nuBASIC IDE")

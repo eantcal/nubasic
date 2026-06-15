@@ -27,7 +27,9 @@ This note makes the Windows launch policy explicit so `nubasic.exe`,
 
 - VS Code `Run nuBASIC File`
   - File: [extension.ts](C:\repo\nubasic\vscode-nubasic\src\extension.ts)
-  - Launches `nubasic.exe`
+  - Launches `nubasic.exe` for text programs.
+  - On Windows, launches `nubasicgdi.exe` when the entry source uses graphics
+    or RayCast commands and the GDI executable is available.
   - Purpose: normal editor run
 
 - VS Code `Debug nuBASIC File`

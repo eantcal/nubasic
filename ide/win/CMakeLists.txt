@@ -133,6 +133,12 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/examples/"
   PATTERN "*.bas"
   PATTERN "*.nbp"
   PATTERN "*.bmp"
+  PATTERN "*.json"
+  PATTERN "*.mp3"
+  PATTERN "*.ogg"
+  PATTERN "*.png"
+  PATTERN "*.wav"
+  PATTERN "*.md"
   PATTERN "manifest.txt")
 
 

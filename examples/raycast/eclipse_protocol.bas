@@ -167,6 +167,46 @@ Sub DrawDeathOverlay(viewW As Integer, viewH As Integer, strength As Integer, re
     End If
 End Sub
 
+' Draws the stable end-of-mission screen.
+'
+' This screen intentionally does not call RayRender() or RayPresent().
+' Once the mission is complete the game switches to a small menu loop that
+' redraws only this neutral image, avoiding flicker from the live 3D scene.
+Sub DrawMissionCompleteScreen(totalW As Integer, viewH As Integer)
+    Dim cx As Integer
+    Dim cy As Integer
+    Dim panelW As Integer
+    Dim panelH As Integer
+    Dim x1 As Integer
+    Dim y1 As Integer
+    Dim edgeSize As Integer
+
+    cx = totalW / 2
+    cy = viewH / 2
+    panelW = 620
+    panelH = 190
+    x1 = cx - panelW / 2
+    y1 = cy - panelH / 2
+    edgeSize = viewH / 18
+
+    ' Neutral background with a green-blue completion tint.
+    FillRect 0, 0, totalW, viewH, Rgb(8, 14, 18)
+    FillRect 0, 0, totalW, edgeSize, Rgb(0, 70, 86)
+    FillRect 0, viewH - edgeSize, totalW, viewH, Rgb(0, 70, 86)
+    FillRect 0, 0, edgeSize, viewH, Rgb(0, 84, 70)
+    FillRect totalW - edgeSize, 0, totalW, viewH, Rgb(0, 84, 70)
+
+    ' Centered message panel.
+    FillRect x1, y1, x1 + panelW, y1 + panelH, Rgb(12, 24, 24)
+    Rect x1, y1, x1 + panelW, y1 + panelH, Rgb(105, 225, 185)
+    Rect x1 + 6, y1 + 6, x1 + panelW - 6, y1 + panelH - 6, Rgb(45, 125, 150)
+
+    TextOut cx - 142, cy - 58, "ECLIPSE PROTOCOL COMPLETE", Rgb(170, 255, 210)
+    TextOut cx - 124, cy - 18, "Congratulations, commander.", Rgb(230, 245, 240)
+    TextOut cx - 156, cy + 22, "Press R to replay the mission", Rgb(190, 225, 220)
+    TextOut cx - 116, cy + 48, "Press Q or Esc to exit", Rgb(160, 195, 210)
+End Sub
+
 ' Draws a short red border when an enemy successfully hits the player.
 Sub DrawHitOverlay(viewW As Integer, viewH As Integer)
     Dim edgeSize As Integer
@@ -533,6 +573,7 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim weaponReserve As Integer
     Dim elevatorOptions As Integer
     Dim elevatorSelected As Integer
+    Dim screenW As Integer
 
     ' ------------------------------------------------------------------
     ' GAME SETTINGS
@@ -551,6 +592,7 @@ Function Main(argc As Integer, argv() As String) As Integer
     viewW = settings.ViewW
     viewH = settings.ViewH
     hudX = settings.HudX
+    screenW = viewW + 320
 
     moveStep = settings.MoveStep
     backStep = 0 - moveStep    ' Negative movement step for walking backwards.
@@ -677,45 +719,63 @@ Function Main(argc As Integer, argv() As String) As Integer
         If RayKeyDown(keys.Escape) = 1 Or RayKeyDown(keys.Q) = 1 Then shouldQuit = 1
 
         ' Mission-complete menu.
-        ' Press R to replay the mission without closing the graphics window.
+        '
+        ' The completed mission uses its own stable rendering loop. It stops
+        ' the live raycast presentation and redraws only a neutral end screen
+        ' while waiting for replay/exit input.
         If gameDone = 1 Then
-            If RayKeyDown(keys.R) = 1 Then
-                If lastRestartKey = 0 Then
-                    If RayLoadProject(world) = 1 Then
-                        RaySetTransitionManual(1)
-                        energy = 100.0
-                        lifeState = 0
-                        deathTimer = 0.0
-                        autosaveTimer = 0.0
-                        gameDone = 0
-                        selectedWeapon = 1
-                        weaponName = "Pistol"
-                        weaponPath = "weapons/pistol/pistol.weapon.json"
-                        fireDamage = 18.0
-                        fireRangeCells = 8.5
-                        fireFovDegrees = 22.0
-                        fireCooldownSeconds = 0.32
-                        energyShotCost = settings.EnergyShotCost
-                        checkpointX = RayPlayerX()
-                        checkpointY = RayPlayerY()
-                        checkpointFacing = RayPlayerFacing()
-                        checkpointSaved = 1
-                        lastCollectedItems = RayCollectedItemCount()
-                        lastDestroyedObjects = RayDestroyedObjectCount()
-                        lastLayer = RayCurrentLayer$()
-                        eventLog.Line1 = "Mission restarted"
-                        eventLog.Line2 = "World loaded: " + lastLayer
-                        eventLog.Line3 = "Autosave ready"
-                        eventLog.Line4 = "Find computers to unlock the map"
-                    Else
-                        eventLog.Push("Cannot restart mission")
+            While gameDone = 1 And shouldQuit = 0
+                frameStartMs = Millis()
+
+                If RayKeyDown(keys.Escape) = 1 Or RayKeyDown(keys.Q) = 1 Then shouldQuit = 1
+
+                If RayKeyDown(keys.R) = 1 Then
+                    If lastRestartKey = 0 Then
+                        If RayLoadProject(world) = 1 Then
+                            RaySetTransitionManual(1)
+                            energy = 100.0
+                            lifeState = 0
+                            deathTimer = 0.0
+                            autosaveTimer = 0.0
+                            gameDone = 0
+                            selectedWeapon = 1
+                            weaponName = "Pistol"
+                            weaponPath = "weapons/pistol/pistol.weapon.json"
+                            fireDamage = 18.0
+                            fireRangeCells = 8.5
+                            fireFovDegrees = 22.0
+                            fireCooldownSeconds = 0.32
+                            energyShotCost = settings.EnergyShotCost
+                            checkpointX = RayPlayerX()
+                            checkpointY = RayPlayerY()
+                            checkpointFacing = RayPlayerFacing()
+                            checkpointSaved = 1
+                            lastCollectedItems = RayCollectedItemCount()
+                            lastDestroyedObjects = RayDestroyedObjectCount()
+                            lastLayer = RayCurrentLayer$()
+                            eventLog.Line1 = "Mission restarted"
+                            eventLog.Line2 = "World loaded: " + lastLayer
+                            eventLog.Line3 = "Autosave ready"
+                            eventLog.Line4 = "Find computers to unlock the map"
+                        Else
+                            eventLog.Push("Cannot restart mission")
+                        End If
                     End If
+                    lastRestartKey = 1
+                Else
+                    lastRestartKey = 0
                 End If
-                lastRestartKey = 1
-            Else
-                lastRestartKey = 0
-            End If
+
+                DrawMissionCompleteScreen screenW, viewH
+                Refresh
+
+                frameElapsedMs = Millis() - frameStartMs
+                frameDelayMs = frameBudgetMs - frameElapsedMs
+                If frameDelayMs > 0 Then MDelay(frameDelayMs)
+            Wend
         End If
+
+        If shouldQuit = 1 Then Exit While
 
         ' Used to charge movement energy only when the player actually moves.
         moving = 0
@@ -1114,12 +1174,9 @@ Function Main(argc As Integer, argv() As String) As Integer
         End If
 
         ' Draw mission-complete message.
+        ' The next loop iteration switches to the stable completion screen.
         If gameDone = 1 Then
-            FillRect 255, 330, 770, 440, Rgb(14, 20, 18)
-            Rect 255, 330, 770, 440, Rgb(100, 220, 145)
-            TextOut 360, 358, "ECLIPSE PROTOCOL COMPLETE", Rgb(170, 255, 185)
-            TextOut 315, 392, "Congratulations. All hostile forces are down.", Rgb(230, 240, 230)
-            TextOut 348, 418, "Press R to replay or Q/Esc to exit.", Rgb(190, 220, 200)
+            DrawMissionCompleteScreen screenW, viewH
         End If
 
         ' Show the complete frame.

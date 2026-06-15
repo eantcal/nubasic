@@ -2,7 +2,7 @@
   "name": "nubasic",
   "displayName": "nuBASIC",
   "description": "nuBASIC language support for Visual Studio Code",
-  "version": "0.1.16",
+  "version": "0.1.26",
   "publisher": "eantcal",
   "license": "MIT",
   "icon": "images/icon.png",

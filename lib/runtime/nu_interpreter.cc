@@ -369,6 +369,8 @@ void interpreter_t::clear_rtdata() { get_rt_ctx().clear_rtdata(); }
 
 void interpreter_t::clear_all()
 {
+    cleanup_builtin_modules_runtime_state();
+
     _prog_line.clear();
     _source_line.clear();
     _source_locations.clear();
@@ -384,6 +386,8 @@ void interpreter_t::clear_all()
 
 void interpreter_t::rebuild(runnable_t::line_num_t to_num)
 {
+    cleanup_builtin_modules_runtime_state();
+
     // Clear precompiled program
     _prog_line.clear();
 

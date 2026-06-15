@@ -65,4 +65,15 @@ void register_builtin_modules(global_function_tbl_t& fmap)
     }
 }
 
+void cleanup_builtin_modules_runtime_state() noexcept
+{
+    for (const auto* module : builtin_modules()) {
+        if (!module) {
+            continue;
+        }
+
+        module->cleanup_runtime_state();
+    }
+}
+
 } // namespace nu

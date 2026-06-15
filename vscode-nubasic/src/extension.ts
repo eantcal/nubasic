@@ -138,11 +138,33 @@ async function resolveDebugExecutable(override?: string): Promise<string> {
     return debugExe;
 }
 
+async function resolveRunExecutable(programPath: string): Promise<string> {
+    const exe = await resolveExecutable();
+    if (process.platform !== 'win32' || !sourceFileUsesGraphics(programPath)) {
+        return exe;
+    }
+
+    const graphicsExe = preferGraphicsExecutable(exe);
+    if (!graphicsExe) {
+        return exe;
+    }
+
+    if (!hasPathSeparator(graphicsExe)) {
+        return await existsInPath(graphicsExe) ? graphicsExe : exe;
+    }
+
+    return fileExists(graphicsExe) ? graphicsExe : exe;
+}
+
 function existsInPath(name: string): Promise<boolean> {
     return new Promise(resolve => {
         const cmd = process.platform === 'win32' ? `where "${name}"` : `which "${name}"`;
         cp.exec(cmd, err => resolve(!err));
     });
+}
+
+function hasPathSeparator(filePath: string): boolean {
+    return filePath.includes('\\') || filePath.includes('/');
 }
 
 function preferDebugExecutable(executablePath: string): string | undefined {
@@ -151,7 +173,7 @@ function preferDebugExecutable(executablePath: string): string | undefined {
         return undefined;
     }
 
-    if (!trimmed.includes('\\') && !trimmed.includes('/')) {
+    if (!hasPathSeparator(trimmed)) {
         if (/^nubasic(?:\.exe)?$/i.test(trimmed)) {
             const hasExeSuffix = trimmed.toLowerCase().endsWith('.exe');
             return hasExeSuffix ? 'nubasicdebug.exe' : 'nubasicdebug';
@@ -171,6 +193,35 @@ function preferDebugExecutable(executablePath: string): string | undefined {
         path.join(parsed.dir, `nubasic_t${extension}`),
     ];
     return debugCandidates.find(candidate => fileExists(candidate));
+}
+
+function preferGraphicsExecutable(executablePath: string): string | undefined {
+    const trimmed = executablePath.trim();
+    if (!trimmed) {
+        return undefined;
+    }
+
+    if (!hasPathSeparator(trimmed)) {
+        if (/^nubasicgdi(?:\.exe)?$/i.test(trimmed)) {
+            return trimmed;
+        }
+        if (/^nubasic(?:\.exe)?$/i.test(trimmed)) {
+            const hasExeSuffix = trimmed.toLowerCase().endsWith('.exe');
+            return hasExeSuffix ? 'nubasicgdi.exe' : 'nubasicgdi';
+        }
+        return undefined;
+    }
+
+    const parsed = path.parse(trimmed);
+    if (/^nubasicgdi$/i.test(parsed.name)) {
+        return trimmed;
+    }
+    if (!/^nubasic$/i.test(parsed.name)) {
+        return undefined;
+    }
+
+    const extension = parsed.ext || (process.platform === 'win32' ? '.exe' : '');
+    return path.join(parsed.dir, `nubasicgdi${extension}`);
 }
 
 function fileExists(filePath: string): boolean {
@@ -288,7 +339,7 @@ async function runFile() {
         return;
     }
 
-    const exe = await resolveExecutable();
+    const exe = await resolveRunExecutable(filePath);
     const filePathFwd = filePath.replace(/\\/g, '/');
 
     if (projectDir && (!terminal || terminal.exitStatus !== undefined)) {
@@ -390,6 +441,10 @@ function sourceLineUsesAnyKeyword(line: string, keywords: string[]): boolean {
     const withoutLineNumber = withoutComment.replace(/^\s*\d+\s+/, '');
     if (/^\s*rem(?:\s|$)/.test(withoutLineNumber)) {
         return false;
+    }
+
+    if (/(^|[^a-z0-9_%$])ray[a-z0-9_]*\s*\(/.test(withoutLineNumber)) {
+        return true;
     }
 
     return keywords.some(keyword => {
@@ -948,7 +1003,7 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
             this.clearPendingState();
             pending.resolve(pending.output);
             if (this.breakpointsDirty) {
-                void this.syncBreakpoints();
+                this.scheduleDeferredBreakpointSync();
             }
         } else if (userText) {
             this.maybePromptForProgramInput(userText);
@@ -1063,6 +1118,17 @@ class NuBasicDebugSession implements vscode.DebugAdapter {
         if (!this.pending && !this.breakpointSyncInFlight) {
             void this.syncBreakpoints();
         }
+    }
+
+    private scheduleDeferredBreakpointSync() {
+        setTimeout(() => {
+            if (!this.process || this.process.killed) {
+                return;
+            }
+            if (this.breakpointsDirty && !this.pending && !this.breakpointSyncInFlight) {
+                void this.syncBreakpoints();
+            }
+        }, 0);
     }
 
     private async syncBreakpoints() {

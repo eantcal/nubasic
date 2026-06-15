@@ -32,3 +32,4 @@ math/rosettatxt.bas|Rosetta text task
 multisource/main.bas|Multi-source program with main() entry point
 native/native_dll_function.bas|Call a function exported by a DLL
 native/native_open_file_dialog.bas|Native Win32 file-open dialog
+raycast/eclipse_protocol.bas|Eclipse Protocol WinRayCast demo
