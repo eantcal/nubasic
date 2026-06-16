@@ -1195,7 +1195,7 @@ Function Main(argc As Integer, argv() As String) As Integer
 
     ' Restore standard nuBASIC graphics behaviour.
     ScreenUnlock
-    RayShutdown()
+    if RayShutdown()==1 Then Main = 0
 
-    Main = 0
+    Main = 1
 End Function
