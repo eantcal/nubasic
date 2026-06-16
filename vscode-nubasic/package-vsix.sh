@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
+COMPILED_OUT="$(cd "${ROOT}/.." && pwd)/_generated/vscode-nubasic/out"
 
 read_pkg() { node -p "require('${ROOT}/package.json').$1"; }
 
@@ -28,7 +29,7 @@ mkdir -p "${EXT_DIR}/out" "${EXT_DIR}/syntaxes" "${EXT_DIR}/images"
 cp "${ROOT}/language-configuration.json"          "${EXT_DIR}/"
 cp "${ROOT}/LICENSE"                               "${EXT_DIR}/LICENSE.txt"
 cp "${ROOT}/package.json"                          "${EXT_DIR}/"
-cp "${ROOT}/out/extension.js"                      "${EXT_DIR}/out/"
+cp "${COMPILED_OUT}/extension.js"                  "${EXT_DIR}/out/"
 cp "${ROOT}/syntaxes/nubasic.tmLanguage.json"      "${EXT_DIR}/syntaxes/"
 cp "${ROOT}/images/icon.png"                       "${EXT_DIR}/images/"
 

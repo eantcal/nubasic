@@ -32,6 +32,14 @@ function Resolve-DebugInterpreter {
     }
 
     $candidates = @(
+        "$RepoRoot\_generated\build\raycast-release\cli\win\Release\nubasicdebug.exe",
+        "$RepoRoot\_generated\build\raycast-release\cli\win\Debug\nubasicdebug.exe",
+        "$RepoRoot\_generated\build\release\cli\win\Release\nubasicdebug.exe",
+        "$RepoRoot\_generated\build\release\cli\win\Debug\nubasicdebug.exe",
+        "$RepoRoot\_generated\build\debug\cli\win\Debug\nubasicdebug.exe",
+        "$RepoRoot\_generated\build\debug\cli\win\Release\nubasicdebug.exe",
+        "$RepoRoot\_generated\build\release\nubasicdebug",
+        "$RepoRoot\_generated\build\debug\nubasicdebug",
         "$RepoRoot\build\release\cli\win\Release\nubasicdebug.exe",
         "$RepoRoot\build\release\cli\win\Debug\nubasicdebug.exe",
         "$RepoRoot\build\debug\cli\win\Debug\nubasicdebug.exe",

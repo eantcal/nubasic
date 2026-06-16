@@ -57,10 +57,27 @@ done
 # ── locate interpreter ────────────────────────────────────────────────────────
 if [[ -z "$INTERPRETER" ]]; then
     CANDIDATES=(
-        # Visual Studio cmake layout — debug build dir (most recently built)
+        # Preferred generated-output root
+        "$REPO_ROOT/_generated/build/raycast-release/cli/win/Release/nubasic.exe"
+        "$REPO_ROOT/_generated/build/raycast-release/cli/win/Debug/nubasic.exe"
+        "$REPO_ROOT/_generated/build/debug/cli/win/Debug/nubasic.exe"
+        "$REPO_ROOT/_generated/build/debug/cli/win/Release/nubasic.exe"
+        "$REPO_ROOT/_generated/build/release/cli/win/Release/nubasic.exe"
+        "$REPO_ROOT/_generated/build/release/cli/win/Debug/nubasic.exe"
+        "$REPO_ROOT/_generated/build/debug/cli/win/nubasic.exe"
+        "$REPO_ROOT/_generated/build/release/cli/win/nubasic.exe"
+        "$REPO_ROOT/_generated/build/nubasic"
+        "$REPO_ROOT/_generated/build/Release/nubasic"
+        "$REPO_ROOT/_generated/build/Debug/nubasic"
+        "$REPO_ROOT/_generated/build/release/nubasic"
+        "$REPO_ROOT/_generated/build/release/Release/nubasic"
+        "$REPO_ROOT/_generated/build/release/Release/nubasic.exe"
+        "$REPO_ROOT/_generated/build/debug/Debug/nubasic.exe"
+        "$REPO_ROOT/_generated/build/debug/nubasic"
+        # Visual Studio cmake layout - debug build dir (most recently built)
         "$REPO_ROOT/build/debug/cli/win/Debug/nubasic.exe"
         "$REPO_ROOT/build/debug/cli/win/Release/nubasic.exe"
-        # Visual Studio cmake layout — release build dir
+        # Visual Studio cmake layout - release build dir
         "$REPO_ROOT/build/release/cli/win/Release/nubasic.exe"
         "$REPO_ROOT/build/release/cli/win/Debug/nubasic.exe"
         # Ninja / single-config cmake layout

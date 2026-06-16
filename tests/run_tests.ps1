@@ -49,6 +49,14 @@ function Test-PlatformMatches([string]$Token) {
 # ── locate interpreter ───────────────────────────────────────────────────────
 if ($Interpreter -eq "") {
     $Candidates = @(
+        "$RepoRoot\_generated\build\raycast-release\cli\win\Release\nubasic.exe",
+        "$RepoRoot\_generated\build\raycast-release\cli\win\Debug\nubasic.exe",
+        "$RepoRoot\_generated\build\release\cli\win\Release\nubasic.exe",
+        "$RepoRoot\_generated\build\release\cli\win\Debug\nubasic.exe",
+        "$RepoRoot\_generated\build\debug\cli\win\Debug\nubasic.exe",
+        "$RepoRoot\_generated\build\debug\cli\win\Release\nubasic.exe",
+        "$RepoRoot\_generated\build\release\Release\nubasic.exe",
+        "$RepoRoot\_generated\build\debug\Debug\nubasic.exe",
         "$RepoRoot\build\release\cli\win\Release\nubasic.exe",
         "$RepoRoot\build\release\cli\win\Debug\nubasic.exe",
         "$RepoRoot\build\debug\cli\win\Debug\nubasic.exe",

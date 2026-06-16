@@ -17,9 +17,13 @@ Debug
 *.orig
 *.user
 .vs
+/.claude
+/_generated/
+
+# Legacy generated roots kept ignored for older local worktrees. Prefer
+# _generated/build, _generated/out and _generated/package for new outputs.
 /build/
 /out/
-/.claude
 
 # CMake-generated project files (use build/ directories instead)
 *.sln

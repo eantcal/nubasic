@@ -1,0 +1,47 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "release",
+      "displayName": "Release",
+      "binaryDir": "${sourceDir}/_generated/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "binaryDir": "${sourceDir}/_generated/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "raycast-release",
+      "displayName": "RayCast Release",
+      "binaryDir": "${sourceDir}/_generated/build/raycast-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "NUBASIC_WITH_RAYCAST": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "configuration": "Release"
+    },
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "raycast-release",
+      "configurePreset": "raycast-release",
+      "configuration": "Release"
+    }
+  ]
+}

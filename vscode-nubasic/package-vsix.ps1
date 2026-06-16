@@ -5,6 +5,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$compiledOut = Join-Path (Split-Path -Parent $root) '_generated\vscode-nubasic\out'
 
 if (($BumpPatch -eq "1") -or ($BumpPatch -eq "true") -or ($BumpPatch -eq "yes") -or ($env:NUBASIC_VSCODE_BUMP_PATCH -eq "1")) {
     & (Join-Path $root 'bump-version.ps1')
@@ -36,7 +37,7 @@ New-Item -ItemType Directory -Path (Join-Path $extensionDir 'images') | Out-Null
 Copy-Item -LiteralPath (Join-Path $root 'language-configuration.json') -Destination $extensionDir
 Copy-Item -LiteralPath (Join-Path $root 'LICENSE') -Destination (Join-Path $extensionDir 'LICENSE.txt')
 Copy-Item -LiteralPath (Join-Path $root 'package.json') -Destination $extensionDir
-Copy-Item -LiteralPath (Join-Path $root 'out\extension.js') -Destination (Join-Path $extensionDir 'out')
+Copy-Item -LiteralPath (Join-Path $compiledOut 'extension.js') -Destination (Join-Path $extensionDir 'out')
 Copy-Item -LiteralPath (Join-Path $root 'syntaxes\nubasic.tmLanguage.json') -Destination (Join-Path $extensionDir 'syntaxes')
 Copy-Item -LiteralPath (Join-Path $root 'images\icon.png') -Destination (Join-Path $extensionDir 'images')
 

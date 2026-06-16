@@ -114,6 +114,11 @@ Print "Hello, world!"
 nuBASIC builds with CMake 3.14+ and a C++20 compiler (`gcc`/`clang` on POSIX, MSVC 2022 on Windows).  
 See the [Building from Source](https://github.com/eantcal/nubasic/wiki/Building-from-Source) wiki page for the full CMake option reference.
 
+Generated files are kept under `_generated/` by convention. Use the CMake
+presets in `CMakePresets.json` for new local builds, for example
+`cmake --preset raycast-release` followed by
+`cmake --build --preset raycast-release`.
+
 ---
 
 ### Windows — MSI installer (WiX) or setup.exe (NSIS)
@@ -134,13 +139,13 @@ See the [Building from Source](https://github.com/eantcal/nubasic/wiki/Building-
 ```bat
 git clone https://github.com/eantcal/nubasic.git
 cd nubasic
-mkdir build-win && cd build-win
-cmake -G "Visual Studio 17 2022" -A x64 ..
+cmake --preset release
 ```
 
 #### Build and create the installer from Visual Studio (recommended)
 
-After generating the solution, open `nuBASIC.sln` in Visual Studio 2022.
+After generating the solution, open
+`_generated\build\release\nuBASIC.slnx` in Visual Studio 2022.
 
 1. Set the configuration to **Release** (top toolbar drop-down).
 2. In **Solution Explorer**, expand the **Installer** folder.
@@ -161,9 +166,8 @@ The `PACKAGE` target (also in the **Installer** folder) is an alternative that r
 #### Build and create the installer from the command line
 
 ```powershell
-# From the build-win directory created above:
-cmake --build . --config Release
-cmake --build . --target CreateInstaller --config Release
+cmake --build --preset release
+cmake --build _generated\build\release --target CreateInstaller --config Release
 ```
 
 The `CreateInstaller` target internally calls `cmake/RunCpackInstaller.ps1`, which runs CPack and then `cmake/PatchWixMSI.ps1` to inject Start Menu and Desktop shortcuts into the MSI.
@@ -171,9 +175,9 @@ The `CreateInstaller` target internally calls `cmake/RunCpackInstaller.ps1`, whi
 **NSIS variant (setup.exe instead of MSI):**
 
 ```powershell
-cmake -G "Visual Studio 17 2022" -A x64 -DNUBASIC_INSTALLER=NSIS ..
-cmake --build . --config Release
-cmake --build . --target CreateInstaller --config Release
+cmake -S . -B _generated\build\nsis-release -G "Visual Studio 17 2022" -A x64 -DNUBASIC_INSTALLER=NSIS
+cmake --build _generated\build\nsis-release --config Release
+cmake --build _generated\build\nsis-release --target CreateInstaller --config Release
 ```
 
 #### Install
@@ -325,7 +329,7 @@ winget install OpenJS.NodeJS.LTS
 ```sh
 cd vscode-nubasic
 npm install           # install TypeScript and type definitions
-npm run compile       # compile src/extension.ts → out/extension.js
+npm run compile       # compile src/extension.ts into ../_generated/vscode-nubasic/out
 bash package-vsix.sh  # create nubasic-<version>.vsix
 ```
 
