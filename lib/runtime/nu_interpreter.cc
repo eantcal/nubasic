@@ -1425,6 +1425,7 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
     const auto debug_start_line = ctx.active_debug_exec.start_pc.get_line();
     const auto debug_start_stack_depth
         = ctx.active_debug_exec.start_stack_depth;
+    const auto debug_start_scope_id = ctx.proc_scope.get_scope_id();
     const bool debug_has_target_pc = ctx.active_debug_exec.has_target_pc;
     const auto debug_target_line = ctx.active_debug_exec.target_pc.get_line();
 
@@ -1530,8 +1531,10 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
     };
 
     auto should_keep_stepping_over = [&]() {
-        return get_last_debug_stop_reason() == debug_stop_reason_t::Step
-            && ctx.call_stack.size() > debug_start_stack_depth;
+        if (get_last_debug_stop_reason() != debug_stop_reason_t::Step)
+            return false;
+
+        return ctx.proc_scope.get_scope_id() != debug_start_scope_id;
     };
 
     auto should_resume_expression_function = [&]() {
@@ -1656,6 +1659,13 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
 
     case debug_exec_action_t::StepOver: {
         auto res = execute_step_into_once();
+
+        if (res == exec_res_t::STOP_REQ
+            && get_last_debug_stop_reason() == debug_stop_reason_t::Step
+            && ctx.proc_scope.get_scope_id() == debug_start_scope_id
+            && ctx.runtime_pc.get_line() != debug_start_line) {
+            return res;
+        }
 
         while (
             (res == exec_res_t::STOP_REQ && !stopped_on_blocking_input_line(res)

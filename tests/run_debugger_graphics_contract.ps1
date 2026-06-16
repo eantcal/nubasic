@@ -234,6 +234,35 @@ try {
         throw "StepOver did not advance to line 6 after drawing line.`nOutput:`n$stepOutput"
     }
 
+    $subLoadOutput = Send-Command -Command 'load "test_debugger_graphics_sub.bas"' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "LOAD completion for graphical subroutine step contract"
+    if ($subLoadOutput -notmatch '@@nubasic event="ok"') {
+        throw "Graphical subroutine LOAD did not complete successfully.`nOutput:`n$subLoadOutput"
+    }
+
+    $null = Send-Command -Command 'clrbrk' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "ClrBrK completion for graphical subroutine step contract"
+
+    $null = Send-Command -Command 'break 6' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "graphical subroutine breakpoint creation"
+
+    $subRunOutput = Send-Command -Command 'run' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "RUN graphical subroutine breakpoint stop"
+    if ($subRunOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="breakpoint"[^\r\n]*line="6"') {
+        throw "RUN did not stop inside the graphical subroutine on line 6.`nOutput:`n$subRunOutput"
+    }
+
+    $subStepOutput = Send-Command -Command 'stepover' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "graphical subroutine stepover stop"
+    if ($subStepOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="step"[^\r\n]*line="7"') {
+        throw "StepOver inside a graphical subroutine did not stop on line 7.`nOutput:`n$subStepOutput"
+    }
+
     $pauseOutput = Send-Command-And-Interrupt -Command 'cont'
     if ($pauseOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="pause"[^\r\n]*line="\d+"') {
         throw "Graphics debug pause did not report a stopped pause event.`nOutput:`n$pauseOutput"

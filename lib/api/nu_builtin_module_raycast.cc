@@ -602,18 +602,26 @@ namespace {
 #endif
     }
 
-    void stop_background_music(raycast_session_t& session)
+    void stop_background_music(
+        raycast_session_t& session, bool close_all_mci_devices = false)
     {
 #ifdef _WIN32
         if (!session.background_music_alias.empty()) {
-            const auto stop = "stop " + session.background_music_alias;
-            const auto close = "close " + session.background_music_alias;
+            const auto stop = "stop " + session.background_music_alias + " wait";
+            const auto close
+                = "close " + session.background_music_alias + " wait";
             mciSendStringA(stop.c_str(), nullptr, 0, nullptr);
             mciSendStringA(close.c_str(), nullptr, 0, nullptr);
             session.background_music_alias.clear();
         }
+
+        if (close_all_mci_devices) {
+            mciSendStringA("stop all wait", nullptr, 0, nullptr);
+            mciSendStringA("close all wait", nullptr, 0, nullptr);
+        }
 #else
         (void)session;
+        (void)close_all_mci_devices;
 #endif
     }
 
@@ -2179,7 +2187,7 @@ namespace {
                 = [](rt_prog_ctx_t&, const std::string& name,
                       const func_args_t& args) {
                       check_arg_num(args, 0, name);
-                      stop_background_music(raycast_session());
+                      stop_background_music(raycast_session(), true);
                       return variant_t(integer_t(1));
                   };
 
@@ -3295,7 +3303,7 @@ namespace {
         void cleanup_runtime_state() const noexcept override
         {
 #ifdef NUBASIC_HAS_RAYCAST
-            stop_background_music(raycast_session());
+            stop_background_music(raycast_session(), true);
 #endif
         }
     };
