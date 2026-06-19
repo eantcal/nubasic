@@ -1302,6 +1302,16 @@ bool interpreter_t::continue_afterbrk(runnable_t::line_num_t line)
         return false;
     }
 
+    if (dbg.transient_break_point) {
+        const bool user_breakpoint
+            = _breakpoints.find(line) != _breakpoints.end();
+        dbg.transient_break_point = false;
+        dbg.break_point = user_breakpoint;
+        dbg.continue_after_break = user_breakpoint;
+
+        return ptr->set_dbg_info(line, dbg);
+    }
+
     if (dbg.break_point) {
         dbg.break_point = false;
         dbg.continue_after_break = true;
@@ -1330,6 +1340,8 @@ interpreter_t::exec_res_t interpreter_t::erase_breakpoint(
     }
 
     dbg.break_point = false;
+    dbg.continue_after_break = false;
+    dbg.transient_break_point = false;
 
     if (ptr->set_dbg_info(line, dbg)) {
         _breakpoints.erase(line);
@@ -1543,9 +1555,8 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
             && ctx.debug_function_checkpoints.front().expression_call;
     };
 
-    auto should_complete_pending_expression_return = [&]() {
-        return !ctx.debug_pending_returns.empty();
-    };
+    auto should_complete_pending_expression_return
+        = [&]() { return !ctx.debug_pending_returns.empty(); };
 
     auto restore_pending_expression_call_site = [&]() {
         if (ctx.runtime_pc.get_line() > 0 || ctx.debug_pending_returns.empty())
@@ -1619,9 +1630,8 @@ interpreter_t::exec_res_t interpreter_t::debug_exec(
                   && get_last_debug_stop_reason() == debug_stop_reason_t::Step;
               const bool completed_without_stop = res == exec_res_t::CMD_EXEC;
 
-              if ((!step_stop && !completed_without_stop)
-                  || call_site_line < 1 || ctx.runtime_pc.get_line() > 0
-                  || ctx.last_break_line > 0
+              if ((!step_stop && !completed_without_stop) || call_site_line < 1
+                  || ctx.runtime_pc.get_line() > 0 || ctx.last_break_line > 0
                   || !ctx.debug_function_checkpoints.empty()
                   || !ctx.debug_pending_returns.empty()) {
                   return res;
@@ -2277,6 +2287,17 @@ interpreter_t::exec_res_t interpreter_t::exec_command(const std::string& cmd)
                 erase_breakpoint(line.first);
             }
 
+            for (auto& line : _prog_line) {
+                auto& dbg = line.second.second;
+                dbg.break_point = false;
+                dbg.continue_after_break = false;
+                dbg.transient_break_point = false;
+                dbg.condition_str.clear();
+                dbg.condition_stmt = nullptr;
+            }
+
+            _breakpoints.clear();
+
             return exec_res_t::CMD_EXEC;
         }
 
@@ -2476,7 +2497,7 @@ bool interpreter_t::run_main_or_default()
     auto main_it = _prog_ctx.proc_prototypes.data.end();
     std::string main_name;
     for (auto it = _prog_ctx.proc_prototypes.data.begin();
-         it != _prog_ctx.proc_prototypes.data.end(); ++it) {
+        it != _prog_ctx.proc_prototypes.data.end(); ++it) {
         if (to_lower_ascii(it->first) == "main") {
             main_it = it;
             main_name = it->first;

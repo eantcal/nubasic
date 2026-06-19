@@ -192,6 +192,50 @@ function Send-Command-And-Interrupt {
     return $snapshot.stdout.Substring($before)
 }
 
+function Send-Command-And-ExpectRunning {
+    param(
+        [string]$Command,
+        [int]$ObserveMs = 900
+    )
+
+    $before = (Get-OutputSnapshot).stdout.Length
+    Write-Host ">>> $Command"
+    $proc.StandardInput.WriteLine($Command)
+    $proc.StandardInput.Flush()
+
+    Start-Sleep -Milliseconds $ObserveMs
+
+    $snapshot = Get-OutputSnapshot
+    if ($snapshot.stdout.Length -lt $before) {
+        return ""
+    }
+
+    return $snapshot.stdout.Substring($before)
+}
+
+function Send-Interrupt-Only {
+    param(
+        [int]$TimeoutMs = 7000
+    )
+
+    $before = (Get-OutputSnapshot).stdout.Length
+    Write-Host ">>> <ETX>"
+    $proc.StandardInput.Write([char]3)
+    $proc.StandardInput.Flush()
+
+    Wait-Until -Description "graphics debug pause stop" -TimeoutMs $TimeoutMs -Condition {
+        $snapshot = Get-OutputSnapshot
+        if ($snapshot.stdout.Length -lt $before) {
+            return $false
+        }
+        $chunk = $snapshot.stdout.Substring($before)
+        return $chunk -match '@@nubasic event="(?:stopped|interrupted|terminated)"'
+    }
+
+    $snapshot = Get-OutputSnapshot
+    return $snapshot.stdout.Substring($before)
+}
+
 try {
     if (-not $proc.Start()) {
         throw "Failed to start graphics debugger process."
@@ -275,6 +319,19 @@ try {
     }
     if ($pauseOutput -match '@@nubasic event="terminated"') {
         throw "Graphics debug pause terminated the program instead of suspending it.`nOutput:`n$pauseOutput"
+    }
+
+    $resumeOutput = Send-Command-And-ExpectRunning -Command 'cont'
+    if ($resumeOutput -match '@@nubasic event="(?:ok|stopped|interrupted|runtimeError|syntaxError|ioError)"') {
+        throw "Graphics debug resume after pause completed instead of keeping the program running.`nOutput:`n$resumeOutput"
+    }
+    if ($resumeOutput -match '@@nubasic event="terminated"') {
+        throw "Graphics debug resume after pause terminated the program.`nOutput:`n$resumeOutput"
+    }
+
+    $pauseAgainOutput = Send-Interrupt-Only
+    if ($pauseAgainOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="pause"[^\r\n]*line="\d+"') {
+        throw "Graphics debug second pause after resume did not report a stopped pause event.`nOutput:`n$pauseAgainOutput"
     }
 
     Write-Host ""

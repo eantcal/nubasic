@@ -316,10 +316,12 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
                     || stmt_class == stmt_t::stmt_cl_t::SUB_END);
 
             if (_ctx.flag[rt_prog_ctx_t::FLG_STOP_REQUEST]) {
-                dbginfo_t stop_dbg;
+                dbginfo_t stop_dbg = dbg;
                 stop_dbg.break_point = true;
+                stop_dbg.transient_break_point = true;
                 set_dbg_info(prog_ptr->first, stop_dbg);
                 _ctx.flag.set(rt_prog_ctx_t::FLG_STOP_REQUEST, false);
+                _ctx.last_debug_stop_reason = debug_stop_reason_t::Pause;
             }
 
             const bool breakpoints_active = !_function_call || _ctx.debug_mode;
@@ -389,6 +391,9 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
                 return_stmt_id = 0;
             }
         } catch (const debug_suspend_t&) {
+            _ctx.last_break_line = prog_ptr->first;
+            _ctx.last_stop_was_step = false;
+            _ctx.last_debug_stop_reason = debug_stop_reason_t::Pause;
             _ctx.flag.set(rt_prog_ctx_t::FLG_END_REQUEST, true);
             break;
         }

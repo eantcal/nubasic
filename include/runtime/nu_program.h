@@ -32,6 +32,7 @@ struct dbginfo_t {
     bool break_point = false;
     bool continue_after_break = false;
     bool single_step_break_point = false;
+    bool transient_break_point = false;
     std::string condition_str;
     stmt_t::handle_t condition_stmt = nullptr;
 };
@@ -68,8 +69,8 @@ public:
     bool run(const std::string& name,
         const std::vector<expr_any_t::handle_t>& args) override;
 
-    bool run_entry_function(const std::string& name,
-        const std::vector<expr_any_t::handle_t>& args);
+    bool run_entry_function(
+        const std::string& name, const std::vector<expr_any_t::handle_t>& args);
 
     variant_t run_method(const std::string& name,
         const std::vector<expr_any_t::handle_t>& args,
