@@ -208,6 +208,24 @@ The 2.0 cycle also modernised the execution and tooling layers:
 - **Hex literal compatibility** — the original BASIC `&hFF` / `&HFF` syntax remains supported,
   and `0xFF` / `0XFF` is accepted as a convenience for C-style constants.
 
+### WinRayCast Integration (June 2026, v2.0)
+
+The headline addition for Windows is the integrated **WinRayCast** engine — a lightweight
+raycaster that lets a BASIC program render pseudo-3D, *Wolfenstein 3D*-style first-person
+scenes from a 2D grid map. The engine handles textured walls, sprites, doors, actors,
+weapons, pickups, sound, and multi-level transitions, while nuBASIC drives it through the
+`raycast` module (the `Ray…` built-in functions): `RayInit`, `RayLoadProject`,
+`RayUpdate`, `RayRender`, `RayPresent`, and the player/combat/map query calls. It is
+enabled by default on Windows builds (`NUBASIC_WITH_RAYCAST`) and absent on other
+platforms.
+
+This is a true engine binding, distinct from the earlier pure-BASIC software raycaster
+example (`raycast3d.bas`), which kept drawing columns by hand with `Line`. The companion
+demo `examples/raycast/eclipse_protocol.bas` is a complete, playable game — multi-weapon
+combat, energy/health, a minimap and HUD, key/lock doors, autosave checkpoints, and
+elevator transitions between levels — and showcases `Syntax Modern`, `Struct`, and `Class`
+working together. See [Raycast Game Engine](Raycast-Game-Engine) for the full reference.
+
 ---
 
 ## Struct-returning Functions, Screen Mode, Regression Tests (April 2026, v1.62)

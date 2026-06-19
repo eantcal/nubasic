@@ -4,7 +4,7 @@
 
 ---
 
-nuBASIC is written in C++17 and builds with CMake 3.14 or later.
+nuBASIC is written in C++20 and builds with CMake 3.14 or later.
 
 | Artefact | Platform | Description |
 |----------|----------|-------------|
@@ -219,7 +219,14 @@ make -j2
 | `SCINTILLA_VERSION` | `"5.5.3"` | Windows/Linux IDE | Scintilla version to download |
 | `LEXILLA_VERSION` | `"5.4.3"` | Windows/Linux IDE | Lexilla version to download |
 | `NUBASIC_INSTALLER` | `"WIX"` | Windows | Installer generator: `"WIX"` (MSI) or `"NSIS"` (legacy) |
+| `NUBASIC_WITH_RAYCAST` | `ON` (Windows), `OFF` (other) | all | Build the integrated WinRayCast pseudo-3D engine and the `Ray…` API. See [Raycast Game Engine](Raycast-Game-Engine). |
+| `NUBASIC_WITH_LIBFFI` | `ON` | all | Enable libffi-backed native DLL/shared-object calls (`Declare Function … Lib`). Without libffi, declarations parse but invocation is disabled. |
 | `CMAKE_BUILD_TYPE` | `Release` | all | `Release` (optimised) or `Debug` (symbols) |
+
+> **CMake presets.** `CMakePresets.json` defines ready-made configurations. Use
+> `cmake --preset release` / `debug` for the standard build, or
+> `cmake --preset raycast-release` / `raycast-debug` to build with WinRayCast enabled
+> explicitly, then `cmake --build --preset <name>`.
 
 **Example: debug build using local Scintilla (Windows)**
 

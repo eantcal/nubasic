@@ -10,7 +10,8 @@ migliorano qualita' del linguaggio, manutenibilita' e prestazioni.
 nuBASIC 2.0 conserva lo spirito originale del progetto: un piccolo linguaggio
 della famiglia BASIC capace di eseguire programmi classici con numeri di riga,
 ma anche di supportare programmazione strutturata, classi, grafica, progetti,
-chiamate native e workflow di debug moderni.
+chiamate native, un motore di raycasting pseudo-3D integrato (WinRayCast, su
+Windows) e workflow di debug moderni.
 
 Il lavoro recente sugli internals aveva quattro obiettivi principali:
 
@@ -148,6 +149,42 @@ color% = 0xFFFFFF
 
 Questo non sostituisce la forma BASIC. Serve a rendere piu' semplice copiare
 costanti da header C, documentazione Win32, esempi POSIX e codice grafico.
+
+## Integrazione di WinRayCast
+
+L'aggiunta piu' visibile del ciclo 2.0 per Windows e' il motore **WinRayCast**
+integrato: un raycaster leggero che renderizza scene in prima persona pseudo-3D,
+in stile *Wolfenstein 3D*, a partire da una mappa a griglia 2D. Il design tiene
+deliberatamente separati il livello del motore e quello del linguaggio.
+
+- Il motore C++ (sotto `raycast/`) possiede il rendering, la mappa del mondo, gli
+  sprite, gli attori, le porte, le armi, gli oggetti raccoglibili, l'audio e le
+  transizioni multi-livello. E' compilato in una libreria statica e collegato
+  all'interprete solo quando `NUBASIC_WITH_RAYCAST` e' abilitato (l'impostazione
+  predefinita su Windows, disattivata altrove).
+- Il binding BASIC risiede in `lib/api/nu_builtin_module_raycast.cc` come modulo
+  integrato `raycast`. Espone le funzioni `Ray…` e mantiene un'unica
+  `raycast_session_t` per processo — il mondo, il motore, gli attori, l'inventario
+  delle armi, l'energia, i contatori degli oggetti raccolti e la transizione di
+  livello in sospeso. Il codice BASIC non vede mai direttamente gli oggetti C++;
+  li pilota attraverso piccole funzioni in stile query-e-comando.
+- Il rendering e' a due fasi: `RayRender` riempie un framebuffer fuori schermo e
+  `RayPresent` esegue il blit di un rettangolo di quel framebuffer nella finestra
+  GDI tramite `StretchDIBits`. Questo mantiene il motore neutrale rispetto alla
+  piattaforma (produce semplicemente un buffer di pixel) mentre la presentazione
+  specifica di Windows resta nel binding, protetta da `#ifdef _WIN32`. Allo stesso
+  modo `RayKeyDown` incapsula `GetAsyncKeyState`.
+- I mondi e i progetti multi-livello sono descritti in JSON (`*.world.json`) e
+  caricati rispetto a una directory di base, cosi' i dati delle scene sono dati,
+  non codice.
+
+Quando il motore non viene compilato, viene registrata solo `RayAvailable()` — che
+restituisce `0` — in modo che i programmi portabili possano verificare il supporto
+e degradare con "grazia". La demo di accompagnamento
+`examples/raycast/eclipse_protocol.bas` e' scritta come un tutorial ed esercita
+gran parte dell'API combinando `Syntax Modern`, `Struct` e `Class`. Il riferimento
+completo delle funzioni `Ray…` si trova sul wiki del progetto (*Raycast Game
+Engine*).
 
 ## Testabilita'
 

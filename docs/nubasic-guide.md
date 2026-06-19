@@ -31,6 +31,7 @@
    - 5.2 [Flicker-free Rendering — ScreenLock / ScreenUnlock / Refresh](#52-flicker-free-rendering)
    - 5.3 [Mouse Input](#53-mouse-input)
    - 5.4 [Sound and Window Management](#54-sound-and-window-management)
+   - 5.5 [Pseudo-3D with WinRayCast (Windows)](#55-pseudo-3d-with-winraycast)
 6. [Command Reference](#6-command-reference)
    - 6.1 [Console Commands (REPL / CLI)](#61-console-commands)
    - 6.2 [Instructions](#62-instructions)
@@ -143,7 +144,7 @@ Despite the diversity, most BASIC interpreters share a recognisable core:
 
 ## 2. Introduction to nuBASIC
 
-nuBASIC is a modern, open-source BASIC interpreter written in C++11, created by Antonino
+nuBASIC is a modern, open-source BASIC interpreter written in C++20, created by Antonino
 Calderone and first released in 2014. It is firmly rooted in the BASIC tradition — interactive,
 welcoming, and immediately productive — while adding the structured programming features and
 graphical capabilities that contemporary programs require.
@@ -2239,6 +2240,97 @@ End If
 
 ---
 
+### 5.5 Pseudo-3D with WinRayCast
+
+On Windows, nuBASIC 2.0 integrates **WinRayCast**, a lightweight raycasting engine that
+renders pseudo-3D, *Wolfenstein 3D*-style first-person scenes from a simple 2D grid map.
+WinRayCast handles the rendering and game logic (textured walls, sprites, doors, actors,
+weapons, pickups, sound, and multi-level transitions); the BASIC program drives it through
+the `raycast` module — the `Ray…` built-in functions — and supplies input handling, HUD
+drawing, and game rules.
+
+> **Platform.** WinRayCast is Windows-only. The module is compiled in by default on
+> Windows builds (`NUBASIC_WITH_RAYCAST`) and is absent elsewhere, where only
+> `RayAvailable()` exists and returns `0`. Guard portable code with
+> `If RayAvailable() Then …`.
+
+#### The render loop
+
+A WinRayCast program initialises once, loads a world or project, then repeats an
+**input → update → render → present** loop and shuts down at the end. `Screen 1` must be
+active, because frames are presented into the GDI window.
+
+```basic
+Syntax Modern
+Using raycast
+Using graphics
+
+Const VIEW_W = 640
+Const VIEW_H = 400
+
+If RayAvailable() = 0 Then Print "WinRayCast not available" : End
+
+Screen 1
+RaySetBaseDir(GetAppPath())                 ' resolve assets relative to the exe
+RayInit(VIEW_W, VIEW_H)                     ' create the session / framebuffer
+RayLoadProject("raycast_demo/worlds/demo.world.json")
+
+Dim running As Integer : running = 1
+While running
+   ScreenLock
+   If RayKeyDown(27) Then running = 0       ' ESC
+   If RayKeyDown(38) Then RayMove(8)        ' Up    arrow
+   If RayKeyDown(40) Then RayMove(-8)       ' Down  arrow
+   If RayKeyDown(37) Then RayTurn(-3)       ' Left  arrow
+   If RayKeyDown(39) Then RayTurn(3)        ' Right arrow
+
+   RayUpdate(0.016)                         ' advance ~16 ms of world time
+   RayRender(VIEW_W, VIEW_H)                ' render into the framebuffer
+   RayPresent(0, 0, VIEW_W, VIEW_H)         ' blit framebuffer to (x, y, w, h)
+   ScreenUnlock
+   MDelay 16                                ' pace to ~60 fps
+Wend
+
+RayShutdown()
+```
+
+`RayUpdate(dt)` advances doors, sprite animations, actors/enemies, pickups, effects, and
+weapon bobbing (`dt` is clamped to 0.1 s internally). `RayRender` fills an off-screen
+framebuffer and `RayPresent` copies it into a rectangle of the window — HUD and minimap
+drawing with the normal graphics primitives can be layered on top before `ScreenUnlock`.
+
+#### Worlds and projects
+
+Scene data is loaded from JSON files rooted at a base directory (`RaySetBaseDir`):
+`RayLoadWorld(path$)` loads a single `*.world.json` map, while `RayLoadProject(path$)`
+loads a multi-layer project with elevator transitions between levels. The map grid can be
+inspected with `RayCellKind` (0 empty, 1 wall, 2 door), `RayIsSolidCell`, and
+`RayKeyAtCell`, which is handy for drawing a minimap.
+
+#### Key `Ray…` functions
+
+| Group | Functions |
+|-------|-----------|
+| Lifecycle | `RayAvailable`, `RayInit`, `RaySetBaseDir`, `RayShutdown` |
+| World / project | `RayLoadWorld`, `RayLoadProject`, `RayCurrentLayer$` |
+| Frame | `RayUpdate`, `RayRender`, `RayPresent`, `RayFrameHash` |
+| Player / camera | `RayPlayerX`, `RayPlayerY`, `RayPlayerFacing`, `RaySetPlayer`, `RayMove`, `RayStrafe`, `RayTurn`, `RayPlayerSlope`/`RaySetPlayerSlope`, `RayPlayerViewCenter`/`RaySetPlayerViewCenter` |
+| Map | `RayMapRows`, `RayMapCols`, `RayCellDx`, `RayCellDy`, `RayIsSolidCell`, `RayCellKind`, `RayKeyAtCell`, `RayMapUnlockCount` |
+| Sprites / progress | `RaySpriteCount`, `RayActorCount`, `RayEnemyCount`, `RayKilledEnemyCount`, `RayItemCount`, `RayCollectedItemCount`, `RayDestroyedObjectCount`, `RayPlayerStandingOn` |
+| Weapons | `RayLoadWeapon`, `RayHasWeapon`, `RayWeaponAmmo`, `RayWeaponReserveAmmo`, `RayWeaponMaxAmmo`, `RayReloadWeapon` |
+| Combat / audio | `RayDamageEnemy`, `RayConsumePlayerDamage`, `RayConsumePlayerHealing`, `RaySetPlayerEnergy`, `RayPlaySound` |
+| Input | `RayKeyDown` |
+| Transitions | `RayTransitionActive`, `RaySetTransitionManual`, `RayTransitionOptionCount`, `RayTransitionOptionLayer$`, `RayTransitionSelected`, `RaySelectTransition`, `RayConfirmTransition` |
+
+The full per-function reference (signatures, return values, and semantics) is on the
+[Raycast Game Engine](https://github.com/eantcal/nubasic/wiki/Raycast-Game-Engine) wiki
+page. For a complete, playable example see `examples/raycast/eclipse_protocol.bas` — a
+tutorial-style FPS demo with multi-weapon combat, energy/health, a HUD and minimap,
+key/lock doors, autosave checkpoints, and elevator transitions, which also showcases
+`Syntax Modern`, `Struct`, and `Class` working together.
+
+---
+
 ## 6. Command Reference
 
 ### 6.1 Console Commands
@@ -2466,17 +2558,14 @@ BASIC program.
 | `GetDateTime()` | DateTime struct | All date/time fields: `year`, `month`, `day`, `hour`, `minute`, `second`, `wday`, `yday` |
 | `SysTime$()` | String | Current local time and date as a string |
 | `Time()` | Integer | Seconds elapsed since the Unix Epoch |
-| `SysHour()` | Integer | Current hour (0–23) *(deprecated v2.0 — use `GetDateTime().hour`)* |
-| `SysMin()` | Integer | Current minute (0–59) *(deprecated v2.0 — use `GetDateTime().minute`)* |
-| `SysSec()` | Integer | Current second (0–59) *(deprecated v2.0 — use `GetDateTime().second`)* |
-| `SysDay()` | Integer | Day of the month (1–31) *(deprecated v2.0 — use `GetDateTime().day`)* |
-| `SysMonth()` | Integer | Month (1–12) *(deprecated v2.0 — use `GetDateTime().month`)* |
-| `SysYear()` | Integer | Full year (e.g. 2026) *(deprecated v2.0 — use `GetDateTime().year`)* |
-| `SysWDay()` | Integer | Day of week (0=Sunday … 6=Saturday) *(deprecated v2.0 — use `GetDateTime().wday`)* |
-| `SysYDay()` | Integer | Day of year (0–365) *(deprecated v2.0 — use `GetDateTime().yday`)* |
+| `Millis()` | Integer | Milliseconds since a fixed reference point (timing / frame pacing) |
 | `GetPlatId()` | Integer | 1 = Windows, 2 = Linux/other |
 | `GetAppPath$()` | String | Full path of the nuBASIC executable |
 | `Ver$()` | String | nuBASIC version string |
+
+> **Removed in v2.0.** The scalar date/time accessors `SysHour`, `SysMin`, `SysSec`,
+> `SysDay`, `SysMonth`, `SysYear`, `SysWDay`, and `SysYDay` (deprecated in v1.62) were
+> removed. Read the corresponding `GetDateTime()` field instead (e.g. `GetDateTime().hour`).
 
 #### Native memory helpers
 
@@ -2503,9 +2592,6 @@ These functions are in the `runtime` module and are intended for use with
 | `Rgb(r,g,b)` | Integer | Compose an RGB color from 0–255 components |
 | `GetPixel(x,y)` | Integer | Read the color of a pixel |
 | `GetMouse()` | Mouse struct | All pointer state: `x`, `y`, `btn` |
-| `GetMouseX()` | Integer | Mouse cursor X in pixels *(deprecated v2.0 — use `GetMouse().x`)* |
-| `GetMouseY()` | Integer | Mouse cursor Y in pixels *(deprecated v2.0 — use `GetMouse().y`)* |
-| `GetMouseBtn()` | Integer | Mouse button bitmask (1=left, 2=middle, 4=right) *(deprecated v2.0 — use `GetMouse().btn`)* |
 | `GetSWidth()` | Integer | Width of the drawable client area in pixels |
 | `GetSHeight()` | Integer | Height of the drawable client area in pixels |
 | `GetWindowX()` | Integer | Window left edge position on screen |
@@ -2516,6 +2602,16 @@ These functions are in the `runtime` module and are intended for use with
 | `SetTopMost()` | Integer | Make the window always-on-top |
 | `MsgBox(title$,msg$)` | Integer | Show a modal dialog; returns > 0 if confirmed |
 | `PlaySound(file$,async%)` | Integer | Play a WAV file (async%=1 returns immediately) |
+
+> **Removed in v2.0.** The scalar mouse accessors `GetMouseX`, `GetMouseY`, and
+> `GetMouseBtn` (deprecated in v1.62) were removed; use `GetMouse()` instead.
+
+#### Raycast (Windows)
+
+The integrated WinRayCast engine adds a `Ray…` function family (`RayInit`,
+`RayLoadProject`, `RayUpdate`, `RayRender`, `RayPresent`, and the player/combat/map
+queries) on Windows builds. These are documented in full in
+[section 5.5](#55-pseudo-3d-with-winraycast).
 
 #### Hash Tables
 
@@ -3058,6 +3154,38 @@ Version 1.60 was the largest infrastructure release since the original:
 - An **MSI installer** was introduced, enabling proper Windows Add/Remove Programs
   integration, desktop shortcuts, and clean uninstallation.
 - Scintilla was updated to its latest version.
+
+### nuBASIC 2.0 — New Language Features (2026)
+
+Version 2.0 is a major release that both removes long-deprecated APIs and adds significant
+new capabilities. The headline features (all documented in detail earlier in this guide):
+
+- **Object-oriented programming** — `Class` with single inheritance (`Inherits`), virtual
+  dispatch (`Overridable`/`Overrides`/`MyBase`), three-level access control, constructors
+  (`Sub New`) and RAII destructors (`Sub Delete`), and `Static` class methods
+  ([section 4.5](#45-classes-and-objects)).
+- **`main()` entry point** ([4.6](#46-main-entry-point)), **namespaced modules**
+  (`Syntax Modern`, `Using`, `math::sin`) ([4.7](#47-namespaced-modules)), and **open-ended
+  array parameters** (`param() As Type`).
+- **`Select Case`** dispatch, with value lists, `To` ranges, `Is` comparison guards, and
+  string cases.
+- **Native library calls** — `Declare Function … Lib` calls into Windows DLLs, Linux `.so`,
+  and macOS `.dylib` through libffi, with `_` line continuation for readable declarations
+  ([4.14](#414-native-dll-calls)).
+- **Modern debugger model** — reusable Continue / Step Into / Step Over / Step Out /
+  Pause / Run-to-Cursor commands shared by the native IDE, the debug CLI, and the VS Code
+  adapter, plus graphics-aware debugging through a separate GDI window.
+- **Runtime optimisation** — `variant_t` stores scalars inline, boxes struct/object
+  metadata, and uses copy-on-write for struct payloads; extended `&hFF` / `0xFF` hex
+  literals.
+- **WinRayCast integration (Windows)** — an integrated raycasting engine for pseudo-3D,
+  *Wolfenstein 3D*-style first-person rendering, driven from BASIC through the `Ray…`
+  module ([section 5.5](#55-pseudo-3d-with-winraycast)). It is distinct from the earlier
+  pure-BASIC software raycaster example `raycast3d.bas`; the bundled
+  `examples/raycast/eclipse_protocol.bas` is a complete playable demo.
+- **Removed deprecated APIs** — the scalar `Sys*` date/time functions and `GetMouseX` /
+  `GetMouseY` / `GetMouseBtn` (deprecated in v1.62) are gone; use `GetDateTime()` and
+  `GetMouse()`.
 
 ### Struct-returning functions, Screen mode, regression tests (April 2026, v1.62)
 
@@ -3752,7 +3880,7 @@ documented in the inline help system.
 
 ## 10. Building nuBASIC from Source
 
-nuBASIC is written in C++17 and builds with CMake 3.14 or later. The same source tree
+nuBASIC is written in C++20 and builds with CMake 3.14 or later. The same source tree
 produces three distinct artefacts depending on the target platform:
 
 | Artefact | Platform | Description |
@@ -4024,7 +4152,13 @@ All options can be passed on the `cmake` command line as `-D<OPTION>=<VALUE>`.
 | `SCINTILLA_VERSION` | `"5.5.3"` | Windows/Linux IDE | Scintilla version to download when `SCINTILLA_LOCAL=OFF`. |
 | `LEXILLA_VERSION` | `"5.4.3"` | Windows/Linux IDE | Lexilla version to download when `SCINTILLA_LOCAL=OFF`. |
 | `NUBASIC_INSTALLER` | `"WIX"` | Windows | Installer generator for CPack: `"WIX"` (MSI, recommended) or `"NSIS"` (legacy setup.exe). |
+| `NUBASIC_WITH_RAYCAST` | `ON` (Windows), `OFF` (other) | all | Build the integrated WinRayCast pseudo-3D engine and the `Ray…` API (see [section 5.5](#55-pseudo-3d-with-winraycast)). |
+| `NUBASIC_WITH_LIBFFI` | `ON` | all | Enable libffi-backed native DLL/shared-object calls (`Declare Function … Lib`). Without libffi the declarations parse but invocation is disabled. |
 | `CMAKE_BUILD_TYPE` | `Release` | all | `Release` (optimised, `-O3`) or `Debug` (symbols, `-g`). |
+
+The `CMakePresets.json` presets `release` / `debug` build the standard configuration;
+`raycast-release` / `raycast-debug` enable WinRayCast explicitly. Configure with
+`cmake --preset <name>` and build with `cmake --build --preset <name>`.
 
 #### Example: debug build of the Windows IDE without downloading Scintilla
 

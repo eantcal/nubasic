@@ -1,6 +1,6 @@
 # Graphics and Multimedia
 
-← [Language Reference](Language-Reference) | Next: [Command Reference](Command-Reference)
+← [Language Reference](Language-Reference) | Next: [Raycast Game Engine](Raycast-Game-Engine)
 
 ---
 
@@ -329,4 +329,13 @@ End If
 
 ---
 
-← [Language Reference](Language-Reference) | Next: [Command Reference](Command-Reference)
+## Pseudo-3D Graphics
+
+On Windows, nuBASIC 2.0 ships the integrated **WinRayCast** engine for rendering
+*Wolfenstein 3D*-style first-person scenes from BASIC. It builds on the GDI window and the
+flicker-free rendering primitives above. See [Raycast Game Engine](Raycast-Game-Engine)
+for the render loop and the full `Ray…` API reference.
+
+---
+
+← [Language Reference](Language-Reference) | Next: [Raycast Game Engine](Raycast-Game-Engine)

@@ -23,7 +23,14 @@ What nuBASIC adds on top of the classic BASIC foundation:
 - **Structured control flow** — `If/ElIf/Else/End If`, `While/Wend`, `Do/Loop While`,
   `Exit For/While/Do/Sub/Function`
 - **First-class subroutines and functions** — with typed parameters, typed return values,
-  and recursion
+  recursion, and open-ended array parameters (`param() As Type`)
+- **Object-oriented programming** — `Class` with single inheritance (`Inherits`), virtual
+  dispatch (`Overridable`/`Overrides`/`MyBase`), access control, constructors (`Sub New`)
+  and RAII destructors (`Sub Delete`), plus `Static` class methods
+- **Namespaced modules** — `Syntax Modern` enables qualified names (`math::sin`) and
+  `Using Module` imports; `Syntax Legacy` keeps the classic flat namespace
+- **Native library calls** — `Declare Function … Lib` calls into Windows DLLs, Linux `.so`,
+  and macOS `.dylib` through libffi (opt-out with `--disable-native-calls`)
 - **Arrays and hash tables** built into the language
 - **Full file I/O** — sequential, binary, and random-access
 - **Graphics** — lines, rectangles, ellipses, filled shapes, pixel access, bitmaps, text
@@ -38,9 +45,11 @@ What nuBASIC adds on top of the classic BASIC foundation:
 
 The Windows build provides a dedicated GDI-based console window that renders text and graphics
 natively, works both standalone and embedded inside the nuBASIC IDE, and supports all graphical
-APIs including pixel-level drawing. The Linux build uses the terminal for text and X11 for
-graphics. A *console* build variant (without graphics, sound, or window manager support) is also
-available for constrained environments.
+APIs including pixel-level drawing. It also ships the integrated **WinRayCast** engine for
+pseudo-3D, *Wolfenstein 3D*-style first-person rendering from BASIC — see
+[Raycast Game Engine](Raycast-Game-Engine). The Linux build uses the terminal for text and X11
+for graphics. A *console* build variant (without graphics, sound, or window manager support) is
+also available for constrained environments.
 
 ## Console Mode and the Console Build
 

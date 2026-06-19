@@ -1,16 +1,6 @@
 # nuBASIC
 
-nuBASIC is a modern, open-source BASIC interpreter written in modern C++, available for Windows, Linux, and macOS. It is designed to be both approachable for beginners and capable enough for real programs.
-
-## nuBASIC 2.0 for Windows: WinRaycast Integration
-
-nuBASIC 2.0 for Windows will include the integration of **WinRaycast**, a lightweight raycasting engine designed to create classic 90s-style first-person shooters directly in BASIC.
-
-The integration will allow nuBASIC programs to render pseudo-3D environments similar to early FPS games such as *Wolfenstein 3D*, using a simple 2D map representation, textured walls, sprites, player movement, collision detection, and basic game-loop support.
-
-In practice, WinRaycast will provide the low-level rendering and engine logic, while nuBASIC will expose a simpler scripting interface so that users can build playable retro-style games without dealing directly with complex graphics programming.
-
-<img width="1280" height="1387" alt="image" src="https://github.com/user-attachments/assets/afa5c38e-556e-4f36-83ad-fdba252a4349" />
+nuBASIC is a modern, open-source BASIC interpreter written in modern C++, available for Windows, Linux, and macOS. It is two things at once: a **teaching language** — approachable for beginners taking their first steps in programming — and a love letter to the home-computer era for **retro-computing enthusiasts**, all while staying capable enough for real programs. In the spirit of that era, on Windows it even ships an integrated raycasting engine so you can build classic 90s-style first-person games in BASIC (see [WinRaycast](#nubasic-20-for-windows-winraycast-integration)).
 
 ## Three styles in one language
 
@@ -75,6 +65,7 @@ The classic, structured and OOP styles are not separate dialects: a single sourc
 - **Graphics** — lines, rectangles, ellipses, filled shapes, text, bitmaps, pixel access (Windows GDI / Linux X11)
 - **Screen mode switching** — `Screen 0` (text/headless) / `Screen 1` (GDI graphics), like GW-BASIC `SCREEN`; `-t` CLI flag for CI/scripting
 - **Flicker-free rendering** — `ScreenLock` / `ScreenUnlock` / `Refresh` for double-buffered animation
+- **WinRaycast engine (Windows)** — integrated raycaster for pseudo-3D, *Wolfenstein 3D*-style first-person scenes, driven from BASIC via the `Ray…` API; enabled by default on Windows builds (`NUBASIC_WITH_RAYCAST`)
 - **Mouse and keyboard input** — `GetMouse()` returns a `Mouse` struct (`x`, `y`, `btn`) in one call
 - **Date/time** — `GetDateTime()` returns a `DateTime` struct with all fields in one call
 - **UTF-8** string literals and console output
@@ -88,10 +79,21 @@ The classic, structured and OOP styles are not separate dialects: a single sourc
 - **Console build** for headless/embedded systems (no graphics, no external dependencies)
 - **MIT License**
 
+## nuBASIC 2.0 for Windows: WinRaycast Integration
+
+In keeping with its retro spirit, nuBASIC 2.0 for Windows integrates **WinRaycast**, a lightweight raycasting engine for creating classic 90s-style first-person shooters directly in BASIC.
+
+The integration lets nuBASIC programs render pseudo-3D environments similar to early FPS games such as *Wolfenstein 3D*, using a simple 2D map representation, textured walls, sprites, player movement, collision detection, and game-loop support.
+
+In practice, WinRaycast provides the low-level rendering and engine logic, while nuBASIC exposes a simpler scripting interface (the `Ray…` functions) so that users can build playable retro-style games without dealing directly with complex graphics programming. The engine is enabled by default on Windows builds; the full API and render loop are documented in the [Raycast Game Engine](https://github.com/eantcal/nubasic/wiki/Raycast-Game-Engine) wiki page, and [`examples/raycast/eclipse_protocol.bas`](examples/raycast/eclipse_protocol.bas) is a complete playable demo.
+
+<img width="1280" height="1387" alt="image" src="https://github.com/user-attachments/assets/afa5c38e-556e-4f36-83ad-fdba252a4349" />
+
 ## Documentation
 
 - **[Wiki](https://github.com/eantcal/nubasic/wiki)** — full language reference, graphics API, IDE guide, interpreter internals, and build instructions
 - **[User Guide](https://github.com/eantcal/nubasic/blob/main/docs/nubasic-guide.md)** — complete guide in a single document (v2.0)
+- **[Raycast Game Engine](https://github.com/eantcal/nubasic/wiki/Raycast-Game-Engine)** — WinRaycast render loop and full `Ray…` API reference (Windows)
 - **[Making nuBASIC 2.0](https://github.com/eantcal/nubasic/blob/main/docs/making-nubasic-2.0.md)** — developer-oriented internals note about debugger, runtime values, native calls, and performance work ([Italiano](https://github.com/eantcal/nubasic/blob/main/docs/making-nubasic-2.0-it.md))
 - **[Examples](https://github.com/eantcal/nubasic/tree/main/examples)** — ready-to-run `.bas` programs covering games, graphics, fractals, animations, and more
 

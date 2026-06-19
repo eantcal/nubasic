@@ -31,6 +31,7 @@
    - 5.2 [Rendering senza sfarfallio — ScreenLock / ScreenUnlock / Refresh](#52-rendering-senza-sfarfallio)
    - 5.3 [Input del mouse](#53-input-del-mouse)
    - 5.4 [Audio e gestione della finestra](#54-audio-e-gestione-della-finestra)
+   - 5.5 [Pseudo-3D con WinRayCast (Windows)](#55-pseudo-3d-con-winraycast)
 6. [Riferimento ai comandi](#6-riferimento-ai-comandi)
    - 6.1 [Comandi della console (REPL / CLI)](#61-comandi-della-console)
    - 6.2 [Istruzioni](#62-istruzioni)
@@ -146,7 +147,7 @@ Nonostante la diversità, la maggior parte degli interpreti BASIC condivide un n
 
 ## 2. Introduzione a nuBASIC
 
-nuBASIC è un moderno interprete BASIC open-source scritto in C++11, creato da Antonino
+nuBASIC è un moderno interprete BASIC open-source scritto in C++20, creato da Antonino
 Calderone e rilasciato per la prima volta nel 2014. È profondamente radicato nella tradizione
 BASIC — interattivo, accogliente e immediatamente produttivo — pur aggiungendo le funzionalità
 di programmazione strutturata e le capacità grafiche che i programmi contemporanei richiedono.
@@ -2089,17 +2090,29 @@ key$ = Input$(1)
 
 I programmi nuBASIC possono leggere la posizione del mouse e lo stato dei pulsanti in qualsiasi
 momento. L'input del mouse viene acquisito per polling — non esiste una coda di eventi — quindi
-l'utilizzo tipico è chiamare le funzioni del mouse una volta per fotogramma all'interno del ciclo
-principale e agire sui valori restituiti.
+l'utilizzo tipico è chiamare `GetMouse()` una volta per fotogramma all'interno del ciclo
+principale e agire sui campi della struct restituita.
 
-`GetMouseBtn()` restituisce una maschera di bit: il bit 0 impostato (valore 1) per il pulsante sinistro,
-il bit 1 (valore 2) per il pulsante centrale, il bit 2 (valore 4) per il pulsante destro. Un valore 0
-indica che nessun pulsante è premuto.
+#### GetMouse() — preferita
+
+`GetMouse()` acquisisce posizione e stato dei pulsanti in una sola chiamata e restituisce una
+struct `Mouse`. Il tipo `Mouse` è preregistrato dall'interprete, quindi non è necessaria alcuna
+definizione `Struct`:
 
 ```basic
-btn% = GetMouseBtn()   ' 0=none, 1=left, 2=middle, 4=right
-x%   = GetMouseX()     ' cursor X in pixels from left edge of window
-y%   = GetMouseY()     ' cursor Y in pixels from top edge of window
+Dim m As Mouse
+m = GetMouse()
+' m.x   — X del cursore in pixel dal bordo sinistro della finestra
+' m.y   — Y del cursore in pixel dal bordo superiore della finestra
+' m.btn — 0=nessuno, 1=sinistro, 2=centrale, 4=destro
+```
+
+#### Funzioni scalari legacy *(deprecate — rimosse in v2.0)*
+
+```basic
+btn% = GetMouseBtn()   ' usa invece GetMouse().btn
+x%   = GetMouseX()     ' usa invece GetMouse().x
+y%   = GetMouseY()     ' usa invece GetMouse().y
 ```
 
 #### Hit-test di una regione pulsante
@@ -2108,23 +2121,22 @@ L'uso più comune dell'input del mouse è verificare se il cursore si trova all'
 rettangolare nel momento in cui un pulsante viene premuto:
 
 ```basic
-' Define a button rectangle
+' Definisci un rettangolo pulsante
 bx1% = 40  :  by1% = 60
 bx2% = 200 :  by2% = 100
 
-' Draw the button
+' Disegna il pulsante
 FillRect bx1%, by1%, bx2%, by2%, &hffff00
 TextOut bx1%+20, by1%+15, "Click me", &h000000
 
-' Main interaction loop
+' Ciclo principale di interazione
+Dim m As Mouse
 While 1
-   btn% = GetMouseBtn()
-   mx%  = GetMouseX()
-   my%  = GetMouseY()
+   m = GetMouse()
 
-   If btn% = 1 And mx% >= bx1% And mx% <= bx2% And my% >= by1% And my% <= by2% Then
+   If m.btn = 1 And m.x >= bx1% And m.x <= bx2% And m.y >= by1% And m.y <= by2% Then
       Print "Button clicked!"
-      MDelay 200    ' debounce — wait for release
+      MDelay 200    ' antirimbalzo — attende il rilascio
    End If
 
    MDelay 16
@@ -2138,12 +2150,14 @@ Cls
 FillRect 0, 0, 640, 480, &h000000
 TextOut 10, 10, "Hold left button and draw. Press Q to quit.", &hffffff
 
+Dim m As Mouse
 While 1
    key$ = InKey$()
    If key$ = "q" Or key$ = "Q" Then Exit While
 
-   If GetMouseBtn() = 1 Then
-      SetPixel GetMouseX(), GetMouseY(), &hffffff
+   m = GetMouse()
+   If m.btn = 1 Then
+      SetPixel m.x, m.y, &hffffff
    End If
 
    MDelay 5
@@ -2212,6 +2226,99 @@ If result% > 0 Then
    Print "User confirmed."
 End If
 ```
+
+---
+
+### 5.5 Pseudo-3D con WinRayCast
+
+Su Windows, nuBASIC 2.0 integra **WinRayCast**, un motore di raycasting leggero che renderizza
+scene in prima persona pseudo-3D, in stile *Wolfenstein 3D*, a partire da una semplice mappa a
+griglia 2D. WinRayCast gestisce il rendering e la logica di gioco (pareti texturizzate, sprite,
+porte, attori, armi, oggetti raccoglibili, audio e transizioni tra livelli); il programma BASIC
+lo pilota attraverso il modulo `raycast` — le funzioni integrate `Ray…` — e fornisce la gestione
+dell'input, il disegno dell'HUD e le regole di gioco.
+
+> **Piattaforma.** WinRayCast è solo per Windows. Il modulo è compilato per impostazione
+> predefinita nelle build Windows (`NUBASIC_WITH_RAYCAST`) ed è assente altrove, dove esiste
+> solo `RayAvailable()` e restituisce `0`. Proteggi il codice portabile con
+> `If RayAvailable() Then …`.
+
+#### Il ciclo di rendering
+
+Un programma WinRayCast si inizializza una volta, carica un mondo o un progetto, poi ripete un
+ciclo **input → aggiornamento → rendering → presentazione** e termina alla fine. `Screen 1` deve
+essere attivo, perché i fotogrammi vengono presentati nella finestra GDI.
+
+```basic
+Syntax Modern
+Using raycast
+Using graphics
+
+Const VIEW_W = 640
+Const VIEW_H = 400
+
+If RayAvailable() = 0 Then Print "WinRayCast not available" : End
+
+Screen 1
+RaySetBaseDir(GetAppPath())                 ' risolve gli asset rispetto all'exe
+RayInit(VIEW_W, VIEW_H)                     ' crea la sessione / il framebuffer
+RayLoadProject("raycast_demo/worlds/demo.world.json")
+
+Dim running As Integer : running = 1
+While running
+   ScreenLock
+   If RayKeyDown(27) Then running = 0       ' ESC
+   If RayKeyDown(38) Then RayMove(8)        ' freccia Su
+   If RayKeyDown(40) Then RayMove(-8)       ' freccia Giù
+   If RayKeyDown(37) Then RayTurn(-3)       ' freccia Sinistra
+   If RayKeyDown(39) Then RayTurn(3)        ' freccia Destra
+
+   RayUpdate(0.016)                         ' avanza ~16 ms di tempo del mondo
+   RayRender(VIEW_W, VIEW_H)                ' renderizza nel framebuffer
+   RayPresent(0, 0, VIEW_W, VIEW_H)         ' blit del framebuffer su (x, y, w, h)
+   ScreenUnlock
+   MDelay 16                                ' regola a ~60 fps
+Wend
+
+RayShutdown()
+```
+
+`RayUpdate(dt)` fa avanzare porte, animazioni degli sprite, attori/nemici, oggetti raccoglibili,
+effetti e l'oscillazione dell'arma (`dt` è internamente limitato a 0,1 s). `RayRender` riempie un
+framebuffer fuori schermo e `RayPresent` lo copia in un rettangolo della finestra — il disegno
+dell'HUD e della minimappa con le normali primitive grafiche può essere sovrapposto prima di
+`ScreenUnlock`.
+
+#### Mondi e progetti
+
+I dati delle scene vengono caricati da file JSON ancorati a una directory di base
+(`RaySetBaseDir`): `RayLoadWorld(path$)` carica una singola mappa `*.world.json`, mentre
+`RayLoadProject(path$)` carica un progetto multi-livello con transizioni a ascensore tra i
+livelli. La griglia della mappa può essere ispezionata con `RayCellKind` (0 vuoto, 1 parete,
+2 porta), `RayIsSolidCell` e `RayKeyAtCell`, utili per disegnare una minimappa.
+
+#### Funzioni `Ray…` principali
+
+| Gruppo | Funzioni |
+|-------|-----------|
+| Ciclo di vita | `RayAvailable`, `RayInit`, `RaySetBaseDir`, `RayShutdown` |
+| Mondo / progetto | `RayLoadWorld`, `RayLoadProject`, `RayCurrentLayer$` |
+| Fotogramma | `RayUpdate`, `RayRender`, `RayPresent`, `RayFrameHash` |
+| Giocatore / camera | `RayPlayerX`, `RayPlayerY`, `RayPlayerFacing`, `RaySetPlayer`, `RayMove`, `RayStrafe`, `RayTurn`, `RayPlayerSlope`/`RaySetPlayerSlope`, `RayPlayerViewCenter`/`RaySetPlayerViewCenter` |
+| Mappa | `RayMapRows`, `RayMapCols`, `RayCellDx`, `RayCellDy`, `RayIsSolidCell`, `RayCellKind`, `RayKeyAtCell`, `RayMapUnlockCount` |
+| Sprite / avanzamento | `RaySpriteCount`, `RayActorCount`, `RayEnemyCount`, `RayKilledEnemyCount`, `RayItemCount`, `RayCollectedItemCount`, `RayDestroyedObjectCount`, `RayPlayerStandingOn` |
+| Armi | `RayLoadWeapon`, `RayHasWeapon`, `RayWeaponAmmo`, `RayWeaponReserveAmmo`, `RayWeaponMaxAmmo`, `RayReloadWeapon` |
+| Combattimento / audio | `RayDamageEnemy`, `RayConsumePlayerDamage`, `RayConsumePlayerHealing`, `RaySetPlayerEnergy`, `RayPlaySound` |
+| Input | `RayKeyDown` |
+| Transizioni | `RayTransitionActive`, `RaySetTransitionManual`, `RayTransitionOptionCount`, `RayTransitionOptionLayer$`, `RayTransitionSelected`, `RaySelectTransition`, `RayConfirmTransition` |
+
+Il riferimento completo per ciascuna funzione (firme, valori di ritorno e semantica) si trova
+nella pagina wiki
+[Raycast Game Engine](https://github.com/eantcal/nubasic/wiki/Raycast-Game-Engine). Per un
+esempio completo e giocabile vedi `examples/raycast/eclipse_protocol.bas` — una demo FPS in
+stile tutorial con combattimento multi-arma, energia/salute, un HUD e una minimappa, porte con
+chiave/serratura, checkpoint con salvataggio automatico e transizioni a ascensore, che mostra
+anche `Syntax Modern`, `Struct` e `Class` che lavorano insieme.
 
 ---
 
@@ -2432,19 +2539,17 @@ programma BASIC in esecuzione.
 
 | Funzione | Restituisce | Descrizione |
 |----------|---------|-------------|
+| `GetDateTime()` | struct DateTime | Tutti i campi di data/ora: `year`, `month`, `day`, `hour`, `minute`, `second`, `wday`, `yday` |
 | `SysTime$()` | String | Ora e data locali correnti come stringa |
 | `Time()` | Integer | Secondi trascorsi dall'Epoca Unix |
-| `SysHour()` | Integer | Ora corrente (0–23) |
-| `SysMin()` | Integer | Minuto corrente (0–59) |
-| `SysSec()` | Integer | Secondo corrente (0–59) |
-| `SysDay()` | Integer | Giorno del mese (1–31) |
-| `SysMonth()` | Integer | Mese (0–11; Gennaio = 0) |
-| `SysYear()` | Integer | Anno completo (es. 2026) |
-| `SysWDay()` | Integer | Giorno della settimana (0=Domenica … 6=Sabato) |
-| `SysYDay()` | Integer | Giorno dell'anno (1–365) |
+| `Millis()` | Integer | Millisecondi da un istante di riferimento fisso (timing / cadenza dei frame) |
 | `GetPlatId()` | Integer | 1 = Windows, 2 = Linux/altro |
 | `GetAppPath$()` | String | Percorso completo dell'eseguibile nuBASIC |
 | `Ver$()` | String | Stringa di versione di nuBASIC |
+
+> **Rimosse in v2.0.** Le funzioni scalari di data/ora `SysHour`, `SysMin`, `SysSec`,
+> `SysDay`, `SysMonth`, `SysYear`, `SysWDay` e `SysYDay` (deprecate nella v1.62) sono state
+> rimosse. Usa il campo corrispondente di `GetDateTime()` (per es. `GetDateTime().hour`).
 
 #### Grafica / Finestra (solo versione completa)
 
@@ -2452,9 +2557,7 @@ programma BASIC in esecuzione.
 |----------|---------|-------------|
 | `Rgb(r,g,b)` | Integer | Compone un colore RGB da componenti 0–255 |
 | `GetPixel(x,y)` | Integer | Legge il colore di un pixel |
-| `GetMouseX()` | Integer | Coordinata X del cursore del mouse in pixel |
-| `GetMouseY()` | Integer | Coordinata Y del cursore del mouse in pixel |
-| `GetMouseBtn()` | Integer | Maschera di bit dei pulsanti del mouse (1=sinistro, 2=centrale, 4=destro) |
+| `GetMouse()` | struct Mouse | Tutto lo stato del puntatore: `x`, `y`, `btn` |
 | `GetSWidth()` | Integer | Larghezza dell'area client disegnabile in pixel |
 | `GetSHeight()` | Integer | Altezza dell'area client disegnabile in pixel |
 | `GetWindowX()` | Integer | Posizione del bordo sinistro della finestra sullo schermo |
@@ -2465,6 +2568,16 @@ programma BASIC in esecuzione.
 | `SetTopMost()` | Integer | Rende la finestra sempre in primo piano |
 | `MsgBox(title$,msg$)` | Integer | Mostra una finestra di dialogo modale; restituisce > 0 se confermata |
 | `PlaySound(file$,async%)` | Integer | Riproduce un file WAV (async%=1 ritorna immediatamente) |
+
+> **Rimosse in v2.0.** Gli accessori scalari del mouse `GetMouseX`, `GetMouseY` e
+> `GetMouseBtn` (deprecati nella v1.62) sono stati rimossi; usa `GetMouse()`.
+
+#### Raycast (Windows)
+
+Il motore WinRayCast integrato aggiunge una famiglia di funzioni `Ray…` (`RayInit`,
+`RayLoadProject`, `RayUpdate`, `RayRender`, `RayPresent` e le query
+giocatore/combattimento/mappa) nelle build Windows. Sono documentate per esteso nella
+[sezione 5.5](#55-pseudo-3d-con-winraycast).
 
 #### Tabelle Hash
 
@@ -3032,6 +3145,40 @@ La versione 1.60 fu la release infrastrutturale più grande dalla versione origi
   con Installazione applicazioni di Windows, i collegamenti sul desktop e la disinstallazione
   pulita.
 - Scintilla fu aggiornata alla sua ultima versione.
+
+### nuBASIC 2.0 — Nuove funzionalità del linguaggio (2026)
+
+La versione 2.0 è una release maggiore che rimuove API deprecate da tempo e aggiunge nuove
+funzionalità significative. Le caratteristiche di punta (tutte documentate in dettaglio in
+precedenza in questa guida):
+
+- **Programmazione orientata agli oggetti** — `Class` con ereditarietà singola (`Inherits`),
+  dispatch virtuale (`Overridable`/`Overrides`/`MyBase`), controllo degli accessi a tre livelli,
+  costruttori (`Sub New`) e distruttori RAII (`Sub Delete`), e metodi `Static` di classe
+  ([sezione 4.5](#45-classi-e-oggetti)).
+- **Punto di ingresso `main()`** ([4.6](#46-punto-di-ingresso-main)), **moduli con namespace**
+  (`Syntax Modern`, `Using`, `math::sin`) ([4.7](#47-moduli-con-namespace)) e **parametri array
+  a dimensione aperta** (`param() As Type`).
+- **Dispatch `Select Case`**, con liste di valori, intervalli `To`, guardie di confronto `Is` e
+  case stringa.
+- **Chiamate a librerie native** — `Declare Function … Lib` per chiamare DLL Windows, `.so`
+  Linux e `.dylib` macOS tramite libffi, con continuazione di riga `_` per dichiarazioni
+  leggibili ([4.14](#414-chiamate-a-librerie-native)).
+- **Modello di debugger moderno** — comandi riutilizzabili Continue / Step Into / Step Over /
+  Step Out / Pause / Run-to-Cursor condivisi dall'IDE nativo, dalla CLI di debug e
+  dall'adattatore VS Code, oltre al debug consapevole della grafica tramite una finestra GDI
+  separata.
+- **Ottimizzazione del runtime** — `variant_t` memorizza gli scalari inline, incapsula
+  (box) i metadati di struct/oggetti e usa il copy-on-write per i payload delle struct; letterali
+  esadecimali estesi `&hFF` / `0xFF`.
+- **Integrazione WinRayCast (Windows)** — un motore di raycasting integrato per il rendering
+  pseudo-3D in prima persona, in stile *Wolfenstein 3D*, pilotato dal BASIC attraverso il modulo
+  `Ray…` ([sezione 5.5](#55-pseudo-3d-con-winraycast)). È distinto dal precedente esempio di
+  raycaster software in puro BASIC `raycast3d.bas`; l'esempio incluso
+  `examples/raycast/eclipse_protocol.bas` è una demo completa e giocabile.
+- **API deprecate rimosse** — le funzioni scalari di data/ora `Sys*` e `GetMouseX` /
+  `GetMouseY` / `GetMouseBtn` (deprecate nella v1.62) sono state eliminate; usa `GetDateTime()` e
+  `GetMouse()`.
 
 ### Rendering grafico senza sfarfallio (aprile 2026, v1.61)
 
@@ -3718,7 +3865,7 @@ su input non validi ed è completamente documentata nel sistema di guida inline.
 
 ## 10. Compilare nuBASIC dai Sorgenti
 
-nuBASIC è scritto in C++17 e si compila con CMake 3.14 o successivo. Lo stesso albero dei
+nuBASIC è scritto in C++20 e si compila con CMake 3.14 o successivo. Lo stesso albero dei
 sorgenti produce tre artefatti distinti a seconda della piattaforma di destinazione:
 
 | Artefatto | Piattaforma | Descrizione |
@@ -3993,7 +4140,13 @@ Tutte le opzioni possono essere passate dalla riga di comando di `cmake` come `-
 | `SCINTILLA_VERSION` | `"5.5.3"` | IDE Windows/Linux | Versione di Scintilla da scaricare quando `SCINTILLA_LOCAL=OFF`. |
 | `LEXILLA_VERSION` | `"5.4.3"` | IDE Windows/Linux | Versione di Lexilla da scaricare quando `SCINTILLA_LOCAL=OFF`. |
 | `NUBASIC_INSTALLER` | `"WIX"` | Windows | Generatore di installer per CPack: `"WIX"` (MSI, consigliato) oppure `"NSIS"` (setup.exe legacy). |
+| `NUBASIC_WITH_RAYCAST` | `ON` (Windows), `OFF` (altre) | tutte | Compila il motore pseudo-3D WinRayCast integrato e l'API `Ray…` (vedi [sezione 5.5](#55-pseudo-3d-con-winraycast)). |
+| `NUBASIC_WITH_LIBFFI` | `ON` | tutte | Abilita le chiamate native a DLL/oggetti condivisi tramite libffi (`Declare Function … Lib`). Senza libffi le dichiarazioni vengono analizzate ma l'invocazione è disabilitata. |
 | `CMAKE_BUILD_TYPE` | `Release` | tutte | `Release` (ottimizzato, `-O3`) oppure `Debug` (con simboli, `-g`). |
+
+I preset di `CMakePresets.json` `release` / `debug` compilano la configurazione standard;
+`raycast-release` / `raycast-debug` abilitano WinRayCast esplicitamente. Configura con
+`cmake --preset <name>` e compila con `cmake --build --preset <name>`.
 
 #### Esempio: build di debug dell'IDE Windows senza scaricare Scintilla
 

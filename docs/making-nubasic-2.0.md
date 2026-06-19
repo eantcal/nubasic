@@ -9,8 +9,9 @@ and performance.
 
 nuBASIC 2.0 keeps the original spirit of the project: a small BASIC-family
 language that can still run classic numbered programs, while also supporting
-structured programming, classes, graphics, projects, native calls, and modern
-debugger workflows.
+structured programming, classes, graphics, projects, native calls, an integrated
+pseudo-3D raycasting engine (WinRayCast, on Windows), and modern debugger
+workflows.
 
 The recent internal work had four main goals:
 
@@ -146,6 +147,38 @@ color% = 0xFFFFFF
 This does not replace the BASIC form. It makes imported constants from C
 headers, Win32 documentation, POSIX examples, and graphics code easier to paste
 into nuBASIC programs.
+
+## WinRayCast Integration
+
+The most visible addition of the 2.0 cycle for Windows is the integrated
+**WinRayCast** engine: a lightweight raycaster that renders pseudo-3D,
+*Wolfenstein 3D*-style first-person scenes from a 2D grid map. The design
+deliberately keeps the engine and the language layers separate.
+
+- The C++ engine (under `raycast/`) owns rendering, the world map, sprites,
+  actors, doors, weapons, pickups, sound, and multi-level transitions. It is
+  built into a static library and linked into the interpreter only when
+  `NUBASIC_WITH_RAYCAST` is enabled (the default on Windows, off elsewhere).
+- The BASIC binding lives in `lib/api/nu_builtin_module_raycast.cc` as the
+  `raycast` built-in module. It exposes the `Ray…` functions and holds a single
+  per-process `raycast_session_t` — the world, engine, actors, weapon inventory,
+  energy, collected-item counters, and pending layer transition. BASIC code never
+  sees the C++ objects directly; it drives them through small, query-and-command
+  style functions.
+- Rendering is two-phase: `RayRender` fills an off-screen framebuffer, and
+  `RayPresent` blits a rectangle of that framebuffer into the GDI window via
+  `StretchDIBits`. This keeps the engine platform-neutral (it just produces a
+  pixel buffer) while the Windows-specific presentation stays in the binding,
+  guarded by `#ifdef _WIN32`. `RayKeyDown` similarly wraps `GetAsyncKeyState`.
+- Worlds and multi-level projects are described in JSON (`*.world.json`) and
+  loaded relative to a base directory, so scene data is data, not code.
+
+When the engine is compiled out, only `RayAvailable()` is registered — returning
+`0` — so portable programs can probe for support and degrade gracefully. The
+companion demo `examples/raycast/eclipse_protocol.bas` is written as a tutorial
+and exercises most of the API while combining `Syntax Modern`, `Struct`, and
+`Class`. The full `Ray…` reference is on the project wiki
+(*Raycast Game Engine*).
 
 ## Testability
 
