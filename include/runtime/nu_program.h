@@ -68,6 +68,9 @@ public:
     bool run(const std::string& name,
         const std::vector<expr_any_t::handle_t>& args) override;
 
+    bool run_entry_function(const std::string& name,
+        const std::vector<expr_any_t::handle_t>& args);
+
     variant_t run_method(const std::string& name,
         const std::vector<expr_any_t::handle_t>& args,
         const std::string& me_obj_name, const variant_t& me_obj_value) override;
@@ -97,6 +100,7 @@ private:
     prog_line_t& _prog_line;
     rt_prog_ctx_t& _ctx;
     bool _function_call = false;
+    bool _debug_expression_call = false;
 
     yield_cbk_t _yield_cbk = nullptr;
     void* _yield_data = nullptr;

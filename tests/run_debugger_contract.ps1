@@ -370,6 +370,38 @@ try {
         throw "StepOut did not stop on line 4 in the caller.`nOutput:`n$stepOutOutput"
     }
 
+    $nestedSubLoadOutput = Send-Command -Command 'load "test_debug_nested_sub_continue.bas"' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "LOAD completion for nested sub continue contract"
+    if ($nestedSubLoadOutput -notmatch '@@nubasic event="ok"') {
+        throw "Nested sub continue LOAD did not complete successfully."
+    }
+
+    $null = Send-Command -Command 'clrbrk' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "ClrBrk completion before nested sub continue contract"
+
+    $null = Send-Command -Command 'break 14' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "nested sub breakpoint creation"
+
+    $nestedSubRunOutput = Send-Command -Command 'run' `
+        -CompletionPattern '@@nubasic event="stopped"' `
+        -Description "nested sub RUN breakpoint stop"
+    if ($nestedSubRunOutput -notmatch '@@nubasic event="stopped"[^\r\n]*reason="breakpoint"[^\r\n]*line="14"') {
+        throw "Nested sub setup did not stop on line 14.`nOutput:`n$nestedSubRunOutput"
+    }
+
+    $nestedSubContOutput = Send-Command -Command 'cont' `
+        -CompletionPattern '@@nubasic event="ok"' `
+        -Description "nested sub continue completion"
+    if ($nestedSubContOutput -match '@@nubasic event="runtimeError"') {
+        throw "Nested sub continue raised a runtime error.`nOutput:`n$nestedSubContOutput"
+    }
+    if ($nestedSubContOutput -notmatch 'lifeState=\s*2\s+killed=\s*1') {
+        throw "Nested sub continue did not return to Main with locals intact.`nOutput:`n$nestedSubContOutput"
+    }
+
     $stepExprLoadOutput = Send-Command -Command 'load "test_debugger_step_expr.bas"' `
         -CompletionPattern '@@nubasic event="ok"' `
         -Description "LOAD completion for expression step contracts"

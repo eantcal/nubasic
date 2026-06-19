@@ -2511,14 +2511,12 @@ bool interpreter_t::run_main_or_default()
 
         _prog_ctx.clear_rtdata();
 
-        // Use checkpoint mode (true) so that End Function / End Sub
-        // can cleanly return to line 0 without triggering a runtime error.
-        program_t prog(_prog_line, _prog_ctx, true);
+        program_t prog(_prog_line, _prog_ctx, false);
 
         if (_yield_cbk)
             prog.set_yield_cbk(_yield_cbk, _yield_data);
 
-        return prog.run(main_name, args);
+        return prog.run_entry_function(main_name, args);
     }
 
     return run(0);

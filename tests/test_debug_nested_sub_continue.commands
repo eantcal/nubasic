@@ -1,0 +1,4 @@
+load "test_debug_nested_sub_continue.bas"
+break 14
+run
+cont

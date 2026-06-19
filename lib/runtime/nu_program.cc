@@ -94,6 +94,7 @@ program_t::program_t(prog_line_t& pl, rt_prog_ctx_t& ctx, bool chkpt)
     : _prog_line(pl)
     , _ctx(ctx)
     , _function_call(chkpt)
+    , _debug_expression_call(chkpt)
 {
 }
 
@@ -226,7 +227,8 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
     checkpoint_data_t cp_data;
     reset_break_event();
 
-    const bool debug_function_call = _function_call && _ctx.debug_mode;
+    const bool debug_function_call
+        = _function_call && _debug_expression_call && _ctx.debug_mode;
     const bool using_debug_function_checkpoint
         = debug_function_call && !_ctx.debug_function_checkpoints.empty();
     std::string function_name;
@@ -405,10 +407,10 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
 
             _ctx.flag.set(rt_prog_ctx_t::FLG_RETURN_REQUEST, false);
 
-            // If checkpoint enabled and line is zero
-            // it means we ware executing a function call (in another stack
-            // context) and we have to return to the main program
-            if (_function_call && line == 0) {
+            // A procedure invoked directly as the program entry point returns
+            // to line 0. This is valid for End Sub/End Function, but not for
+            // a bare RETURN without a matching GOSUB.
+            if (line == 0 && stmt_class == stmt_t::stmt_cl_t::SUB_END) {
                 break;
             }
 
@@ -548,16 +550,37 @@ bool program_t::_run(line_num_t start_from, stmt_num_t stmt_id, bool next)
 
 /* -------------------------------------------------------------------------- */
 
-bool program_t::run(
-    const std::string& name, const std::vector<expr_any_t::handle_t>& args)
+static bool run_function(program_t& program, rt_prog_ctx_t& ctx,
+    const std::string& name, const std::vector<expr_any_t::handle_t>& args,
+    bool& function_call, bool& debug_expression_call,
+    bool is_debug_expression_call)
 {
+    const bool saved_function_call = function_call;
+    const bool saved_debug_expression_call = debug_expression_call;
+    if (is_debug_expression_call) {
+        function_call = true;
+    }
+    debug_expression_call = is_debug_expression_call;
+    struct function_call_guard_t {
+        bool& function_call_value;
+        bool saved_function_call_value;
+        bool& debug_expression_call_value;
+        bool saved_debug_expression_call_value;
+
+        ~function_call_guard_t()
+        {
+            function_call_value = saved_function_call_value;
+            debug_expression_call_value = saved_debug_expression_call_value;
+        }
+    } guard{ function_call, saved_function_call, debug_expression_call,
+        saved_debug_expression_call };
 
     // Convert args in the stmt_call_t's argument list
     //
     arg_list_t arg_list;
 
     for (auto& arg : args) {
-        variant_t value = arg->eval(_ctx);
+        variant_t value = arg->eval(ctx);
 
         expr_any_t::handle_t hvalue = std::make_shared<expr_literal_t>(value);
 
@@ -566,19 +589,39 @@ bool program_t::run(
     }
 
     // Create a call-able object
-    stmt_call_t call(arg_list, name, _ctx, true);
+    stmt_call_t call(arg_list, name, ctx, true);
 
     // Create a CALL-statement
-    call.run(_ctx, 0);
+    call.run(ctx, 0);
 
     // Retrieve the function prototype
-    auto prototype = _ctx.proc_prototypes.data.find(name);
+    auto prototype = ctx.proc_prototypes.data.find(name);
 
-    syntax_error_if(prototype == _ctx.proc_prototypes.data.end(),
+    syntax_error_if(prototype == ctx.proc_prototypes.data.end(),
         "Cannot execute function " + name + ", prototype not found");
 
     // Finally executes the function
-    return run(prototype->second.first.get_line());
+    return program.run(prototype->second.first.get_line());
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool program_t::run(
+    const std::string& name, const std::vector<expr_any_t::handle_t>& args)
+{
+    return run_function(
+        *this, _ctx, name, args, _function_call, _debug_expression_call, true);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+bool program_t::run_entry_function(
+    const std::string& name, const std::vector<expr_any_t::handle_t>& args)
+{
+    return run_function(
+        *this, _ctx, name, args, _function_call, _debug_expression_call, false);
 }
 
 
@@ -588,6 +631,24 @@ variant_t program_t::run_method(const std::string& name,
     const std::vector<expr_any_t::handle_t>& args,
     const std::string& me_obj_name, const variant_t& me_obj_value)
 {
+    const bool saved_function_call = _function_call;
+    const bool saved_debug_expression_call = _debug_expression_call;
+    _function_call = true;
+    _debug_expression_call = true;
+    struct function_call_guard_t {
+        bool& function_call;
+        bool saved_function_call;
+        bool& debug_expression_call;
+        bool saved_debug_expression_call;
+
+        ~function_call_guard_t()
+        {
+            function_call = saved_function_call;
+            debug_expression_call = saved_debug_expression_call;
+        }
+    } guard{ _function_call, saved_function_call, _debug_expression_call,
+        saved_debug_expression_call };
+
     if (_ctx.debug_mode) {
         variant_t pending_return;
         if (_ctx.consume_debug_pending_return(
