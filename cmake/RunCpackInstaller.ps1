@@ -48,6 +48,14 @@ try {
         if ($LASTEXITCODE -ne 0) {
             throw "PatchWixMSI.ps1 failed with exit code $LASTEXITCODE"
         }
+
+        $wixMsi = Get-ChildItem -LiteralPath $wixPkgDir -Filter '*.msi' -File |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+        if ($wixMsi) {
+            Copy-Item -LiteralPath $MsiOutput -Destination $wixMsi.FullName -Force
+            Write-Host "Updated CPack staging MSI with patched output: $($wixMsi.FullName)"
+        }
     }
 } finally {
     if (Test-Path -LiteralPath $tempConfig) {
