@@ -1108,8 +1108,11 @@ normale notazione a indice.
 
 ### 4.5 Classi e oggetti
 
-nuBASIC supporta la programmazione orientata agli oggetti come stile di prima classe
-accanto al BASIC classico e a quello strutturato. L'implementazione copre le funzionalita'
+La programmazione orientata agli oggetti è una **novità di nuBASIC 2.0** — le versioni
+precedenti offrivano solo i tipi valore `Struct`. È uno stile di prima classe accanto al
+BASIC classico e a quello strutturato, ed è disponibile **solo in modalità Modern**: un file
+sorgente che definisce una `Class` deve iniziare con `Syntax Modern`, altrimenti il parser
+segnala `'Class' requires Syntax Modern`. L'implementazione copre le funzionalita'
 attese da un sistema OOP piccolo ma completo:
 
 - **Incapsulamento** — campi e metodi hanno una visibilita' `Public` / `Protected` /
@@ -1143,6 +1146,8 @@ Le classi raggruppano dati correlati (campi) e comportamenti (metodi) sotto un u
 Si dichiarano con `Class`/`End Class`; le istanze si creano con `Dim`.
 
 ```basic
+Syntax Modern
+
 Class Rettangolo
    Public larghezza  As Double
    Public altezza    As Double
@@ -1164,6 +1169,47 @@ Print "Perimetro ="; r.Perimetro()  ' 26
 ```
 
 `Me` è un riferimento implicito all'istanza corrente all'interno di ogni metodo di istanza.
+
+#### Costruttori, New e semantica di riferimento
+
+Un membro `Sub New(...)` è il **costruttore**, invocato alla creazione di un'istanza. Gli
+argomenti si passano con la forma `Dim … As New`, oppure con un'espressione `New` — che è di
+prima classe e può essere assegnata, passata come argomento, restituita o usata inline:
+
+```basic
+Syntax Modern
+
+Class Punto
+   Public x As Double
+   Public y As Double
+   Sub New(px As Double, py As Double)
+      Me.x = px : Me.y = py
+   End Sub
+   Function Lunghezza() As Double
+      Lunghezza = Sqr(Me.x * Me.x + Me.y * Me.y)
+   End Function
+End Class
+
+Dim p As New Punto(3.0, 4.0)          ' costruzione con argomenti
+Print p.Lunghezza()                   ' 5
+Print New Punto(6.0, 8.0).Lunghezza() ' 10  (temporaneo inline)
+```
+
+Le istanze di classe sono **tipi riferimento** (a differenza della copia di valore di
+`Struct`): assegnare una variabile oggetto a un'altra lega entrambe alla stessa istanza, e
+`Nothing` è il riferimento nullo.
+
+```basic
+Dim a As New Punto(1.0, 1.0)
+Dim b As Punto
+b = a                  ' a e b riferiscono lo stesso oggetto
+b.x = 9.0
+Print a.x              ' 9  — stessa istanza
+
+Dim nessuno As Punto
+nessuno = Nothing
+If nessuno = Nothing Then Print "nessun oggetto"   ' invocare un metodo su di esso è un errore a runtime
+```
 
 #### Metodi statici
 

@@ -1092,9 +1092,11 @@ usual index notation.
 
 ### 4.5 Classes and Objects
 
-nuBASIC supports object-oriented programming as a first-class style alongside classic and
-structured BASIC. The implementation covers the features expected from a small but complete
-OOP system:
+Object-oriented programming is **new in nuBASIC 2.0** — earlier versions provided only
+`Struct` value types. It is a first-class style alongside classic and structured BASIC, and
+is available in **Modern syntax mode only**: a source file that defines a `Class` must begin
+with `Syntax Modern`, or the parser reports `'Class' requires Syntax Modern`. The
+implementation covers the features expected from a small but complete OOP system:
 
 - **Encapsulation** — fields and methods carry a `Public` / `Protected` / `Private`
   visibility, enforced at compile time. `Public` is the default; `Private` is reachable
@@ -1126,6 +1128,8 @@ Classes group related data (fields) and behaviour (methods) into a single named 
 Declare with `Class`/`End Class`; instantiate with `Dim`.
 
 ```basic
+Syntax Modern
+
 Class Rectangle
    Public width  As Double
    Public height As Double
@@ -1147,6 +1151,46 @@ Print "Perimeter ="; r.Perimeter()  ' 26
 ```
 
 `Me` is an implicit reference to the current instance inside every instance method.
+
+#### Constructors, New, and reference semantics
+
+A `Sub New(...)` member is the **constructor**, invoked when an instance is created. Supply
+arguments with the `Dim … As New` form, or with a `New` expression — which is first-class
+and may be assigned, passed as an argument, returned, or used inline:
+
+```basic
+Syntax Modern
+
+Class Point
+   Public x As Double
+   Public y As Double
+   Sub New(px As Double, py As Double)
+      Me.x = px : Me.y = py
+   End Sub
+   Function Length() As Double
+      Length = Sqr(Me.x * Me.x + Me.y * Me.y)
+   End Function
+End Class
+
+Dim p As New Point(3.0, 4.0)         ' construct with arguments
+Print p.Length()                     ' 5
+Print New Point(6.0, 8.0).Length()   ' 10  (inline temporary)
+```
+
+Class instances are **reference types** (unlike value-copy `Struct`): assigning one object
+variable to another binds both to the same instance, and `Nothing` is the null reference.
+
+```basic
+Dim a As New Point(1.0, 1.0)
+Dim b As Point
+b = a                  ' a and b reference the same object
+b.x = 9.0
+Print a.x              ' 9  — same instance
+
+Dim none As Point
+none = Nothing
+If none = Nothing Then Print "no object"   ' calling a method on it is a runtime error
+```
 
 #### Static Methods
 

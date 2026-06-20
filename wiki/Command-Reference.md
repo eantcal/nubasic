@@ -67,11 +67,15 @@ BASIC program.
 | `ByRef` | `ByRef param As Type` | Pass parameter by reference (mutations propagate back) |
 | `ByVal` | `ByVal param As Type` | Pass parameter by value (default) |
 | `Struct` | `Struct name` … `End Struct` | Define a composite type |
-| `Class` | `Class name [Inherits Base]` … `End Class` | Define a class |
+| `Class` | `Class name [Inherits Base]` … `End Class` | Define a class *(requires `Syntax Modern`)* |
 | `Inherits` | `Inherits BaseClass` | Derive from a base class (single inheritance) |
 | `Public` / `Protected` / `Private` | `Public field As Type` | Member visibility (`Protected` is inherited) |
+| `Static` | `Static Sub\|Function name(...)` | Class-level member callable as `ClassName.Method(...)` without an instance |
 | `Overridable` / `Overrides` | `Overridable Sub Foo()` / `Overrides Sub Foo()` | Mark / replace a virtual method (signature must match) |
 | `MyBase` | `MyBase.Method(args)` | Explicit dispatch to the immediate base class member from inside an override |
+| `Me` | `Me.field` / `Me.Method(...)` | Reference to the current instance inside an instance method |
+| `Sub New` / `Sub Delete` | `Sub New(args)` / `Sub Delete()` | Constructor / RAII destructor of a class |
+| `New` | `New ClassName(args)` / `Dim x As New ClassName(args)` | Construct an instance (also valid as an expression) |
 | `Declare Function` | `Declare Function name Lib "library" [Alias "export"] [CallConv …] (params) As Type` | Declare an exported native library function (`.dll` / `.so` / `.dylib`) |
 | `Include` | `Include "file.bas"` | Load and execute another source file |
 | `_` | `statement-part _` | Continue a logical statement on the next physical line |

@@ -24,9 +24,10 @@ What nuBASIC adds on top of the classic BASIC foundation:
   `Exit For/While/Do/Sub/Function`
 - **First-class subroutines and functions** — with typed parameters, typed return values,
   recursion, and open-ended array parameters (`param() As Type`)
-- **Object-oriented programming** — `Class` with single inheritance (`Inherits`), virtual
-  dispatch (`Overridable`/`Overrides`/`MyBase`), access control, constructors (`Sub New`)
-  and RAII destructors (`Sub Delete`), plus `Static` class methods
+- **Object-oriented programming** *(new in 2.0, `Syntax Modern`)* — `Class` with single
+  inheritance (`Inherits`), virtual dispatch (`Overridable`/`Overrides`/`MyBase`), access
+  control, constructors (`Sub New`) and RAII destructors (`Sub Delete`), reference
+  semantics with `Nothing`, plus `Static` class methods
 - **Namespaced modules** — `Syntax Modern` enables qualified names (`math::sin`) and
   `Using Module` imports; `Syntax Legacy` keeps the classic flat namespace
 - **Native library calls** — `Declare Function … Lib` calls into Windows DLLs, Linux `.so`,

@@ -119,22 +119,53 @@ Supported arm forms: single values (`Case 1`), comma-separated lists (`Case 1, 3
 inclusive ranges (`Case 1 To 10`), comparison guards (`Case Is > 100`), and string values.
 Nesting is supported.
 
-### Classes with Static Methods
+### Object-Oriented Programming (new in 2.0)
 
-The `Class`/`End Class` block gained `Static Function` and `Static Sub` members — class-level
-procedures that can be invoked without an instance:
+Version 2.0 **introduces object-oriented programming** to nuBASIC. Earlier versions had
+`Struct` for composite value types, but no classes; the entire OOP system is new in this
+release and is available in `Syntax Modern` only. It is a small but complete model:
+
+- **Classes** — `Class` / `End Class` with instance fields and methods; `Me` is the
+  implicit self-reference inside instance methods.
+- **Constructors and destructors** — `Sub New(...)` runs at construction (`Dim x As New
+  T(...)` or the `New T(...)` expression); `Sub Delete()` runs automatically (RAII) when an
+  owned local instance leaves scope, in reverse declaration order, derived before base.
+- **Single inheritance** — `Inherits` derives from a base class.
+- **Polymorphism** — `Overridable` marks a method as replaceable, `Overrides` replaces it
+  (with full compile-time signature checking), and calls through a base reference dispatch
+  dynamically; `MyBase.Member(...)` calls the immediate base implementation explicitly.
+- **Access control** — `Public` (default), `Protected` (visible across the inheritance
+  chain), and `Private` (declaring class only), enforced at compile time.
+- **Static members** — `Static Function` / `Static Sub` are class-level procedures called
+  as `ClassName.Method(...)` without an instance.
+- **Reference semantics** — class instances are reference types: assignment binds two
+  variables to the same object (unlike value-copy `Struct`), with `Nothing`, null-reference
+  errors, and reference comparison.
 
 ```basic
-Class Utils
-   Static Function Max(a As Integer, b As Integer) As Integer
-      If a > b Then Max = a Else Max = b
+Syntax Modern
+
+Class Shape
+   Overridable Function Describe$() As String
+      Describe$ = "a shape"
    End Function
 End Class
 
-Print Utils.Max(3, 7)   ' 7
+Class Circle
+   Inherits Shape
+   Public radius As Double
+   Overrides Function Describe$() As String
+      Describe$ = MyBase.Describe$() + " (radius " + Str$(Me.radius) + ")"
+   End Function
+End Class
+
+Dim c As New Circle
+c.radius = 2.5
+Print c.Describe$()   ' a shape (radius 2.5)
 ```
 
-Instance methods continue to use `Me` to refer to the receiver.
+See [Language Reference → Classes and Objects](Language-Reference#classes-and-objects) for
+the full treatment.
 
 ### main() Entry Point
 

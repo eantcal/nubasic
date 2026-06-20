@@ -420,34 +420,99 @@ Call DrawBorder(0, 0, 639, 479)
 
 ## Classes and Objects
 
+Object-oriented programming is **new in nuBASIC 2.0** — earlier versions had only `Struct`
+value types. Classes are available in **Modern syntax mode only**: a program that defines a
+`Class` must begin with `Syntax Modern`, otherwise the parser reports
+`'Class' requires Syntax Modern`.
+
 Classes group related data (fields) and behaviour (methods) into a single type. Declare a
 class with `Class`/`End Class`; create instances with `Dim`:
 
 ```basic
+Syntax Modern
+
 Class Counter
-   Public count% As Integer
+   Public count As Integer
 
    Sub Reset()
-      Me.count% = 0
+      Me.count = 0
    End Sub
 
    Sub Increment()
-      Me.count% = Me.count% + 1
+      Me.count = Me.count + 1
    End Sub
 
    Function Value() As Integer
-      Value = Me.count%
+      Value = Me.count
    End Function
 End Class
 
-Dim c As Counter
+Dim c As Counter      ' default-constructed instance
 Call c.Reset()
 Call c.Increment()
 Call c.Increment()
-Print c.Value()   ' 2
+Print c.Value()       ' 2
 ```
 
 `Me` refers to the current instance inside an instance method.
+
+### Constructors and `New`
+
+A `Sub New(...)` member is the **constructor** — it runs when an instance is created. Pass
+constructor arguments either with the `Dim … As New` declaration form or with a `New`
+expression:
+
+```basic
+Syntax Modern
+
+Class Point
+   Public x As Double
+   Public y As Double
+   Sub New(px As Double, py As Double)
+      Me.x = px
+      Me.y = py
+   End Sub
+   Function Length() As Double
+      Length = Sqr(Me.x * Me.x + Me.y * Me.y)
+   End Function
+End Class
+
+Dim p As New Point(3.0, 4.0)     ' construct with arguments
+Print p.Length()                 ' 5
+
+' New is also a first-class expression: it can be assigned, passed as an
+' argument, returned from a function, or used inline.
+Dim q As Point
+q = New Point(1.0, 2.0)
+Print New Point(6.0, 8.0).Length()   ' 10
+```
+
+A class without a `Sub New` is default-constructed (`Dim c As Counter` above). A class may
+also define `Sub Delete()` — see [Destructors](#destructors).
+
+### Object reference semantics and `Nothing`
+
+Class instances are **reference types**, unlike `Struct` values (which are copied).
+Assigning one object variable to another makes both refer to the *same* instance, so a
+mutation through one is visible through the other:
+
+```basic
+Syntax Modern
+
+Dim a As New Counter
+Dim b As Counter
+b = a              ' a and b now reference the same object
+Call a.Increment()
+Print b.Value()    ' 1  — same instance
+
+If b = a Then Print "same object"   ' reference comparison
+
+Dim empty As Counter
+empty = Nothing    ' a null object reference
+If empty = Nothing Then Print "no object"
+```
+
+Calling a method on a `Nothing` reference raises a null-reference runtime error.
 
 ### Static Methods
 
@@ -521,6 +586,10 @@ Class Circle
    End Function
 End Class
 ```
+
+A call through a base-class reference dispatches **dynamically** to the most-derived
+`Overrides` implementation (virtual dispatch); `MyBase.Member(...)` is the way to reach the
+base version explicitly.
 
 Rules: `Overrides` must match the base `Overridable` method's full
 signature (Sub vs Function, return type, parameter count, parameter
