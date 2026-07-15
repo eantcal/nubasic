@@ -9,14 +9,20 @@
 
 #include <cstdlib>
 
+#if __has_include("../../third_party/stb/stb_vorbis.c")
+#define NURAYCAST_HAS_STB_VORBIS 1
 #pragma warning(push)
 #pragma warning(disable : 4244 4267 4996)
 #include "../../third_party/stb/stb_vorbis.c"
 #pragma warning(pop)
+#else
+#define NURAYCAST_HAS_STB_VORBIS 0
+#endif
 
 bool decodeVorbisFile(const std::string& path, std::vector<short>& samples,
     int& channels, int& sampleRate, std::string* error)
 {
+#if NURAYCAST_HAS_STB_VORBIS
     short* output = nullptr;
     channels = 0;
     sampleRate = 0;
@@ -35,4 +41,16 @@ bool decodeVorbisFile(const std::string& path, std::vector<short>& samples,
     samples.assign(output, output + (sampleCount * channels));
     std::free(output);
     return !samples.empty();
+#else
+    (void)path;
+    samples.clear();
+    channels = 0;
+    sampleRate = 0;
+
+    if (error != nullptr) {
+        *error = "Ogg Vorbis support is not available in this build.";
+    }
+
+    return false;
+#endif
 }

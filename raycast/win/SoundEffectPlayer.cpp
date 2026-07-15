@@ -11,8 +11,8 @@
 #include <mfapi.h>
 #include <mfidl.h>
 #include <mfreadwrite.h>
-#include <mmsystem.h>
 #include <windows.h>
+#include <mmsystem.h>
 #include <wrl/client.h>
 
 #include <algorithm>
