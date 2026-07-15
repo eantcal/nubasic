@@ -10,6 +10,11 @@ Please send bug reports for nuBASIC and nuBASIC IDE to:
 The Win32/64 build created with Visual Studio 2022 requires the
 "Visual C++ Redistributable Packages for Visual Studio 2022".
 
+July 2026
+* Released nuBASIC 2.0.1 installer refresh
+- Corrected the Windows installer script so the generated MSI consistently uses
+  the intended Release build outputs.
+
 June 2026
 * Released nuBASIC 2.0
 - Added SELECT CASE / End Select statement: multi-branch dispatch on any scalar
