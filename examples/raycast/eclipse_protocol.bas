@@ -501,6 +501,7 @@ Function Main(argc As Integer, argv() As String) As Integer
     Dim keys As KeyBindings
     Dim eventLog As New EventLog()
     Dim scriptBase As String
+    Dim installRaycastBase As String
     Dim world As String
     Dim weaponPath As String
     Dim weaponName As String
@@ -669,9 +670,16 @@ Function Main(argc As Integer, argv() As String) As Integer
     ' RayLoadWorld() is kept as a fallback for direct world loading.
     If RayLoadProject(world) = 0 Then
         If RayLoadWorld(world) = 0 Then
-            Print "Cannot load WinRayCast demo world from: "; scriptBase
-            Main = 1
-            Exit Function
+            installRaycastBase = scriptBase + "/examples/raycast"
+            RaySetBaseDir(installRaycastBase)
+            If RayLoadProject(world) = 0 Then
+                If RayLoadWorld(world) = 0 Then
+                    Print "Cannot load WinRayCast demo world from: "; scriptBase
+                    Print "Also tried: "; installRaycastBase
+                    Main = 1
+                    Exit Function
+                End If
+            End If
         End If
     End If
 
