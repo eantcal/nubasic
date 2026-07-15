@@ -14,6 +14,7 @@ July 2026
 * Released nuBASIC 2.0.1 installer refresh
 - Corrected the Windows installer script so the generated MSI consistently uses
   the intended Release build outputs.
+- Bundled the required Microsoft Visual C++ runtime DLLs in the Windows MSI.
 
 June 2026
 * Released nuBASIC 2.0
