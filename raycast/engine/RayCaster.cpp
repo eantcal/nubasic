@@ -49,8 +49,11 @@ WinRayCast::WallFace horizontalHitFace(const Player& player, int ray) noexcept
         : WinRayCast::WallFace::North;
 }
 
-SampledCell sampleVerticalCell(WorldMap& map, const Player& player,
-    const RayCaster::Point2d& point, int ray) noexcept
+SampledCell sampleVerticalCell(
+    WorldMap& map,
+    const Player& player,
+    const RayCaster::Point2d& point,
+    int ray) noexcept
 {
     int col = static_cast<int>(point.first / map.getCellDx());
     int row = static_cast<int>(point.second / map.getCellDy());
@@ -65,8 +68,11 @@ SampledCell sampleVerticalCell(WorldMap& map, const Player& player,
     return { map[row][col], map.blockAtCell(row, col), row, col };
 }
 
-SampledCell sampleHorizontalCell(WorldMap& map, const Player& player,
-    const RayCaster::Point2d& point, int ray) noexcept
+SampledCell sampleHorizontalCell(
+    WorldMap& map,
+    const Player& player,
+    const RayCaster::Point2d& point,
+    int ray) noexcept
 {
     int col = static_cast<int>(point.first / map.getCellDx());
     int row = static_cast<int>(point.second / map.getCellDy());
@@ -80,18 +86,20 @@ SampledCell sampleHorizontalCell(WorldMap& map, const Player& player,
 
     return { map[row][col], map.blockAtCell(row, col), row, col };
 }
-} // namespace
+}
 
 void RayCaster::firstVerticalIntersection(
-    WorldMap& map, int ray, double slope, Point2d& point) const noexcept
+    WorldMap& map,
+    int ray,
+    double slope,
+    Point2d& point) const noexcept
 {
     const double xp = m_player.getX();
     const double yp = m_player.getY();
 
     const double xi = ray >= m_player.deg90() && ray < m_player.deg270()
         ? static_cast<double>(map.getPlayerCellPos().first) * map.getCellDx()
-        : static_cast<double>(map.getPlayerCellPos().first + 1)
-            * map.getCellDx();
+        : static_cast<double>(map.getPlayerCellPos().first + 1) * map.getCellDx();
 
     const double yi = slope * (xi - xp) + yp;
 
@@ -100,15 +108,17 @@ void RayCaster::firstVerticalIntersection(
 }
 
 void RayCaster::firstHorizontalIntersection(
-    WorldMap& map, int ray, double inverseSlope, Point2d& point) const noexcept
+    WorldMap& map,
+    int ray,
+    double inverseSlope,
+    Point2d& point) const noexcept
 {
     const double xp = m_player.getX();
     const double yp = m_player.getY();
 
     const double yi = ray >= m_player.deg180() && ray < m_player.deg360()
         ? static_cast<double>(map.getPlayerCellPos().second) * map.getCellDy()
-        : static_cast<double>(map.getPlayerCellPos().second + 1)
-            * map.getCellDy();
+        : static_cast<double>(map.getPlayerCellPos().second + 1) * map.getCellDy();
 
     const double xi = inverseSlope * (yi - yp) + xp;
 
@@ -116,33 +126,44 @@ void RayCaster::firstHorizontalIntersection(
     point.second = yi;
 }
 
-void RayCaster::nextVerticalIntersection(WorldMap& map, const Point2d& previous,
-    int ray, double slope, Point2d& point) const noexcept
+void RayCaster::nextVerticalIntersection(
+    WorldMap& map,
+    const Point2d& previous,
+    int ray,
+    double slope,
+    Point2d& point) const noexcept
 {
     if (ray >= m_player.deg90() && ray < m_player.deg270()) {
         point.second = previous.second - slope * map.getCellDx();
         point.first = previous.first - map.getCellDx();
-    } else {
+    }
+    else {
         point.second = previous.second + slope * map.getCellDx();
         point.first = previous.first + map.getCellDx();
     }
 }
 
-void RayCaster::nextHorizontalIntersection(WorldMap& map,
-    const Point2d& previous, int ray, double inverseSlope,
+void RayCaster::nextHorizontalIntersection(
+    WorldMap& map,
+    const Point2d& previous,
+    int ray,
+    double inverseSlope,
     Point2d& point) const noexcept
 {
     if (ray >= m_player.deg180() && ray < m_player.deg360()) {
         point.first = previous.first - inverseSlope * map.getCellDy();
         point.second = previous.second - map.getCellDy();
-    } else {
+    }
+    else {
         point.first = previous.first + inverseSlope * map.getCellDy();
         point.second = previous.second + map.getCellDy();
     }
 }
 
 Cell RayCaster::verticalWall(
-    WorldMap& map, const Point2d& point, int ray) const noexcept
+    WorldMap& map,
+    const Point2d& point,
+    int ray) const noexcept
 {
     int col = static_cast<int>(point.first / map.getCellDx());
     int row = static_cast<int>(point.second / map.getCellDy());
@@ -158,7 +179,9 @@ Cell RayCaster::verticalWall(
 }
 
 const WinRayCast::BlockDefinition* RayCaster::verticalBlock(
-    WorldMap& map, const Point2d& point, int ray) const noexcept
+    WorldMap& map,
+    const Point2d& point,
+    int ray) const noexcept
 {
     int col = static_cast<int>(point.first / map.getCellDx());
     int row = static_cast<int>(point.second / map.getCellDy());
@@ -174,7 +197,9 @@ const WinRayCast::BlockDefinition* RayCaster::verticalBlock(
 }
 
 Cell RayCaster::horizontalWall(
-    WorldMap& map, const Point2d& point, int ray) const noexcept
+    WorldMap& map,
+    const Point2d& point,
+    int ray) const noexcept
 {
     int col = static_cast<int>(point.first / map.getCellDx());
     int row = static_cast<int>(point.second / map.getCellDy());
@@ -190,7 +215,9 @@ Cell RayCaster::horizontalWall(
 }
 
 const WinRayCast::BlockDefinition* RayCaster::horizontalBlock(
-    WorldMap& map, const Point2d& point, int ray) const noexcept
+    WorldMap& map,
+    const Point2d& point,
+    int ray) const noexcept
 {
     int col = static_cast<int>(point.first / map.getCellDx());
     int row = static_cast<int>(point.second / map.getCellDy());
@@ -206,33 +233,38 @@ const WinRayCast::BlockDefinition* RayCaster::horizontalBlock(
 }
 
 double RayCaster::horizontalDistance(
-    const Point2d& intersection, int ray) const noexcept
+    const Point2d& intersection,
+    int ray) const noexcept
 {
     return (intersection.second - m_player.getY()) * m_player.invsin(ray);
 }
 
 double RayCaster::verticalDistance(
-    const Point2d& intersection, int ray) const noexcept
+    const Point2d& intersection,
+    int ray) const noexcept
 {
     return (intersection.first - m_player.getX()) * m_player.invcos(ray);
 }
 
 bool RayCaster::isInsideMap(
-    const WorldMap& map, const Point2d& point) const noexcept
+    const WorldMap& map,
+    const Point2d& point) const noexcept
 {
-    return point.first >= 0 && point.first <= map.getMaxX() && point.second >= 0
+    return point.first >= 0
+        && point.first <= map.getMaxX()
+        && point.second >= 0
         && point.second <= map.getMaxY();
 }
 
 RayCaster::RayHit RayCaster::castSolidWallRay(
-    WorldMap& map, int ray) const noexcept
+    WorldMap& map,
+    int ray) const noexcept
 {
     Point2d verticalPoint;
     Point2d horizontalPoint;
 
     firstVerticalIntersection(map, ray, m_player.tan(ray), verticalPoint);
-    firstHorizontalIntersection(
-        map, ray, m_player.invtan(ray), horizontalPoint);
+    firstHorizontalIntersection(map, ray, m_player.invtan(ray), horizontalPoint);
 
     bool verticalActive = isInsideMap(map, verticalPoint);
     bool horizontalActive = isInsideMap(map, horizontalPoint);
@@ -246,11 +278,9 @@ RayCaster::RayHit RayCaster::castSolidWallRay(
             : kFarDistance;
 
         if (verticalDist <= horizontalDist) {
-            const auto sample
-                = sampleVerticalCell(map, m_player, verticalPoint, ray);
+            const auto sample = sampleVerticalCell(map, m_player, verticalPoint, ray);
             if (isSolidHit(map, sample)) {
-                RayHit hit{ true, true, sample.cell, verticalPoint,
-                    verticalDist };
+                RayHit hit{ true, true, sample.cell, verticalPoint, verticalDist };
                 hit.block = sample.block;
                 hit.face = verticalHitFace(m_player, ray);
                 hit.row = sample.row;
@@ -259,14 +289,17 @@ RayCaster::RayHit RayCaster::castSolidWallRay(
             }
 
             nextVerticalIntersection(
-                map, verticalPoint, ray, m_player.tan(ray), verticalPoint);
+                map,
+                verticalPoint,
+                ray,
+                m_player.tan(ray),
+                verticalPoint);
             verticalActive = isInsideMap(map, verticalPoint);
-        } else {
-            const auto sample
-                = sampleHorizontalCell(map, m_player, horizontalPoint, ray);
+        }
+        else {
+            const auto sample = sampleHorizontalCell(map, m_player, horizontalPoint, ray);
             if (isSolidHit(map, sample)) {
-                RayHit hit{ true, false, sample.cell, horizontalPoint,
-                    horizontalDist };
+                RayHit hit{ true, false, sample.cell, horizontalPoint, horizontalDist };
                 hit.block = sample.block;
                 hit.face = horizontalHitFace(m_player, ray);
                 hit.row = sample.row;
@@ -274,8 +307,12 @@ RayCaster::RayHit RayCaster::castSolidWallRay(
                 return hit;
             }
 
-            nextHorizontalIntersection(map, horizontalPoint, ray,
-                m_player.invtan(ray), horizontalPoint);
+            nextHorizontalIntersection(
+                map,
+                horizontalPoint,
+                ray,
+                m_player.invtan(ray),
+                horizontalPoint);
             horizontalActive = isInsideMap(map, horizontalPoint);
         }
     }

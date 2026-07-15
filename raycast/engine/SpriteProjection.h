@@ -41,12 +41,16 @@ struct SpriteScreenProjection {
 class SpriteProjector {
 public:
     static SpriteScreenProjection project(
-        const Sprite& sprite, const SpriteProjectionInput& input) noexcept
+        const Sprite& sprite,
+        const SpriteProjectionInput& input) noexcept
     {
         SpriteScreenProjection projection;
 
-        if (!sprite.visible || input.screenWidth == 0 || input.screenHeight == 0
-            || input.fieldOfViewRadians <= 0.0 || sprite.scale <= 0.0) {
+        if (!sprite.visible
+            || input.screenWidth == 0
+            || input.screenHeight == 0
+            || input.fieldOfViewRadians <= 0.0
+            || sprite.scale <= 0.0) {
             return projection;
         }
 
@@ -70,32 +74,39 @@ public:
         const auto projectionScale = input.projectionScaleRows > 0.0
             ? input.projectionScaleRows
             : static_cast<double>(input.screenHeight);
-        const auto cellHeight
-            = input.worldCellHeight > 0.0 ? input.worldCellHeight : 1.0;
+        const auto cellHeight = input.worldCellHeight > 0.0
+            ? input.worldCellHeight
+            : 1.0;
         const auto projectedCellHeight = projectionScale / forwardDepth;
-        const auto projectedHeight
-            = projectedCellHeight * (sprite.scale / cellHeight);
+        const auto projectedHeight =
+            projectedCellHeight * (sprite.scale / cellHeight);
         const auto projectedWidth = projectedHeight;
-        const auto centerColumn = (normalizedX + 1.0) * 0.5
+        const auto centerColumn = (normalizedX + 1.0)
+            * 0.5
             * static_cast<double>(input.screenWidth);
 
         projection.depth = forwardDepth;
         projection.horizontalOffset = normalizedX;
         projection.centerColumn = static_cast<int>(std::floor(centerColumn));
-        projection.leftColumn
-            = static_cast<int>(std::floor(centerColumn - projectedWidth * 0.5));
-        projection.rightColumn
-            = static_cast<int>(std::ceil(centerColumn + projectedWidth * 0.5));
+        projection.leftColumn = static_cast<int>(
+            std::floor(centerColumn - projectedWidth * 0.5));
+        projection.rightColumn = static_cast<int>(
+            std::ceil(centerColumn + projectedWidth * 0.5));
 
-        const auto verticalCenter
-            = static_cast<double>(input.screenHeight) * 0.5
+        const auto verticalCenter =
+            static_cast<double>(input.screenHeight) * 0.5
             + input.verticalCenterOffsetRows;
-        const auto floorRow
-            = verticalCenter + projectedCellHeight * input.projectionCenter;
-        projection.topRow
-            = static_cast<int>(std::floor(floorRow - projectedHeight));
+        const auto floorRow =
+            verticalCenter
+            + projectedCellHeight * input.projectionCenter
+            - (sprite.verticalOffset == 0.0
+                ? 0.0
+                : projectedCellHeight * (sprite.verticalOffset / cellHeight));
+        projection.topRow = static_cast<int>(
+            std::floor(floorRow - projectedHeight));
         projection.bottomRow = static_cast<int>(std::ceil(floorRow));
-        projection.visible = projection.rightColumn >= 0
+        projection.visible =
+            projection.rightColumn >= 0
             && projection.leftColumn < static_cast<int>(input.screenWidth)
             && projection.bottomRow >= 0
             && projection.topRow < static_cast<int>(input.screenHeight);
@@ -103,7 +114,8 @@ public:
         return projection;
     }
 
-    static bool hasVisibleColumn(const SpriteScreenProjection& projection,
+    static bool hasVisibleColumn(
+        const SpriteScreenProjection& projection,
         const ColumnDepthBuffer& depthBuffer) noexcept
     {
         if (!projection.visible || depthBuffer.empty()) {
@@ -112,15 +124,15 @@ public:
 
         const auto firstColumn = std::max(0, projection.leftColumn);
         const auto lastColumn = std::min(
-            static_cast<int>(depthBuffer.width()) - 1, projection.rightColumn);
+            static_cast<int>(depthBuffer.width()) - 1,
+            projection.rightColumn);
 
         if (firstColumn > lastColumn) {
             return false;
         }
 
         for (auto column = firstColumn; column <= lastColumn; ++column) {
-            if (projection.depth
-                < depthBuffer.depth(static_cast<uint32_t>(column))) {
+            if (projection.depth < depthBuffer.depth(static_cast<uint32_t>(column))) {
                 return true;
             }
         }
@@ -129,5 +141,8 @@ public:
     }
 
 private:
-    static constexpr double nearDepth() noexcept { return 0.0001; }
+    static constexpr double nearDepth() noexcept
+    {
+        return 0.0001;
+    }
 };

@@ -60,10 +60,13 @@ public:
     double baseOffsetX() const noexcept;
     double baseOffsetY() const noexcept;
 
+    void setBob(double amplitudeX, double amplitudeY, double frequencyHz) noexcept;
     void setBob(
-        double amplitudeX, double amplitudeY, double frequencyHz) noexcept;
-    void setBob(bool enabled, double amount, double amplitudeX,
-        double amplitudeY, double frequencyHz) noexcept;
+        bool enabled,
+        double amount,
+        double amplitudeX,
+        double amplitudeY,
+        double frequencyHz) noexcept;
     bool bobEnabled() const noexcept;
     double bobAmountScale() const noexcept;
     double bobOffsetX() const noexcept;
@@ -72,13 +75,17 @@ public:
     void addAnimation(Animation animation);
     bool setAnimation(const std::string& name) noexcept;
     bool setAnimationOrFallback(
-        const std::string& name, const std::string& fallback) noexcept;
+        const std::string& name,
+        const std::string& fallback) noexcept;
     bool restartAnimation(const std::string& name) noexcept;
     bool restartAnimationOrFallback(
-        const std::string& name, const std::string& fallback) noexcept;
+        const std::string& name,
+        const std::string& fallback) noexcept;
     const std::string& activeAnimationName() const noexcept;
 
-    void setFireBehavior(bool automatic, double intervalMs,
+    void setFireBehavior(
+        bool automatic,
+        double intervalMs,
         double soundIntervalMs = 0.0) noexcept;
     bool automaticFire() const noexcept;
     bool fireEventReady() const noexcept;

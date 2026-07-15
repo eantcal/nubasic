@@ -31,11 +31,17 @@ double angularDistance(double lhs, double rhs) noexcept
     const auto delta = std::fabs(normalizeDegrees(lhs) - normalizeDegrees(rhs));
     return std::min(delta, 360.0 - delta);
 }
-} // namespace
+}
 
-void SpriteSet::setName(std::string name) { m_name = std::move(name); }
+void SpriteSet::setName(std::string name)
+{
+    m_name = std::move(name);
+}
 
-void SpriteSet::setFormat(std::string format) { m_format = std::move(format); }
+void SpriteSet::setFormat(std::string format)
+{
+    m_format = std::move(format);
+}
 
 void SpriteSet::setTransparentColor(Color color) noexcept
 {
@@ -46,7 +52,8 @@ void SpriteSet::setSupportedResolutions(std::vector<uint32_t> resolutions)
 {
     std::sort(resolutions.begin(), resolutions.end());
     resolutions.erase(
-        std::unique(resolutions.begin(), resolutions.end()), resolutions.end());
+        std::unique(resolutions.begin(), resolutions.end()),
+        resolutions.end());
     m_supportedResolutions = std::move(resolutions);
 }
 
@@ -72,16 +79,24 @@ void SpriteSet::setAnimations(std::vector<SpriteAnimationDefinition> animations)
 
 void SpriteSet::setLodRules(std::vector<SpriteLodRule> lodRules)
 {
-    std::sort(lodRules.begin(), lodRules.end(),
+    std::sort(
+        lodRules.begin(),
+        lodRules.end(),
         [](const SpriteLodRule& lhs, const SpriteLodRule& rhs) {
             return lhs.maxDistanceCells < rhs.maxDistanceCells;
         });
     m_lodRules = std::move(lodRules);
 }
 
-const std::string& SpriteSet::name() const noexcept { return m_name; }
+const std::string& SpriteSet::name() const noexcept
+{
+    return m_name;
+}
 
-const std::string& SpriteSet::format() const noexcept { return m_format; }
+const std::string& SpriteSet::format() const noexcept
+{
+    return m_format;
+}
 
 Color SpriteSet::transparentColor() const noexcept
 {
@@ -93,21 +108,22 @@ uint32_t SpriteSet::defaultResolution() const noexcept
     return m_defaultResolution;
 }
 
-uint32_t SpriteSet::maxResolution() const noexcept { return m_maxResolution; }
+uint32_t SpriteSet::maxResolution() const noexcept
+{
+    return m_maxResolution;
+}
 
 const std::vector<uint32_t>& SpriteSet::supportedResolutions() const noexcept
 {
     return m_supportedResolutions;
 }
 
-const std::vector<SpriteDirectionDefinition>&
-SpriteSet::directions() const noexcept
+const std::vector<SpriteDirectionDefinition>& SpriteSet::directions() const noexcept
 {
     return m_directions;
 }
 
-const std::vector<SpriteAnimationDefinition>&
-SpriteSet::animations() const noexcept
+const std::vector<SpriteAnimationDefinition>& SpriteSet::animations() const noexcept
 {
     return m_animations;
 }
@@ -136,8 +152,7 @@ const SpriteDirectionDefinition* SpriteSet::directionForAngle(
     auto bestDistance = std::numeric_limits<double>::infinity();
 
     for (const auto& direction : m_directions) {
-        const auto distance
-            = angularDistance(angleDegrees, direction.angleDegrees);
+        const auto distance = angularDistance(angleDegrees, direction.angleDegrees);
         if (distance < bestDistance) {
             bestDistance = distance;
             bestDirection = &direction;
@@ -166,8 +181,7 @@ uint32_t SpriteSet::closestAvailableResolution(
     const SpriteDirectionDefinition& direction,
     uint32_t preferredResolution) const noexcept
 {
-    const auto preferred
-        = direction.filesByResolution.find(preferredResolution);
+    const auto preferred = direction.filesByResolution.find(preferredResolution);
     if (preferred != direction.filesByResolution.end()) {
         return preferred->first;
     }
@@ -193,8 +207,8 @@ const std::string* SpriteSet::fileFor(
     const SpriteDirectionDefinition& direction,
     uint32_t preferredResolution) const noexcept
 {
-    const auto resolution
-        = closestAvailableResolution(direction, preferredResolution);
+    const auto resolution =
+        closestAvailableResolution(direction, preferredResolution);
     if (resolution == 0) {
         return nullptr;
     }

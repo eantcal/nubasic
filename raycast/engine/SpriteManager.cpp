@@ -27,7 +27,8 @@ const SpriteSet* SpriteManager::spriteSet(
 }
 
 SpriteManager::Selection SpriteManager::selectFrame(
-    const std::string& spriteSetName, double relativeAngleDegrees,
+    const std::string& spriteSetName,
+    double relativeAngleDegrees,
     double distanceCells) const noexcept
 {
     Selection selection;
@@ -37,18 +38,20 @@ SpriteManager::Selection SpriteManager::selectFrame(
         return selection;
     }
 
-    selection.direction
-        = selection.spriteSet->directionForAngle(relativeAngleDegrees);
+    selection.direction =
+        selection.spriteSet->directionForAngle(relativeAngleDegrees);
     if (!selection.direction) {
         return selection;
     }
 
-    const auto preferredResolution
-        = selection.spriteSet->resolutionForDistance(distanceCells);
-    selection.resolution = selection.spriteSet->closestAvailableResolution(
-        *selection.direction, preferredResolution);
-    selection.filePath = selection.spriteSet->fileFor(
-        *selection.direction, preferredResolution);
+    const auto preferredResolution =
+        selection.spriteSet->resolutionForDistance(distanceCells);
+    selection.resolution =
+        selection.spriteSet->closestAvailableResolution(
+            *selection.direction,
+            preferredResolution);
+    selection.filePath =
+        selection.spriteSet->fileFor(*selection.direction, preferredResolution);
 
     return selection;
 }

@@ -31,7 +31,10 @@ public:
         return static_cast<uint32_t>(m_depth.size());
     }
 
-    bool empty() const noexcept { return m_depth.empty(); }
+    bool empty() const noexcept
+    {
+        return m_depth.empty();
+    }
 
     double depth(uint32_t column) const noexcept
     {

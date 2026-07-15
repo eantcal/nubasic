@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.14)  # 3.14+ required for FetchContent_MakeAvai
 project(nuBASIC)
 
 include(FetchContent)
+include(CTest)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)

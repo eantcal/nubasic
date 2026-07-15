@@ -29,8 +29,7 @@ constexpr PatrolDirection kPatrolDirections[] = {
 double averageCellSize(const WorldMap& map) noexcept
 {
     return (static_cast<double>(map.getCellDx())
-               + static_cast<double>(map.getCellDy()))
-        * 0.5;
+        + static_cast<double>(map.getCellDy())) * 0.5;
 }
 
 int normalizePatrolDirection(int direction) noexcept
@@ -53,7 +52,10 @@ int patrolDirectionFromFacing(double radians) noexcept
         static_cast<int>(std::floor((radians / (kPi * 0.5)) + 0.5)));
 }
 
-bool hasTransparentWallAtWorld(const WorldMap& map, double x, double y) noexcept
+bool hasTransparentWallAtWorld(
+    const WorldMap& map,
+    double x,
+    double y) noexcept
 {
     if (x < 0.0 || y < 0.0 || x >= map.getMaxX() || y >= map.getMaxY()) {
         return true;
@@ -63,7 +65,10 @@ bool hasTransparentWallAtWorld(const WorldMap& map, double x, double y) noexcept
 }
 
 bool isInsidePatrolRadius(
-    const SpriteActor& actor, double x, double y, double patrolRadius) noexcept
+    const SpriteActor& actor,
+    double x,
+    double y,
+    double patrolRadius) noexcept
 {
     if (patrolRadius <= 0.0 || !actor.hasHomePosition) {
         return true;
@@ -74,8 +79,13 @@ bool isInsidePatrolRadius(
     return std::sqrt(dx * dx + dy * dy) <= patrolRadius;
 }
 
-bool canOccupyPatrolPosition(const Sprite& sprite, const WorldMap& map,
-    const SpriteActor& actor, double x, double y, double patrolRadius) noexcept
+bool canOccupyPatrolPosition(
+    const Sprite& sprite,
+    const WorldMap& map,
+    const SpriteActor& actor,
+    double x,
+    double y,
+    double patrolRadius) noexcept
 {
     const auto radius = std::max(0.0, sprite.collisionRadius);
     const std::pair<double, double> samples[] = {
@@ -87,8 +97,7 @@ bool canOccupyPatrolPosition(const Sprite& sprite, const WorldMap& map,
     };
 
     for (const auto& sample : samples) {
-        if (!isInsidePatrolRadius(
-                actor, sample.first, sample.second, patrolRadius)
+        if (!isInsidePatrolRadius(actor, sample.first, sample.second, patrolRadius)
             || map.isSolidAtWorld(sample.first, sample.second)
             || hasTransparentWallAtWorld(map, sample.first, sample.second)) {
             return false;
@@ -98,7 +107,9 @@ bool canOccupyPatrolPosition(const Sprite& sprite, const WorldMap& map,
     return true;
 }
 
-void setSpriteFacingFromPatrolDirection(Sprite& sprite, int direction) noexcept
+void setSpriteFacingFromPatrolDirection(
+    Sprite& sprite,
+    int direction) noexcept
 {
     const auto& vector = kPatrolDirections[normalizePatrolDirection(direction)];
     sprite.facingRadians = std::atan2(vector.y, vector.x);
@@ -107,8 +118,7 @@ void setSpriteFacingFromPatrolDirection(Sprite& sprite, int direction) noexcept
     }
 }
 
-void advanceDeadActor(
-    SpriteActor& actor, Sprite& sprite, double deltaSeconds) noexcept
+void advanceDeadActor(SpriteActor& actor, Sprite& sprite, double deltaSeconds) noexcept
 {
     actor.dead = true;
     actor.state = ActorState::Idle;
@@ -124,28 +134,34 @@ void advanceDeadActor(
 
     sprite.advanceAnimation(deltaSeconds);
 }
-} // namespace
+}
 
-void ActorSystem::update(RaycastEngine& engine, const WorldMap& map,
-    std::vector<SpriteActor>& actors, double deltaSeconds) const noexcept
+void ActorSystem::update(
+    RaycastEngine& engine,
+    const WorldMap& map,
+    std::vector<SpriteActor>& actors,
+    double deltaSeconds) const noexcept
 {
     if (deltaSeconds <= 0.0) {
         return;
     }
 
     for (auto& actor : actors) {
-        actor.attackCooldownRemaining
-            = std::max(0.0, actor.attackCooldownRemaining - deltaSeconds);
-        actor.attackHoldSecondsRemaining
-            = std::max(0.0, actor.attackHoldSecondsRemaining - deltaSeconds);
-        actor.noiseAlertSecondsRemaining
-            = std::max(0.0, actor.noiseAlertSecondsRemaining - deltaSeconds);
+        actor.attackCooldownRemaining =
+            std::max(0.0, actor.attackCooldownRemaining - deltaSeconds);
+        actor.attackHoldSecondsRemaining =
+            std::max(0.0, actor.attackHoldSecondsRemaining - deltaSeconds);
+        actor.noiseAlertSecondsRemaining =
+            std::max(0.0, actor.noiseAlertSecondsRemaining - deltaSeconds);
         updateChasingActor(engine, map, actor, deltaSeconds);
     }
 }
 
-void ActorSystem::updateChasingActor(RaycastEngine& engine, const WorldMap& map,
-    SpriteActor& actor, double deltaSeconds) const noexcept
+void ActorSystem::updateChasingActor(
+    RaycastEngine& engine,
+    const WorldMap& map,
+    SpriteActor& actor,
+    double deltaSeconds) const noexcept
 {
     auto* sprite = engine.sprite(actor.spriteIndex);
     if (sprite == nullptr || !sprite->visible) {
@@ -162,51 +178,58 @@ void ActorSystem::updateChasingActor(RaycastEngine& engine, const WorldMap& map,
         actor.homeX = sprite->x;
         actor.homeY = sprite->y;
         actor.hasHomePosition = true;
-        actor.patrolDirection
-            = patrolDirectionFromFacing(sprite->facingRadians);
+        actor.patrolDirection = patrolDirectionFromFacing(sprite->facingRadians);
     }
 
     const auto playerX = static_cast<double>(engine.player().getX());
     const auto playerY = static_cast<double>(engine.player().getY());
     const auto cellSize = averageCellSize(map);
-    const auto detectionRadius
-        = std::max(0.0, actor.detectionRadiusCells) * cellSize;
-    const auto patrolRadius = std::max(0.0, actor.patrolRadiusCells) * cellSize;
-    const auto hysteresis
-        = std::max(0.0, actor.engagementHysteresisCells) * cellSize;
-    const auto stoppingDistance
-        = std::max(0.0, actor.stoppingDistanceCells) * cellSize;
+    const auto detectionRadius =
+        std::max(0.0, actor.detectionRadiusCells) * cellSize;
+    const auto patrolRadius =
+        std::max(0.0, actor.patrolRadiusCells) * cellSize;
+    const auto hysteresis =
+        std::max(0.0, actor.engagementHysteresisCells) * cellSize;
+    const auto stoppingDistance =
+        std::max(0.0, actor.stoppingDistanceCells) * cellSize;
     const auto dx = playerX - sprite->x;
     const auto dy = playerY - sprite->y;
     const auto distance = std::sqrt(dx * dx + dy * dy);
-    const auto noiseAlertRadius
-        = std::max(0.0, actor.noiseAlertRadiusCells) * cellSize;
+    const auto noiseAlertRadius =
+        std::max(0.0, actor.noiseAlertRadiusCells) * cellSize;
     const auto noiseAlertActive = actor.noiseAlertSecondsRemaining > 0.0
         && (noiseAlertRadius <= 0.0 || distance <= noiseAlertRadius);
 
     const auto playerHomeDx = playerX - actor.homeX;
     const auto playerHomeDy = playerY - actor.homeY;
-    const auto playerHomeDistance
-        = std::sqrt(playerHomeDx * playerHomeDx + playerHomeDy * playerHomeDy);
+    const auto playerHomeDistance =
+        std::sqrt(playerHomeDx * playerHomeDx + playerHomeDy * playerHomeDy);
     const auto spriteHomeDx = sprite->x - actor.homeX;
     const auto spriteHomeDy = sprite->y - actor.homeY;
-    const auto spriteHomeDistance
-        = std::sqrt(spriteHomeDx * spriteHomeDx + spriteHomeDy * spriteHomeDy);
+    const auto spriteHomeDistance =
+        std::sqrt(spriteHomeDx * spriteHomeDx + spriteHomeDy * spriteHomeDy);
 
-    const auto actionEnterRadius
-        = patrolRadius > 0.0 ? patrolRadius : detectionRadius;
+    const auto actionEnterRadius = patrolRadius > 0.0
+        ? patrolRadius
+        : detectionRadius;
     const auto actionExitRadius = actionEnterRadius + hysteresis;
-    const auto playerCanStartChase
-        = actionEnterRadius <= 0.0 || playerHomeDistance <= actionEnterRadius;
-    const auto playerCanKeepChase
-        = actionExitRadius <= 0.0 || playerHomeDistance <= actionExitRadius;
-    const auto actorOutsidePatrolRadius
-        = patrolRadius > 0.0 && spriteHomeDistance > patrolRadius + hysteresis;
+    const auto playerCanStartChase = actionEnterRadius <= 0.0
+        || playerHomeDistance <= actionEnterRadius;
+    const auto playerCanKeepChase = actionExitRadius <= 0.0
+        || playerHomeDistance <= actionExitRadius;
+    const auto actorOutsidePatrolRadius = patrolRadius > 0.0
+        && spriteHomeDistance > patrolRadius + hysteresis;
 
     if (actorOutsidePatrolRadius && !noiseAlertActive) {
         actor.state = ActorState::Returning;
-        if (!moveActorToward(engine, map, actor, actor.homeX, actor.homeY,
-                cellSize * 0.05, deltaSeconds)) {
+        if (!moveActorToward(
+                engine,
+                map,
+                actor,
+                actor.homeX,
+                actor.homeY,
+                cellSize * 0.05,
+                deltaSeconds)) {
             actor.state = ActorState::Idle;
             sprite->setAnimationOrFallback("idle", "");
             sprite->advanceAnimation(deltaSeconds);
@@ -251,13 +274,14 @@ void ActorSystem::updateChasingActor(RaycastEngine& engine, const WorldMap& map,
     const auto disengageRadius = engageRadius + hysteresis;
     const auto shouldStartChase = noiseAlertActive
         || (playerCanStartChase
-            && (engageRadius <= 0.0 || distance <= engageRadius));
-    const auto shouldKeepNoiseChase = noiseAlertActive && playerCanKeepChase;
-    const auto shouldKeepChase = shouldKeepNoiseChase
-        || ((actor.state == ActorState::Chasing
-                || actor.state == ActorState::Attacking)
-            && playerCanKeepChase
-            && (engageRadius <= 0.0 || distance <= disengageRadius));
+        && (engageRadius <= 0.0 || distance <= engageRadius));
+    const auto shouldKeepNoiseChase =
+        noiseAlertActive && playerCanKeepChase;
+    const auto shouldKeepChase =
+        shouldKeepNoiseChase
+        || ((actor.state == ActorState::Chasing || actor.state == ActorState::Attacking)
+        && playerCanKeepChase
+        && (engageRadius <= 0.0 || distance <= disengageRadius));
 
     if (!shouldStartChase && !shouldKeepChase) {
         if (actor.patrolCircuit
@@ -283,15 +307,24 @@ void ActorSystem::updateChasingActor(RaycastEngine& engine, const WorldMap& map,
     }
 
     actor.state = ActorState::Chasing;
-    if (!moveActorToward(engine, map, actor, playerX, playerY, stoppingDistance,
+    if (!moveActorToward(
+            engine,
+            map,
+            actor,
+            playerX,
+            playerY,
+            stoppingDistance,
             deltaSeconds)) {
         actor.state = ActorState::Idle;
         sprite->setAnimationOrFallback("idle", "");
     }
 }
 
-bool ActorSystem::updatePatrolActor(RaycastEngine& engine, const WorldMap& map,
-    SpriteActor& actor, double deltaSeconds) const noexcept
+bool ActorSystem::updatePatrolActor(
+    RaycastEngine& engine,
+    const WorldMap& map,
+    SpriteActor& actor,
+    double deltaSeconds) const noexcept
 {
     auto* sprite = engine.sprite(actor.spriteIndex);
     if (sprite == nullptr || !sprite->visible) {
@@ -299,17 +332,17 @@ bool ActorSystem::updatePatrolActor(RaycastEngine& engine, const WorldMap& map,
     }
 
     const auto cellSize = averageCellSize(map);
-    const auto patrolRadius = std::max(0.0, actor.patrolRadiusCells) * cellSize;
-    const auto step
-        = std::max(0.0, actor.speedCellsPerSecond) * cellSize * deltaSeconds;
+    const auto patrolRadius =
+        std::max(0.0, actor.patrolRadiusCells) * cellSize;
+    const auto step =
+        std::max(0.0, actor.speedCellsPerSecond) * cellSize * deltaSeconds;
     if (step <= 0.0) {
         return false;
     }
 
-    const auto lookAhead
-        = step + std::max(sprite->collisionRadius, cellSize * 0.28);
-    const auto currentDirection
-        = normalizePatrolDirection(actor.patrolDirection);
+    const auto lookAhead = step
+        + std::max(sprite->collisionRadius, cellSize * 0.28);
+    const auto currentDirection = normalizePatrolDirection(actor.patrolDirection);
     const int candidateDirections[] = {
         currentDirection,
         normalizePatrolDirection(currentDirection + 1),
@@ -322,20 +355,33 @@ bool ActorSystem::updatePatrolActor(RaycastEngine& engine, const WorldMap& map,
         const auto probeX = sprite->x + vector.x * lookAhead;
         const auto probeY = sprite->y + vector.y * lookAhead;
         if (!canOccupyPatrolPosition(
-                *sprite, map, actor, probeX, probeY, patrolRadius)) {
+                *sprite,
+                map,
+                actor,
+                probeX,
+                probeY,
+                patrolRadius)) {
             continue;
         }
 
         const auto targetX = sprite->x + vector.x * step;
         const auto targetY = sprite->y + vector.y * step;
         if (!canOccupyPatrolPosition(
-                *sprite, map, actor, targetX, targetY, patrolRadius)) {
+                *sprite,
+                map,
+                actor,
+                targetX,
+                targetY,
+                patrolRadius)) {
             continue;
         }
 
-        if (!engine.moveSprite(actor.spriteIndex, vector.x * step,
-                vector.y * step, map,
-                RaycastEngine::SpriteCollisionMode::BlockSolidWalls)) {
+        if (!engine.moveSprite(
+            actor.spriteIndex,
+            vector.x * step,
+            vector.y * step,
+            map,
+            RaycastEngine::SpriteCollisionMode::BlockSolidWalls)) {
             continue;
         }
 
@@ -353,8 +399,13 @@ bool ActorSystem::updatePatrolActor(RaycastEngine& engine, const WorldMap& map,
     return false;
 }
 
-bool ActorSystem::moveActorToward(RaycastEngine& engine, const WorldMap& map,
-    SpriteActor& actor, double targetX, double targetY, double stoppingDistance,
+bool ActorSystem::moveActorToward(
+    RaycastEngine& engine,
+    const WorldMap& map,
+    SpriteActor& actor,
+    double targetX,
+    double targetY,
+    double stoppingDistance,
     double deltaSeconds) const noexcept
 {
     auto* sprite = engine.sprite(actor.spriteIndex);
@@ -375,8 +426,8 @@ bool ActorSystem::moveActorToward(RaycastEngine& engine, const WorldMap& map,
     }
 
     const auto cellSize = averageCellSize(map);
-    const auto maxStep
-        = std::max(0.0, actor.speedCellsPerSecond) * cellSize * deltaSeconds;
+    const auto maxStep =
+        std::max(0.0, actor.speedCellsPerSecond) * cellSize * deltaSeconds;
     if (maxStep <= 0.0) {
         return false;
     }
@@ -390,22 +441,27 @@ bool ActorSystem::moveActorToward(RaycastEngine& engine, const WorldMap& map,
 
     sprite->setAnimationOrFallback("walk", "idle");
     sprite->advanceAnimation(deltaSeconds);
-    if (engine.moveSprite(
-            actor.spriteIndex, moveX, moveY, map, collisionMode)) {
+    if (engine.moveSprite(actor.spriteIndex, moveX, moveY, map, collisionMode)) {
         return true;
     }
 
     auto moved = false;
     if (moveX != 0.0) {
         moved = engine.moveSprite(
-                    actor.spriteIndex, moveX, 0.0, map, collisionMode)
-            || moved;
+            actor.spriteIndex,
+            moveX,
+            0.0,
+            map,
+            collisionMode) || moved;
     }
 
     if (moveY != 0.0) {
         moved = engine.moveSprite(
-                    actor.spriteIndex, 0.0, moveY, map, collisionMode)
-            || moved;
+            actor.spriteIndex,
+            0.0,
+            moveY,
+            map,
+            collisionMode) || moved;
     }
 
     if (!moved) {

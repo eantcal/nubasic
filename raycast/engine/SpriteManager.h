@@ -23,8 +23,10 @@ public:
 
     bool addSpriteSet(SpriteSet spriteSet);
     const SpriteSet* spriteSet(const std::string& name) const noexcept;
-    Selection selectFrame(const std::string& spriteSetName,
-        double relativeAngleDegrees, double distanceCells) const noexcept;
+    Selection selectFrame(
+        const std::string& spriteSetName,
+        double relativeAngleDegrees,
+        double distanceCells) const noexcept;
 
 private:
     std::map<std::string, SpriteSet> m_spriteSets;

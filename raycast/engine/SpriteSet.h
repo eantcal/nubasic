@@ -53,17 +53,16 @@ public:
     const std::vector<uint32_t>& supportedResolutions() const noexcept;
     const std::vector<SpriteDirectionDefinition>& directions() const noexcept;
     const std::vector<SpriteAnimationDefinition>& animations() const noexcept;
-    const SpriteAnimationDefinition* animation(
-        const std::string& name) const noexcept;
+    const SpriteAnimationDefinition* animation(const std::string& name) const noexcept;
     const std::vector<SpriteLodRule>& lodRules() const noexcept;
 
-    const SpriteDirectionDefinition* directionForAngle(
-        double angleDegrees) const noexcept;
+    const SpriteDirectionDefinition* directionForAngle(double angleDegrees) const noexcept;
     uint32_t resolutionForDistance(double distanceCells) const noexcept;
     uint32_t closestAvailableResolution(
         const SpriteDirectionDefinition& direction,
         uint32_t preferredResolution) const noexcept;
-    const std::string* fileFor(const SpriteDirectionDefinition& direction,
+    const std::string* fileFor(
+        const SpriteDirectionDefinition& direction,
         uint32_t preferredResolution) const noexcept;
 
 private:

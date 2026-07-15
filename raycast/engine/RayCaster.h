@@ -40,30 +40,40 @@ public:
 
 private:
     void firstVerticalIntersection(
-        WorldMap& map, int ray, double slope, Point2d& point) const noexcept;
+        WorldMap& map,
+        int ray,
+        double slope,
+        Point2d& point) const noexcept;
 
-    void firstHorizontalIntersection(WorldMap& map, int ray,
-        double inverseSlope, Point2d& point) const noexcept;
+    void firstHorizontalIntersection(
+        WorldMap& map,
+        int ray,
+        double inverseSlope,
+        Point2d& point) const noexcept;
 
-    void nextVerticalIntersection(WorldMap& map, const Point2d& previous,
-        int ray, double slope, Point2d& point) const noexcept;
+    void nextVerticalIntersection(
+        WorldMap& map,
+        const Point2d& previous,
+        int ray,
+        double slope,
+        Point2d& point) const noexcept;
 
-    void nextHorizontalIntersection(WorldMap& map, const Point2d& previous,
-        int ray, double inverseSlope, Point2d& point) const noexcept;
+    void nextHorizontalIntersection(
+        WorldMap& map,
+        const Point2d& previous,
+        int ray,
+        double inverseSlope,
+        Point2d& point) const noexcept;
 
-    Cell verticalWall(
-        WorldMap& map, const Point2d& point, int ray) const noexcept;
-    Cell horizontalWall(
-        WorldMap& map, const Point2d& point, int ray) const noexcept;
+    Cell verticalWall(WorldMap& map, const Point2d& point, int ray) const noexcept;
+    Cell horizontalWall(WorldMap& map, const Point2d& point, int ray) const noexcept;
     const WinRayCast::BlockDefinition* verticalBlock(
         WorldMap& map, const Point2d& point, int ray) const noexcept;
     const WinRayCast::BlockDefinition* horizontalBlock(
         WorldMap& map, const Point2d& point, int ray) const noexcept;
 
-    double horizontalDistance(
-        const Point2d& intersection, int ray) const noexcept;
-    double verticalDistance(
-        const Point2d& intersection, int ray) const noexcept;
+    double horizontalDistance(const Point2d& intersection, int ray) const noexcept;
+    double verticalDistance(const Point2d& intersection, int ray) const noexcept;
 
     bool isInsideMap(const WorldMap& map, const Point2d& point) const noexcept;
 

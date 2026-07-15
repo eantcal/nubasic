@@ -20,8 +20,12 @@ public:
         std::vector<std::string> errors;
     };
 
-    Result loadFromFile(const std::string& path, WorldMap& target,
+    Result loadFromFile(
+        const std::string& path,
+        WorldMap& target,
         const std::string& layerId = std::string()) const;
-    Result loadFromString(const std::string& jsonText, WorldMap& target,
+    Result loadFromString(
+        const std::string& jsonText,
+        WorldMap& target,
         const std::string& layerId = std::string()) const;
 };

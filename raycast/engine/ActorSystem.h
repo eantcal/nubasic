@@ -14,7 +14,13 @@
 #include <string>
 #include <vector>
 
-enum class ActorState { Idle, Patrolling, Chasing, Returning, Attacking };
+enum class ActorState {
+    Idle,
+    Patrolling,
+    Chasing,
+    Returning,
+    Attacking
+};
 
 struct SpriteActor {
     size_t spriteIndex = 0;
@@ -52,17 +58,31 @@ struct SpriteActor {
 
 class ActorSystem {
 public:
-    void update(RaycastEngine& engine, const WorldMap& map,
-        std::vector<SpriteActor>& actors, double deltaSeconds) const noexcept;
+    void update(
+        RaycastEngine& engine,
+        const WorldMap& map,
+        std::vector<SpriteActor>& actors,
+        double deltaSeconds) const noexcept;
 
 private:
-    void updateChasingActor(RaycastEngine& engine, const WorldMap& map,
-        SpriteActor& actor, double deltaSeconds) const noexcept;
+    void updateChasingActor(
+        RaycastEngine& engine,
+        const WorldMap& map,
+        SpriteActor& actor,
+        double deltaSeconds) const noexcept;
 
-    bool updatePatrolActor(RaycastEngine& engine, const WorldMap& map,
-        SpriteActor& actor, double deltaSeconds) const noexcept;
+    bool updatePatrolActor(
+        RaycastEngine& engine,
+        const WorldMap& map,
+        SpriteActor& actor,
+        double deltaSeconds) const noexcept;
 
-    bool moveActorToward(RaycastEngine& engine, const WorldMap& map,
-        SpriteActor& actor, double targetX, double targetY,
-        double stoppingDistance, double deltaSeconds) const noexcept;
+    bool moveActorToward(
+        RaycastEngine& engine,
+        const WorldMap& map,
+        SpriteActor& actor,
+        double targetX,
+        double targetY,
+        double stoppingDistance,
+        double deltaSeconds) const noexcept;
 };

@@ -133,3 +133,34 @@ if(MSVC)
     target_compile_options(nuRaycastWinSupport PRIVATE /W3)
   endif()
 endif()
+
+if(BUILD_TESTING)
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+  set(INSTALL_GMOCK OFF CACHE BOOL "" FORCE)
+  FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+  FetchContent_MakeAvailable(googletest)
+
+  add_executable(nuRaycastEngineTests
+    tests/ActorSystemTests.cpp
+    tests/RaycastEngineSpriteTests.cpp)
+
+  target_include_directories(nuRaycastEngineTests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/engine")
+
+  target_link_libraries(nuRaycastEngineTests PRIVATE
+    nuRaycastEngine
+    GTest::gtest_main)
+
+  include(GoogleTest)
+  gtest_discover_tests(nuRaycastEngineTests
+    DISCOVERY_MODE PRE_TEST)
+
+  if(MSVC)
+    target_compile_options(nuRaycastEngineTests PRIVATE /W3)
+    set_target_properties(nuRaycastEngineTests PROPERTIES FOLDER "Tests")
+  endif()
+endif()

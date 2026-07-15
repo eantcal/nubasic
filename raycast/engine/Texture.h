@@ -17,7 +17,10 @@ public:
 
     Texture() = default;
 
-    Texture(uint32_t width, uint32_t height) { resize(width, height); }
+    Texture(uint32_t width, uint32_t height)
+    {
+        resize(width, height);
+    }
 
     void resize(uint32_t width, uint32_t height)
     {
@@ -26,15 +29,30 @@ public:
         m_pixels.resize(static_cast<size_t>(m_width) * m_height);
     }
 
-    bool empty() const noexcept { return m_pixels.empty(); }
+    bool empty() const noexcept
+    {
+        return m_pixels.empty();
+    }
 
-    uint32_t width() const noexcept { return m_width; }
+    uint32_t width() const noexcept
+    {
+        return m_width;
+    }
 
-    uint32_t height() const noexcept { return m_height; }
+    uint32_t height() const noexcept
+    {
+        return m_height;
+    }
 
-    Pixel* pixels() noexcept { return m_pixels.data(); }
+    Pixel* pixels() noexcept
+    {
+        return m_pixels.data();
+    }
 
-    const Pixel* pixels() const noexcept { return m_pixels.data(); }
+    const Pixel* pixels() const noexcept
+    {
+        return m_pixels.data();
+    }
 
     Pixel getPixel(uint32_t x, uint32_t y) const noexcept
     {
@@ -45,9 +63,15 @@ public:
         return 0;
     }
 
-    bool hasAlpha() const noexcept { return m_hasAlpha; }
+    bool hasAlpha() const noexcept
+    {
+        return m_hasAlpha;
+    }
 
-    void setHasAlpha(bool hasAlpha) noexcept { m_hasAlpha = hasAlpha; }
+    void setHasAlpha(bool hasAlpha) noexcept
+    {
+        m_hasAlpha = hasAlpha;
+    }
 
     void setPixel(uint32_t x, uint32_t y, Pixel color) noexcept
     {
@@ -61,16 +85,19 @@ public:
         fillBuffer(destBuf, m_width, m_height, offset, sourceWidth);
     }
 
-    void fillBuffer(void* destBuf, uint32_t destWidth, uint32_t destHeight,
-        int offset, int sourceWidth) const
+    void fillBuffer(void* destBuf,
+        uint32_t destWidth,
+        uint32_t destHeight,
+        int offset,
+        int sourceWidth) const
     {
         if (!destBuf || sourceWidth <= 0) {
             return;
         }
 
         auto* dest = static_cast<Pixel*>(destBuf);
-        const auto sampleWidth
-            = static_cast<uint32_t>(std::min<int>(sourceWidth, m_width));
+        const auto sampleWidth =
+            static_cast<uint32_t>(std::min<int>(sourceWidth, m_width));
 
         if (sampleWidth == 0 || m_height == 0) {
             return;
@@ -100,8 +127,8 @@ public:
 
         for (uint32_t y = 0; y < destHeight; ++y) {
             for (uint32_t x = 0; x < destWidth; ++x) {
-                dest[x + static_cast<size_t>(y) * destWidth]
-                    = getPixel((x + offset) % sampleWidth, y % m_height);
+                dest[x + static_cast<size_t>(y) * destWidth] =
+                    getPixel((x + offset) % sampleWidth, y % m_height);
             }
         }
     }
