@@ -307,6 +307,10 @@ if (NOT WIN32)
 endif()
 
 IF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
+if(WIN32 AND MSVC)
+  set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION bin)
+  set(CMAKE_INSTALL_SYSTEM_RUNTIME_COMPONENT Core)
+endif()
 INCLUDE(InstallRequiredSystemLibraries)
 
 SET(CPACK_SET_DESTDIR "on")
