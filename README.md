@@ -95,6 +95,8 @@ In practice, WinRaycast provides the low-level rendering and engine logic, while
 - **[User Guide](https://github.com/eantcal/nubasic/blob/main/docs/nubasic-guide.md)** — complete guide in a single document (v2.0)
 - **[Raycast Game Engine](https://github.com/eantcal/nubasic/wiki/Raycast-Game-Engine)** — WinRaycast render loop and full `Ray…` API reference (Windows)
 - **[Making nuBASIC 2.0](https://github.com/eantcal/nubasic/blob/main/docs/making-nubasic-2.0.md)** — developer-oriented internals note about debugger, runtime values, native calls, and performance work ([Italiano](https://github.com/eantcal/nubasic/blob/main/docs/making-nubasic-2.0-it.md))
+- **[Windows Installer Diagnostics](https://github.com/eantcal/nubasic/blob/main/docs/windows-installer-diagnostics.md)** - checklist and diagnostic collector for MSI dependency/startup issues
+- **[Windows Runtime DLL Dependencies](https://github.com/eantcal/nubasic/blob/main/docs/windows-runtime-dependencies.md)** - packaged and system DLL checklist for Windows releases
 - **[Examples](https://github.com/eantcal/nubasic/tree/main/examples)** — ready-to-run `.bas` programs covering games, graphics, fractals, animations, and more
 
 ## Quick Start
@@ -398,8 +400,3 @@ Bug reports and feature requests: [antonino.calderone@gmail.com](mailto:antonino
 ![nuBASIC IDE on Linux/GTK](https://user-images.githubusercontent.com/13032534/27808819-69aaa2c2-6042-11e7-9132-675d1c71d162.png)
 
 <img width="2876" height="1704" alt="image" src="https://github.com/user-attachments/assets/dc0f0f01-33da-4df6-9ad3-33d4f43b92b8" />
-
-
-
-
-

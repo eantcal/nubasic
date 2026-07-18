@@ -11,7 +11,7 @@ endif()
 
 set(MAJOR_VERSION 2)
 set(MINOR_VERSION 0)
-set(PATCH_VERSION 1)
+set(PATCH_VERSION 2)
 
 set(NUBASIC_BUILD_NUMBER "$ENV{BUILD_NUMBER}" CACHE STRING
   "Optional build number appended to the nuBASIC version")
@@ -168,12 +168,47 @@ if(NUBASIC_WITH_LIBFFI)
     if(TARGET unofficial::libffi::libffi)
       set(NUBASIC_LIBFFI_FOUND TRUE)
       message(STATUS "libffi: native DLL invocation enabled (Windows/vcpkg)")
+
+      set(_libffi_runtime_search_paths)
+      foreach(_prefix IN LISTS CMAKE_PREFIX_PATH)
+        list(APPEND _libffi_runtime_search_paths "${_prefix}/bin")
+      endforeach()
+      if(DEFINED ENV{VCPKG_ROOT})
+        list(APPEND _libffi_runtime_search_paths "$ENV{VCPKG_ROOT}/installed/x64-windows/bin")
+      endif()
+      list(APPEND _libffi_runtime_search_paths "C:/vcpkg/installed/x64-windows/bin")
+
+      foreach(_prop IN ITEMS
+          IMPORTED_LOCATION_RELEASE
+          IMPORTED_LOCATION_RELWITHDEBINFO
+          IMPORTED_LOCATION_MINSIZEREL
+          IMPORTED_LOCATION_DEBUG
+          IMPORTED_LOCATION)
+        get_target_property(_libffi_imported_location unofficial::libffi::libffi ${_prop})
+        if(_libffi_imported_location)
+          get_filename_component(_libffi_imported_dir "${_libffi_imported_location}" DIRECTORY)
+          list(APPEND _libffi_runtime_search_paths
+            "${_libffi_imported_dir}"
+            "${_libffi_imported_dir}/../bin"
+            "${_libffi_imported_dir}/../../bin")
+          if(_libffi_imported_location MATCHES "\\.dll$")
+            set(NUBASIC_LIBFFI_RUNTIME_DLL "${_libffi_imported_location}" CACHE FILEPATH
+              "libffi runtime DLL" FORCE)
+          endif()
+        endif()
+      endforeach()
+
       find_file(NUBASIC_LIBFFI_RUNTIME_DLL
         NAMES ffi-8.dll ffi.dll
-        PATHS
-          "$ENV{VCPKG_ROOT}/installed/x64-windows/bin"
-          "C:/vcpkg/installed/x64-windows/bin"
+        PATHS ${_libffi_runtime_search_paths}
         NO_DEFAULT_PATH)
+      if(NUBASIC_LIBFFI_RUNTIME_DLL)
+        message(STATUS "libffi runtime DLL: ${NUBASIC_LIBFFI_RUNTIME_DLL}")
+      else()
+        message(WARNING
+          "libffi was found, but ffi-8.dll/ffi.dll was not found for packaging. "
+          "Installed nuBASIC binaries may fail to start on clean Windows machines.")
+      endif()
     else()
       message(WARNING "libffi not found; native DLL declarations are parsed, but invocation will be disabled")
     endif()
@@ -256,6 +291,12 @@ endif()
 install(FILES "${CMAKE_SOURCE_DIR}/THIRD_PARTY_NOTICES.md"
   DESTINATION .
   COMPONENT Core)
+
+if(WIN32)
+  install(FILES "${CMAKE_SOURCE_DIR}/cmake/diagnose-windows-install.ps1"
+    DESTINATION bin
+    COMPONENT Core)
+endif()
 
 if(NUBASIC_LIBFFI_RUNTIME_DLL)
   install(FILES "${NUBASIC_LIBFFI_RUNTIME_DLL}"
