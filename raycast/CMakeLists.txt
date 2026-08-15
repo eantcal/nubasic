@@ -146,10 +146,27 @@ if(BUILD_TESTING)
 
   add_executable(nuRaycastEngineTests
     tests/ActorSystemTests.cpp
-    tests/RaycastEngineSpriteTests.cpp)
+    tests/ColumnDepthBufferTests.cpp
+    tests/FrameBufferTests.cpp
+    tests/MapCellTests.cpp
+    tests/RayCasterTests.cpp
+    tests/RaycastEngineSpriteTests.cpp
+    tests/RenderRegressionTests.cpp
+    tests/SceneLoaderTests.cpp
+    tests/SpriteMetadataLoaderTests.cpp
+    tests/SpriteProjectionTests.cpp
+    tests/SpriteSetTests.cpp
+    tests/SpriteTests.cpp
+    tests/TextureTests.cpp
+    tests/ViewWeaponTests.cpp
+    tests/WorldJsonLoaderTests.cpp
+    tests/BenchmarkScene.h)
 
   target_include_directories(nuRaycastEngineTests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/engine")
+
+  target_compile_definitions(nuRaycastEngineTests PRIVATE
+    NURAYCAST_DEMO_WORLD_DIR="${CMAKE_SOURCE_DIR}/examples/raycast/raycast_demo/worlds")
 
   target_link_libraries(nuRaycastEngineTests PRIVATE
     nuRaycastEngine
@@ -157,6 +174,7 @@ if(BUILD_TESTING)
 
   include(GoogleTest)
   gtest_discover_tests(nuRaycastEngineTests
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     DISCOVERY_MODE PRE_TEST)
 
   if(MSVC)

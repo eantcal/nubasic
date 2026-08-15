@@ -1,0 +1,154 @@
+{
+  "spriteSet": "animated_monster",
+  "format": "PNG",
+  "transparentColor": [0, 0, 0],
+  "supportedResolutions": [64, 128],
+  "defaultResolution": 128,
+  "maxResolution": 128,
+  "animations": {
+    "idle": {
+      "frameDurationMs": 160,
+      "loop": true,
+      "directions": [
+    {
+      "name": "front",
+      "angle": 0,
+      "files": {
+        "64": "front_64.png",
+        "128": "front_128.png"
+      }
+    },
+    {
+      "name": "front_right",
+      "angle": 45,
+      "files": {
+        "64": "front_right_64.png",
+        "128": "front_right_128.png"
+      }
+    },
+    {
+      "name": "right",
+      "angle": 90,
+      "files": {
+        "64": "right_64.png",
+        "128": "right_128.png"
+      }
+    },
+    {
+      "name": "back_right",
+      "angle": 135,
+      "files": {
+        "64": "back_right_64.png",
+        "128": "back_right_128.png"
+      }
+    },
+    {
+      "name": "back",
+      "angle": 180,
+      "files": {
+        "64": "back_64.png",
+        "128": "back_128.png"
+      }
+    },
+    {
+      "name": "back_left",
+      "angle": 225,
+      "files": {
+        "64": "back_left_64.png",
+        "128": "back_left_128.png"
+      }
+    },
+    {
+      "name": "left",
+      "angle": 270,
+      "files": {
+        "64": "left_64.png",
+        "128": "left_128.png"
+      }
+    },
+    {
+      "name": "front_left",
+      "angle": 315,
+      "files": {
+        "64": "front_left_64.png",
+        "128": "front_left_128.png"
+      }
+    }
+  ]
+    },
+    "death": {
+      "frameDurationMs": 140,
+      "loop": false,
+      "directions": [
+    {
+      "name": "front",
+      "angle": 0,
+      "files": {
+        "64": "front_64.png",
+        "128": "front_128.png"
+      }
+    },
+    {
+      "name": "front_right",
+      "angle": 45,
+      "files": {
+        "64": "front_right_64.png",
+        "128": "front_right_128.png"
+      }
+    },
+    {
+      "name": "right",
+      "angle": 90,
+      "files": {
+        "64": "right_64.png",
+        "128": "right_128.png"
+      }
+    },
+    {
+      "name": "back_right",
+      "angle": 135,
+      "files": {
+        "64": "back_right_64.png",
+        "128": "back_right_128.png"
+      }
+    },
+    {
+      "name": "back",
+      "angle": 180,
+      "files": {
+        "64": "back_64.png",
+        "128": "back_128.png"
+      }
+    },
+    {
+      "name": "back_left",
+      "angle": 225,
+      "files": {
+        "64": "back_left_64.png",
+        "128": "back_left_128.png"
+      }
+    },
+    {
+      "name": "left",
+      "angle": 270,
+      "files": {
+        "64": "left_64.png",
+        "128": "left_128.png"
+      }
+    },
+    {
+      "name": "front_left",
+      "angle": 315,
+      "files": {
+        "64": "front_left_64.png",
+        "128": "front_left_128.png"
+      }
+    }
+  ]
+    }
+  },
+  "lod": [
+    { "maxDistance": 2.0, "resolution": 128 },
+    { "maxDistance": 9999.0, "resolution": 64 }
+  ]
+}

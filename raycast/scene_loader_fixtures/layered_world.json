@@ -1,0 +1,40 @@
+
+        {
+          "format": "winraycast.world",
+          "version": 2,
+          "project": "layered",
+          "brightness": 0.95,
+          "depthShading": 120.0,
+          "playerStart": {
+            "xCell": 1.5,
+            "yCell": 1.5,
+            "facingDegrees": 0.0
+          },
+          "spriteSets": [ "sprites/shared.sprite.json" ],
+          "backgroundMusic": "audio/shared_theme.ogg",
+          "spriteInstances": [
+            { "name": "shared", "spriteSet": "shared", "xCell": 2.5, "yCell": 2.5 }
+          ],
+          "layers": [
+            {
+              "id": "level_1",
+              "brightness": 0.7,
+              "depthShading": 240.0,
+              "backgroundMusic": {
+                "file": "audio/level_1.ogg",
+                "enabled": true,
+                "loop": false,
+                "volumePercent": 45
+              },
+              "playerStart": { "xCell": 3.5, "yCell": 4.5, "facingDegrees": 90.0 },
+              "spriteInstances": [
+                { "name": "level_guard", "spriteSet": "shared", "xCell": 5.5, "yCell": 6.5 }
+              ]
+            },
+            {
+              "id": "level_2",
+              "playerStart": { "xCell": 7.5, "yCell": 8.5, "facingDegrees": 180.0 }
+            }
+          ]
+        }
+    

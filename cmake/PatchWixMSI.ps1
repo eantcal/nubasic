@@ -277,7 +277,7 @@ if ($LASTEXITCODE -ne 0) { throw "candle.exe failed on main.wxs" }
 # 5. Relink — omit WixPatch.wixobj (all content is now inlined)
 # ---------------------------------------------------------------------------
 Write-Host "Relinking MSI -> $MsiOutput ..."
-& $Light -nologo -out $MsiOutput -ext WixUIExtension `
+& $Light -nologo -sval -out $MsiOutput -ext WixUIExtension `
     "$WixPkgDir\directories.wixobj" `
     "$WixPkgDir\files.wixobj"       `
     "$WixPkgDir\features.wixobj"    `

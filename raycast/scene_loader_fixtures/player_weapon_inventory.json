@@ -1,0 +1,32 @@
+
+        {
+          "project": "demo_world",
+          "worldFile": "world.world.json",
+          "playerWeapon": {
+            "file": "weapons/pistol/pistol.weapon.json",
+            "visible": true,
+            "unlocked": false,
+            "screenHeightFraction": 0.48
+          },
+          "playerWeapons": [
+            {
+              "file": "weapons/pistol/pistol.weapon.json",
+              "visible": true,
+              "unlocked": false,
+              "screenHeightFraction": 0.48
+            },
+            {
+              "file": "weapons/super_shotgun/super_shotgun.weapon.json",
+              "visible": true,
+              "unlocked": false,
+              "screenHeightFraction": 0.34
+            },
+            {
+              "file": "weapons/submachine_gun/submachine_gun.weapon.json",
+              "visible": true,
+              "unlocked": true,
+              "screenHeightFraction": 0.31
+            }
+          ]
+        }
+    

@@ -1,0 +1,78 @@
+{
+  "spriteSet": "doom_style_monster",
+  "format": "GIF",
+  "transparentColor": [0, 0, 0],
+  "supportedResolutions": [64, 128],
+  "defaultResolution": 128,
+  "maxResolution": 128,
+  "directions": [
+    {
+      "name": "front",
+      "angle": 0,
+      "files": {
+        "64": "front_64.bmp",
+        "128": "front_128.bmp"
+      }
+    },
+    {
+      "name": "front_right",
+      "angle": 45,
+      "files": {
+        "64": "front_right_64.bmp",
+        "128": "front_right_128.bmp"
+      }
+    },
+    {
+      "name": "right",
+      "angle": 90,
+      "files": {
+        "64": "right_64.bmp",
+        "128": "right_128.bmp"
+      }
+    },
+    {
+      "name": "back_right",
+      "angle": 135,
+      "files": {
+        "64": "back_right_64.bmp",
+        "128": "back_right_128.bmp"
+      }
+    },
+    {
+      "name": "back",
+      "angle": 180,
+      "files": {
+        "64": "back_64.bmp",
+        "128": "back_128.bmp"
+      }
+    },
+    {
+      "name": "back_left",
+      "angle": 225,
+      "files": {
+        "64": "back_left_64.bmp",
+        "128": "back_left_128.bmp"
+      }
+    },
+    {
+      "name": "left",
+      "angle": 270,
+      "files": {
+        "64": "left_64.bmp",
+        "128": "left_128.bmp"
+      }
+    },
+    {
+      "name": "front_left",
+      "angle": 315,
+      "files": {
+        "64": "front_left_64.bmp",
+        "128": "front_left_128.bmp"
+      }
+    }
+  ],
+  "lod": [
+    { "maxDistance": 2.0, "resolution": 128 },
+    { "maxDistance": 9999.0, "resolution": 64 }
+  ]
+}

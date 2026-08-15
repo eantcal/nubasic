@@ -1,0 +1,8 @@
+
+        {
+          "project": "minimal",
+          "spriteInstances": [
+            { "name": "guard", "spriteSet": "doom" }
+          ]
+        }
+    

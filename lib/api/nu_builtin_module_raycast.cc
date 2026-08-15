@@ -810,6 +810,59 @@ namespace {
         return !sprite.frames.empty() || !sprite.animations.empty();
     }
 
+    raycast_session_t::RuntimeSpriteInfo* runtime_sprite_info_for_sprite(
+        raycast_session_t& session, size_t sprite_index) noexcept
+    {
+        for (auto& info : session.runtime_sprites) {
+            if (info.sprite_index == sprite_index) {
+                return &info;
+            }
+        }
+
+        return nullptr;
+    }
+
+    void stop_actor_after_sprite_destroyed(SpriteActor& actor) noexcept
+    {
+        actor.dead = true;
+        actor.health = 0.0;
+        actor.state = ActorState::Idle;
+        actor.collidesWithWorld = false;
+        actor.attackBurstShotsRemaining = 0;
+        actor.attackCooldownRemaining = 0.0;
+        actor.attackHoldSecondsRemaining = 0.0;
+        actor.noiseAlertSecondsRemaining = 0.0;
+    }
+
+    void apply_destroyed_runtime_sprite(
+        raycast_session_t& session,
+        raycast_session_t::RuntimeSpriteInfo& info,
+        Sprite* sprite)
+    {
+        info.destroyed = true;
+        session.destroyed_object_keys.insert(info.persistence_key);
+
+        if (sprite == nullptr) {
+            return;
+        }
+
+        sprite->collisionRadius = 0.0;
+        if (!info.destroyed_sprite_set.empty()) {
+            const auto destroyed_it =
+                session.loaded_sprite_sets.find(info.destroyed_sprite_set);
+            if (destroyed_it != session.loaded_sprite_sets.end()
+                && apply_loaded_sprite_set(*sprite, destroyed_it->second)) {
+                sprite->scale = kDefaultCellSize
+                    * std::max(0.1, info.destroyed_scale_cells);
+                sprite->visible = true;
+                sprite->setAnimationOrFallback("idle", "");
+                return;
+            }
+        }
+
+        sprite->visible = false;
+    }
+
     void spawn_runtime_effect(raycast_session_t& session, double x, double y,
         double scale, const std::string& sprite_set_name,
         const std::string& animation_name)
@@ -1225,28 +1278,8 @@ namespace {
             if (session.destroyed_object_keys.count(
                     runtime_info.persistence_key)
                 > 0) {
-                runtime_info.destroyed = true;
-                if (added_sprite != nullptr) {
-                    if (!runtime_info.destroyed_sprite_set.empty()) {
-                        const auto destroyed_it
-                            = session.loaded_sprite_sets.find(
-                                runtime_info.destroyed_sprite_set);
-                        if (destroyed_it != session.loaded_sprite_sets.end()
-                            && apply_loaded_sprite_set(
-                                *added_sprite, destroyed_it->second)) {
-                            added_sprite->scale = kDefaultCellSize
-                                * std::max(
-                                    0.1, runtime_info.destroyed_scale_cells);
-                            added_sprite->collisionRadius = 0.0;
-                            added_sprite->visible = true;
-                            added_sprite->setAnimationOrFallback("idle", "");
-                        } else {
-                            added_sprite->visible = false;
-                        }
-                    } else {
-                        added_sprite->visible = false;
-                    }
-                }
+                apply_destroyed_runtime_sprite(
+                    session, runtime_info, added_sprite);
             }
             session.runtime_sprites.push_back(std::move(runtime_info));
 
@@ -3006,9 +3039,19 @@ namespace {
                     best_info->explosive_health
                         = std::max(0.0, best_info->explosive_health - damage);
                     if (best_info->explosive_health <= 0.0) {
-                        best_info->destroyed = true;
-                        session.destroyed_object_keys.insert(
-                            best_info->persistence_key);
+                        auto destroyed_actor = false;
+                        for (auto& actor : session.actors) {
+                            if (actor.spriteIndex == best_info->sprite_index) {
+                                if (is_completion_enemy(actor)
+                                    && !actor.dead
+                                    && actor.health > 0.0) {
+                                    session.killed_enemy_keys.insert(
+                                        actor.persistenceKey);
+                                    destroyed_actor = true;
+                                }
+                                stop_actor_after_sprite_destroyed(actor);
+                            }
+                        }
                         if (best_sprite != nullptr) {
                             const auto effect_sprite_set
                                 = !best_info->damage_response_effect_sprite_set
@@ -3029,27 +3072,9 @@ namespace {
                                 best_sprite->y,
                                 kDefaultCellSize * effect_scale_cells,
                                 effect_sprite_set, effect_animation);
-
-                            if (!best_info->destroyed_sprite_set.empty()) {
-                                const auto set_it
-                                    = session.loaded_sprite_sets.find(
-                                        best_info->destroyed_sprite_set);
-                                if (set_it != session.loaded_sprite_sets.end()
-                                    && apply_loaded_sprite_set(
-                                        *best_sprite, set_it->second)) {
-                                    best_sprite->scale = kDefaultCellSize
-                                        * std::max(0.1,
-                                            best_info->destroyed_scale_cells);
-                                    best_sprite->collisionRadius = 0.0;
-                                    best_sprite->setAnimationOrFallback(
-                                        "idle", "");
-                                } else {
-                                    best_sprite->visible = false;
-                                }
-                            } else {
-                                best_sprite->visible = false;
-                            }
                         }
+                        apply_destroyed_runtime_sprite(
+                            session, *best_info, best_sprite);
                         if (!best_info->damage_response_sound.empty()) {
                             play_project_sound(
                                 best_info->damage_response_sound);
@@ -3107,6 +3132,17 @@ namespace {
                                     start_actor_death(actor, actor_sprite);
                                     session.killed_enemy_keys.insert(
                                         actor.persistenceKey);
+                                    auto* actor_info =
+                                        runtime_sprite_info_for_sprite(
+                                            session, actor.spriteIndex);
+                                    if (actor_info != nullptr
+                                        && is_damage_reactive(*actor_info)
+                                        && !actor_info->destroyed) {
+                                        apply_destroyed_runtime_sprite(
+                                            session,
+                                            *actor_info,
+                                            actor_sprite);
+                                    }
                                 }
                             }
 
@@ -3118,7 +3154,7 @@ namespace {
                                     += damage_at_distance(dist);
                             }
                         }
-                        return variant_t(integer_t(3));
+                        return variant_t(integer_t(destroyed_actor ? 2 : 3));
                     }
 
                     return variant_t(integer_t(1));
@@ -3130,6 +3166,14 @@ namespace {
                     start_actor_death(*best_actor, best_sprite);
                     session.killed_enemy_keys.insert(
                         best_actor->persistenceKey);
+                    auto* actor_info = runtime_sprite_info_for_sprite(
+                        session, best_actor->spriteIndex);
+                    if (actor_info != nullptr
+                        && is_damage_reactive(*actor_info)
+                        && !actor_info->destroyed) {
+                        apply_destroyed_runtime_sprite(
+                            session, *actor_info, best_sprite);
+                    }
                     return variant_t(integer_t(2));
                 }
 

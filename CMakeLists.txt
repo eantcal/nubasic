@@ -11,7 +11,7 @@ endif()
 
 set(MAJOR_VERSION 2)
 set(MINOR_VERSION 0)
-set(PATCH_VERSION 2)
+set(PATCH_VERSION 4)
 
 set(NUBASIC_BUILD_NUMBER "$ENV{BUILD_NUMBER}" CACHE STRING
   "Optional build number appended to the nuBASIC version")
@@ -462,6 +462,11 @@ if(WIN32)
     # URLs shown in Add/Remove Programs.
     set(CPACK_WIX_HELP_URL  "https://github.com/eantcal/nubasic")
     set(CPACK_WIX_ABOUT_URL "https://github.com/eantcal/nubasic")
+
+    # Some build VMs cannot run WiX ICE validation because the Windows
+    # Installer service is unavailable.  Suppress validation so packaging
+    # remains deterministic in those environments.
+    set(CPACK_WIX_LIGHT_EXTRA_FLAGS "-sval")
 
     # 64-bit target: CPack WIX uses CPACK_WIX_SIZEOF_VOID_P (set automatically
     # by CMake) to select ProgramFiles64Folder vs ProgramFilesFolder.
