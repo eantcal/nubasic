@@ -11,6 +11,10 @@ The Win32/64 build created with Visual Studio 2022 requires the
 "Visual C++ Redistributable Packages for Visual Studio 2022".
 
 August 2026
+* Released nuBASIC 2.0.5 Windows installer shortcut fix
+- Regenerated the Windows MSI through the patched CreateInstaller flow so the
+  nuBASIC Start Menu entries are present after installation.
+
 * Released nuBASIC 2.0.4 WinRayCast actor lifecycle fix
 - Fixed raycast enemy/destructible sprite synchronization so destroyed flying
   enemies no longer leave moving debris in the demo.

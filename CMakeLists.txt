@@ -11,7 +11,7 @@ endif()
 
 set(MAJOR_VERSION 2)
 set(MINOR_VERSION 0)
-set(PATCH_VERSION 4)
+set(PATCH_VERSION 5)
 
 set(NUBASIC_BUILD_NUMBER "$ENV{BUILD_NUMBER}" CACHE STRING
   "Optional build number appended to the nuBASIC version")
