@@ -1,4 +1,4 @@
-// This file is part of the WinRayCast Application (a 3D Engine Demo).
+// This file is part of nuRCADE (New (nu) Raycasting Classic Arcade Development Engine).
 // Licensed under the MIT License. See COPYING file in the project root.
 //
 // Offscreen rendering benchmark. Renders a fixed, deterministic scene
@@ -7,7 +7,7 @@
 // breakdown plus the frame hash used by the regression guard.
 //
 // Run (Release recommended for meaningful numbers):
-//   out\build\vs2026-x64\Release\WinRayCastBenchmark.exe [frames]
+//   out\build\vs2026-x64\Release\nuRCADEBenchmark.exe [frames]
 
 #include "BenchmarkScene.h"
 #include "RaycastEngine.h"
@@ -93,7 +93,7 @@ int main(int argc, char** argv)
     const double wallMs =
         std::chrono::duration<double, std::milli>(wallEnd - wallStart).count();
 
-    std::printf("WinRayCast offscreen render benchmark\n");
+    std::printf("nuRCADE offscreen render benchmark\n");
     std::printf("  resolution      : %dx%d (projection), cell %d, FOV %d deg\n",
         bench::kProjResX, bench::kProjResY, bench::kCellSize, bench::kVisualDeg);
     std::printf("  scale           : %.0f\n", bench::kScale);

@@ -1,4 +1,4 @@
-// This file is part of the WinRayCast Application (a 3D Engine Demo).
+// This file is part of nuRCADE (New (nu) Raycasting Classic Arcade Development Engine).
 // Copyright (C) 2005 - 2018
 // Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
@@ -612,7 +612,7 @@ bool SoundEffectPlayer::playOnce(
     return queueBackgroundTask(
         [path, volumePercent]() {
             std::ostringstream aliasStream;
-            aliasStream << "winraycast_effect_" << g_nextEffectAlias++;
+            aliasStream << "nurcade_effect_" << g_nextEffectAlias++;
             const auto alias = aliasStream.str();
 
             std::string ignoredError;

@@ -31,7 +31,7 @@
    - 5.2 [Rendering senza sfarfallio — ScreenLock / ScreenUnlock / Refresh](#52-rendering-senza-sfarfallio)
    - 5.3 [Input del mouse](#53-input-del-mouse)
    - 5.4 [Audio e gestione della finestra](#54-audio-e-gestione-della-finestra)
-   - 5.5 [Pseudo-3D con WinRayCast (Windows)](#55-pseudo-3d-con-winraycast)
+   - 5.5 [Pseudo-3D con nuRCADE (Windows)](#55-pseudo-3d-con-nurcade)
 6. [Riferimento ai comandi](#6-riferimento-ai-comandi)
    - 6.1 [Comandi della console (REPL / CLI)](#61-comandi-della-console)
    - 6.2 [Istruzioni](#62-istruzioni)
@@ -2275,23 +2275,23 @@ End If
 
 ---
 
-### 5.5 Pseudo-3D con WinRayCast
+### 5.5 Pseudo-3D con nuRCADE
 
-Su Windows, nuBASIC 2.0 integra **WinRayCast**, un motore di raycasting leggero che renderizza
+Su Windows, nuBASIC 2.0 integra **nuRCADE**, un motore di raycasting leggero che renderizza
 scene in prima persona pseudo-3D, in stile *Wolfenstein 3D*, a partire da una semplice mappa a
-griglia 2D. WinRayCast gestisce il rendering e la logica di gioco (pareti texturizzate, sprite,
+griglia 2D. nuRCADE gestisce il rendering e la logica di gioco (pareti texturizzate, sprite,
 porte, attori, armi, oggetti raccoglibili, audio e transizioni tra livelli); il programma BASIC
 lo pilota attraverso il modulo `raycast` — le funzioni integrate `Ray…` — e fornisce la gestione
 dell'input, il disegno dell'HUD e le regole di gioco.
 
-> **Piattaforma.** WinRayCast è solo per Windows. Il modulo è compilato per impostazione
+> **Piattaforma.** nuRCADE è solo per Windows. Il modulo è compilato per impostazione
 > predefinita nelle build Windows (`NUBASIC_WITH_RAYCAST`) ed è assente altrove, dove esiste
 > solo `RayAvailable()` e restituisce `0`. Proteggi il codice portabile con
 > `If RayAvailable() Then …`.
 
 #### Il ciclo di rendering
 
-Un programma WinRayCast si inizializza una volta, carica un mondo o un progetto, poi ripete un
+Un programma nuRCADE si inizializza una volta, carica un mondo o un progetto, poi ripete un
 ciclo **input → aggiornamento → rendering → presentazione** e termina alla fine. `Screen 1` deve
 essere attivo, perché i fotogrammi vengono presentati nella finestra GDI.
 
@@ -2303,7 +2303,7 @@ Using graphics
 Const VIEW_W = 640
 Const VIEW_H = 400
 
-If RayAvailable() = 0 Then Print "WinRayCast not available" : End
+If RayAvailable() = 0 Then Print "nuRCADE not available" : End
 
 Screen 1
 RaySetBaseDir(GetAppPath())                 ' risolve gli asset rispetto all'exe
@@ -2620,10 +2620,10 @@ programma BASIC in esecuzione.
 
 #### Raycast (Windows)
 
-Il motore WinRayCast integrato aggiunge una famiglia di funzioni `Ray…` (`RayInit`,
+Il motore nuRCADE integrato aggiunge una famiglia di funzioni `Ray…` (`RayInit`,
 `RayLoadProject`, `RayUpdate`, `RayRender`, `RayPresent` e le query
 giocatore/combattimento/mappa) nelle build Windows. Sono documentate per esteso nella
-[sezione 5.5](#55-pseudo-3d-con-winraycast).
+[sezione 5.5](#55-pseudo-3d-con-nurcade).
 
 #### Tabelle Hash
 
@@ -3217,9 +3217,9 @@ precedenza in questa guida):
 - **Ottimizzazione del runtime** — `variant_t` memorizza gli scalari inline, incapsula
   (box) i metadati di struct/oggetti e usa il copy-on-write per i payload delle struct; letterali
   esadecimali estesi `&hFF` / `0xFF`.
-- **Integrazione WinRayCast (Windows)** — un motore di raycasting integrato per il rendering
+- **Integrazione nuRCADE (Windows)** — un motore di raycasting integrato per il rendering
   pseudo-3D in prima persona, in stile *Wolfenstein 3D*, pilotato dal BASIC attraverso il modulo
-  `Ray…` ([sezione 5.5](#55-pseudo-3d-con-winraycast)). È distinto dal precedente esempio di
+  `Ray…` ([sezione 5.5](#55-pseudo-3d-con-nurcade)). È distinto dal precedente esempio di
   raycaster software in puro BASIC `raycast3d.bas`; l'esempio incluso
   `examples/raycast/eclipse_protocol.bas` è una demo completa e giocabile.
 - **API deprecate rimosse** — le funzioni scalari di data/ora `Sys*` e `GetMouseX` /
@@ -4186,12 +4186,12 @@ Tutte le opzioni possono essere passate dalla riga di comando di `cmake` come `-
 | `SCINTILLA_VERSION` | `"5.5.3"` | IDE Windows/Linux | Versione di Scintilla da scaricare quando `SCINTILLA_LOCAL=OFF`. |
 | `LEXILLA_VERSION` | `"5.4.3"` | IDE Windows/Linux | Versione di Lexilla da scaricare quando `SCINTILLA_LOCAL=OFF`. |
 | `NUBASIC_INSTALLER` | `"WIX"` | Windows | Generatore di installer per CPack: `"WIX"` (MSI, consigliato) oppure `"NSIS"` (setup.exe legacy). |
-| `NUBASIC_WITH_RAYCAST` | `ON` (Windows), `OFF` (altre) | tutte | Compila il motore pseudo-3D WinRayCast integrato e l'API `Ray…` (vedi [sezione 5.5](#55-pseudo-3d-con-winraycast)). |
+| `NUBASIC_WITH_RAYCAST` | `ON` (Windows), `OFF` (altre) | tutte | Compila il motore pseudo-3D nuRCADE integrato e l'API `Ray…` (vedi [sezione 5.5](#55-pseudo-3d-con-nurcade)). |
 | `NUBASIC_WITH_LIBFFI` | `ON` | tutte | Abilita le chiamate native a DLL/oggetti condivisi tramite libffi (`Declare Function … Lib`). Senza libffi le dichiarazioni vengono analizzate ma l'invocazione è disabilitata. |
 | `CMAKE_BUILD_TYPE` | `Release` | tutte | `Release` (ottimizzato, `-O3`) oppure `Debug` (con simboli, `-g`). |
 
 I preset di `CMakePresets.json` `release` / `debug` compilano la configurazione standard;
-`raycast-release` / `raycast-debug` abilitano WinRayCast esplicitamente. Configura con
+`raycast-release` / `raycast-debug` abilitano nuRCADE esplicitamente. Configura con
 `cmake --preset <name>` e compila con `cmake --build --preset <name>`.
 
 #### Esempio: build di debug dell'IDE Windows senza scaricare Scintilla

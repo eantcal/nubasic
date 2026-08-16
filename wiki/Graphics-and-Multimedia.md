@@ -331,7 +331,7 @@ End If
 
 ## Pseudo-3D Graphics
 
-On Windows, nuBASIC 2.0 ships the integrated **WinRayCast** engine for rendering
+On Windows, nuBASIC 2.0 ships the integrated **nuRCADE** engine for rendering
 *Wolfenstein 3D*-style first-person scenes from BASIC. It builds on the GDI window and the
 flicker-free rendering primitives above. See [Raycast Game Engine](Raycast-Game-Engine)
 for the render loop and the full `Ray…` API reference.

@@ -1,6 +1,6 @@
 # Super Shotgun Demo Weapon Asset
 
-Source sheet was provided locally by the project owner for WinRayCast demo integration.
+Source sheet was provided locally by the project owner for nuRCADE demo integration.
 Before redistributing a public asset pack, replace or verify this sheet with artwork that has a clear permissive license.
 
 Fire sound `sounds/cannon2.mp3`:

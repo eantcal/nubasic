@@ -1,23 +1,23 @@
-# WinRayCast upstream sync
+# nuRCADE upstream sync
 
-nuBASIC embeds the WinRayCast engine so BASIC programs can use the renderer
+nuBASIC embeds the nuRCADE engine so BASIC programs can use the renderer
 through the `Ray*` runtime API.
 
 Current upstream reference:
 
-- Repository: `C:\repo\winraycast`
+- Repository: `C:\repo\nurcade`
 - Commit: `e7aec8272e71b07bdae27baf98f6b1338c922dc1`
 - Commit summary: `Fix sprite corner collision near doors`
 
 Path mapping:
 
-- `winraycast/src/engine` -> `nubasic/raycast/engine`
-- `winraycast/src/win` -> `nubasic/raycast/win`
-- `winraycast/tests` -> `nubasic/raycast/tests`
-- `winraycast/scene_loader_fixtures` -> `nubasic/raycast/scene_loader_fixtures`
-- `winraycast/sprite_metadata_loader_fixtures` -> `nubasic/raycast/sprite_metadata_loader_fixtures`
-- `winraycast/res/worlds/demo_embedded` -> `nubasic/examples/raycast/raycast_demo/worlds`
-- `winraycast/third_party/stb/stb_vorbis.c` -> `nubasic/third_party/stb/stb_vorbis.c`
+- `nurcade/src/engine` -> `nubasic/raycast/engine`
+- `nurcade/src/win` -> `nubasic/raycast/win`
+- `nurcade/tests` -> `nubasic/raycast/tests`
+- `nurcade/scene_loader_fixtures` -> `nubasic/raycast/scene_loader_fixtures`
+- `nurcade/sprite_metadata_loader_fixtures` -> `nubasic/raycast/sprite_metadata_loader_fixtures`
+- `nurcade/res/worlds/demo_embedded` -> `nubasic/examples/raycast/raycast_demo/worlds`
+- `nurcade/third_party/stb/stb_vorbis.c` -> `nubasic/third_party/stb/stb_vorbis.c`
 
 Sync notes:
 

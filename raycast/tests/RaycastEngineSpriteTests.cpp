@@ -121,13 +121,13 @@ WorldMap makePerFaceWallMap()
     map.applyTexture(1, makeFilledTexture(makeColor(220, 0, 0), 64, 64));
     map.applyTexture(2, makeFilledTexture(makeColor(0, 220, 0), 64, 64));
 
-    WinRayCast::BlockDefinition block;
-    WinRayCast::WallSpan span;
+    nu::rcade::BlockDefinition block;
+    nu::rcade::WallSpan span;
     span.textureKey = 1;
-    span.faceTextureKeys[static_cast<size_t>(WinRayCast::WallFace::West)] = 2;
+    span.faceTextureKeys[static_cast<size_t>(nu::rcade::WallFace::West)] = 2;
     span.bottom = 0;
     span.top = 64;
-    span.kind = WinRayCast::WallSpanKind::Solid;
+    span.kind = nu::rcade::WallSpanKind::Solid;
     span.collision = true;
     block.walls.push_back(span);
     map.setBlockDefinition(1, block);
@@ -296,14 +296,14 @@ TEST(RaycastEngineSpriteTests, TransparentWallFacingOutOfMapIsNotProjected)
     map.resizeCell(64, 64);
     const auto warningColor = makeColor(240, 20, 20);
     map.applyTexture(1, makeFilledTexture(warningColor, 64, 64));
-    WinRayCast::BlockDefinition block;
-    WinRayCast::WallSpan outwardSpan;
+    nu::rcade::BlockDefinition block;
+    nu::rcade::WallSpan outwardSpan;
     outwardSpan.textureKey = 1;
     outwardSpan.bottom = 0;
     outwardSpan.top = 64;
-    outwardSpan.kind = WinRayCast::WallSpanKind::Transparent;
+    outwardSpan.kind = nu::rcade::WallSpanKind::Transparent;
     outwardSpan.facesEnabled.fill(false);
-    outwardSpan.facesEnabled[static_cast<size_t>(WinRayCast::WallFace::East)] = true;
+    outwardSpan.facesEnabled[static_cast<size_t>(nu::rcade::WallFace::East)] = true;
     block.walls.push_back(outwardSpan);
     block.hasAnyTransparentSpan = true;
     map.setBlockDefinition(1, block);

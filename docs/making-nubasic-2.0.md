@@ -10,7 +10,7 @@ and performance.
 nuBASIC 2.0 keeps the original spirit of the project: a small BASIC-family
 language that can still run classic numbered programs, while also supporting
 structured programming, classes, graphics, projects, native calls, an integrated
-pseudo-3D raycasting engine (WinRayCast, on Windows), and modern debugger
+pseudo-3D raycasting engine (nuRCADE, on Windows), and modern debugger
 workflows.
 
 The recent internal work had four main goals:
@@ -148,10 +148,10 @@ This does not replace the BASIC form. It makes imported constants from C
 headers, Win32 documentation, POSIX examples, and graphics code easier to paste
 into nuBASIC programs.
 
-## WinRayCast Integration
+## nuRCADE Integration
 
 The most visible addition of the 2.0 cycle for Windows is the integrated
-**WinRayCast** engine: a lightweight raycaster that renders pseudo-3D,
+**nuRCADE** engine: a lightweight raycaster that renders pseudo-3D,
 *Wolfenstein 3D*-style first-person scenes from a 2D grid map. The design
 deliberately keeps the engine and the language layers separate.
 

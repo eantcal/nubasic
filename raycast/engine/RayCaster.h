@@ -1,4 +1,4 @@
-// This file is part of the WinRayCast Application (a 3D Engine Demo).
+// This file is part of nuRCADE (New (nu) Raycasting Classic Arcade Development Engine).
 // Copyright (C) 2005 - 2018
 // Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
@@ -25,8 +25,8 @@ public:
         Cell cell = 0;
         Point2d point;
         double distance = std::numeric_limits<double>::infinity();
-        const WinRayCast::BlockDefinition* block = nullptr;
-        WinRayCast::WallFace face = WinRayCast::WallFace::West;
+        const nu::rcade::BlockDefinition* block = nullptr;
+        nu::rcade::WallFace face = nu::rcade::WallFace::West;
         int row = -1;
         int column = -1;
     };
@@ -67,9 +67,9 @@ private:
 
     Cell verticalWall(WorldMap& map, const Point2d& point, int ray) const noexcept;
     Cell horizontalWall(WorldMap& map, const Point2d& point, int ray) const noexcept;
-    const WinRayCast::BlockDefinition* verticalBlock(
+    const nu::rcade::BlockDefinition* verticalBlock(
         WorldMap& map, const Point2d& point, int ray) const noexcept;
-    const WinRayCast::BlockDefinition* horizontalBlock(
+    const nu::rcade::BlockDefinition* horizontalBlock(
         WorldMap& map, const Point2d& point, int ray) const noexcept;
 
     double horizontalDistance(const Point2d& intersection, int ray) const noexcept;

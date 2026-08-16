@@ -153,7 +153,7 @@ if(WIN32)
 else()
   set(NUBASIC_WITH_RAYCAST_DEFAULT OFF)
 endif()
-option(NUBASIC_WITH_RAYCAST "Enable integrated WinRayCast engine support" ${NUBASIC_WITH_RAYCAST_DEFAULT})
+option(NUBASIC_WITH_RAYCAST "Enable integrated nuRCADE engine support" ${NUBASIC_WITH_RAYCAST_DEFAULT})
 
 if(NUBASIC_WITH_LIBFFI)
   if(WIN32)

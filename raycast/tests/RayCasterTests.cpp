@@ -38,7 +38,7 @@ TEST(RayCasterTests, CastsNearestVerticalWall)
 
     EXPECT_TRUE(hit.found);
     EXPECT_TRUE(hit.vertical);
-    EXPECT_EQ(WinRayCast::WallFace::West, hit.face);
+    EXPECT_EQ(nu::rcade::WallFace::West, hit.face);
     EXPECT_EQ(kWall, hit.cell);
     EXPECT_DOUBLE_EQ(128.0, hit.point.first);
     EXPECT_DOUBLE_EQ(96.0, hit.point.second);
@@ -55,7 +55,7 @@ TEST(RayCasterTests, CastsNearestHorizontalWall)
 
     EXPECT_TRUE(hit.found);
     EXPECT_FALSE(hit.vertical);
-    EXPECT_EQ(WinRayCast::WallFace::North, hit.face);
+    EXPECT_EQ(nu::rcade::WallFace::North, hit.face);
     EXPECT_EQ(kWall, hit.cell);
     EXPECT_NEAR(96.0, hit.point.first, 0.25);
     EXPECT_DOUBLE_EQ(128.0, hit.point.second);
@@ -94,13 +94,13 @@ TEST(RayCasterTests, CastsStructuredBlockWithOnlyElevatedSolidSpan)
     ASSERT_TRUE(map.setCells(cells, 3, 3));
     map.resizeCell(64, 64);
 
-    WinRayCast::BlockDefinition elevatedBlock;
+    nu::rcade::BlockDefinition elevatedBlock;
     elevatedBlock.hasAnySolidSpan = true;
     elevatedBlock.walls.push_back({
         1,
         64,
         128,
-        WinRayCast::WallSpanKind::Solid,
+        nu::rcade::WallSpanKind::Solid,
         true
     });
     map.setBlockDefinition(1, elevatedBlock);
@@ -137,21 +137,21 @@ TEST(RayCasterTests, LegacyTransparentUpperWallDoesNotBlockSolidRay)
     ASSERT_TRUE(map.setCells(cells, 3, 4));
     map.resizeCell(64, 64);
 
-    WinRayCast::BlockDefinition transparentUpperBlock;
+    nu::rcade::BlockDefinition transparentUpperBlock;
     transparentUpperBlock.hasAnySolidSpan = true;
     transparentUpperBlock.hasAnyTransparentSpan = true;
     transparentUpperBlock.walls.push_back({
         0x05,
         64,
         128,
-        WinRayCast::WallSpanKind::Solid,
+        nu::rcade::WallSpanKind::Solid,
         true
     });
     transparentUpperBlock.walls.push_back({
         0x03,
         0,
         64,
-        WinRayCast::WallSpanKind::Transparent,
+        nu::rcade::WallSpanKind::Transparent,
         false
     });
     map.setBlockDefinition(1, transparentUpperBlock);
@@ -180,13 +180,13 @@ TEST(RayCasterTests, PlayerMovementCollidesWithStructuredBlocks)
     ASSERT_TRUE(map.setCells(cells, 3, 3));
     map.resizeCell(64, 64);
 
-    WinRayCast::BlockDefinition wallBlock;
+    nu::rcade::BlockDefinition wallBlock;
     wallBlock.hasAnySolidSpan = true;
     wallBlock.walls.push_back({
         1,
         0,
         64,
-        WinRayCast::WallSpanKind::Solid,
+        nu::rcade::WallSpanKind::Solid,
         true
     });
     map.setBlockDefinition(1, wallBlock);
@@ -214,12 +214,12 @@ TEST(RayCasterTests, StructuredSolidPassableBlockRendersButDoesNotBlockMovement)
     ASSERT_TRUE(map.setCells(cells, 3, 3));
     map.resizeCell(64, 64);
 
-    WinRayCast::BlockDefinition visualWallBlock;
+    nu::rcade::BlockDefinition visualWallBlock;
     visualWallBlock.walls.push_back({
         1,
         0,
         64,
-        WinRayCast::WallSpanKind::Solid,
+        nu::rcade::WallSpanKind::Solid,
         false
     });
     map.setBlockDefinition(1, visualWallBlock);
@@ -247,12 +247,12 @@ TEST(RayCasterTests, StructuredTransparentCollidingBlockBlocksMovementButNotSoli
     ASSERT_TRUE(map.setCells(cells, 3, 3));
     map.resizeCell(64, 64);
 
-    WinRayCast::BlockDefinition transparentGateBlock;
+    nu::rcade::BlockDefinition transparentGateBlock;
     transparentGateBlock.walls.push_back({
         3,
         0,
         64,
-        WinRayCast::WallSpanKind::Transparent,
+        nu::rcade::WallSpanKind::Transparent,
         true
     });
     map.setBlockDefinition(1, transparentGateBlock);
@@ -283,19 +283,19 @@ TEST(RayCasterTests, DoorBlockOpensAndBecomesPassableForMovementAndRays)
     ASSERT_TRUE(map.setCells(cells, 3, 4));
     map.resizeCell(64, 64);
 
-    WinRayCast::BlockDefinition doorBlock;
+    nu::rcade::BlockDefinition doorBlock;
     doorBlock.walls.push_back({
         1,
         64,
         128,
-        WinRayCast::WallSpanKind::Solid,
+        nu::rcade::WallSpanKind::Solid,
         true
     });
     doorBlock.walls.push_back({
         1,
         0,
         64,
-        WinRayCast::WallSpanKind::Transparent,
+        nu::rcade::WallSpanKind::Transparent,
         true
     });
     doorBlock.door.enabled = true;
@@ -314,7 +314,7 @@ TEST(RayCasterTests, DoorBlockOpensAndBecomesPassableForMovementAndRays)
         1,
         2,
         MapCell::transparentWallTexture(doorCell),
-        WinRayCast::WallFace::West));
+        nu::rcade::WallFace::West));
 
     auto closedHit = RayCaster(player).castSolidWallRay(map, 0);
     ASSERT_TRUE(closedHit.found);
@@ -342,7 +342,7 @@ TEST(RayCasterTests, DoorBlockOpensAndBecomesPassableForMovementAndRays)
         1,
         2,
         MapCell::transparentWallTexture(doorCell),
-        WinRayCast::WallFace::West));
+        nu::rcade::WallFace::West));
 
     auto openHit = RayCaster(player).castSolidWallRay(map, 0);
     ASSERT_TRUE(openHit.found);

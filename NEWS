@@ -11,6 +11,11 @@ The Win32/64 build created with Visual Studio 2022 requires the
 "Visual C++ Redistributable Packages for Visual Studio 2022".
 
 August 2026
+* Development: WinRayCast has been rebranded as nuRCADE
+- Updated the public engine identity to nuRCADE: New (nu) Raycasting Classic
+  Arcade Development Engine, while retaining compatible Ray* APIs and world
+  formats.
+
 * Released nuBASIC 2.0.5 Windows installer shortcut fix
 - Regenerated the Windows MSI through the patched CreateInstaller flow so the
   nuBASIC Start Menu entries are present after installation.

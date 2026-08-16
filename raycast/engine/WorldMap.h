@@ -1,4 +1,4 @@
-// This file is part of the WinRayCast Application (a 3D Engine Demo).
+// This file is part of nuRCADE (New (nu) Raycasting Classic Arcade Development Engine).
 // Copyright (C) 2005 - 2018
 // Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
@@ -243,7 +243,7 @@ public:
 		Type type = Type::OpeningStarted;
 		int row = -1;
 		int column = -1;
-		WinRayCast::BlockId blockId = 0;
+		nu::rcade::BlockId blockId = 0;
 	};
 
 	struct TextureLayer {
@@ -254,29 +254,29 @@ public:
 	TextureLayer textureLayerForWallSpanAt(
 		int row,
 		int column,
-		const WinRayCast::WallSpan& span,
-		WinRayCast::WallFace face,
+		const nu::rcade::WallSpan& span,
+		nu::rcade::WallFace face,
 		bool internalWall = false) const noexcept;
 
 	MapCell::TextureKey textureForWallSpanAt(
 		int row,
 		int column,
-		const WinRayCast::WallSpan& span,
-		WinRayCast::WallFace face,
+		const nu::rcade::WallSpan& span,
+		nu::rcade::WallFace face,
 		bool internalWall = false) const noexcept;
 
 	TextureLayer transparentWallTextureLayerAt(
 		int row,
 		int column,
 		MapCell::TextureKey fallback,
-		WinRayCast::WallFace face,
+		nu::rcade::WallFace face,
 		bool internalWall = false) const noexcept;
 
 	MapCell::TextureKey transparentWallTextureAt(
 		int row,
 		int column,
 		MapCell::TextureKey fallback,
-		WinRayCast::WallFace face,
+		nu::rcade::WallFace face,
 		bool internalWall = false) const noexcept;
 
 	void updateDoors(
@@ -311,13 +311,13 @@ public:
 		return m_textureList;
 	}
 
-	void setBlockDefinition(WinRayCast::BlockId id, WinRayCast::BlockDefinition block) {
+	void setBlockDefinition(nu::rcade::BlockId id, nu::rcade::BlockDefinition block) {
 		block.hasAnySolidSpan = false;
 		block.hasAnyTransparentSpan = false;
 		block.hasAnyCollidingSpan = false;
 		const auto movementHeight = static_cast<int32_t>(getCellDy());
 		for (const auto& span : block.walls) {
-			if (span.kind == WinRayCast::WallSpanKind::Solid) {
+			if (span.kind == nu::rcade::WallSpanKind::Solid) {
 				block.hasAnySolidSpan = true;
 			}
 			else {
@@ -333,28 +333,28 @@ public:
 		m_blockPresent[id] = true;
 	}
 
-	bool hasBlockDefinition(WinRayCast::BlockId id) const noexcept {
+	bool hasBlockDefinition(nu::rcade::BlockId id) const noexcept {
 		return m_blockPresent[id];
 	}
 
-	const WinRayCast::BlockDefinition* blockDefinition(WinRayCast::BlockId id) const noexcept {
+	const nu::rcade::BlockDefinition* blockDefinition(nu::rcade::BlockId id) const noexcept {
 		return m_blockPresent[id] ? &m_blocks[id] : nullptr;
 	}
 
-	void setBlockId(int row, int column, WinRayCast::BlockId id) noexcept {
+	void setBlockId(int row, int column, nu::rcade::BlockId id) noexcept {
 		if (row < 0 || column < 0 || row >= getRowCount() || column >= getColCount()) {
 			return;
 		}
 
 		if (m_blockIds.size() != m_map.size()) {
-			m_blockIds.assign(m_map.size(), std::vector<WinRayCast::BlockId>(m_map[0].size(), 0));
+			m_blockIds.assign(m_map.size(), std::vector<nu::rcade::BlockId>(m_map[0].size(), 0));
 		}
 
 		m_blockIds[row][column] = id;
 		m_hasBlockIds = true;
 	}
 
-	WinRayCast::BlockId blockIdAt(int row, int column) const noexcept {
+	nu::rcade::BlockId blockIdAt(int row, int column) const noexcept {
 		if (!m_hasBlockIds) {
 			return 0;
 		}
@@ -371,7 +371,7 @@ public:
 		return blockRow[column];
 	}
 
-	const WinRayCast::BlockDefinition* blockAtCell(int row, int column) const noexcept {
+	const nu::rcade::BlockDefinition* blockAtCell(int row, int column) const noexcept {
 		if (!m_hasBlockIds) {
 			return nullptr;
 		}
@@ -379,7 +379,7 @@ public:
 		return blockDefinition(blockIdAt(row, column));
 	}
 
-	const WinRayCast::BlockDefinition* blockAtWorld(double x, double y) const noexcept {
+	const nu::rcade::BlockDefinition* blockAtWorld(double x, double y) const noexcept {
 		if (!m_hasBlockIds) {
 			return nullptr;
 		}
@@ -420,8 +420,8 @@ private:
 	double m_playerFacingDegrees = 0.0;
 	bool m_hasPlayerStart = false;
 
-	// Progressive-turn feel (degrees/second); keep in sync with the WinRayCast.cpp
-	// fallbacks and the WinRaycastEditor defaults.
+	// Progressive-turn feel (degrees/second); keep in sync with the nuRCADE.cpp
+	// fallbacks and the NuRcade.Editor defaults.
 	double m_playerTurnBaseDegPerSec = 90.0;
 	double m_playerTurnMaxDegPerSec = 300.0;
 	double m_playerTurnAccelDegPerSecSq = 360.0;
@@ -433,9 +433,9 @@ private:
 
 	TextureList m_textureList;
 
-	WinRayCast::BlockDefinition m_blocks[256]{};
+	nu::rcade::BlockDefinition m_blocks[256]{};
 	bool m_blockPresent[256]{};
-	std::vector<std::vector<WinRayCast::BlockId>> m_blockIds;
+	std::vector<std::vector<nu::rcade::BlockId>> m_blockIds;
 	std::vector<std::vector<DoorRuntimeState>> m_doorStates;
 	std::vector<std::string> m_doorKeyring;
 	bool m_hasBlockIds = false;

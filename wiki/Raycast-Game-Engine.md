@@ -1,12 +1,12 @@
-# Raycast Game Engine (WinRayCast)
+# Raycast Game Engine (nuRCADE)
 
 ← [Graphics and Multimedia](Graphics-and-Multimedia) | Next: [Command Reference](Command-Reference)
 
 ---
 
-nuBASIC 2.0 integrates **WinRayCast**, a lightweight raycasting engine that lets a
+nuBASIC 2.0 integrates **nuRCADE**, a lightweight raycasting engine that lets a
 BASIC program render pseudo-3D, *Wolfenstein 3D*-style first-person scenes from a simple
-2D grid map. WinRayCast provides the low-level rendering and game logic (textured walls,
+2D grid map. nuRCADE provides the low-level rendering and game logic (textured walls,
 sprites, doors, actors, weapons, pickups, sound, multi-level transitions); nuBASIC
 provides the scripting layer, the graphics window, HUD drawing, and the game loop.
 
@@ -14,7 +14,7 @@ The engine is exposed to BASIC as a set of `Ray…` built-in functions (the `ray
 module). A program reads input, advances the simulation, renders a frame, and blits it
 to the GDI window — typically 30–60 times per second.
 
-> **Platform.** WinRayCast is **Windows-only**. `RayPresent` and `RayKeyDown` rely on
+> **Platform.** nuRCADE is **Windows-only**. `RayPresent` and `RayKeyDown` rely on
 > GDI and the Win32 message queue. On Linux/macOS the module is not compiled in and only
 > `RayAvailable()` is defined (it returns `0`).
 
@@ -22,7 +22,7 @@ to the GDI window — typically 30–60 times per second.
 
 ## Availability and build
 
-WinRayCast is controlled by the `NUBASIC_WITH_RAYCAST` CMake option, which **defaults to
+nuRCADE is controlled by the `NUBASIC_WITH_RAYCAST` CMake option, which **defaults to
 `ON` on Windows** and `OFF` elsewhere. The `raycast-release` / `raycast-debug` CMake
 presets enable it explicitly:
 
@@ -37,7 +37,7 @@ program can guard its use:
 
 ```basic
 If RayAvailable() = 0 Then
-   Print "This program needs a Windows build with WinRayCast."
+   Print "This program needs a Windows build with nuRCADE."
    End
 End If
 ```
@@ -66,7 +66,7 @@ directly without a `Using` statement, exactly like any other built-in.
 
 ## What the engine does, and what you write
 
-WinRayCast is a thin **engine** with a BASIC **driver**. The split is worth understanding,
+nuRCADE is a thin **engine** with a BASIC **driver**. The split is worth understanding,
 because it explains why the API looks the way it does: a handful of commands to *drive* the
 engine, and a set of queries to *read back* what happened so your BASIC code can render a
 HUD and enforce game rules.
@@ -118,7 +118,7 @@ screen even though the frame was rendered.
 
 ## The render loop
 
-A WinRayCast program follows a fixed lifecycle: initialise once, load a world or project,
+A nuRCADE program follows a fixed lifecycle: initialise once, load a world or project,
 then run a per-frame loop of **input → update → render → present**, and shut down at the
 end.
 
@@ -130,9 +130,9 @@ Using graphics
 Const VIEW_W = 640
 Const VIEW_H = 400
 
-If RayAvailable() = 0 Then Print "WinRayCast not available" : End
+If RayAvailable() = 0 Then Print "nuRCADE not available" : End
 
-Screen 1                                  ' WinRayCast renders into the GDI window
+Screen 1                                  ' nuRCADE renders into the GDI window
 RaySetBaseDir(GetAppPath())               ' resolve asset paths relative to the exe
 RayInit(VIEW_W, VIEW_H)                   ' create the session / framebuffer
 RayLoadProject("raycast_demo/worlds/demo.world.json")
@@ -164,7 +164,7 @@ RayShutdown()
 
 Key points:
 
-- `Screen 1` must be active — WinRayCast draws into the GDI console window, so a `-t` /
+- `Screen 1` must be active — nuRCADE draws into the GDI console window, so a `-t` /
   text-mode (`Screen 0`) run cannot present frames.
 - `RayRender` fills an off-screen framebuffer; `RayPresent` copies it into a rectangle of
   the window. HUD/minimap drawing with the normal [graphics](Graphics-and-Multimedia)
@@ -176,7 +176,7 @@ Key points:
 
 ## Worlds and projects
 
-WinRayCast loads its scene data from JSON files, resolved relative to the base directory set
+nuRCADE loads its scene data from JSON files, resolved relative to the base directory set
 with `RaySetBaseDir`. The companion demo data lives under
 [`examples/raycast/raycast_demo/`](https://github.com/eantcal/nubasic/tree/main/examples/raycast/raycast_demo),
 with `worlds/`, `weapons/`, sprites, textures, audio, and HUD assets.
@@ -188,7 +188,7 @@ A `*.world.json` file is a JSON object with these top-level keys (the demo's
 
 | Key | Required | Meaning |
 |-----|----------|---------|
-| `format` | yes | Must be the string `"winraycast.world"`. |
+| `format` | yes | Must be the string `"nurcade.world"`. |
 | `version` | yes | Must be `2`. |
 | `grid` | yes | `{ columns, rows, cellWidth, cellDepth, defaultWallHeight }` — map size and the size of one cell in **world units** (the demo uses 512). |
 | `playerStart` | recommended | `{ xCell, yCell, facingDegrees }` — spawn position in (fractional) cell coordinates and initial heading. |
@@ -207,7 +207,7 @@ A complete **minimal world** — a 5×5 room you can walk around in — looks li
 
 ```json
 {
-  "format": "winraycast.world",
+  "format": "nurcade.world",
   "version": 2,
   "grid": { "columns": 5, "rows": 5, "cellWidth": 512, "cellDepth": 512, "defaultWallHeight": 512 },
   "playerStart": { "xCell": 2.5, "yCell": 2.5, "facingDegrees": 90 },
@@ -369,7 +369,7 @@ This tutorial builds a small game step by step. Steps 1–3 use the
 your `.bas` file, with the two `.png` textures it references); steps 4–6 switch to the
 bundled demo project, which already ships enemies, weapons, and assets.
 
-Run each step from a Windows build that includes WinRayCast (`RayAvailable()` returns `1`).
+Run each step from a Windows build that includes nuRCADE (`RayAvailable()` returns `1`).
 
 ### Step 1 — Show the world
 
@@ -385,7 +385,7 @@ Using graphics
 Const VIEW_W = 640
 Const VIEW_H = 400
 
-If RayAvailable() = 0 Then Print "WinRayCast not available" : End
+If RayAvailable() = 0 Then Print "nuRCADE not available" : End
 
 Screen 1
 RaySetBaseDir(GetAppPath())          ' textures/worlds resolve from here
@@ -521,7 +521,7 @@ death/respawn overlay — all on top of exactly these building blocks.
 ## Full example
 
 [`examples/raycast/eclipse_protocol.bas`](https://github.com/eantcal/nubasic/blob/main/examples/raycast/eclipse_protocol.bas)
-is a complete, heavily-commented playable demo built on WinRayCast. It is written as a
+is a complete, heavily-commented playable demo built on nuRCADE. It is written as a
 tutorial — a `GAME SETTINGS` block at the top collects the tunable parameters, and the
 main loop shows the full input → update → render → present cycle in context. It exercises
 most of the API above: multi-weapon combat with ammo and reloads, energy/health and
@@ -530,7 +530,7 @@ checkpoints, and elevator transitions between levels. It also doubles as a showc
 nuBASIC 2.0 language features, combining `Syntax Modern`, `Struct`, and `Class` with the
 classic graphics primitives.
 
-Run it from a Windows build that includes WinRayCast (see [IDE](IDE) or the
+Run it from a Windows build that includes nuRCADE (see [IDE](IDE) or the
 [README](https://github.com/eantcal/nubasic#readme) for launch options).
 
 ---

@@ -1,4 +1,4 @@
-// This file is part of the WinRayCast Application (a 3D Engine Demo).
+// This file is part of nuRCADE (New (nu) Raycasting Classic Arcade Development Engine).
 // Copyright (C) 2005 - 2018
 // Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-namespace WinRayCast {
+namespace nu::rcade {
 
 	using BlockId = uint8_t;
 
@@ -118,4 +118,4 @@ namespace WinRayCast {
 		bool hasAnyCollidingSpan = false;
 	};
 
-} // namespace WinRayCast
+} // namespace nu::rcade

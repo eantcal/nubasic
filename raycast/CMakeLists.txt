@@ -1,4 +1,4 @@
-set(NURAYCAST_ENGINE_SOURCES
+set(NURCADE_ENGINE_SOURCES
   engine/ActorSystem.cpp
   engine/Player.cpp
   engine/RayCaster.cpp
@@ -11,7 +11,7 @@ set(NURAYCAST_ENGINE_SOURCES
   engine/WorldJsonLoader.cpp
   engine/WorldMap.cpp)
 
-set(NURAYCAST_ENGINE_HEADERS
+set(NURCADE_ENGINE_HEADERS
   engine/ActorSystem.h
   engine/Color.h
   engine/ColumnDepthBuffer.h
@@ -32,48 +32,48 @@ set(NURAYCAST_ENGINE_HEADERS
   engine/WorldJsonLoader.h
   engine/WorldMap.h)
 
-add_library(nuRaycastEngine STATIC
-  ${NURAYCAST_ENGINE_SOURCES}
-  ${NURAYCAST_ENGINE_HEADERS})
+add_library(nuRCADEEngine STATIC
+  ${NURCADE_ENGINE_SOURCES}
+  ${NURCADE_ENGINE_HEADERS})
 
-target_include_directories(nuRaycastEngine PUBLIC
+target_include_directories(nuRCADEEngine PUBLIC
   "${CMAKE_CURRENT_SOURCE_DIR}/engine")
 
-target_compile_features(nuRaycastEngine PUBLIC cxx_std_20)
+target_compile_features(nuRCADEEngine PUBLIC cxx_std_20)
 
-target_compile_definitions(nuRaycastEngine PUBLIC
+target_compile_definitions(nuRCADEEngine PUBLIC
   _MBCS
   $<$<PLATFORM_ID:Windows>:WIN32>
   $<$<CONFIG:Debug>:_DEBUG>
   $<$<NOT:$<CONFIG:Debug>>:NDEBUG>)
 
-target_link_libraries(nuRaycastEngine PUBLIC
+target_link_libraries(nuRCADEEngine PUBLIC
   nlohmann_json::nlohmann_json)
 
 if(WIN32)
-  add_library(nuRaycastTextureLoader STATIC
+  add_library(nuRCADETextureLoader STATIC
     win/WinTextureLoader.cpp
     win/WinTextureLoader.h)
 
-  target_include_directories(nuRaycastTextureLoader PUBLIC
+  target_include_directories(nuRCADETextureLoader PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/win"
     "${CMAKE_CURRENT_SOURCE_DIR}/engine")
 
-  target_compile_features(nuRaycastTextureLoader PUBLIC cxx_std_20)
+  target_compile_features(nuRCADETextureLoader PUBLIC cxx_std_20)
 
-  target_compile_definitions(nuRaycastTextureLoader PUBLIC
+  target_compile_definitions(nuRCADETextureLoader PUBLIC
     WIN32
     _WINDOWS
     _MBCS
     $<$<CONFIG:Debug>:_DEBUG>
     $<$<NOT:$<CONFIG:Debug>>:NDEBUG>)
 
-  target_link_libraries(nuRaycastTextureLoader PUBLIC
-    nuRaycastEngine
+  target_link_libraries(nuRCADETextureLoader PUBLIC
+    nuRCADEEngine
     ole32
     windowscodecs)
 
-  set(NURAYCAST_WIN_SUPPORT_SOURCES
+  set(NURCADE_WIN_SUPPORT_SOURCES
     win/BackgroundMusicPlayer.cpp
     win/D2dPresenter.cpp
     win/DdxDevice.cpp
@@ -83,7 +83,7 @@ if(WIN32)
     win/WinFramePresenter.cpp
     win/WinTextureLoader.cpp)
 
-  set(NURAYCAST_WIN_SUPPORT_HEADERS
+  set(NURCADE_WIN_SUPPORT_HEADERS
     win/BackgroundMusicPlayer.h
     win/D2dPresenter.h
     win/DdxDevice.h
@@ -93,25 +93,25 @@ if(WIN32)
     win/WinFramePresenter.h
     win/WinTextureLoader.h)
 
-  add_library(nuRaycastWinSupport STATIC
-    ${NURAYCAST_WIN_SUPPORT_SOURCES}
-    ${NURAYCAST_WIN_SUPPORT_HEADERS})
+  add_library(nuRCADEWinSupport STATIC
+    ${NURCADE_WIN_SUPPORT_SOURCES}
+    ${NURCADE_WIN_SUPPORT_HEADERS})
 
-  target_include_directories(nuRaycastWinSupport PUBLIC
+  target_include_directories(nuRCADEWinSupport PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/win"
     "${CMAKE_CURRENT_SOURCE_DIR}/engine")
 
-  target_compile_features(nuRaycastWinSupport PUBLIC cxx_std_20)
+  target_compile_features(nuRCADEWinSupport PUBLIC cxx_std_20)
 
-  target_compile_definitions(nuRaycastWinSupport PUBLIC
+  target_compile_definitions(nuRCADEWinSupport PUBLIC
     WIN32
     _WINDOWS
     _MBCS
     $<$<CONFIG:Debug>:_DEBUG>
     $<$<NOT:$<CONFIG:Debug>>:NDEBUG>)
 
-  target_link_libraries(nuRaycastWinSupport PUBLIC
-    nuRaycastEngine
+  target_link_libraries(nuRCADEWinSupport PUBLIC
+    nuRCADEEngine
     ddraw
     dxguid
     d2d1
@@ -125,12 +125,12 @@ if(WIN32)
 endif()
 
 if(MSVC)
-  target_compile_options(nuRaycastEngine PRIVATE /W3)
-  if(TARGET nuRaycastTextureLoader)
-    target_compile_options(nuRaycastTextureLoader PRIVATE /W3)
+  target_compile_options(nuRCADEEngine PRIVATE /W3)
+  if(TARGET nuRCADETextureLoader)
+    target_compile_options(nuRCADETextureLoader PRIVATE /W3)
   endif()
-  if(TARGET nuRaycastWinSupport)
-    target_compile_options(nuRaycastWinSupport PRIVATE /W3)
+  if(TARGET nuRCADEWinSupport)
+    target_compile_options(nuRCADEWinSupport PRIVATE /W3)
   endif()
 endif()
 
@@ -144,7 +144,7 @@ if(BUILD_TESTING)
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
   FetchContent_MakeAvailable(googletest)
 
-  add_executable(nuRaycastEngineTests
+  add_executable(nuRCADEEngineTests
     tests/ActorSystemTests.cpp
     tests/ColumnDepthBufferTests.cpp
     tests/FrameBufferTests.cpp
@@ -162,23 +162,23 @@ if(BUILD_TESTING)
     tests/WorldJsonLoaderTests.cpp
     tests/BenchmarkScene.h)
 
-  target_include_directories(nuRaycastEngineTests PRIVATE
+  target_include_directories(nuRCADEEngineTests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/engine")
 
-  target_compile_definitions(nuRaycastEngineTests PRIVATE
-    NURAYCAST_DEMO_WORLD_DIR="${CMAKE_SOURCE_DIR}/examples/raycast/raycast_demo/worlds")
+  target_compile_definitions(nuRCADEEngineTests PRIVATE
+    NURCADE_DEMO_WORLD_DIR="${CMAKE_SOURCE_DIR}/examples/raycast/raycast_demo/worlds")
 
-  target_link_libraries(nuRaycastEngineTests PRIVATE
-    nuRaycastEngine
+  target_link_libraries(nuRCADEEngineTests PRIVATE
+    nuRCADEEngine
     GTest::gtest_main)
 
   include(GoogleTest)
-  gtest_discover_tests(nuRaycastEngineTests
+  gtest_discover_tests(nuRCADEEngineTests
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     DISCOVERY_MODE PRE_TEST)
 
   if(MSVC)
-    target_compile_options(nuRaycastEngineTests PRIVATE /W3)
-    set_target_properties(nuRaycastEngineTests PROPERTIES FOLDER "Tests")
+    target_compile_options(nuRCADEEngineTests PRIVATE /W3)
+    set_target_properties(nuRCADEEngineTests PROPERTIES FOLDER "Tests")
   endif()
 endif()

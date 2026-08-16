@@ -352,7 +352,7 @@ TEST(SpriteMetadataLoaderTests, RejectsInvalidDirectionAngle)
 
 TEST(SpriteMetadataLoaderTests, LoadsShippedSheetBruteWalkAnimation)
 {
-    const auto path = std::string(NURAYCAST_DEMO_WORLD_DIR)
+    const auto path = std::string(NURCADE_DEMO_WORLD_DIR)
         + "/sprites/sheet_brute/sheet_brute.sprite.json";
 
     const auto result = SpriteMetadataLoader().loadFromFile(path);
@@ -371,7 +371,7 @@ TEST(SpriteMetadataLoaderTests, LoadsShippedSheetBruteWalkAnimation)
 
 TEST(SpriteMetadataLoaderTests, LoadsShippedMissileBruteAttackAndDeathAnimations)
 {
-    const auto path = std::string(NURAYCAST_DEMO_WORLD_DIR)
+    const auto path = std::string(NURCADE_DEMO_WORLD_DIR)
         + "/sprites/missile_brute/missile_brute.sprite.json";
 
     const auto result = SpriteMetadataLoader().loadFromFile(path);
@@ -399,7 +399,7 @@ TEST(SpriteMetadataLoaderTests, LoadsShippedMissileBruteAttackAndDeathAnimations
 
 TEST(SpriteMetadataLoaderTests, LoadsShippedSoldierWalkAttackAndDeathAnimations)
 {
-    const auto path = std::string(NURAYCAST_DEMO_WORLD_DIR)
+    const auto path = std::string(NURCADE_DEMO_WORLD_DIR)
         + "/sprites/soldier/soldier.sprite.json";
 
     const auto result = SpriteMetadataLoader().loadFromFile(path);
@@ -438,7 +438,7 @@ TEST(SpriteMetadataLoaderTests, LoadsShippedSoldierWalkAttackAndDeathAnimations)
 
 TEST(SpriteMetadataLoaderTests, LoadsShippedHoverSentinelDirectionalAnimations)
 {
-    const auto path = std::string(NURAYCAST_DEMO_WORLD_DIR)
+    const auto path = std::string(NURCADE_DEMO_WORLD_DIR)
         + "/sprites/hover_sentinel/hover_sentinel.sprite.json";
 
     const auto result = SpriteMetadataLoader().loadFromFile(path);
@@ -462,7 +462,7 @@ TEST(SpriteMetadataLoaderTests, LoadsShippedHoverSentinelDirectionalAnimations)
 
 TEST(SpriteMetadataLoaderTests, LoadsShippedGuideRobotDirectionalAnimations)
 {
-    const auto path = std::string(NURAYCAST_DEMO_WORLD_DIR)
+    const auto path = std::string(NURCADE_DEMO_WORLD_DIR)
         + "/sprites/guide_robot/guide_robot.sprite.json";
 
     const auto result = SpriteMetadataLoader().loadFromFile(path);

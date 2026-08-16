@@ -46,7 +46,7 @@ What nuBASIC adds on top of the classic BASIC foundation:
 
 The Windows build provides a dedicated GDI-based console window that renders text and graphics
 natively, works both standalone and embedded inside the nuBASIC IDE, and supports all graphical
-APIs including pixel-level drawing. It also ships the integrated **WinRayCast** engine for
+APIs including pixel-level drawing. It also ships the integrated **nuRCADE** engine for
 pseudo-3D, *Wolfenstein 3D*-style first-person rendering from BASIC — see
 [Raycast Game Engine](Raycast-Game-Engine). The Linux build uses the terminal for text and X11
 for graphics. A *console* build variant (without graphics, sound, or window manager support) is

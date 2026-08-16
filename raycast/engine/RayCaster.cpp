@@ -1,4 +1,4 @@
-// This file is part of the WinRayCast Application (a 3D Engine Demo).
+// This file is part of nuRCADE (New (nu) Raycasting Classic Arcade Development Engine).
 // Copyright (C) 2005 - 2018
 // Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
@@ -12,7 +12,7 @@ constexpr double kFarDistance = 1000000.0;
 
 struct SampledCell {
     Cell cell = 0;
-    const WinRayCast::BlockDefinition* block = nullptr;
+    const nu::rcade::BlockDefinition* block = nullptr;
     int row = 0;
     int column = 0;
 };
@@ -35,18 +35,18 @@ bool isSolidHit(const WorldMap& map, const SampledCell& sample) noexcept
     return map.isSolidCellHit(sample.row, sample.column, sample.cell);
 }
 
-WinRayCast::WallFace verticalHitFace(const Player& player, int ray) noexcept
+nu::rcade::WallFace verticalHitFace(const Player& player, int ray) noexcept
 {
     return ray >= player.deg90() && ray < player.deg270()
-        ? WinRayCast::WallFace::East
-        : WinRayCast::WallFace::West;
+        ? nu::rcade::WallFace::East
+        : nu::rcade::WallFace::West;
 }
 
-WinRayCast::WallFace horizontalHitFace(const Player& player, int ray) noexcept
+nu::rcade::WallFace horizontalHitFace(const Player& player, int ray) noexcept
 {
     return ray >= player.deg180() && ray < player.deg360()
-        ? WinRayCast::WallFace::South
-        : WinRayCast::WallFace::North;
+        ? nu::rcade::WallFace::South
+        : nu::rcade::WallFace::North;
 }
 
 SampledCell sampleVerticalCell(
@@ -178,7 +178,7 @@ Cell RayCaster::verticalWall(
     return map[row][col];
 }
 
-const WinRayCast::BlockDefinition* RayCaster::verticalBlock(
+const nu::rcade::BlockDefinition* RayCaster::verticalBlock(
     WorldMap& map,
     const Point2d& point,
     int ray) const noexcept
@@ -214,7 +214,7 @@ Cell RayCaster::horizontalWall(
     return map[row][col];
 }
 
-const WinRayCast::BlockDefinition* RayCaster::horizontalBlock(
+const nu::rcade::BlockDefinition* RayCaster::horizontalBlock(
     WorldMap& map,
     const Point2d& point,
     int ray) const noexcept

@@ -1,4 +1,4 @@
-// This file is part of the WinRayCast Application (a 3D Engine Demo).
+// This file is part of nuRCADE (New (nu) Raycasting Classic Arcade Development Engine).
 // Licensed under the MIT License. See COPYING file in the project root.
 //
 // Hardware-accelerated presentation using Direct2D. The software-rendered 3D

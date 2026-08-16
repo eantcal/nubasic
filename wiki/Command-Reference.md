@@ -279,7 +279,7 @@ BASIC program.
 > `GetMouseBtn` (deprecated in v1.62) were removed. Use `GetMouse()`, which returns a
 > `Mouse` struct with fields `x`, `y`, and `btn`.
 
-> **Pseudo-3D (Windows).** The integrated WinRayCast engine adds a `Ray…` function family
+> **Pseudo-3D (Windows).** The integrated nuRCADE engine adds a `Ray…` function family
 > (`RayInit`, `RayLoadProject`, `RayUpdate`, `RayRender`, `RayPresent`, and the
 > player/combat/map queries). It has its own page — see
 > [Raycast Game Engine](Raycast-Game-Engine) for the complete reference.

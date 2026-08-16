@@ -1,4 +1,4 @@
-// This file is part of the WinRayCast Application (a 3D Engine Demo).
+// This file is part of nuRCADE (New (nu) Raycasting Classic Arcade Development Engine).
 // Copyright (C) 2005 - 2018
 // Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
@@ -59,7 +59,7 @@ namespace {
 	}
 
 	MapCell::TextureKey lockedDoorOverlayTexture(
-		const WinRayCast::DoorDefinition& door,
+		const nu::rcade::DoorDefinition& door,
 		const std::vector<std::string>& keyring) noexcept
 	{
 		if (!door.enabled
@@ -85,7 +85,7 @@ namespace {
 	}
 
 	MapCell::TextureKey textureAnimationFrame(
-		const WinRayCast::WallTextureAnimation& animation,
+		const nu::rcade::WallTextureAnimation& animation,
 		double timeSeconds) noexcept
 	{
 		if (animation.textureKeys.empty()
@@ -106,12 +106,12 @@ namespace {
 	}
 
 	MapCell::TextureKey animatedTextureForFace(
-		const std::vector<WinRayCast::WallTextureAnimation>& animations,
-		WinRayCast::WallFace face,
+		const std::vector<nu::rcade::WallTextureAnimation>& animations,
+		nu::rcade::WallFace face,
 		double timeSeconds) noexcept
 	{
 		const auto faceIndex = static_cast<int>(face);
-		const WinRayCast::WallTextureAnimation* allFaces = nullptr;
+		const nu::rcade::WallTextureAnimation* allFaces = nullptr;
 		for (const auto& animation : animations) {
 			if (animation.textureKeys.empty()) {
 				continue;
@@ -213,8 +213,8 @@ double WorldMap::doorOpenAmountAt(int row, int column) const noexcept
 WorldMap::TextureLayer WorldMap::textureLayerForWallSpanAt(
 	int row,
 	int column,
-	const WinRayCast::WallSpan& span,
-	WinRayCast::WallFace face,
+	const nu::rcade::WallSpan& span,
+	nu::rcade::WallFace face,
 	bool internalWall) const noexcept
 {
 	TextureLayer layer;
@@ -306,8 +306,8 @@ void WorldMap::advanceDynamicTextures(double deltaSeconds) noexcept
 MapCell::TextureKey WorldMap::textureForWallSpanAt(
 	int row,
 	int column,
-	const WinRayCast::WallSpan& span,
-	WinRayCast::WallFace face,
+	const nu::rcade::WallSpan& span,
+	nu::rcade::WallFace face,
 	bool internalWall) const noexcept
 {
 	return textureLayerForWallSpanAt(
@@ -325,7 +325,7 @@ WorldMap::TextureLayer WorldMap::transparentWallTextureLayerAt(
 	int row,
 	int column,
 	MapCell::TextureKey fallback,
-	WinRayCast::WallFace face,
+	nu::rcade::WallFace face,
 	bool internalWall) const noexcept
 {
 	const auto* block = blockAtCell(row, column);
@@ -334,7 +334,7 @@ WorldMap::TextureLayer WorldMap::transparentWallTextureLayerAt(
 	}
 
 	for (const auto& span : block->walls) {
-		if (span.kind == WinRayCast::WallSpanKind::Transparent) {
+		if (span.kind == nu::rcade::WallSpanKind::Transparent) {
 			return textureLayerForWallSpanAt(row, column, span, face, internalWall);
 		}
 	}
@@ -349,7 +349,7 @@ MapCell::TextureKey WorldMap::transparentWallTextureAt(
 	int row,
 	int column,
 	MapCell::TextureKey fallback,
-	WinRayCast::WallFace face,
+	nu::rcade::WallFace face,
 	bool internalWall) const noexcept
 {
 	return transparentWallTextureLayerAt(

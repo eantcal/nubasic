@@ -1,4 +1,4 @@
-// This file is part of the WinRayCast Application (a 3D Engine Demo).
+// This file is part of nuRCADE (New (nu) Raycasting Classic Arcade Development Engine).
 // Copyright (C) 2005 - 2018
 // Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
@@ -10,19 +10,19 @@
 #include <cstdlib>
 
 #if __has_include("../../third_party/stb/stb_vorbis.c")
-#define NURAYCAST_HAS_STB_VORBIS 1
+#define NURCADE_HAS_STB_VORBIS 1
 #pragma warning(push)
 #pragma warning(disable : 4244 4267 4996)
 #include "../../third_party/stb/stb_vorbis.c"
 #pragma warning(pop)
 #else
-#define NURAYCAST_HAS_STB_VORBIS 0
+#define NURCADE_HAS_STB_VORBIS 0
 #endif
 
 bool decodeVorbisFile(const std::string& path, std::vector<short>& samples,
     int& channels, int& sampleRate, std::string* error)
 {
-#if NURAYCAST_HAS_STB_VORBIS
+#if NURCADE_HAS_STB_VORBIS
     short* output = nullptr;
     channels = 0;
     sampleRate = 0;

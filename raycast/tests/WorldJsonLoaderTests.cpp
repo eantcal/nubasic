@@ -12,7 +12,7 @@
 TEST(WorldJsonLoaderTests, PopulatesBlocksAndPackedCellsFromV2Document)
 {
     const std::string json = R"({
-        "format": "winraycast.world",
+        "format": "nurcade.world",
         "version": 2,
         "name": "demo",
         "grid": { "columns": 2, "rows": 1, "cellWidth": 256, "cellDepth": 512, "defaultWallHeight": 512 },
@@ -78,7 +78,7 @@ TEST(WorldJsonLoaderTests, PopulatesBlocksAndPackedCellsFromV2Document)
 TEST(WorldJsonLoaderTests, SelectsRequestedWorldLayer)
 {
     const std::string json = R"({
-        "format": "winraycast.world",
+        "format": "nurcade.world",
         "version": 2,
         "grid": { "columns": 2, "rows": 1, "cellWidth": 128, "cellDepth": 128, "defaultWallHeight": 128 },
         "activeLayer": "upper",
@@ -124,7 +124,7 @@ TEST(WorldJsonLoaderTests, SelectsRequestedWorldLayer)
 TEST(WorldJsonLoaderTests, ReportsInvalidWallSpan)
 {
     const std::string json = R"({
-        "format": "winraycast.world",
+        "format": "nurcade.world",
         "version": 2,
         "grid": { "columns": 1, "rows": 1, "cellWidth": 512, "cellDepth": 512, "defaultWallHeight": 512 },
         "textures": { "01": { "name": "wall", "file": "wall.bmp" } },
@@ -157,7 +157,7 @@ TEST(WorldJsonLoaderTests, ReportsInvalidWallSpan)
 TEST(WorldJsonLoaderTests, PassableWallSpanControlsCollisionIndependentlyFromKind)
 {
     const std::string json = R"({
-        "format": "winraycast.world",
+        "format": "nurcade.world",
         "version": 2,
         "grid": { "columns": 3, "rows": 1, "cellWidth": 64, "cellDepth": 64, "defaultWallHeight": 64 },
         "textures": {
@@ -193,7 +193,7 @@ TEST(WorldJsonLoaderTests, PassableWallSpanControlsCollisionIndependentlyFromKin
     const auto* visualOnly = map.blockAtCell(0, 1);
     ASSERT_NE(nullptr, visualOnly);
     ASSERT_EQ(1u, visualOnly->walls.size());
-    EXPECT_EQ(WinRayCast::WallSpanKind::Solid, visualOnly->walls[0].kind);
+    EXPECT_EQ(nu::rcade::WallSpanKind::Solid, visualOnly->walls[0].kind);
     EXPECT_FALSE(visualOnly->walls[0].collision);
     EXPECT_TRUE(visualOnly->hasAnySolidSpan);
     EXPECT_FALSE(visualOnly->hasAnyCollidingSpan);
@@ -202,7 +202,7 @@ TEST(WorldJsonLoaderTests, PassableWallSpanControlsCollisionIndependentlyFromKin
     const auto* blockingGlass = map.blockAtCell(0, 2);
     ASSERT_NE(nullptr, blockingGlass);
     ASSERT_EQ(1u, blockingGlass->walls.size());
-    EXPECT_EQ(WinRayCast::WallSpanKind::Transparent, blockingGlass->walls[0].kind);
+    EXPECT_EQ(nu::rcade::WallSpanKind::Transparent, blockingGlass->walls[0].kind);
     EXPECT_TRUE(blockingGlass->walls[0].collision);
     EXPECT_TRUE(blockingGlass->hasAnyTransparentSpan);
     EXPECT_TRUE(blockingGlass->hasAnyCollidingSpan);
@@ -212,7 +212,7 @@ TEST(WorldJsonLoaderTests, PassableWallSpanControlsCollisionIndependentlyFromKin
 TEST(WorldJsonLoaderTests, WallSpanCanOverrideTexturePerFace)
 {
     const std::string json = R"({
-        "format": "winraycast.world",
+        "format": "nurcade.world",
         "version": 2,
         "grid": { "columns": 2, "rows": 1, "cellWidth": 64, "cellDepth": 64, "defaultWallHeight": 64 },
         "textures": {
@@ -258,16 +258,16 @@ TEST(WorldJsonLoaderTests, WallSpanCanOverrideTexturePerFace)
     const auto& wall = block->walls[0];
     EXPECT_EQ(0x01, wall.textureKey);
     // JSON labels and runtime WallFace values are both geometric sides of the block.
-    EXPECT_EQ(0x02, wall.textureForFace(WinRayCast::WallFace::North));
-    EXPECT_EQ(0x03, wall.textureForFace(WinRayCast::WallFace::East));
-    EXPECT_EQ(0x04, wall.textureForFace(WinRayCast::WallFace::South));
-    EXPECT_EQ(0x05, wall.textureForFace(WinRayCast::WallFace::West));
+    EXPECT_EQ(0x02, wall.textureForFace(nu::rcade::WallFace::North));
+    EXPECT_EQ(0x03, wall.textureForFace(nu::rcade::WallFace::East));
+    EXPECT_EQ(0x04, wall.textureForFace(nu::rcade::WallFace::South));
+    EXPECT_EQ(0x05, wall.textureForFace(nu::rcade::WallFace::West));
 }
 
 TEST(WorldJsonLoaderTests, WallSpanCanDeclareAnimatedTextureOverlay)
 {
     const std::string json = R"({
-        "format": "winraycast.world",
+        "format": "nurcade.world",
         "version": 2,
         "grid": { "columns": 1, "rows": 1, "cellWidth": 64, "cellDepth": 64, "defaultWallHeight": 64 },
         "textures": {
@@ -312,7 +312,7 @@ TEST(WorldJsonLoaderTests, WallSpanCanDeclareAnimatedTextureOverlay)
     EXPECT_TRUE(wall.baseAnimations.empty());
 
     const auto& animation = wall.overlayAnimations[0];
-    EXPECT_EQ(static_cast<int>(WinRayCast::WallFace::North), animation.face);
+    EXPECT_EQ(static_cast<int>(nu::rcade::WallFace::North), animation.face);
     EXPECT_DOUBLE_EQ(2.5, animation.frameDurationSeconds);
     EXPECT_TRUE(animation.loop);
     ASSERT_EQ(2u, animation.textureKeys.size());
@@ -323,7 +323,7 @@ TEST(WorldJsonLoaderTests, WallSpanCanDeclareAnimatedTextureOverlay)
 TEST(WorldJsonLoaderTests, LoadsDoorOpeningSoundMetadata)
 {
     const std::string json = R"({
-        "format": "winraycast.world",
+        "format": "nurcade.world",
         "version": 2,
         "grid": { "columns": 1, "rows": 1, "cellWidth": 64, "cellDepth": 64, "defaultWallHeight": 64 },
         "textures": {
@@ -363,7 +363,7 @@ TEST(WorldJsonLoaderTests, LoadsDoorOpeningSoundMetadata)
 TEST(WorldJsonLoaderTests, WallSpanCanUseInteriorTextureForInternalRendering)
 {
     const std::string json = R"({
-        "format": "winraycast.world",
+        "format": "nurcade.world",
         "version": 2,
         "grid": { "columns": 2, "rows": 1, "cellWidth": 64, "cellDepth": 64, "defaultWallHeight": 64 },
         "textures": {
@@ -400,14 +400,14 @@ TEST(WorldJsonLoaderTests, WallSpanCanUseInteriorTextureForInternalRendering)
     ASSERT_EQ(1u, block->walls.size());
     const auto& wall = block->walls[0];
 
-    EXPECT_EQ(0x01, map.textureForWallSpanAt(0, 1, wall, WinRayCast::WallFace::West, false));
-    EXPECT_EQ(0x04, map.textureForWallSpanAt(0, 1, wall, WinRayCast::WallFace::West, true));
+    EXPECT_EQ(0x01, map.textureForWallSpanAt(0, 1, wall, nu::rcade::WallFace::West, false));
+    EXPECT_EQ(0x04, map.textureForWallSpanAt(0, 1, wall, nu::rcade::WallFace::West, true));
 }
 
 TEST(WorldJsonLoaderTests, DoorMetadataBuildsAnimatedRuntimeDoor)
 {
     const std::string json = R"({
-        "format": "winraycast.world",
+        "format": "nurcade.world",
         "version": 2,
         "grid": { "columns": 2, "rows": 1, "cellWidth": 64, "cellDepth": 64, "defaultWallHeight": 64 },
         "textures": {
@@ -463,7 +463,7 @@ TEST(WorldJsonLoaderTests, DoorMetadataBuildsAnimatedRuntimeDoor)
         0,
         1,
         0x01,
-        WinRayCast::WallFace::West);
+        nu::rcade::WallFace::West);
     EXPECT_EQ(0x01, lockedLayer.base);
     EXPECT_EQ(0x04, lockedLayer.overlay);
 
@@ -480,7 +480,7 @@ TEST(WorldJsonLoaderTests, DoorMetadataBuildsAnimatedRuntimeDoor)
         0,
         1,
         0x01,
-        WinRayCast::WallFace::West);
+        nu::rcade::WallFace::West);
     EXPECT_EQ(0x03, unlockedLayer.base);
     EXPECT_EQ(0, unlockedLayer.overlay);
 }
@@ -488,7 +488,7 @@ TEST(WorldJsonLoaderTests, DoorMetadataBuildsAnimatedRuntimeDoor)
 TEST(WorldJsonLoaderTests, RejectsUnsupportedVersion)
 {
     const std::string json = R"({
-        "format": "winraycast.world",
+        "format": "nurcade.world",
         "version": 1,
         "grid": { "columns": 1, "rows": 1, "cellWidth": 512, "cellDepth": 512, "defaultWallHeight": 512 },
         "textures": {},
@@ -505,7 +505,7 @@ TEST(WorldJsonLoaderTests, RejectsUnsupportedVersion)
 TEST(WorldJsonLoaderTests, ParsesShippedDemoWorldWithVariableHeights)
 {
     const std::string path =
-        std::string(NURAYCAST_DEMO_WORLD_DIR) + "/demo.world.json";
+        std::string(NURCADE_DEMO_WORLD_DIR) + "/demo.world.json";
     std::ifstream file(path);
     ASSERT_TRUE(file.is_open()) << "Cannot open " << path;
 
@@ -524,7 +524,7 @@ TEST(WorldJsonLoaderTests, ParsesShippedDemoWorldWithVariableHeights)
     bool foundTallWall = false;
     for (int blockId = 0; blockId <= 0xff && !foundTallWall; ++blockId) {
         const auto* block = map.blockDefinition(
-            static_cast<WinRayCast::BlockId>(blockId));
+            static_cast<nu::rcade::BlockId>(blockId));
         if (block == nullptr) {
             continue;
         }
@@ -544,7 +544,7 @@ TEST(WorldJsonLoaderTests, ParsesShippedDemoWorldWithVariableHeights)
 TEST(WorldJsonLoaderTests, ShippedDemoWorldLoadsWithExpectedDimensions)
 {
     const std::string jsonPath =
-        std::string(NURAYCAST_DEMO_WORLD_DIR) + "/demo.world.json";
+        std::string(NURCADE_DEMO_WORLD_DIR) + "/demo.world.json";
 
     WorldMap jsonMap;
     WorldJsonLoader loader;
@@ -559,7 +559,7 @@ TEST(WorldJsonLoaderTests, ShippedDemoWorldLoadsWithExpectedDimensions)
 TEST(WorldJsonLoaderTests, ShippedDemoWorldDeclaresSelfContainedSpriteAssets)
 {
     const std::string jsonPath =
-        std::string(NURAYCAST_DEMO_WORLD_DIR) + "/demo.world.json";
+        std::string(NURCADE_DEMO_WORLD_DIR) + "/demo.world.json";
     std::ifstream file(jsonPath);
     ASSERT_TRUE(file.is_open()) << "Cannot open " << jsonPath;
 

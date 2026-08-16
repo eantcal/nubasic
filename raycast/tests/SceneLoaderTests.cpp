@@ -258,7 +258,7 @@ TEST(SceneLoader, MergesSelectedLayerSceneData)
     const auto path = fixturePath("layered_world.json");
     writeFile(path, R"json(
         {
-          "format": "winraycast.world",
+          "format": "nurcade.world",
           "version": 2,
           "project": "layered",
           "brightness": 0.95,

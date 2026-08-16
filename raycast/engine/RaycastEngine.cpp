@@ -1,4 +1,4 @@
-// This file is part of the WinRayCast Application (a 3D Engine Demo).
+// This file is part of nuRCADE (New (nu) Raycasting Classic Arcade Development Engine).
 // Copyright (C) 2005 - 2018
 // Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
@@ -180,7 +180,7 @@ static Color overlayWallPixel(
 		: alphaBlendOver(base, overlay, alpha);
 }
 
-static WinRayCast::WallFace wallFaceForHit(
+static nu::rcade::WallFace wallFaceForHit(
 	const Player& player,
 	int ray,
 	bool vertical,
@@ -188,26 +188,26 @@ static WinRayCast::WallFace wallFaceForHit(
 {
 	auto face = vertical
 		? (ray >= player.deg90() && ray < player.deg270()
-			? WinRayCast::WallFace::East
-			: WinRayCast::WallFace::West)
+			? nu::rcade::WallFace::East
+			: nu::rcade::WallFace::West)
 		: (ray >= player.deg180() && ray < player.deg360()
-			? WinRayCast::WallFace::South
-			: WinRayCast::WallFace::North);
+			? nu::rcade::WallFace::South
+			: nu::rcade::WallFace::North);
 
 	if (!internalWall) {
 		return face;
 	}
 
 	switch (face) {
-	case WinRayCast::WallFace::North:
-		return WinRayCast::WallFace::South;
-	case WinRayCast::WallFace::South:
-		return WinRayCast::WallFace::North;
-	case WinRayCast::WallFace::East:
-		return WinRayCast::WallFace::West;
-	case WinRayCast::WallFace::West:
+	case nu::rcade::WallFace::North:
+		return nu::rcade::WallFace::South;
+	case nu::rcade::WallFace::South:
+		return nu::rcade::WallFace::North;
+	case nu::rcade::WallFace::East:
+		return nu::rcade::WallFace::West;
+	case nu::rcade::WallFace::West:
 	default:
-		return WinRayCast::WallFace::East;
+		return nu::rcade::WallFace::East;
 	}
 }
 
@@ -1533,7 +1533,7 @@ renderToFrameBuffer(
 				bool renderedAnyExtraSpan = false;
 				if (hit.block != nullptr) {
 					for (const auto& span : hit.block->walls) {
-						if (span.kind != WinRayCast::WallSpanKind::Solid) {
+						if (span.kind != nu::rcade::WallSpanKind::Solid) {
 							continue;
 						}
 

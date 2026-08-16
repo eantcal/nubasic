@@ -16,7 +16,7 @@ nuBASIC is a modern, open-source BASIC interpreter written in C++20, available f
 | [Getting Started](Getting-Started) | Installing and running nuBASIC, first programs, built-in help |
 | [Language Reference](Language-Reference) | Variables, operators, control flow, subroutines, structures, arrays, hash tables, file I/O, strings |
 | [Graphics and Multimedia](Graphics-and-Multimedia) | Drawing primitives, flicker-free rendering, mouse input, sound, window management |
-| [Raycast Game Engine](Raycast-Game-Engine) | WinRayCast pseudo-3D engine: render loop, worlds/projects, full `Ray…` API reference (Windows) |
+| [Raycast Game Engine](Raycast-Game-Engine) | nuRCADE pseudo-3D engine: render loop, worlds/projects, full `Ray…` API reference (Windows) |
 | [Command Reference](Command-Reference) | Console commands, instructions, built-in functions, operator table |
 | [IDE](IDE) | Syntax highlighting editor, keyboard commands, debugger, bookmarks, auto-completion |
 | [History and Evolution](History-and-Evolution) | Release history from v0.1 (2014) to v2.0 (2026) |

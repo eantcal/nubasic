@@ -1,4 +1,4 @@
-// This file is part of the WinRayCast Application (a 3D Engine Demo).
+// This file is part of nuRCADE (New (nu) Raycasting Classic Arcade Development Engine).
 // Copyright (C) 2005 - 2018
 // Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
@@ -20,13 +20,13 @@
 
 namespace {
 
-	using WinRayCast::BlockDefinition;
-	using WinRayCast::BlockId;
-	using WinRayCast::BlockSurface;
-	using WinRayCast::DoorDefinition;
-	using WinRayCast::WallFace;
-	using WinRayCast::WallSpan;
-	using WinRayCast::WallSpanKind;
+	using nu::rcade::BlockDefinition;
+	using nu::rcade::BlockId;
+	using nu::rcade::BlockSurface;
+	using nu::rcade::DoorDefinition;
+	using nu::rcade::WallFace;
+	using nu::rcade::WallSpan;
+	using nu::rcade::WallSpanKind;
 
 	std::string readString(const nlohmann::json& node, const char* name, const std::string& fallback)
 	{
@@ -473,7 +473,7 @@ namespace {
 				continue;
 			}
 
-			WinRayCast::WallTextureAnimation animation;
+			nu::rcade::WallTextureAnimation animation;
 			animation.face = face;
 			animation.frameDurationSeconds =
 				std::max(0.001, readDouble(animationNode, "frameDurationMs", 120.0) / 1000.0);
@@ -650,7 +650,7 @@ WorldJsonLoader::Result WorldJsonLoader::loadFromString(
 	}
 
 	const auto format = readString(document, "format", std::string());
-	if (format != "winraycast.world") {
+	if (format != "nurcade.world") {
 		result.errors.push_back("Unsupported world format: " + format);
 		return result;
 	}

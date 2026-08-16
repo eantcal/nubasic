@@ -239,9 +239,9 @@ The 2.0 cycle also modernised the execution and tooling layers:
 - **Hex literal compatibility** — the original BASIC `&hFF` / `&HFF` syntax remains supported,
   and `0xFF` / `0XFF` is accepted as a convenience for C-style constants.
 
-### WinRayCast Integration (June 2026, v2.0)
+### nuRCADE Integration (June 2026, v2.0)
 
-The headline addition for Windows is the integrated **WinRayCast** engine — a lightweight
+The headline addition for Windows is the integrated **nuRCADE** engine — a lightweight
 raycaster that lets a BASIC program render pseudo-3D, *Wolfenstein 3D*-style first-person
 scenes from a 2D grid map. The engine handles textured walls, sprites, doors, actors,
 weapons, pickups, sound, and multi-level transitions, while nuBASIC drives it through the

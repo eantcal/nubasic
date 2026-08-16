@@ -1,4 +1,4 @@
-// This file is part of the WinRayCast Application (a 3D Engine Demo).
+// This file is part of nuRCADE (New (nu) Raycasting Classic Arcade Development Engine).
 // Copyright (C) 2005 - 2018
 // Antonino Calderone (antonino.calderone@gmail.com)
 // All rights reserved.
@@ -152,7 +152,7 @@ struct BackgroundMusicPlayer::WaveBackend {
 BackgroundMusicPlayer::BackgroundMusicPlayer()
 {
     std::ostringstream alias;
-    alias << "winraycast_music_" << g_nextAlias++;
+    alias << "nurcade_music_" << g_nextAlias++;
     m_alias = alias.str();
 }
 

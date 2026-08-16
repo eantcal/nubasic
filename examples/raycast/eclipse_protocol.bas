@@ -2,9 +2,9 @@
 '
 ' This file is intentionally written as a tutorial.
 ' The GAME SETTINGS section contains the parameters that are meant to be changed,
-' while the main loop shows how a nuBASIC program can drive the WinRayCast engine.
+' while the main loop shows how a nuBASIC program can drive the nuRCADE engine.
 '
-' WinRayCast provides the pseudo-3D raycasting engine.
+' nuRCADE provides the pseudo-3D raycasting engine.
 ' nuBASIC provides the scripting layer, graphics window, HUD drawing and game logic.
 Syntax Modern
 
@@ -220,7 +220,7 @@ End Sub
 
 ' Draws a compact weapon selector.
 '
-' The actual first-person weapon is rendered by WinRayCast in the 3D view.
+' The actual first-person weapon is rendered by nuRCADE in the 3D view.
 ' A bitmap preview can be added here later by loading the weapon idle frame.
 Sub DrawWeaponPreview(hudX As Integer, y As Integer, selectedWeapon As Integer, weaponName As String)
     Dim slotW As Integer
@@ -375,7 +375,7 @@ End Sub
 ' Draws the side HUD panel.
 '
 ' The HUD is mostly BASIC-side logic.
-' It queries WinRayCast through Ray* functions to display engine state such as:
+' It queries nuRCADE through Ray* functions to display engine state such as:
 ' - number of sprites
 ' - number of actors
 ' - number of enemies
@@ -647,18 +647,18 @@ Function Main(argc As Integer, argv() As String) As Integer
         If argv(1) = "--once" Then once = 1
     End If
 
-    ' Tell WinRayCast where relative resources should be resolved from.
+    ' Tell nuRCADE where relative resources should be resolved from.
     ' This makes the demo independent from the IDE current working directory.
     RaySetBaseDir(scriptBase)
 
-    ' WinRayCast world/project file used by the demo.
+    ' nuRCADE world/project file used by the demo.
     world = "raycast_demo/worlds/demo.world.json"
 
     ' ------------------------------------------------------------------
     ' ENGINE INITIALIZATION
     ' ------------------------------------------------------------------
 
-    ' Initialize a WinRayCast session with the selected software framebuffer size.
+    ' Initialize a nuRCADE session with the selected software framebuffer size.
     '
     ' After this call, nuBASIC can use the Ray* API to load worlds, move the
     ' player, update the simulation and render the pseudo-3D scene.
@@ -674,7 +674,7 @@ Function Main(argc As Integer, argv() As String) As Integer
             RaySetBaseDir(installRaycastBase)
             If RayLoadProject(world) = 0 Then
                 If RayLoadWorld(world) = 0 Then
-                    Print "Cannot load WinRayCast demo world from: "; scriptBase
+                    Print "Cannot load nuRCADE demo world from: "; scriptBase
                     Print "Also tried: "; installRaycastBase
                     Main = 1
                     Exit Function
@@ -795,7 +795,7 @@ Function Main(argc As Integer, argv() As String) As Integer
             ' ----------------------------------------------------------
             ' PLAYER INPUT
             '
-            ' Movement and rotation are delegated to WinRayCast.
+            ' Movement and rotation are delegated to nuRCADE.
             ' nuBASIC only checks the keyboard and calls the corresponding
             ' Ray* primitive.
             ' ----------------------------------------------------------
@@ -984,7 +984,7 @@ Function Main(argc As Integer, argv() As String) As Integer
                 If RayKeyDown(keys.SpaceKey) = 1 Or RayKeyDown(keys.Ctrl) = 1 Then
                     ' Damage enemies or shootable objects inside the frontal cone.
                     '
-                    ' WinRayCast performs the spatial/raycast check internally.
+                    ' nuRCADE performs the spatial/raycast check internally.
                     ' BASIC only provides damage, range and field-of-view values.
                     If RayWeaponAmmo() > 0 Or RayWeaponMaxAmmo() = 0 Then
                         shotResult = RayDamageEnemy(fireDamage, fireRangeCells, fireFovDegrees)
@@ -1056,7 +1056,7 @@ Function Main(argc As Integer, argv() As String) As Integer
         ' --------------------------------------------------------------
         ' ENGINE UPDATE
         '
-        ' Advances the internal WinRayCast simulation:
+        ' Advances the internal nuRCADE simulation:
         ' - animations
         ' - doors
         ' - pickups
@@ -1129,7 +1129,7 @@ Function Main(argc As Integer, argv() As String) As Integer
         ' --------------------------------------------------------------
         ' RENDERING PIPELINE
         '
-        ' RayRender() draws the pseudo-3D scene into WinRayCast's internal
+        ' RayRender() draws the pseudo-3D scene into nuRCADE's internal
         ' software framebuffer.
         '
         ' RayPresent() copies that framebuffer into the nuBASIC graphics window.

@@ -1,8 +1,8 @@
-// This file is part of the WinRayCast Application (a 3D Engine Demo).
+// This file is part of nuRCADE (New (nu) Raycasting Classic Arcade Development Engine).
 // Licensed under the MIT License. See COPYING file in the project root.
 //
 // Shared, deterministic offscreen scene used by both the rendering benchmark
-// (WinRayCastBenchmark) and the rendering regression test
+// (nuRCADEBenchmark) and the rendering regression test
 // (RenderRegressionTests). The scene mirrors the real app's projection
 // resolution (512x512), field of view (60 deg), cell size (512) and engine
 // scale (250000) so the per-phase timings are representative, while staying
@@ -21,7 +21,7 @@
 
 namespace bench {
 
-// Mirror the shipped demo configuration (see src/app/WinRayCast.cpp).
+// Mirror the shipped demo configuration (see src/app/nuRCADE.cpp).
 constexpr int kProjResX = 512;
 constexpr int kProjResY = 512;
 constexpr int kVisualDeg = 60;

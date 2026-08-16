@@ -10,7 +10,7 @@ migliorano qualita' del linguaggio, manutenibilita' e prestazioni.
 nuBASIC 2.0 conserva lo spirito originale del progetto: un piccolo linguaggio
 della famiglia BASIC capace di eseguire programmi classici con numeri di riga,
 ma anche di supportare programmazione strutturata, classi, grafica, progetti,
-chiamate native, un motore di raycasting pseudo-3D integrato (WinRayCast, su
+chiamate native, un motore di raycasting pseudo-3D integrato (nuRCADE, su
 Windows) e workflow di debug moderni.
 
 Il lavoro recente sugli internals aveva quattro obiettivi principali:
@@ -150,9 +150,9 @@ color% = 0xFFFFFF
 Questo non sostituisce la forma BASIC. Serve a rendere piu' semplice copiare
 costanti da header C, documentazione Win32, esempi POSIX e codice grafico.
 
-## Integrazione di WinRayCast
+## Integrazione di nuRCADE
 
-L'aggiunta piu' visibile del ciclo 2.0 per Windows e' il motore **WinRayCast**
+L'aggiunta piu' visibile del ciclo 2.0 per Windows e' il motore **nuRCADE**
 integrato: un raycaster leggero che renderizza scene in prima persona pseudo-3D,
 in stile *Wolfenstein 3D*, a partire da una mappa a griglia 2D. Il design tiene
 deliberatamente separati il livello del motore e quello del linguaggio.

@@ -1,4 +1,4 @@
-// This file is part of the WinRayCast Application (a 3D Engine Demo).
+// This file is part of nuRCADE (New (nu) Raycasting Classic Arcade Development Engine).
 // Licensed under the MIT License. See COPYING file in the project root.
 //
 // Visual-regression guard for the software renderer. Renders the shared
@@ -6,7 +6,7 @@
 // framebuffer pixel. Any optimization that is meant to preserve output must
 // keep this hash unchanged; a changed hash means the rendered image changed.
 //
-// The golden hash is produced by WinRayCastBenchmark on this toolchain. If the
+// The golden hash is produced by nuRCADEBenchmark on this toolchain. If the
 // renderer is intentionally changed (or the toolchain changes the
 // floating-point result), re-run the benchmark and update kGoldenFrameHash.
 
@@ -19,7 +19,7 @@
 
 namespace {
 
-// Baseline produced by WinRayCastBenchmark (Release, MSVC x64).
+// Baseline produced by nuRCADEBenchmark (Release, MSVC x64).
 constexpr uint64_t kGoldenFrameHash = 0x55062e8779065d7eULL;
 
 uint64_t renderBenchmarkHash()
@@ -42,7 +42,7 @@ TEST(RenderRegressionTests, BenchmarkSceneFrameHashIsStable)
     const uint64_t hash = renderBenchmarkHash();
     EXPECT_EQ(kGoldenFrameHash, hash)
         << "Rendered output changed. If this change is intentional, re-run "
-           "WinRayCastBenchmark and update kGoldenFrameHash to 0x" << std::hex
+           "nuRCADEBenchmark and update kGoldenFrameHash to 0x" << std::hex
         << hash << "ULL.";
 }
 
