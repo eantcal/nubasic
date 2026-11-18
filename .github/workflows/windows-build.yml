@@ -1,0 +1,93 @@
+name: Windows Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and package (Windows x64)
+    runs-on: windows-2022
+    timeout-minutes: 60
+
+    env:
+      BUILD_DIR: _generated/build/ci-windows
+      ARTIFACT_DIR: _generated/artifacts/nubasic-windows-x64
+      VCPKG_ROOT: C:\vcpkg
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install libffi
+        shell: pwsh
+        run: vcpkg install libffi:x64-windows
+
+      - name: Configure CMake
+        shell: pwsh
+        run: >-
+          cmake -S . -B $env:BUILD_DIR
+          -G "Visual Studio 17 2022" -A x64
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+          -DVCPKG_TARGET_TRIPLET=x64-windows
+          -DNUBASIC_WITH_LIBFFI=ON
+          -DNUBASIC_WITH_RAYCAST=ON
+          -DWITH_WIN_IDE=ON
+          -DNUBASIC_INSTALLER=WIX
+
+      - name: Build Release
+        shell: pwsh
+        run: cmake --build $env:BUILD_DIR --config Release --parallel
+
+      - name: Smoke-test interpreter
+        shell: pwsh
+        run: |
+          & "$env:BUILD_DIR/cli/win/Release/nubasic.exe" -v
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
+
+      - name: Build MSI installer
+        shell: pwsh
+        run: cmake --build $env:BUILD_DIR --target CreateInstaller --config Release --parallel
+
+      - name: Stage distributable files
+        shell: pwsh
+        run: |
+          cmake --install $env:BUILD_DIR --config Release --prefix $env:ARTIFACT_DIR
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
+
+          $msiFiles = @(Get-ChildItem -LiteralPath $env:BUILD_DIR -Filter 'nuBASIC_*.msi' -File)
+          if ($msiFiles.Count -ne 1) {
+            throw "Expected exactly one nuBASIC MSI in $env:BUILD_DIR, found $($msiFiles.Count)."
+          }
+
+          Copy-Item -LiteralPath $msiFiles[0].FullName -Destination $env:ARTIFACT_DIR
+
+          Get-ChildItem -LiteralPath $env:ARTIFACT_DIR -Recurse -File |
+            Get-FileHash -Algorithm SHA256 |
+            Select-Object Hash, Path |
+            Format-Table -AutoSize
+
+      - name: Upload unsigned Windows artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: nubasic-windows-x64-unsigned
+          path: _generated/artifacts/nubasic-windows-x64
+          if-no-files-found: error
+          retention-days: 14
