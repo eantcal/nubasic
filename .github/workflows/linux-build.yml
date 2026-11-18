@@ -1,0 +1,101 @@
+name: Linux Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linux-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and package (Ubuntu x64)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    env:
+      BUILD_DIR: _generated/build/ci-linux
+      ARTIFACT_DIR: _generated/artifacts/nubasic-linux-x64
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            ninja-build \
+            pkg-config \
+            libffi-dev \
+            libx11-dev \
+            libgtk2.0-dev \
+            libglib2.0-dev \
+            libpango1.0-dev \
+            libatk1.0-dev \
+            libcairo2-dev
+
+      - name: Configure CMake
+        run: >-
+          cmake -S . -B "$BUILD_DIR" -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_INSTALL_PREFIX=/usr
+          -DNUBASIC_WITH_LIBFFI=ON
+          -DNUBASIC_WITH_RAYCAST=OFF
+          -DWITH_X11=ON
+          -DWITH_IDE=ON
+
+      - name: Build Release
+        run: cmake --build "$BUILD_DIR" --parallel
+
+      - name: Smoke-test interpreter
+        run: '"$BUILD_DIR/nubasic" -v'
+
+      - name: Run regression tests
+        run: cmake --build "$BUILD_DIR" --target RunTests --parallel
+
+      - name: Build DEB and stage distributable files
+        shell: bash
+        run: |
+          mkdir -p "$ARTIFACT_DIR/root"
+          cmake --install "$BUILD_DIR" --prefix "$ARTIFACT_DIR/root"
+
+          (
+            cd "$BUILD_DIR"
+            cpack \
+              -G DEB \
+              -D CPACK_PACKAGING_INSTALL_PREFIX=/usr \
+              -D CPACK_SET_DESTDIR=ON \
+              --config CPackConfig.cmake
+          )
+
+          shopt -s nullglob
+          deb_files=("$BUILD_DIR"/*.deb)
+          if (( ${#deb_files[@]} != 1 )); then
+            echo "Expected exactly one DEB package, found ${#deb_files[@]}." >&2
+            exit 1
+          fi
+
+          cp "${deb_files[0]}" "$ARTIFACT_DIR/"
+
+          find "$ARTIFACT_DIR" -type f -print0 \
+            | sort -z \
+            | xargs -0 sha256sum
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: nubasic-linux-x64
+          path: _generated/artifacts/nubasic-linux-x64
+          if-no-files-found: error
+          retention-days: 14
