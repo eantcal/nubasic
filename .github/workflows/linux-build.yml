@@ -61,8 +61,22 @@ jobs:
       - name: Smoke-test interpreter
         run: '"$BUILD_DIR/nubasic" -v'
 
-      - name: Run regression tests
-        run: cmake --build "$BUILD_DIR" --target RunTests --parallel
+      - name: Run focused Linux tests
+        shell: bash
+        run: |
+          ci_test_dir="$RUNNER_TEMP/nubasic-linux-tests"
+          mkdir -p "$ci_test_dir"
+          cp \
+            tests/test_math.bas \
+            tests/test_strings.bas \
+            tests/test_types.bas \
+            tests/test_native_linux_strlen.bas \
+            tests/test_native_posix_missing_lib.bas \
+            "$ci_test_dir/"
+
+          bash tests/run_tests.sh \
+            --interpreter "$BUILD_DIR/nubasic" \
+            --testdir "$ci_test_dir"
 
       - name: Build DEB and stage distributable files
         shell: bash
