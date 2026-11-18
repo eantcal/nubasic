@@ -105,6 +105,14 @@ In practice, nuRCADE provides the low-level rendering and engine logic, while nu
 - **[Windows Runtime DLL Dependencies](https://github.com/eantcal/nubasic/blob/main/docs/windows-runtime-dependencies.md)** - packaged and system DLL checklist for Windows releases
 - **[Examples](https://github.com/eantcal/nubasic/tree/main/examples)** — ready-to-run `.bas` programs covering games, graphics, fractals, animations, and more
 
+## Code signing policy
+
+nuBASIC's signing scope, approval process, team roles, and privacy statement
+are documented in the [Code signing policy](CODE_SIGNING_POLICY.md).
+
+Free code signing provided by [SignPath.io](https://signpath.io/), certificate
+by [SignPath Foundation](https://signpath.org/).
+
 ## Quick Start
 
 ```bash
