@@ -66,7 +66,14 @@ function Assert-MsixSignature {
     )
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
-    Add-Type -AssemblyName System.Security.Cryptography.Pkcs
+    if ($PSVersionTable.PSEdition -eq 'Desktop') {
+        # Windows PowerShell 5.1 exposes SignedCms from the .NET Framework
+        # System.Security assembly. PowerShell 7 uses the standalone Pkcs
+        # assembly instead.
+        Add-Type -AssemblyName System.Security
+    } else {
+        Add-Type -AssemblyName System.Security.Cryptography.Pkcs
+    }
 
     $archive = [IO.Compression.ZipFile]::OpenRead($PackagePath)
     try {
