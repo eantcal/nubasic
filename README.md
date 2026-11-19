@@ -107,8 +107,9 @@ In practice, nuRCADE provides the low-level rendering and engine logic, while nu
 
 ## Code signing policy
 
-nuBASIC's signing scope, approval process, team roles, and privacy statement
-are documented in the [Code signing policy](CODE_SIGNING_POLICY.md).
+nuBASIC's signing scope, approval process, and team roles are documented in
+the [Code signing policy](CODE_SIGNING_POLICY.md). See also the
+[Privacy policy](PRIVACY.md) and the [Security policy](SECURITY.md).
 
 Free code signing provided by [SignPath.io](https://signpath.io/), certificate
 by [SignPath Foundation](https://signpath.org/).
