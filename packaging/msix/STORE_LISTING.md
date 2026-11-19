@@ -132,3 +132,88 @@ At least one is required; Microsoft recommends four. Suggested shots:
 2. Debugger stopped at a breakpoint, with the watch and call stack panes.
 3. A graphics example running (for example a fractal or `plane.bas`).
 4. The nuRCADE raycasting demo (`examples/raycast/eclipse_protocol.bas`).
+
+## Store listing (Italiano)
+
+The package declares `it-it`, so Partner Center requires a complete Italian
+listing as well. Screenshots can be the same as the English listing.
+
+### Product name
+
+nuBASIC
+
+### Short description
+
+```text
+Un interprete BASIC moderno e open source, con IDE e debugger nativi. Scrivi in BASIC classico con i numeri di riga, in modo strutturato o a oggetti, disegna grafica e crea giochi retro in prima persona con il motore di raycasting nuRCADE integrato.
+```
+
+### Description
+
+```text
+nuBASIC è un interprete BASIC moderno e open source per Windows. È un primo linguaggio di programmazione semplice per chi inizia e un omaggio all'epoca degli home computer per gli appassionati di retro-computing, pur restando adatto a programmi veri.
+
+TRE STILI IN UN SOLO LINGUAGGIO
+- BASIC classico: numeri di riga, GoTo e GoSub, e un prompt in modalità immediata in cui ogni istruzione viene eseguita appena la scrivi.
+- BASIC strutturato: Sub e Function con parametri ByRef e ByVal, If/ElIf/Else, For, While, Do...Loop, Select Case, Struct, Const, programmi su più file con Include e un punto di ingresso main() con argomenti da riga di comando.
+- BASIC a oggetti: classi con campi e metodi, costruttori e distruttori, ereditarietà singola, metodi virtuali, metodi statici e controllo di accesso Public/Protected/Private.
+I tre stili possono essere combinati nello stesso programma.
+
+UN AMBIENTE DI SVILUPPO COMPLETO
+- IDE nativo con evidenziazione della sintassi, completamento automatico, code folding e segnalibri.
+- Debugger integrato: breakpoint, Step Into, Step Over, Step Out, Run to Cursor, pausa, finestra di watch e call stack.
+- Progetti su più file (.nbp) e associazione dei file .bas e .nbp.
+- L'interprete nubasic da riga di comando, disponibile da qualsiasi terminale.
+- Guida integrata per ogni parola chiave.
+
+GRAFICA E GIOCHI
+- Linee, rettangoli, ellissi, forme piene, testo, bitmap e accesso ai singoli pixel.
+- Animazioni senza sfarfallio con doppio buffer.
+- Input da mouse e tastiera.
+- nuRCADE, un motore di raycasting integrato per scene pseudo-3D in prima persona nello stile degli sparatutto arcade anni '90: pareti con texture, sprite, movimento del giocatore e rilevamento delle collisioni, tutto controllato da semplici funzioni BASIC.
+
+LINGUAGGIO E RUNTIME
+- Tipi Integer, Double, Boolean, Long64, String, Byte e tipi definiti dall'utente.
+- Array e tabelle hash integrati.
+- I/O su file sequenziale, binario e ad accesso casuale.
+- Stringhe e output su console in UTF-8.
+- Chiamate opzionali a librerie native di Windows, disattivabili.
+
+Sono inclusi esempi pronti da eseguire: giochi, frattali, animazioni, demo grafiche e una demo completa di raycasting.
+
+nuBASIC è gratuito e open source con licenza MIT. Non raccoglie alcun dato.
+```
+
+### Product features
+
+```text
+BASIC classico, strutturato e a oggetti in un solo linguaggio
+Prompt in modalità immediata: scrivi un'istruzione e viene eseguita subito
+IDE nativo con evidenziazione della sintassi, completamento automatico e code folding
+Debugger integrato con breakpoint, esecuzione passo passo, watch e call stack
+Grafica 2D, bitmap e animazioni senza sfarfallio
+Motore di raycasting nuRCADE per giochi retro in prima persona
+Array, tabelle hash, struct e classi integrati
+Progetti su più file e associazione dei file .bas/.nbp
+Interprete da riga di comando disponibile da qualsiasi terminale
+Esempi pronti da eseguire: giochi, frattali e demo
+Gratuito e open source (licenza MIT), nessuna raccolta di dati
+```
+
+### Keywords
+
+```text
+BASIC
+programmazione
+interprete
+IDE
+retro
+imparare a programmare
+raycasting
+```
+
+### Copyright and trademark info
+
+```text
+Copyright (c) Antonino Calderone. Rilasciato con licenza MIT.
+```
