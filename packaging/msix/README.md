@@ -28,7 +28,7 @@ the extension remains available through its independent distribution channel.
 First configure and build nuBASIC, then stage the CMake install tree:
 
 ```powershell
-cmake --install build\release --config Release --prefix _generated\msix-stage
+cmake --install _generated\build\release --config Release --prefix _generated\msix-stage
 ```
 
 Create a Store-compatible package. The fourth version component must remain

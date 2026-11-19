@@ -128,7 +128,7 @@ if ($Version -notmatch '^[1-9][0-9]{0,4}\.[0-9]{1,5}\.[0-9]{1,5}\.0$') {
 }
 
 if ([string]::IsNullOrWhiteSpace($BuildDir)) {
-    $BuildDir = Join-Path $repoRoot 'build\release'
+    $BuildDir = Join-Path $repoRoot '_generated\build\release'
 } else {
     $BuildDir = Resolve-FullPath -Path $BuildDir -BasePath $repoRoot
 }
