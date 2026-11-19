@@ -23,6 +23,7 @@ jobs:
     env:
       BUILD_DIR: _generated/build/ci-windows
       ARTIFACT_DIR: _generated/artifacts/nubasic-windows-x64
+      MSIX_ARTIFACT_DIR: _generated/artifacts/nubasic-store-x64
       VCPKG_ROOT: C:\vcpkg
 
     steps:
@@ -84,10 +85,39 @@ jobs:
             Select-Object Hash, Path |
             Format-Table -AutoSize
 
+      - name: Determine Microsoft Store package version
+        shell: pwsh
+        run: |
+          $cmake = Get-Content -LiteralPath CMakeLists.txt -Raw
+          $major = [regex]::Match($cmake, 'set\(MAJOR_VERSION\s+([0-9]+)\)').Groups[1].Value
+          $minor = [regex]::Match($cmake, 'set\(MINOR_VERSION\s+([0-9]+)\)').Groups[1].Value
+          $patch = [regex]::Match($cmake, 'set\(PATCH_VERSION\s+([0-9]+)\)').Groups[1].Value
+          if (-not $major -or -not $minor -or -not $patch) {
+            throw 'Could not determine the nuBASIC version from CMakeLists.txt.'
+          }
+          "MSIX_VERSION=$major.$minor.$patch.0" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Build Microsoft Store MSIX
+        shell: pwsh
+        run: |
+          .\packaging\msix\New-MsixPackage.ps1 `
+            -StageDir $env:ARTIFACT_DIR `
+            -OutputDir $env:MSIX_ARTIFACT_DIR `
+            -WorkingDir "$env:BUILD_DIR/msix-work" `
+            -Version $env:MSIX_VERSION
+
       - name: Upload unsigned Windows artifacts
         uses: actions/upload-artifact@v7
         with:
           name: nubasic-windows-x64-unsigned
           path: _generated/artifacts/nubasic-windows-x64
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Microsoft Store MSIX
+        uses: actions/upload-artifact@v7
+        with:
+          name: nubasic-store-x64
+          path: _generated/artifacts/nubasic-store-x64
           if-no-files-found: error
           retention-days: 14

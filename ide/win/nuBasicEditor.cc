@@ -1630,6 +1630,14 @@ public:
     bool exec_interpreter_cmd(const std::string& cmd, bool bgmode);
 
     /**
+     * Make the directory of the active document the process current
+     * directory, so programs resolve relative resources (bitmaps, worlds,
+     * data files) next to their source file regardless of how the IDE was
+     * launched (e.g. MSIX apps start with System32 as current directory).
+     */
+    void set_program_working_directory();
+
+    /**
      * Ask the interpreter to evaluate an expression
      */
     bool evaluate_expression(const std::string& expression);
@@ -3019,6 +3027,21 @@ static std::wstring collect_scope_variables(nu::proc_scope_t& proc_scope)
 
 /* -------------------------------------------------------------------------- */
 
+void nu::editor_t::set_program_working_directory()
+{
+    if (_full_path_str.empty())
+        return;
+
+    std::error_code ec;
+    const auto dir = std::filesystem::path(_full_path_str).parent_path();
+    if (dir.empty() || !std::filesystem::is_directory(dir, ec))
+        return;
+
+    std::filesystem::current_path(dir, ec);
+}
+
+/* -------------------------------------------------------------------------- */
+
 void nu::editor_t::start_debugging(dbg_flg_t flg)
 {
     const bool resuming_paused_program = flg != dbg_flg_t::NORMAL_EXECUTION
@@ -3031,6 +3054,7 @@ void nu::editor_t::start_debugging(dbg_flg_t flg)
     if (!resuming_paused_program) {
         reset_all_breakpoints();
         interpreter().clear_rtdata();
+        set_program_working_directory();
     }
     interpreter().set_native_calls_enabled(native_calls_enabled());
     interpreter().set_debug_mode(true);
@@ -3188,6 +3212,7 @@ void nu::editor_t::start_without_debugging()
     interpreter().exec_command("clrbrk");
     interpreter().set_native_calls_enabled(native_calls_enabled());
     interpreter().set_debug_mode(false);
+    set_program_working_directory();
     remove_prog_cnt_marker();
     _last_debug_stop = debug_stop_t::COMPLETED;
 

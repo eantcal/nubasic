@@ -29,20 +29,10 @@ source-code changes.
 ## Privacy policy
 
 nuBASIC does not collect telemetry or automatically transmit personal data.
-
-This program will not transfer any information to other networked systems
-unless specifically requested by the user or the person installing or
-operating it.
-
-Programs executed through nuBASIC can access files, launch commands, or call
-native libraries when explicitly instructed by their source code and allowed
-by the operating system. Users should review untrusted BASIC programs before
-running them; native library calls can be disabled with
-`--disable-native-calls`.
+See the [privacy policy](PRIVACY.md) for details.
 
 ## Reporting issues
 
-Security-sensitive issues should be reported privately through
-[GitHub's security advisory form](https://github.com/eantcal/nubasic/security/advisories/new).
-Other defects can be reported through the
+See the [security policy](SECURITY.md) for how to report security-sensitive
+issues. Other defects can be reported through the
 [public issue tracker](https://github.com/eantcal/nubasic/issues).
